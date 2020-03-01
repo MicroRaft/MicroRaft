@@ -1,0 +1,17 @@
+target/
+.clover/
+.idea/
+.settings/
+.attach_pid*
+.classpath
+.directory
+.patch
+.project
+.surefire-*
+.DS_Store
+*.iml
+*.ipr
+*.iws
+atlassian-ide-plugin.xml
+*dependency-reduced-pom.xml
+

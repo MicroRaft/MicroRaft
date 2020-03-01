@@ -1,0 +1,140 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>dev.basri</groupId>
+    <artifactId>raft4j</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <name>raft4j - In-memory implementation of Raft consensus algorithm</name>
+    <url>https://raft4j.com|net|org|io|dev</url>
+
+    <developers>
+        <developer>
+            <id>mdogan</id>
+            <name>Mehmet Dogan</name>
+            <organization>Hazelcast</organization>
+            <email>mehmet@hazelcast.com</email>
+        </developer>
+        <developer>
+            <id>metanet</id>
+            <name>Ensar Basri Kahveci</name>
+            <organization>Hazelcast</organization>
+            <email>ebkahveci@gmail.com</email>
+        </developer>
+    </developers>
+
+    <properties>
+        <main.basedir>${project.basedir}</main.basedir>
+        <maven.build.timestamp.format>yyyyMMdd</maven.build.timestamp.format>
+        <timestamp>${maven.build.timestamp}</timestamp>
+
+        <slf4j.api.version>1.7.26</slf4j.api.version>
+        <log4j.version>2.8.2</log4j.version>
+        <junit.version>4.12</junit.version>
+        <hamcrest.version>1.3</hamcrest.version>
+        <mockito.version>2.23.0</mockito.version>
+        <assertj.version>3.12.2</assertj.version>
+        <findbugs.annotations.version>3.0.1</findbugs.annotations.version>
+
+        <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
+        <maven.spotbugs.plugin.version>3.1.12.2</maven.spotbugs.plugin.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.api.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${findbugs.annotations.version}</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+
+        <profile>
+            <id>spotbugs</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs-maven-plugin</artifactId>
+                        <version>${maven.spotbugs.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <failOnError>true</failOnError>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+    </profiles>
+
+</project>

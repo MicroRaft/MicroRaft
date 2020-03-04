@@ -1,43 +1,65 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>dev.basri</groupId>
-    <artifactId>raft4j</artifactId>
-    <packaging>jar</packaging>
+    <groupId>io.microraft</groupId>
+    <artifactId>microraft-root</artifactId>
+    <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
-    <name>raft4j - In-memory implementation of Raft consensus algorithm</name>
-    <url>https://raft4j.com|net|org|io|dev</url>
+
+    <name>MicroRaft Root</name>
+    <url>https://microraft.io</url>
+
+    <modules>
+        <module>microraft</module>
+    </modules>
 
     <developers>
+        <developer>
+            <id>metanet</id>
+            <name>Ensar Basri Kahveci</name>
+            <email>ebkahveci@gmail.com</email>
+        </developer>
         <developer>
             <id>mdogan</id>
             <name>Mehmet Dogan</name>
             <organization>Hazelcast</organization>
             <email>mehmet@hazelcast.com</email>
         </developer>
-        <developer>
-            <id>metanet</id>
-            <name>Ensar Basri Kahveci</name>
-            <organization>Hazelcast</organization>
-            <email>ebkahveci@gmail.com</email>
-        </developer>
     </developers>
 
-    <properties>
-        <main.basedir>${project.basedir}</main.basedir>
-        <maven.build.timestamp.format>yyyyMMdd</maven.build.timestamp.format>
-        <timestamp>${maven.build.timestamp}</timestamp>
+    <scm>
+        <url>https://github.com/metanet/MicroRaft</url>
+        <connection>scm:git:git@github.com:metanet/MicroRaft</connection>
+        <developerConnection>scm:git:git@github.com:metanet/MicroRaft.git</developerConnection>
+    </scm>
 
-        <slf4j.api.version>1.7.26</slf4j.api.version>
-        <log4j.version>2.8.2</log4j.version>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <properties>
+        <root.dir>${project.basedir}</root.dir>
+        <maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
+        <timestamp>${maven.build.timestamp}</timestamp>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <slf4j.api.version>1.7.30</slf4j.api.version>
+        <log4j.version>2.13.0</log4j.version>
         <junit.version>4.12</junit.version>
         <hamcrest.version>1.3</hamcrest.version>
-        <mockito.version>2.23.0</mockito.version>
-        <assertj.version>3.12.2</assertj.version>
+        <mockito.version>2.28.2</mockito.version>
+        <assertj.version>3.15.0</assertj.version>
         <findbugs.annotations.version>3.0.1</findbugs.annotations.version>
 
         <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
         <maven.spotbugs.plugin.version>3.1.12.2</maven.spotbugs.plugin.version>
+        <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
+        <maven.resources.plugin.version>3.1.0</maven.resources.plugin.version>
+        <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
     </properties>
 
     <dependencies>
@@ -48,21 +70,11 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
-            <version>${log4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-            <version>${log4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>${log4j.version}</version>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${findbugs.annotations.version}</version>
+            <scope>provided</scope>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
@@ -87,30 +99,87 @@
         </dependency>
 
         <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>annotations</artifactId>
-            <version>${findbugs.annotations.version}</version>
-            <scope>provided</scope>
-            <optional>true</optional>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${log4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>${root.dir}</directory>
+                <includes>
+                    <include>NOTICE*</include>
+                    <include>LICENSE*</include>
+                </includes>
+            </resource>
+        </resources>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven.compiler.plugin.version}</version>
                 <configuration>
+                    <encoding>UTF-8</encoding>
                     <source>8</source>
                     <target>8</target>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven.surefire.plugin.version}</version>
+                <configuration>
+                    <runOrder>random</runOrder>
+                    <argLine>-Xms1G -Xmx4G</argLine>
+                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven.resources.plugin.version}</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${maven.source.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
 
     <profiles>
-
         <profile>
             <id>spotbugs</id>
             <build>
@@ -128,13 +197,12 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <failOnError>true</failOnError>
+                            <excludeFilterFile>${root.dir}/tools/spotbugs-ignore.xml</excludeFilterFile>
                         </configuration>
                     </plugin>
                 </plugins>
             </build>
         </profile>
-
     </profiles>
 
 </project>

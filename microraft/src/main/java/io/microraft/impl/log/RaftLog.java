@@ -379,6 +379,8 @@ public class RaftLog {
         log.setTailSequence(newTailSeq);
 
         this.snapshot = snapshot;
+        // snapshot chunks are already persisted to disk before
+        // setSnapshot() is called.
         dirty = true;
 
         return (int) (prevSize - log.size());

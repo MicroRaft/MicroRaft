@@ -18,6 +18,8 @@
 package io.microraft.impl.handler;
 
 import io.microraft.impl.RaftNodeImpl;
+import io.microraft.impl.state.FollowerState;
+import io.microraft.impl.state.LeaderState;
 import io.microraft.model.message.InstallSnapshotRequest;
 import io.microraft.model.message.InstallSnapshotResponse;
 import org.slf4j.Logger;
@@ -83,7 +85,13 @@ public class InstallSnapshotResponseHandler
             }
         }
 
-        node.tryAckQueryRound(response.getQueryRound(), response.getSender());
+        node.tryAckQuery(response.getQuerySeqNo(), response.getSender());
+
+        LeaderState leaderState = state.leaderState();
+        FollowerState followerState = leaderState != null ? leaderState.getFollowerState(response.getSender()) : null;
+        if (followerState != null && !followerState.responseReceived(response.getFlowControlSeqNo())) {
+            return;
+        }
 
         node.sendSnapshotChunks(response.getSender(), response.getSnapshotIndex(), response.getRequestedSnapshotChunkIndices());
     }

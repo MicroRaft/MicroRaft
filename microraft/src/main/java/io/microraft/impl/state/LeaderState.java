@@ -113,11 +113,11 @@ public class LeaderState {
     }
 
     /**
-     * Returns the index of the heartbeat round to execute the currently
-     * waiting queries.
+     * Returns the query sequence number to be acked by the majority to execute
+     * the currently waiting queries.
      */
-    public long queryRound() {
-        return queryState.queryRound();
+    public long querySeqNo() {
+        return queryState.querySeqNo();
     }
 
     public boolean isRequestBackoffResetTaskScheduled() {

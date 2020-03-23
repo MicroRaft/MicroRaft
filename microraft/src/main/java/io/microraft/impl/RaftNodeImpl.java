@@ -330,34 +330,29 @@ public class RaftNodeImpl
 
     public void sendSnapshotChunks(RaftEndpoint follower, long snapshotIndex, List<Integer> requestedSnapshotChunkIndices) {
         // this node can be a leader or a follower!
-
         LeaderState leaderState = state.leaderState();
         FollowerState followerState = leaderState != null ? leaderState.getFollowerState(follower) : null;
         SnapshotEntry snapshotEntry = state.log().snapshotEntry();
         List<SnapshotChunk> snapshotChunksToSend;
 
         if (snapshotEntry.getIndex() == snapshotIndex) {
-            if (followerState != null) {
-                followerState.responseReceived();
-            }
-
             List<SnapshotChunk> snapshotChunks = (List<SnapshotChunk>) snapshotEntry.getOperation();
             snapshotChunksToSend = requestedSnapshotChunkIndices.stream().map(snapshotChunks::get).collect(toList());
-            LOGGER.debug("{} sending snapshot chunks: {} to {} for snapshot index: {}", localEndpointStr,
+            LOGGER.info("{} sending snapshot chunks: {} to {} for snapshot index: {}", localEndpointStr,
                     requestedSnapshotChunkIndices, follower.getId(), snapshotIndex);
         } else if (snapshotEntry.getIndex() > snapshotIndex) {
             if (leaderState == null) {
                 // We allow only the Raft leader to initiate a new snapshot
                 // installation process.
-                LOGGER.debug("{} cannot send requested snapshot chunks: {} for snapshot index:{} to {} because the "
+                LOGGER.info("{} cannot send requested snapshot chunks: {} for snapshot index: {} to {} because the "
                                 + "current snapshot index: {} and I am not the leader!", localEndpointStr, requestedSnapshotChunkIndices,
                         snapshotIndex, follower, snapshotEntry.getIndex());
                 return;
             }
 
             snapshotChunksToSend = emptyList();
-            LOGGER.debug("{} sending empty snapshot chunk list to {} because requested snapshot index: "
-                            + "{} is different than the latest snapshot index: {}", localEndpointStr, follower.getId(), snapshotIndex,
+            LOGGER.info("{} sending empty snapshot chunk list to {} because requested snapshot index: "
+                            + "{} is smaller than the current snapshot index: {}", localEndpointStr, follower.getId(), snapshotIndex,
                     snapshotEntry.getIndex());
         } else {
             LOGGER.error("{} requested snapshot index: {} for snapshot chunk indices: {} from {} is bigger than "
@@ -374,13 +369,15 @@ public class RaftNodeImpl
                                           .setSnapshotChunks(snapshotChunksToSend)
                                           .setGroupMembersLogIndex(snapshotEntry.getGroupMembersLogIndex())
                                           .setGroupMembers(snapshotEntry.getGroupMembers())
-                                          .setQueryRound(leaderState != null ? leaderState.queryRound() : 0).build();
+                                          .setQuerySeqNo(leaderState != null ? leaderState.querySeqNo() : 0)
+                                          .setFlowControlSeqNo(followerState != null ? followerState.nextFlowControlSeqNo() : 0)
+                                          .build();
 
         runtime.send(follower, request);
 
         if (followerState != null) {
             followerState.setMaxRequestBackoff();
-            scheduleLeaderBackoffResetTask(leaderState);
+            scheduleLeaderRequestBackoffResetTask(leaderState);
         }
     }
 
@@ -672,7 +669,7 @@ public class RaftNodeImpl
      *
      * @see RaftConfig#getLeaderBackoffDurationMillis()
      */
-    private void scheduleLeaderBackoffResetTask(LeaderState leaderState) {
+    private void scheduleLeaderRequestBackoffResetTask(LeaderState leaderState) {
         if (leaderState.isRequestBackoffResetTaskScheduled()) {
             return;
         }
@@ -931,7 +928,7 @@ public class RaftNodeImpl
 
         if (truncated > 0) {
             LOGGER.info("{} {} entries are truncated to install snapshot at commit index: {}", localEndpointStr, truncated,
-                    snapshotEntry);
+                    snapshotEntry.getIndex());
         }
 
         log.flush();
@@ -1092,7 +1089,8 @@ public class RaftNodeImpl
                                               .setSnapshotChunks(emptyList())
                                               .setGroupMembersLogIndex(snapshotEntry.getGroupMembersLogIndex())
                                               .setGroupMembers(snapshotEntry.getGroupMembers())
-                                              .setQueryRound(leaderState.queryRound()).build();
+                                              .setQuerySeqNo(leaderState.querySeqNo())
+                                              .setFlowControlSeqNo(followerState.nextFlowControlSeqNo()).build();
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(
@@ -1102,18 +1100,19 @@ public class RaftNodeImpl
 
             runtime.send(follower, request);
             followerState.setMaxRequestBackoff();
-            scheduleLeaderBackoffResetTask(leaderState);
+            scheduleLeaderRequestBackoffResetTask(leaderState);
+
             return;
         }
 
         AppendEntriesRequestBuilder requestBuilder = modelFactory.createAppendEntriesRequestBuilder().setGroupId(getGroupId())
                                                                  .setSender(getLocalEndpoint()).setTerm(state.term())
                                                                  .setCommitIndex(state.commitIndex())
-                                                                 .setQueryRound(leaderState.queryRound());
+                                                                 .setQuerySeqNo(leaderState.querySeqNo());
         int prevEntryTerm = 0;
         long prevEntryIndex = 0;
         List<LogEntry> entries;
-        boolean setAppendRequestBackoff = true;
+        boolean backoff = true;
 
         long lastLogIndex = log.lastLogOrSnapshotIndex();
         if (nextIndex > 1) {
@@ -1139,7 +1138,7 @@ public class RaftNodeImpl
             } else {
                 // The follower has caught up with the leader. Sending an empty append request as a heartbeat...
                 entries = emptyList();
-                setAppendRequestBackoff = false;
+                backoff = false;
             }
         } else if (nextIndex == 1 && lastLogIndex > 0) {
             // Entries will be sent to the follower for the first time...
@@ -1148,14 +1147,26 @@ public class RaftNodeImpl
         } else {
             // There is no entry in the Raft log. Sending an empty append request as a heartbeat...
             entries = emptyList();
-            setAppendRequestBackoff = false;
+            backoff = false;
         }
 
         RaftMessage request = requestBuilder.setPreviousLogTerm(prevEntryTerm).setPreviousLogIndex(prevEntryIndex)
+                                            .setFlowControlSeqNo(backoff ? followerState.nextFlowControlSeqNo() : 0)
                                             .setLogEntries(entries).build();
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(localEndpointStr + " Sending " + request + " to " + follower.getId() + " with next index: " + nextIndex);
+        }
+
+        send(request, follower);
+
+        if (backoff) {
+            // if the request backoff task is already scheduled, the task may
+            // run too early and complete the backoff round of this follower
+            // prematurely. in order to prevent this possibility, we add one
+            // more backoff round for this follower.
+            followerState.setRequestBackoff(leaderState.isRequestBackoffResetTaskScheduled());
+            scheduleLeaderRequestBackoffResetTask(leaderState);
         }
 
         if (entries.size() > 0 && entries.get(entries.size() - 1).getIndex() > leaderState.flushedLogIndex()) {
@@ -1166,13 +1177,6 @@ public class RaftNodeImpl
             // and followers flush in parallel...
             submitLeaderFlushTask(leaderState);
         }
-
-        if (setAppendRequestBackoff) {
-            followerState.setRequestBackoff();
-            scheduleLeaderBackoffResetTask(leaderState);
-        }
-
-        send(request, follower);
     }
 
     /**
@@ -1343,7 +1347,7 @@ public class RaftNodeImpl
             LOGGER.info("{} Transferring leadership to {}", localEndpointStr, leadershipTransferState.endpoint().getId());
         }
 
-        leaderState.getFollowerState(targetEndpoint).responseReceived();
+        leaderState.getFollowerState(targetEndpoint).resetRequestBackoff();
         sendAppendEntriesRequest(targetEndpoint);
 
         BaseLogEntry entry = state.log().lastLogOrSnapshotEntry();
@@ -1424,16 +1428,16 @@ public class RaftNodeImpl
         broadcastAppendEntriesRequest();
     }
 
-    public void tryAckQueryRound(long queryRound, RaftEndpoint sender) {
+    public void tryAckQuery(long querySeqNo, RaftEndpoint sender) {
         LeaderState leaderState = state.leaderState();
         if (leaderState == null) {
             return;
         }
 
         QueryState queryState = leaderState.queryState();
-        if (queryState.tryAck(queryRound, sender)) {
+        if (queryState.tryAck(querySeqNo, sender)) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(localEndpointStr() + " ack from " + sender.getId() + " for query round: " + queryRound);
+                LOGGER.debug(localEndpointStr() + " ack from " + sender.getId() + " for query seq no: " + querySeqNo);
             }
 
             tryRunQueries();
@@ -1463,7 +1467,7 @@ public class RaftNodeImpl
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(localEndpointStr + " running " + operations.size() + " queries at commit index: " + commitIndex
-                    + ", query round: " + queryState.queryRound());
+                    + ", query seq no: " + queryState.querySeqNo());
         }
 
         for (Entry<Object, OrderedFuture> t : operations) {
@@ -1552,6 +1556,7 @@ public class RaftNodeImpl
 
         if (committedEntry != null) {
             state.commitIndex(committedEntry.getIndex());
+            // TODO [basri] can / should we call takeSnapshot() here ???
             applyLogEntries();
         }
 
@@ -1837,20 +1842,15 @@ public class RaftNodeImpl
 
             leaderState.requestBackoffResetTaskScheduled(false);
 
-            for (Entry<RaftEndpoint, FollowerState> entry : leaderState.getFollowerStates().entrySet()) {
-                FollowerState followerState = entry.getValue();
-                if (!followerState.isRequestBackoffSet()) {
-                    continue;
+            for (Entry<RaftEndpoint, FollowerState> e : leaderState.getFollowerStates().entrySet()) {
+                FollowerState followerState = e.getValue();
+                if (followerState.isRequestBackoffSet()) {
+                    if (followerState.completeBackoffRound()) {
+                        sendAppendEntriesRequest(e.getKey());
+                    } else {
+                        scheduleLeaderRequestBackoffResetTask(leaderState);
+                    }
                 }
-
-                if (followerState.completeBackoffRound()) {
-                    // This follower has not sent a response to the last append request.
-                    // Send another append request
-                    sendAppendEntriesRequest(entry.getKey());
-                }
-
-                // Schedule the task again, we still have backoff flag set followers
-                scheduleLeaderBackoffResetTask(leaderState);
             }
         }
 

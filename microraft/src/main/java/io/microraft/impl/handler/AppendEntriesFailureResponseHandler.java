@@ -72,7 +72,7 @@ public class AppendEntriesFailureResponseHandler
 
         LOGGER.debug("{} received {}.", localEndpointStr(), response);
 
-        node.tryAckQueryRound(response.getQueryRound(), response.getSender());
+        node.tryAckQuery(response.getQuerySeqNo(), response.getSender());
 
         if (updateNextIndex(response)) {
             node.sendAppendEntriesRequest(response.getSender());
@@ -87,10 +87,9 @@ public class AppendEntriesFailureResponseHandler
         long nextIndex = followerState.nextIndex();
         long matchIndex = followerState.matchIndex();
 
-        if (response.getExpectedNextIndex() == nextIndex) {
-            // Received a response for the last append entries request. Resetting the flag...
-            followerState.responseReceived();
+        followerState.responseReceived(response.getFlowControlSeqNo());
 
+        if (response.getExpectedNextIndex() == nextIndex) {
             // this is the response of the request I have sent for this nextIndex
             nextIndex--;
             if (nextIndex <= matchIndex) {

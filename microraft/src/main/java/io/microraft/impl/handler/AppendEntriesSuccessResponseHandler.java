@@ -90,20 +90,19 @@ public class AppendEntriesSuccessResponseHandler
         FollowerState followerState = leaderState.getFollowerState(follower);
         QueryState queryState = leaderState.queryState();
 
-        if (queryState.tryAck(response.getQueryRound(), follower)) {
+        if (queryState.tryAck(response.getQuerySeqNo(), follower)) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(
-                        localEndpointStr() + " ack from " + follower.getId() + " for query round: " + response.getQueryRound());
+                        localEndpointStr() + " ack from " + follower.getId() + " for query seq no: " + response.getQuerySeqNo());
             }
         }
 
         long matchIndex = followerState.matchIndex();
         long followerLastLogIndex = response.getLastLogIndex();
 
-        if (followerLastLogIndex > matchIndex) {
-            // Received a response for the last append entries request. Resetting the flag...
-            followerState.responseReceived();
+        followerState.responseReceived(response.getFlowControlSeqNo());
 
+        if (followerLastLogIndex > matchIndex) {
             long newNextIndex = followerLastLogIndex + 1;
             followerState.matchIndex(followerLastLogIndex);
             followerState.nextIndex(newNextIndex);
@@ -115,14 +114,9 @@ public class AppendEntriesSuccessResponseHandler
             }
 
             return true;
-        } else if (followerLastLogIndex == matchIndex) {
-            // Received a response for the last append entries request. Resetting the flag...
-            followerState.responseReceived();
-        } else {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(localEndpointStr() + " Will not update match index for follower: " + follower.getId()
-                        + ". follower last log index: " + followerLastLogIndex + ", match index: " + matchIndex);
-            }
+        } else if (followerLastLogIndex < matchIndex && LOGGER.isDebugEnabled()) {
+            LOGGER.debug(localEndpointStr() + " Will not update match index for follower: " + follower.getId()
+                    + ". follower last log index: " + followerLastLogIndex + ", match index: " + matchIndex);
         }
 
         return false;

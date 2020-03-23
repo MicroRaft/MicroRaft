@@ -83,7 +83,7 @@ public class AppendEntriesRequestHandler
                 LOGGER.warn(localEndpointStr() + " Stale " + request + " received in current term: " + state.term());
             }
 
-            node.send(createAppendEntriesFailureResponse(state.term(), 0), leader);
+            node.send(createAppendEntriesFailureResponse(state.term(), 0, 0), leader);
             return;
         }
 
@@ -105,7 +105,9 @@ public class AppendEntriesRequestHandler
         node.leaderHeartbeatReceived();
 
         if (!verifyLastLogEntry(request, log)) {
-            node.send(createAppendEntriesFailureResponse(request.getTerm(), request.getQueryRound()), leader);
+            node.send(
+                    createAppendEntriesFailureResponse(request.getTerm(), request.getQuerySeqNo(), request.getFlowControlSeqNo()),
+                    leader);
             return;
         }
 
@@ -126,7 +128,8 @@ public class AppendEntriesRequestHandler
         try {
             RaftMessage response = modelFactory.createAppendEntriesSuccessResponseBuilder().setGroupId(node.getGroupId())
                                                .setSender(localEndpoint()).setTerm(state.term()).setLastLogIndex(lastLogIndex)
-                                               .setQueryRound(request.getQueryRound()).build();
+                                               .setQuerySeqNo(request.getQuerySeqNo())
+                                               .setFlowControlSeqNo(request.getFlowControlSeqNo()).build();
             node.send(response, leader);
         } finally {
             if (state.commitIndex() > oldCommitIndex) {
@@ -273,10 +276,10 @@ public class AppendEntriesRequestHandler
         });
     }
 
-    private RaftMessage createAppendEntriesFailureResponse(int term, long queryRound) {
+    private RaftMessage createAppendEntriesFailureResponse(int term, long queryRound, long sequenceNumber) {
         return modelFactory.createAppendEntriesFailureResponseBuilder().setGroupId(node.getGroupId()).setSender(localEndpoint())
-                           .setTerm(term).setExpectedNextIndex(message.getPreviousLogIndex() + 1).setQueryRound(queryRound)
-                           .build();
+                           .setTerm(term).setExpectedNextIndex(message.getPreviousLogIndex() + 1).setQuerySeqNo(queryRound)
+                           .setFlowControlSeqNo(sequenceNumber).build();
     }
 
 }

@@ -234,8 +234,7 @@ public class SnapshotTest
     public void when_leaderMissesInstallSnapshotResponse_then_itAdvancesMatchIndexWithNextInstallSnapshotResponse()
             throws Exception {
         int entryCount = 50;
-        RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount).setLeaderBackoffDurationMillis(1000)
-                                      .build();
+        RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount).build();
         group = new LocalRaftGroup(3, config);
         group.start();
 
@@ -690,7 +689,9 @@ public class SnapshotTest
                                                                        .setPreviousLogIndex(request.getPreviousLogIndex())
                                                                        .setCommitIndex(request.getCommitIndex())
                                                                        .setLogEntries(entries)
-                                                                       .setQueryRound(request.getQueryRound()).build();
+                                                                       .setQuerySeqNo(request.getQuerySeqNo())
+                                                                       .setFlowControlSeqNo(request.getFlowControlSeqNo())
+                                                                       .build();
                     } else if (entries.get(0).getOperation() instanceof DefaultUpdateRaftGroupMembersOp) {
                         entries = emptyList();
                         return new DefaultAppendEntriesRequestBuilder().setSender(request.getSender()).setTerm(request.getTerm())
@@ -698,7 +699,9 @@ public class SnapshotTest
                                                                        .setPreviousLogIndex(request.getPreviousLogIndex())
                                                                        .setCommitIndex(request.getCommitIndex())
                                                                        .setLogEntries(entries)
-                                                                       .setQueryRound(request.getQueryRound()).build();
+                                                                       .setQuerySeqNo(request.getQuerySeqNo())
+                                                                       .setFlowControlSeqNo(request.getFlowControlSeqNo())
+                                                                       .build();
                     }
                 }
             }

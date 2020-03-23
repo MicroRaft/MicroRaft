@@ -43,7 +43,8 @@ public class DefaultInstallSnapshotRequest
     private List<SnapshotChunk> snapshotChunks;
     private long groupMembersLogIndex;
     private Collection<RaftEndpoint> groupMembers;
-    private long queryRound;
+    private long querySeqNo;
+    private long flowControlSeqNo;
 
     private DefaultInstallSnapshotRequest() {
     }
@@ -102,8 +103,13 @@ public class DefaultInstallSnapshotRequest
     }
 
     @Override
-    public long getQueryRound() {
-        return queryRound;
+    public long getQuerySeqNo() {
+        return querySeqNo;
+    }
+
+    @Override
+    public long getFlowControlSeqNo() {
+        return flowControlSeqNo;
     }
 
     @Override
@@ -111,7 +117,8 @@ public class DefaultInstallSnapshotRequest
         return "InstallSnapshotRequest{" + "groupId=" + groupId + ", sender=" + sender + ", term=" + term + ", leader=" + leader
                 + ", snapshotTerm=" + snapshotTerm + ", snapshotIndex=" + snapshotIndex + ", chunkCount="
                 + totalSnapshotChunkCount + ", snapshotChunks=" + snapshotChunks + ", groupMembersLogIndex="
-                + groupMembersLogIndex + ", groupMembers=" + groupMembers + ", queryRound=" + queryRound + '}';
+                + groupMembersLogIndex + ", groupMembers=" + groupMembers + ", querySeqNo=" + querySeqNo + ", flowControlSeqNo="
+                + flowControlSeqNo + '}';
     }
 
     public static class DefaultInstallSnapshotRequestBuilder
@@ -195,8 +202,15 @@ public class DefaultInstallSnapshotRequest
 
         @Nonnull
         @Override
-        public InstallSnapshotRequestBuilder setQueryRound(long queryRound) {
-            request.queryRound = queryRound;
+        public InstallSnapshotRequestBuilder setQuerySeqNo(long querySeqNo) {
+            request.querySeqNo = querySeqNo;
+            return this;
+        }
+
+        @Nonnull
+        @Override
+        public InstallSnapshotRequestBuilder setFlowControlSeqNo(long flowControlSeqNo) {
+            request.flowControlSeqNo = flowControlSeqNo;
             return this;
         }
 

@@ -39,7 +39,8 @@ public class DefaultAppendEntriesRequest
     private long prevLogIndex;
     private long leaderCommitIndex;
     private List<LogEntry> logEntries;
-    private long queryRound;
+    private long querySeqNo;
+    private long flowControlSeqNo;
 
     private DefaultAppendEntriesRequest() {
     }
@@ -82,15 +83,20 @@ public class DefaultAppendEntriesRequest
     }
 
     @Override
-    public long getQueryRound() {
-        return queryRound;
+    public long getQuerySeqNo() {
+        return querySeqNo;
+    }
+
+    @Override
+    public long getFlowControlSeqNo() {
+        return flowControlSeqNo;
     }
 
     @Override
     public String toString() {
         return "AppendEntriesRequest{" + "groupId=" + groupId + ", sender=" + sender + ", term=" + term + ", prevLogTerm="
                 + prevLogTerm + ", prevLogIndex=" + prevLogIndex + ", leaderCommitIndex=" + leaderCommitIndex + ", logEntries="
-                + logEntries + ", queryRound=" + queryRound + '}';
+                + logEntries + ", querySeqNo=" + querySeqNo + ", flowControlSeqNo=" + flowControlSeqNo + '}';
     }
 
     public static class DefaultAppendEntriesRequestBuilder
@@ -152,8 +158,15 @@ public class DefaultAppendEntriesRequest
 
         @Nonnull
         @Override
-        public AppendEntriesRequestBuilder setQueryRound(long queryRound) {
-            request.queryRound = queryRound;
+        public AppendEntriesRequestBuilder setQuerySeqNo(long querySeqNo) {
+            request.querySeqNo = querySeqNo;
+            return this;
+        }
+
+        @Nonnull
+        @Override
+        public AppendEntriesRequestBuilder setFlowControlSeqNo(long flowControlSeqNo) {
+            request.flowControlSeqNo = flowControlSeqNo;
             return this;
         }
 

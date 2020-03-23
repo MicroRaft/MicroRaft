@@ -5,8 +5,9 @@
         </Console>
     </Appenders>
     <Loggers>
-        <Logger name="io.microraft" level="DEBUG">
+        <Root level="DEBUG">
             <AppenderRef ref="CONSOLE"/>
-        </Logger>
+        </Root>
+        <Logger name="io.microraft" level="INFO"/>
     </Loggers>
 </Configuration>

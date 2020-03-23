@@ -36,7 +36,8 @@ public class DefaultInstallSnapshotResponse
     private int term;
     private long snapshotIndex;
     private List<Integer> requestedSnapshotChunkIndices;
-    private long queryRound;
+    private long querySeqNo;
+    private long flowControlSeqNo;
 
     @Override
     public Object getGroupId() {
@@ -66,15 +67,20 @@ public class DefaultInstallSnapshotResponse
     }
 
     @Override
-    public long getQueryRound() {
-        return queryRound;
+    public long getQuerySeqNo() {
+        return querySeqNo;
+    }
+
+    @Override
+    public long getFlowControlSeqNo() {
+        return flowControlSeqNo;
     }
 
     @Override
     public String toString() {
         return "InstallSnapshotResponse{" + "groupId=" + groupId + ", sender=" + sender + ", term=" + term + ", snapshotIndex="
-                + snapshotIndex + ", requestedSnapshotChunkIndices=" + requestedSnapshotChunkIndices + ", queryRound="
-                + queryRound + '}';
+                + snapshotIndex + ", requestedSnapshotChunkIndices=" + requestedSnapshotChunkIndices + ", querySeqNo="
+                + querySeqNo + ", flowControlSeqNo=" + flowControlSeqNo + '}';
     }
 
     public static class DefaultInstallSnapshotResponseBuilder
@@ -123,8 +129,15 @@ public class DefaultInstallSnapshotResponse
 
         @Nonnull
         @Override
-        public InstallSnapshotResponseBuilder setQueryRound(long queryRound) {
-            response.queryRound = queryRound;
+        public InstallSnapshotResponseBuilder setQuerySeqNo(long querySeqNo) {
+            response.querySeqNo = querySeqNo;
+            return this;
+        }
+
+        @Nonnull
+        @Override
+        public InstallSnapshotResponseBuilder setFlowControlSeqNo(long flowControlSeqNo) {
+            response.flowControlSeqNo = flowControlSeqNo;
             return this;
         }
 

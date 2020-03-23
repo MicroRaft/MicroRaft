@@ -125,9 +125,8 @@ public class QueryTask
         QueryState queryState = state.leaderState().queryState();
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(
-                    raftNode.localEndpointStr() + " Adding query at commit index: " + commitIndex + ", query round: " + queryState
-                            .queryRound());
+            LOGGER.debug(raftNode.localEndpointStr() + " Adding query at commit index: " + commitIndex + ", query seq no: "
+                    + queryState.querySeqNo());
         }
 
         if (queryState.addQuery(commitIndex, operation, future)) {

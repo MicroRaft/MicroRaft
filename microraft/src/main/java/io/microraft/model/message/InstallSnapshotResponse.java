@@ -42,7 +42,9 @@ public interface InstallSnapshotResponse
     @Nonnull
     List<Integer> getRequestedSnapshotChunkIndices();
 
-    long getQueryRound();
+    long getQuerySeqNo();
+
+    long getFlowControlSeqNo();
 
     /**
      * The builder interface for {@link InstallSnapshotResponse}.
@@ -66,7 +68,10 @@ public interface InstallSnapshotResponse
         InstallSnapshotResponseBuilder setRequestedSnapshotChunkIndices(@Nonnull List<Integer> requestedSnapshotChunkIndices);
 
         @Nonnull
-        InstallSnapshotResponseBuilder setQueryRound(long queryRound);
+        InstallSnapshotResponseBuilder setQuerySeqNo(long querySeqNo);
+
+        @Nonnull
+        InstallSnapshotResponseBuilder setFlowControlSeqNo(long flowControlSeqNo);
 
     }
 

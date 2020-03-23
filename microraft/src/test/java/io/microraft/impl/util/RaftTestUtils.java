@@ -127,11 +127,11 @@ public final class RaftTestUtils {
         return readRaftState(leader, task);
     }
 
-    public static long getLeaderQueryRound(RaftNodeImpl leader) {
+    public static long getLeaderQuerySeqNo(RaftNodeImpl leader) {
         Callable<Long> task = () -> {
             LeaderState leaderState = leader.state().leaderState();
             assertNotNull(leader.getLocalEndpoint() + " has no leader state!", leaderState);
-            return leaderState.queryRound();
+            return leaderState.querySeqNo();
         };
 
         return readRaftState(leader, task);

@@ -34,7 +34,8 @@ public class DefaultAppendEntriesSuccessResponse
     private RaftEndpoint sender;
     private int term;
     private long lastLogIndex;
-    private long queryRound;
+    private long querySeqNo;
+    private long flowControlSeqNo;
 
     private DefaultAppendEntriesSuccessResponse() {
     }
@@ -61,14 +62,20 @@ public class DefaultAppendEntriesSuccessResponse
     }
 
     @Override
-    public long getQueryRound() {
-        return queryRound;
+    public long getQuerySeqNo() {
+        return querySeqNo;
+    }
+
+    @Override
+    public long getFlowControlSeqNo() {
+        return flowControlSeqNo;
     }
 
     @Override
     public String toString() {
         return "AppendEntriesSuccessResponse{" + "groupId=" + groupId + ", sender=" + sender + ", term=" + term
-                + ", lastLogIndex=" + lastLogIndex + ", queryRound=" + queryRound + '}';
+                + ", lastLogIndex=" + lastLogIndex + ", querySeqNo=" + querySeqNo + ", flowControlSeqNo=" + flowControlSeqNo
+                + '}';
     }
 
     public static class DefaultAppendEntriesSuccessResponseBuilder
@@ -108,8 +115,15 @@ public class DefaultAppendEntriesSuccessResponse
 
         @Nonnull
         @Override
-        public AppendEntriesSuccessResponseBuilder setQueryRound(long queryRound) {
-            response.queryRound = queryRound;
+        public AppendEntriesSuccessResponseBuilder setQuerySeqNo(long querySeqNo) {
+            response.querySeqNo = querySeqNo;
+            return this;
+        }
+
+        @Nonnull
+        @Override
+        public AppendEntriesSuccessResponseBuilder setFlowControlSeqNo(long flowControlSeqNo) {
+            response.flowControlSeqNo = flowControlSeqNo;
             return this;
         }
 

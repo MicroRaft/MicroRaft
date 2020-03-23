@@ -30,8 +30,8 @@ import java.util.Set;
 
 /**
  * This class is used to keep query operations until a heartbeat round is
- * completed. These query operations are not appended to the Raft log but
- * they still achieve linearizability.
+ * completed. These query operations are executed with the linearizability
+ * guarantee without growing the Raft log.
  * <p>
  * Section 6.4 of the Raft Dissertation:
  * ...
@@ -69,7 +69,7 @@ public class QueryState {
      * bounced back to the leader to complete the heartbeat round and execute
      * the queries.
      */
-    private long queryRound;
+    private long querySeqNo;
 
     /**
      * Adds the given query to the collection of queries and returns the number
@@ -89,7 +89,7 @@ public class QueryState {
         queries.add(new SimpleImmutableEntry<>(query, resultFuture));
         boolean firstQuery = queries.size() == 1;
         if (firstQuery) {
-            queryRound++;
+            querySeqNo++;
         }
 
         return firstQuery;
@@ -98,18 +98,18 @@ public class QueryState {
     /**
      * Returns {@code true} if the given follower's ack is accepted
      * for the current query round. It is accepted only if there are
-     * waiting queries to be executed and the {@code queryRound} argument
+     * waiting queries to be executed and the {@code querySeqNo} argument
      * matches to the current query round.
      */
-    public boolean tryAck(long queryRound, Object follower) {
+    public boolean tryAck(long querySeqNo, Object follower) {
         // If there is no query waiting to be executed or the received ack
-        // belongs to an earlier query round, we ignore it.
-        if (queries.isEmpty() || this.queryRound > queryRound) {
+        // belongs to an earlier query, we ignore it.
+        if (queries.isEmpty() || this.querySeqNo > querySeqNo) {
             return false;
         }
 
-        if (queryRound != this.queryRound) {
-            throw new IllegalStateException(this + ", acked query round: " + queryRound + ", follower: " + follower);
+        if (querySeqNo != this.querySeqNo) {
+            throw new IllegalStateException(this + ", acked query seq no: " + querySeqNo + ", follower: " + follower);
         }
 
         return acks.add(follower);
@@ -126,8 +126,8 @@ public class QueryState {
      * Returns the index of the heartbeat round to execute the currently
      * waiting queries.
      */
-    public long queryRound() {
-        return queryRound;
+    public long querySeqNo() {
+        return querySeqNo;
     }
 
     /**
@@ -187,7 +187,7 @@ public class QueryState {
 
     @Override
     public String toString() {
-        return "QueryState{" + "queryCommitIndex=" + queryCommitIndex + ", queryRound=" + queryRound + ", queryCount="
+        return "QueryState{" + "queryCommitIndex=" + queryCommitIndex + ", queryRound=" + querySeqNo + ", queryCount="
                 + queryCount() + ", acks=" + acks + '}';
     }
 

@@ -27,7 +27,7 @@ import static java.lang.Math.min;
  */
 public class FollowerState {
 
-    // TODO [basri] make this configurable
+    // TODO [basri] make this configurable???
     private static final int MAX_BACKOFF_ROUND = 20;
 
     /**
@@ -51,12 +51,27 @@ public class FollowerState {
      * used for calculating how many rounds will be used
      * in the next backoff period
      */
-    private int nextBackoffPower;
+    private int nextBackoffRoundPower;
 
     /**
-     * the timestamp of the last append entries response
+     * the timestamp of the last append entries or install snapshot response
      */
     private long responseTimestamp;
+
+    /**
+     * the flow control sequence number sent to the follower in the last append
+     * entries or install snapshot request
+     */
+    private long flowControlSeqNo;
+
+    /**
+     * the last flow control sequence number for which the request backoff
+     * reset task is scheduled. this field may be behind
+     * {@link #flowControlSeqNo} if the follower sends a response and another
+     * request is sent to it before the request backoff task of the first
+     * request runs.
+     */
+    private long resetBackOffTaskScheduledFlowControlSeqNo;
 
     FollowerState(long matchIndex, long nextIndex) {
         this.matchIndex = matchIndex;
@@ -101,43 +116,78 @@ public class FollowerState {
     }
 
     /**
-     * Starts a new append entries request backoff period.
-     * No new append entries request will be sent to this follower
-     * either until it sends a response or the backoff period times out.
+     * Starts a new request backoff period.
+     * No new append entries or install snapshot request will be sent to
+     * this follower either until it sends a response or the backoff timeout
+     * elapses.
+     * If the "twice" parameter is set and the backoff state is initialized
+     * with only 1 round, one more backoff round is added.
      */
-    public void setRequestBackoff() {
-        backoffRound = nextBackoffRound();
-        nextBackoffPower++;
+    public void setRequestBackoff(boolean twice) {
+        backoffRound = nextRequestBackoffRound();
+        if (twice && backoffRound == 1) {
+            backoffRound++;
+        }
+        nextBackoffRoundPower++;
     }
 
-    private int nextBackoffRound() {
-        return min(1 << nextBackoffPower, MAX_BACKOFF_ROUND);
+    private int nextRequestBackoffRound() {
+        return min(1 << nextBackoffRoundPower, MAX_BACKOFF_ROUND);
     }
 
     /**
-     * Enables the longest append entries request backoff period.
+     * Enables the longest request backoff period.
      */
     public void setMaxRequestBackoff() {
         backoffRound = MAX_BACKOFF_ROUND;
     }
 
     /**
-     * Completes a single round of the append entries request backoff period.
+     * Completes a single round of the request backoff period.
      *
      * @return true if the current backoff period is completed, false otherwise
      */
     public boolean completeBackoffRound() {
-        return --backoffRound == 0;
+        assert resetBackOffTaskScheduledFlowControlSeqNo != 0;
+
+        if (resetBackOffTaskScheduledFlowControlSeqNo != flowControlSeqNo) {
+            // The leader has sent a new request after the last request sent
+            // before the request backoff task is executed. In this case,
+            // we cannot complete this current backoff round, and we should
+            // go for one more backoff round.
+            resetBackOffTaskScheduledFlowControlSeqNo = flowControlSeqNo;
+            return false;
+        } else if (--backoffRound > 0) {
+            return false;
+        }
+
+        resetBackOffTaskScheduledFlowControlSeqNo = 0;
+        return true;
     }
 
     /**
-     * Clears the flag for the append entries request backoff period
-     * and updates the timestamp of append entries response.
+     * Updates the timestamp of the last received append entries or install
+     * snapshot response. In addition, if the received flow control sequence
+     * number is equal to the last sent flow sequence number, the internal
+     * request backoff state is also reset.
      */
-    public void responseReceived() {
-        backoffRound = 0;
-        nextBackoffPower = 0;
+    public boolean responseReceived(long flowControlSeqNo) {
         responseTimestamp = Math.max(responseTimestamp, System.currentTimeMillis());
+        boolean success = this.flowControlSeqNo == flowControlSeqNo;
+        if (success) {
+            resetRequestBackoff();
+        }
+
+        return success;
+    }
+
+    /**
+     * Clears the request backoff state.
+     */
+    public void resetRequestBackoff() {
+        backoffRound = 0;
+        nextBackoffRoundPower = 0;
+        resetBackOffTaskScheduledFlowControlSeqNo = 0;
     }
 
     /**
@@ -147,10 +197,25 @@ public class FollowerState {
         return responseTimestamp;
     }
 
+    /**
+     * Returns the next available flow control sequence number for the append
+     * entries or install snapshot request about to be sent.
+     */
+    public long nextFlowControlSeqNo() {
+        long nextFlowControlSeqNo = ++flowControlSeqNo;
+        if (resetBackOffTaskScheduledFlowControlSeqNo == 0) {
+            resetBackOffTaskScheduledFlowControlSeqNo = nextFlowControlSeqNo;
+        }
+
+        return nextFlowControlSeqNo;
+    }
+
     @Override
     public String toString() {
         return "FollowerState{" + "matchIndex=" + matchIndex + ", nextIndex=" + nextIndex + ", backoffRound=" + backoffRound
-                + ", nextBackoffPower=" + nextBackoffPower + ", responseTimestamp=" + responseTimestamp + '}';
+                + ", nextBackoffPower=" + nextBackoffRoundPower + ", responseTimestamp=" + responseTimestamp
+                + ", flowControlSeqNo=" + flowControlSeqNo + ", resetBackOffTaskScheduledFlowControlSeqNo="
+                + resetBackOffTaskScheduledFlowControlSeqNo + '}';
     }
 
 }

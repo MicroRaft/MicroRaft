@@ -430,7 +430,7 @@ public class RaftTest
             int followerTerm = getTerm(disruptiveFollower);
             assertThat(followerTerm).isEqualTo(leaderTerm);
             disruptiveFollowerTermRef[0] = followerTerm;
-        }, 5);
+        }, 3);
 
         group.resetAllRulesFrom(leader.getLocalEndpoint());
         group.merge();
@@ -567,7 +567,7 @@ public class RaftTest
             for (RaftNodeImpl raftNode : group.getNodes()) {
                 assertThat(getCommitIndex(raftNode)).isEqualTo(commitIndex);
             }
-        }, 10);
+        }, 3);
 
         group.terminateNode(leader.getLocalEndpoint());
 
@@ -620,7 +620,7 @@ public class RaftTest
             for (RaftNodeImpl raftNode : group.getNodes()) {
                 assertThat(getCommitIndex(raftNode)).isEqualTo(commitIndex);
             }
-        }, 10);
+        }, 3);
 
         group.terminateNode(leader.getLocalEndpoint());
 
@@ -677,10 +677,11 @@ public class RaftTest
             for (RaftNodeImpl raftNode : group.getNodes()) {
                 assertThat(getCommitIndex(raftNode)).isEqualTo(commitIndex);
             }
-        }, 10);
+        }, 3);
 
         group.dropMessagesToMember(followerWithLongestLog.getLocalEndpoint(), followers[1].getLocalEndpoint(), VoteRequest.class);
         group.dropMessagesToMember(followerWithLongestLog.getLocalEndpoint(), followers[2].getLocalEndpoint(), VoteRequest.class);
+        group.dropMessagesToMember(followerWithLongestLog.getLocalEndpoint(), followers[3].getLocalEndpoint(), VoteRequest.class);
 
         group.terminateNode(leader.getLocalEndpoint());
 

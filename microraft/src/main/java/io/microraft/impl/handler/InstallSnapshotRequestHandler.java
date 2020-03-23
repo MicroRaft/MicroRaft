@@ -106,7 +106,7 @@ public class InstallSnapshotRequestHandler
             if (request.isSenderLeader()) {
                 RaftMessage response = modelFactory.createAppendEntriesFailureResponseBuilder().setGroupId(node.getGroupId())
                                                    .setSender(localEndpoint()).setTerm(state.term()).setExpectedNextIndex(0)
-                                                   .setQueryRound(0).build();
+                                                   .setQuerySeqNo(0).setFlowControlSeqNo(0).build();
                 node.send(response, sender);
             }
 
@@ -149,6 +149,7 @@ public class InstallSnapshotRequestHandler
             SnapshotEntryBuilder snapshotEntryBuilder = node.getModelFactory().createSnapshotEntryBuilder();
             node.installSnapshot(snapshotChunkCollector.buildSnapshotEntry(snapshotEntryBuilder));
             sendAppendEntriesSuccessResponse(request);
+            // TODO [basri] maybe flush here ??? no need for safety but does it help to perf?
         } else {
             requestSnapshotChunks(request, requestedSnapshotChunkIndices);
         }
@@ -156,12 +157,13 @@ public class InstallSnapshotRequestHandler
 
     private boolean checkSnapshotIndex(InstallSnapshotRequest request) {
         if (request.getSnapshotIndex() < state.commitIndex()) {
-            LOGGER.info("{} ignored stale snapshot chunks at log index: {} from: {}, current commit index: {}",
-                    localEndpointStr(), request.getSnapshotIndex(), request.getSender().getId(), state.commitIndex());
+            LOGGER.info("{} ignored {} stale snapshot chunks at log index: {} from: {}, current commit index: {}",
+                    localEndpointStr(), request.getSnapshotChunks().size(), request.getSnapshotIndex(),
+                    request.getSender().getId(), state.commitIndex());
             return false;
         } else if (request.getSnapshotIndex() == state.commitIndex()) {
-            LOGGER.info("{} ignored snapshot chunks at log index: {} from: {} since commit index is same.", localEndpointStr(),
-                    request.getSnapshotIndex(), request.getSender().getId());
+            LOGGER.info("{} ignored {} snapshot chunks at log index: {} from: {} since commit index is same.", localEndpointStr(),
+                    request.getSnapshotChunks().size(), request.getSnapshotIndex(), request.getSender().getId());
             if (request.isSenderLeader()) {
                 sendAppendEntriesSuccessResponse(request);
             }
@@ -175,8 +177,8 @@ public class InstallSnapshotRequestHandler
     private void sendAppendEntriesSuccessResponse(InstallSnapshotRequest request) {
         RaftMessage response = modelFactory.createAppendEntriesSuccessResponseBuilder().setGroupId(node.getGroupId())
                                            .setSender(localEndpoint()).setTerm(state.term())
-                                           .setLastLogIndex(request.getSnapshotIndex())
-                                           .setQueryRound(request.isSenderLeader() ? request.getQueryRound() : 0).build();
+                                           .setLastLogIndex(request.getSnapshotIndex()).setQuerySeqNo(request.getQuerySeqNo())
+                                           .setFlowControlSeqNo(request.getFlowControlSeqNo()).build();
         node.send(response, state.leader());
     }
 
@@ -196,8 +198,10 @@ public class InstallSnapshotRequestHandler
 
             return null;
         } else if (snapshotChunkCollector.getSnapshotIndex() < request.getSnapshotIndex()) {
-            LOGGER.warn("{} truncating snapshot chunks at log index: {}", localEndpointStr(),
-                    snapshotChunkCollector.getSnapshotIndex());
+            if (snapshotChunkCollector.getChunks().size() > 0) {
+                LOGGER.warn("{} truncating {} snapshot chunks at log index: {}", localEndpointStr(),
+                        snapshotChunkCollector.getChunks().size(), snapshotChunkCollector.getSnapshotIndex());
+            }
 
             try {
                 state.store().truncateSnapshotChunksUntil(snapshotChunkCollector.getSnapshotIndex());
@@ -258,7 +262,7 @@ public class InstallSnapshotRequestHandler
             // follower. If the leader sends too many empty install snapshot
             // requests very quickly, we may flood the other followers here.
             // Thankfully, we use the max backoff period on the leader when it
-            // sends a install snapshot request and hence we don't expect to
+            // sends an install snapshot request and hence we don't expect to
             // encounter the aforementioned problem...
 
             // index=0 of remoteMembers is the leader.
@@ -283,13 +287,15 @@ public class InstallSnapshotRequestHandler
     }
 
     private List<RaftEndpoint> getShuffledRemoteMembers() {
+        // TODO [basri] we need to improve this part.
         List<RaftEndpoint> remoteMembers = new ArrayList<>(state.committedGroupMembers().remoteMembers());
         shuffle(remoteMembers);
 
         int leaderIndex = remoteMembers.indexOf(state.leader());
-        if (leaderIndex != 0) {
-            remoteMembers.set(leaderIndex, remoteMembers.get(0));
-            remoteMembers.set(0, state.leader());
+        int lastIndex = remoteMembers.size() - 1;
+        if (leaderIndex != lastIndex) {
+            remoteMembers.set(leaderIndex, remoteMembers.get(lastIndex));
+            remoteMembers.set(lastIndex, state.leader());
         }
 
         return remoteMembers;
@@ -308,7 +314,8 @@ public class InstallSnapshotRequestHandler
                                        .setSender(localEndpoint()).setTerm(state.term())
                                        .setSnapshotIndex(request.getSnapshotIndex())
                                        .setRequestedSnapshotChunkIndices(e.getValue())
-                                       .setQueryRound(state.leader().equals(target) ? request.getQueryRound() : 0).build();
+                                       .setQuerySeqNo(state.leader().equals(target) ? request.getQuerySeqNo() : 0)
+                                       .setFlowControlSeqNo(request.getFlowControlSeqNo()).build();
 
             node.send(response, target);
         }

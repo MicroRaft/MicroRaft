@@ -57,7 +57,9 @@ public interface InstallSnapshotRequest
     @Nonnull
     Collection<RaftEndpoint> getGroupMembers();
 
-    long getQueryRound();
+    long getQuerySeqNo();
+
+    long getFlowControlSeqNo();
 
     /**
      * The builder interface for {@link InstallSnapshotRequest}.
@@ -96,7 +98,10 @@ public interface InstallSnapshotRequest
         InstallSnapshotRequestBuilder setGroupMembers(@Nonnull Collection<RaftEndpoint> groupMembers);
 
         @Nonnull
-        InstallSnapshotRequestBuilder setQueryRound(long queryRound);
+        InstallSnapshotRequestBuilder setQuerySeqNo(long querySeqNo);
+
+        @Nonnull
+        InstallSnapshotRequestBuilder setFlowControlSeqNo(long flowControlSeqNo);
 
     }
 

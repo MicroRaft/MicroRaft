@@ -370,13 +370,12 @@ public class RaftNodeImpl
                                           .setGroupMembersLogIndex(snapshotEntry.getGroupMembersLogIndex())
                                           .setGroupMembers(snapshotEntry.getGroupMembers())
                                           .setQuerySeqNo(leaderState != null ? leaderState.querySeqNo() : 0)
-                                          .setFlowControlSeqNo(followerState != null ? followerState.nextFlowControlSeqNo() : 0)
+                                          .setFlowControlSeqNo(followerState != null ? followerState.setMaxRequestBackoff() : 0)
                                           .build();
 
         runtime.send(follower, request);
 
         if (followerState != null) {
-            followerState.setMaxRequestBackoff();
             scheduleLeaderRequestBackoffResetTask(leaderState);
         }
     }
@@ -1090,7 +1089,7 @@ public class RaftNodeImpl
                                               .setGroupMembersLogIndex(snapshotEntry.getGroupMembersLogIndex())
                                               .setGroupMembers(snapshotEntry.getGroupMembers())
                                               .setQuerySeqNo(leaderState.querySeqNo())
-                                              .setFlowControlSeqNo(followerState.nextFlowControlSeqNo()).build();
+                                              .setFlowControlSeqNo(followerState.setMaxRequestBackoff()).build();
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(
@@ -1099,7 +1098,6 @@ public class RaftNodeImpl
             }
 
             runtime.send(follower, request);
-            followerState.setMaxRequestBackoff();
             scheduleLeaderRequestBackoffResetTask(leaderState);
 
             return;
@@ -1150,9 +1148,14 @@ public class RaftNodeImpl
             backoff = false;
         }
 
+        // if the request backoff task is already scheduled, the task may
+        // run too early and complete the backoff round of this follower
+        // prematurely. in order to prevent this possibility, we add one
+        // more backoff round for this follower.
+        long flowControlSeqNo = backoff ? followerState.setRequestBackoff(leaderState.isRequestBackoffResetTaskScheduled()) : 0;
+
         RaftMessage request = requestBuilder.setPreviousLogTerm(prevEntryTerm).setPreviousLogIndex(prevEntryIndex)
-                                            .setFlowControlSeqNo(backoff ? followerState.nextFlowControlSeqNo() : 0)
-                                            .setLogEntries(entries).build();
+                                            .setFlowControlSeqNo(flowControlSeqNo).setLogEntries(entries).build();
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(localEndpointStr + " Sending " + request + " to " + follower.getId() + " with next index: " + nextIndex);
@@ -1161,11 +1164,6 @@ public class RaftNodeImpl
         send(request, follower);
 
         if (backoff) {
-            // if the request backoff task is already scheduled, the task may
-            // run too early and complete the backoff round of this follower
-            // prematurely. in order to prevent this possibility, we add one
-            // more backoff round for this follower.
-            followerState.setRequestBackoff(leaderState.isRequestBackoffResetTaskScheduled());
             scheduleLeaderRequestBackoffResetTask(leaderState);
         }
 

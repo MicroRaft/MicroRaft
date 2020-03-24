@@ -120,15 +120,21 @@ public class FollowerState {
      * No new append entries or install snapshot request will be sent to
      * this follower either until it sends a response or the backoff timeout
      * elapses.
+     * <p>
      * If the "twice" parameter is set and the backoff state is initialized
      * with only 1 round, one more backoff round is added.
+     * <p>
+     * Returns the next available flow control sequence number for the append
+     * entries or install snapshot request about to be sent.
      */
-    public void setRequestBackoff(boolean twice) {
+    public long setRequestBackoff(boolean twice) {
         backoffRound = nextRequestBackoffRound();
         if (twice && backoffRound == 1) {
             backoffRound++;
         }
         nextBackoffRoundPower++;
+
+        return nextFlowControlSeqNo();
     }
 
     private int nextRequestBackoffRound() {
@@ -137,9 +143,14 @@ public class FollowerState {
 
     /**
      * Enables the longest request backoff period.
+     * <p>
+     * Returns the next available flow control sequence number for the append
+     * entries or install snapshot request about to be sent.
      */
-    public void setMaxRequestBackoff() {
+    public long setMaxRequestBackoff() {
         backoffRound = MAX_BACKOFF_ROUND;
+
+        return nextFlowControlSeqNo();
     }
 
     /**
@@ -197,11 +208,7 @@ public class FollowerState {
         return responseTimestamp;
     }
 
-    /**
-     * Returns the next available flow control sequence number for the append
-     * entries or install snapshot request about to be sent.
-     */
-    public long nextFlowControlSeqNo() {
+    private long nextFlowControlSeqNo() {
         long nextFlowControlSeqNo = ++flowControlSeqNo;
         if (resetBackOffTaskScheduledFlowControlSeqNo == 0) {
             resetBackOffTaskScheduledFlowControlSeqNo = nextFlowControlSeqNo;

@@ -27,9 +27,6 @@ import static java.lang.Math.min;
  */
 public class FollowerState {
 
-    // TODO [basri] this must be at most leader hb period
-    static final int MAX_BACKOFF_ROUND = 20;
-
     /**
      * index of highest log entry known to be replicated
      * on server (initialized to 0, increases monotonically)
@@ -51,7 +48,7 @@ public class FollowerState {
      * used for calculating how many rounds will be used
      * in the next backoff period
      */
-    private int nextBackoffRoundPower;
+    private int nextBackoffPower;
 
     /**
      * the timestamp of the last append entries or install snapshot response
@@ -118,28 +115,11 @@ public class FollowerState {
      * Returns the flow control sequence number to be put into the append
      * entries or install snapshot request which is to be sent to the follower.
      */
-    public long setRequestBackoff(boolean extraRound) {
+    public long setRequestBackoff(int minRounds, int maxRounds) {
         assert backoffRound == 0 : "backoff round: " + backoffRound;
-        backoffRound = min(1 << (nextBackoffRoundPower++), MAX_BACKOFF_ROUND);
-        if (extraRound && backoffRound < MAX_BACKOFF_ROUND) {
-            backoffRound++;
-        }
+        backoffRound = min((1 << (nextBackoffPower++)) * minRounds, maxRounds);
 
-        return nextFlowControlSeqNo();
-    }
-
-    // TODO [basri] unify backoff. no need for max. use a single backoff which is leader heartbeat timeout
-    /**
-     * Enables the longest request backoff period.
-     * <p>
-     * Returns the next available flow control sequence number for the append
-     * entries or install snapshot request about to be sent.
-     */
-    public long setMaxRequestBackoff() {
-        assert backoffRound == 0 : "backoff round: " + backoffRound;
-        backoffRound = MAX_BACKOFF_ROUND;
-
-        return nextFlowControlSeqNo();
+        return ++flowControlSeqNo;
     }
 
     /**
@@ -173,7 +153,7 @@ public class FollowerState {
      */
     public void resetRequestBackoff() {
         backoffRound = 0;
-        nextBackoffRoundPower = 0;
+        nextBackoffPower = 0;
     }
 
     /**
@@ -181,10 +161,6 @@ public class FollowerState {
      */
     public long responseTimestamp() {
         return responseTimestamp;
-    }
-
-    private long nextFlowControlSeqNo() {
-        return ++flowControlSeqNo;
     }
 
     int backoffRound() {
@@ -198,8 +174,8 @@ public class FollowerState {
     @Override
     public String toString() {
         return "FollowerState{" + "matchIndex=" + matchIndex + ", nextIndex=" + nextIndex + ", backoffRound=" + backoffRound
-                + ", nextBackoffPower=" + nextBackoffRoundPower + ", responseTimestamp=" + responseTimestamp
-                + ", flowControlSeqNo=" + flowControlSeqNo + '}';
+                + ", nextBackoffPower=" + nextBackoffPower + ", responseTimestamp=" + responseTimestamp + ", flowControlSeqNo="
+                + flowControlSeqNo + '}';
     }
 
 }

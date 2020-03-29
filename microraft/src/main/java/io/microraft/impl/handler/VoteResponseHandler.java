@@ -63,7 +63,7 @@ public class VoteResponseHandler
     @Override
     protected void handleResponse(@Nonnull VoteResponse response) {
         if (state.role() != CANDIDATE) {
-            LOGGER.info("{} Ignored {}. We are not CANDIDATE anymore.", localEndpointStr(), response);
+            LOGGER.debug("{} Ignored {}. We are not CANDIDATE anymore.", localEndpointStr(), response);
             return;
         } else if (response.getTerm() > state.term()) {
             // If the response term is greater than the local term, update the local term and convert to follower (§5.1)

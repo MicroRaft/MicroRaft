@@ -42,6 +42,7 @@ import static io.microraft.RaftRole.FOLLOWER;
 import static java.util.Collections.shuffle;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Handles an {@link InstallSnapshotRequest} which could be sent by the leader
@@ -233,7 +234,7 @@ public class InstallSnapshotRequestHandler
                 try {
                     state.store().persistSnapshotChunk(snapshotChunk);
                     // we will flush() after all snapshot chunks are persisted.
-                    LOGGER.info(localEndpointStr() + " added new snapshot chunk: " + snapshotChunk.getSnapshotChunkIndex()
+                    LOGGER.debug(localEndpointStr() + " added new snapshot chunk: " + snapshotChunk.getSnapshotChunkIndex()
                             + " at snapshot index: " + request.getSnapshotIndex());
                 } catch (IOException e) {
                     throw new RaftException(
@@ -250,7 +251,7 @@ public class InstallSnapshotRequestHandler
     private Map<RaftEndpoint, Integer> getRequestedSnapshotChunkIndices(InstallSnapshotRequest request,
                                                                         SnapshotChunkCollector snapshotChunkCollector) {
         List<RaftEndpoint> members;
-        if (request.getSnapshotChunk() == null && node.getConfig().getSnapshotTransferBackoffDurationMillis() > 0) {
+        if (request.getSnapshotChunk() == null && node.getConfig().isTransferSnapshotsFromFollowersEnabled()) {
             // If this is the first install snapshot request sent by the
             // leader, we start asking snapshot chunks from all remote group
             // members. There is one caveat here. We have a backoff mechanism
@@ -272,8 +273,7 @@ public class InstallSnapshotRequestHandler
             members = singletonList(request.getSender());
         }
 
-        return snapshotChunkCollector
-                .requestSnapshotChunks(members, node.getConfig().getSnapshotTransferBackoffDurationMillis() > 0);
+        return snapshotChunkCollector.requestSnapshotChunks(members, node.getConfig().isTransferSnapshotsFromFollowersEnabled());
     }
 
     private List<RaftEndpoint> getReachableRemoteMembers() {
@@ -309,9 +309,9 @@ public class InstallSnapshotRequestHandler
 
             node.send(response, target);
 
-            if (node.getConfig().getSnapshotTransferBackoffDurationMillis() > 0) {
+            if (node.getConfig().isTransferSnapshotsFromFollowersEnabled()) {
                 node.schedule(() -> handleUnresponsiveEndpoint(state.term(), target, request.getSnapshotIndex(), e.getValue()),
-                        node.getConfig().getSnapshotTransferBackoffDurationMillis());
+                        SECONDS.toMillis(node.getConfig().getLeaderHeartbeatPeriodSecs()));
             }
         }
     }
@@ -357,7 +357,7 @@ public class InstallSnapshotRequestHandler
 
             node.send(response, target);
             node.schedule(() -> handleUnresponsiveEndpoint(term, target, snapshotIndex, e.getValue()),
-                    node.getConfig().getSnapshotTransferBackoffDurationMillis());
+                    SECONDS.toMillis(node.getConfig().getLeaderHeartbeatPeriodSecs()));
         }
     }
 

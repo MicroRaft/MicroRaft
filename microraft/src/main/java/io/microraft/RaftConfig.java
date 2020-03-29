@@ -38,14 +38,14 @@ public class RaftConfig
     public static final long DEFAULT_LEADER_ELECTION_TIMEOUT_MILLIS = 1000;
 
     /**
-     * The default value for {@link #leaderHeartbeatPeriodMillis}.
+     * The default value for {@link #leaderHeartbeatPeriodSecs}.
      */
-    public static final long DEFAULT_LEADER_HEARTBEAT_PERIOD_MILLIS = 2000;
+    public static final long DEFAULT_LEADER_HEARTBEAT_PERIOD_SECS = 2;
 
     /**
-     * The default value for {@link #leaderHeartbeatTimeoutMillis}
+     * The default value for {@link #leaderHeartbeatTimeoutSecs}
      */
-    public static final long DEFAULT_LEADER_HEARTBEAT_TIMEOUT_MILLIS = 10000;
+    public static final long DEFAULT_LEADER_HEARTBEAT_TIMEOUT_SECS = 10;
 
     /**
      * The default value for {@link #appendEntriesRequestBatchSize}.
@@ -63,14 +63,9 @@ public class RaftConfig
     public static final int DEFAULT_MAX_UNCOMMITTED_LOG_ENTRY_COUNT = 1000;
 
     /**
-     * The default value for {@link #leaderBackoffDurationMillis}.
+     * The default value for {@link #transferSnapshotsFromFollowersEnabled}
      */
-    public static final long DEFAULT_LEADER_BACKOFF_DURATION_MILLIS = 100;
-
-    /**
-     * The default value for {@link #snapshotTransferBackoffDurationMillis}
-     */
-    public static final long DEFAULT_SNAPSHOT_TRANSFER_BACKOFF_DURATION_MILLIS = 1000;
+    public static final boolean DEFAULT_TRANSFER_SNAPSHOTS_FROM_FOLLOWERS_ENABLED = true;
 
     /**
      * The default value for {@link #raftNodeReportPublishPeriodSecs}.
@@ -88,21 +83,21 @@ public class RaftConfig
      */
     private final long leaderElectionTimeoutMillis;
     /**
-     * Duration in milliseconds for a Raft leader node to send periodic
-     * heartbeat messages to its followers in order to denote its liveliness.
-     * See "Section 5.2: Leader Election" in the Raft paper. Periodic heartbeat
-     * messages are actually append entries requests and can contain log
-     * entries for the lagging followers. If a too small value is set,
-     * heartbeat messages are sent from Raft leaders to followers too
-     * frequently and it can cause an unnecessary usage of CPU and network.
+     * Duration in seconds for a Raft leader node to send periodic heartbeat
+     * requests to its followers in order to denote its liveliness. See
+     * "Section 5.2: Leader Election" in the Raft paper. Periodic heartbeat
+     * requests are actually append entries requests and can contain log
+     * entries for lagging followers. A heartbeat request is not sent to
+     * a follower if an append entries request has been sent to that follower
+     * recently.
      */
-    private final long leaderHeartbeatPeriodMillis;
+    private final long leaderHeartbeatPeriodSecs;
     /**
-     * Duration in milliseconds for a follower to decide on failure of
-     * the current leader and start a new leader election round. If this
-     * duration is too small, a leader could be considered as failed
-     * unnecessarily in case of a small hiccup. If it is too large, it takes
-     * longer to detect an actual failure.
+     * Duration in seconds for a follower to decide on failure of the current
+     * leader and start a new leader election round. If this duration is too
+     * small, a leader could be considered as failed unnecessarily in case of
+     * a small hiccup. If it is too large, it takes longer to detect an actual
+     * failure.
      * <p>
      * Even though there is a single "election timeout" parameter in the Raft
      * paper for both timing-out a leader election round and detecting failure
@@ -112,7 +107,7 @@ public class RaftConfig
      * the same value to align with the "election timeout" definition
      * in the Raft paper.
      */
-    private final long leaderHeartbeatTimeoutMillis;
+    private final long leaderHeartbeatTimeoutSecs;
     /**
      * Maximum number of Raft log entries that can be sent as a batch
      * in a single append entries request.
@@ -142,25 +137,15 @@ public class RaftConfig
      * get retry responses unnecessarily.
      */
     private final int maxUncommittedLogEntryCount;
-    /**
-     * Duration in milliseconds to apply backoff on the Raft leader for append
-     * entries and install snapshot requests. In MicroRaft, a Raft leader runs
-     * a separate replication pipeline for each follower. After it sends
-     * an append entries or an install snapshot request to a follower, it does
-     * not send a subsequent request either until the follower responds to
-     * the previous request or this backoff duration elapses.
-     * <p>
-     * This configuration decides the initial backoff duration. The backoff
-     * duration grows exponentially per follower if a follower remains
-     * unresponsive.
-     */
-    private final long leaderBackoffDurationMillis;
 
     /**
-     * TODO [basri] make this boolean
-     * TODO [basri] add javadoc
+     * If enabled, when a Raft follower falls far behind the Raft leader and
+     * needs to install a snapshot, it transfers the snapshot chunks from both
+     * the Raft leader and followers in parallel. This is a safe optimization
+     * because in MicroRaft snapshots are taken at the same log indices on all
+     * Raft nodes.
      */
-    private final long snapshotTransferBackoffDurationMillis;
+    private final boolean transferSnapshotsFromFollowersEnabled;
 
     /**
      * Denotes how frequently a Raft node publishes a report of its internal
@@ -168,18 +153,16 @@ public class RaftConfig
      */
     private final int raftNodeReportPublishPeriodSecs;
 
-    public RaftConfig(long leaderElectionTimeoutMillis, long leaderHeartbeatPeriodMillis, long leaderHeartbeatTimeoutMillis,
+    public RaftConfig(long leaderElectionTimeoutMillis, long leaderHeartbeatPeriodSecs, long leaderHeartbeatTimeoutSecs,
                       int appendEntriesRequestBatchSize, int commitCountToTakeSnapshot, int maxUncommittedLogEntryCount,
-                      long leaderBackoffDurationMillis, long snapshotTransferBackoffDurationMillis,
-                      int raftNodeReportPublishPeriodSecs) {
+                      boolean transferSnapshotsFromFollowersEnabled, int raftNodeReportPublishPeriodSecs) {
         this.leaderElectionTimeoutMillis = leaderElectionTimeoutMillis;
-        this.leaderHeartbeatPeriodMillis = leaderHeartbeatPeriodMillis;
-        this.leaderHeartbeatTimeoutMillis = leaderHeartbeatTimeoutMillis;
+        this.leaderHeartbeatPeriodSecs = leaderHeartbeatPeriodSecs;
+        this.leaderHeartbeatTimeoutSecs = leaderHeartbeatTimeoutSecs;
         this.appendEntriesRequestBatchSize = appendEntriesRequestBatchSize;
         this.commitCountToTakeSnapshot = commitCountToTakeSnapshot;
         this.maxUncommittedLogEntryCount = maxUncommittedLogEntryCount;
-        this.leaderBackoffDurationMillis = leaderBackoffDurationMillis;
-        this.snapshotTransferBackoffDurationMillis = snapshotTransferBackoffDurationMillis;
+        this.transferSnapshotsFromFollowersEnabled = transferSnapshotsFromFollowersEnabled;
         this.raftNodeReportPublishPeriodSecs = raftNodeReportPublishPeriodSecs;
     }
 
@@ -196,12 +179,6 @@ public class RaftConfig
         }
     }
 
-    private static void checkNonNegative(long value, String errorMessage) {
-        if (value < 0) {
-            throw new IllegalArgumentException(errorMessage);
-        }
-    }
-
     /**
      * @see #leaderElectionTimeoutMillis
      */
@@ -210,10 +187,10 @@ public class RaftConfig
     }
 
     /**
-     * @see #leaderHeartbeatPeriodMillis
+     * @see #leaderHeartbeatPeriodSecs
      */
-    public long getLeaderHeartbeatPeriodMillis() {
-        return leaderHeartbeatPeriodMillis;
+    public long getLeaderHeartbeatPeriodSecs() {
+        return leaderHeartbeatPeriodSecs;
     }
 
     /**
@@ -238,24 +215,17 @@ public class RaftConfig
     }
 
     /**
-     * @see #leaderHeartbeatTimeoutMillis
+     * @see #leaderHeartbeatTimeoutSecs
      */
-    public long getLeaderHeartbeatTimeoutMillis() {
-        return leaderHeartbeatTimeoutMillis;
+    public long getLeaderHeartbeatTimeoutSecs() {
+        return leaderHeartbeatTimeoutSecs;
     }
 
     /**
-     * @see #leaderBackoffDurationMillis
+     * @see #transferSnapshotsFromFollowersEnabled
      */
-    public long getLeaderBackoffDurationMillis() {
-        return leaderBackoffDurationMillis;
-    }
-
-    /**
-     * @see #snapshotTransferBackoffDurationMillis
-     */
-    public long getSnapshotTransferBackoffDurationMillis() {
-        return snapshotTransferBackoffDurationMillis;
+    public boolean isTransferSnapshotsFromFollowersEnabled() {
+        return transferSnapshotsFromFollowersEnabled;
     }
 
     /**
@@ -271,13 +241,12 @@ public class RaftConfig
     public static class RaftConfigBuilder {
 
         private long leaderElectionTimeoutMillis = DEFAULT_LEADER_ELECTION_TIMEOUT_MILLIS;
-        private long leaderHeartbeatPeriodMillis = DEFAULT_LEADER_HEARTBEAT_PERIOD_MILLIS;
-        private long leaderHeartbeatTimeoutMillis = DEFAULT_LEADER_HEARTBEAT_TIMEOUT_MILLIS;
+        private long leaderHeartbeatPeriodSecs = DEFAULT_LEADER_HEARTBEAT_PERIOD_SECS;
+        private long leaderHeartbeatTimeoutSecs = DEFAULT_LEADER_HEARTBEAT_TIMEOUT_SECS;
         private int appendEntriesRequestBatchSize = DEFAULT_APPEND_ENTRIES_REQUEST_BATCH_SIZE;
         private int commitCountToTakeSnapshot = DEFAULT_COMMIT_COUNT_TO_TAKE_SNAPSHOT;
         private int maxUncommittedLogEntryCount = DEFAULT_MAX_UNCOMMITTED_LOG_ENTRY_COUNT;
-        private long leaderBackoffDurationMillis = DEFAULT_LEADER_BACKOFF_DURATION_MILLIS;
-        private long snapshotTransferBackoffDurationMillis = DEFAULT_SNAPSHOT_TRANSFER_BACKOFF_DURATION_MILLIS;
+        private boolean transferSnapshotsFromFollowersEnabled = DEFAULT_TRANSFER_SNAPSHOTS_FROM_FOLLOWERS_ENABLED;
         private int raftNodeReportPublishPeriodSecs = DEFAULT_RAFT_NODE_REPORT_PUBLISH_PERIOD_SECS;
 
         private RaftConfigBuilder() {
@@ -293,11 +262,11 @@ public class RaftConfig
         }
 
         /**
-         * @see RaftConfig#leaderHeartbeatPeriodMillis
+         * @see RaftConfig#leaderHeartbeatPeriodSecs
          */
-        public RaftConfigBuilder setLeaderHeartbeatPeriodMillis(long leaderHeartbeatPeriodMillis) {
-            checkPositive(leaderHeartbeatPeriodMillis, "leader heartbeat period millis must be positive!");
-            this.leaderHeartbeatPeriodMillis = leaderHeartbeatPeriodMillis;
+        public RaftConfigBuilder setLeaderHeartbeatPeriodSecs(long leaderHeartbeatPeriodSecs) {
+            checkPositive(leaderHeartbeatPeriodSecs, "leader heartbeat period secs must be positive!");
+            this.leaderHeartbeatPeriodSecs = leaderHeartbeatPeriodSecs;
             return this;
         }
 
@@ -329,26 +298,16 @@ public class RaftConfig
         }
 
         /**
-         * @see RaftConfig#leaderHeartbeatTimeoutMillis
+         * @see RaftConfig#leaderHeartbeatTimeoutSecs
          */
-        public RaftConfigBuilder setLeaderHeartbeatTimeoutMillis(long leaderHeartbeatTimeoutMillis) {
-            checkPositive(leaderHeartbeatTimeoutMillis, "leader heartbeat timeout millis must be positive!");
-            this.leaderHeartbeatTimeoutMillis = leaderHeartbeatTimeoutMillis;
+        public RaftConfigBuilder setLeaderHeartbeatTimeoutSecs(long leaderHeartbeatTimeoutSecs) {
+            checkPositive(leaderHeartbeatTimeoutSecs, "leader heartbeat timeout secs must be positive!");
+            this.leaderHeartbeatTimeoutSecs = leaderHeartbeatTimeoutSecs;
             return this;
         }
 
-        /**
-         * @see RaftConfig#leaderBackoffDurationMillis
-         */
-        public RaftConfigBuilder setLeaderBackoffDurationMillis(long leaderBackoffDurationMillis) {
-            checkPositive(leaderBackoffDurationMillis, "leader backoff duration millis must be positive!");
-            this.leaderBackoffDurationMillis = leaderBackoffDurationMillis;
-            return this;
-        }
-
-        public RaftConfigBuilder setSnapshotTransferBackoffDurationMillis(long snapshotTransferBackoffDurationMillis) {
-            checkNonNegative(snapshotTransferBackoffDurationMillis, "snapshot transfer backoff duration must be non-negative!");
-            this.snapshotTransferBackoffDurationMillis = snapshotTransferBackoffDurationMillis;
+        public RaftConfigBuilder setTransferSnapshotsFromFollowersEnabled(boolean transferSnapshotsFromFollowersEnabled) {
+            this.transferSnapshotsFromFollowersEnabled = transferSnapshotsFromFollowersEnabled;
             return this;
         }
 
@@ -362,14 +321,14 @@ public class RaftConfig
          * Builds the Raft config object
          */
         public RaftConfig build() {
-            if (leaderHeartbeatTimeoutMillis < leaderHeartbeatPeriodMillis) {
-                throw new IllegalArgumentException("leader heartbeat timeout millis: " + leaderHeartbeatTimeoutMillis
-                        + " cannot be smaller than leader heartbeat timeout period millis: " + leaderHeartbeatPeriodMillis);
+            if (leaderHeartbeatTimeoutSecs < leaderHeartbeatPeriodSecs) {
+                throw new IllegalArgumentException("leader heartbeat timeout secs: " + leaderHeartbeatTimeoutSecs
+                        + " cannot be smaller than leader heartbeat timeout period secs: " + leaderHeartbeatPeriodSecs);
             }
 
-            return new RaftConfig(leaderElectionTimeoutMillis, leaderHeartbeatPeriodMillis, leaderHeartbeatTimeoutMillis,
+            return new RaftConfig(leaderElectionTimeoutMillis, leaderHeartbeatPeriodSecs, leaderHeartbeatTimeoutSecs,
                     appendEntriesRequestBatchSize, commitCountToTakeSnapshot, maxUncommittedLogEntryCount,
-                    leaderBackoffDurationMillis, snapshotTransferBackoffDurationMillis, raftNodeReportPublishPeriodSecs);
+                    transferSnapshotsFromFollowersEnabled, raftNodeReportPublishPeriodSecs);
         }
 
     }

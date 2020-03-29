@@ -59,7 +59,7 @@ public class TriggerLeaderElectionHandler
         // with the leader's log.
         if (!(request.getTerm() == state.term() && request.getSender().equals(state.leader()))) {
             LOGGER.debug("{} Ignoring {} since term: {} and leader: {}", localEndpointStr(), request, state.term(),
-                    state.leader().getId());
+                    state.leader() != null ? state.leader().getId() : "-");
 
             return;
         }

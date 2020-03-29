@@ -53,7 +53,7 @@ public class PreVoteResponseHandler
 
     @Override
     protected void handleResponse(@Nonnull PreVoteResponse response) {
-        LOGGER.warn("{} received {}.", localEndpointStr(), response);
+        LOGGER.debug("{} received {}.", localEndpointStr(), response);
 
         if (state.role() != FOLLOWER) {
             LOGGER.info("{} Ignored {}. We are not FOLLOWER anymore.", localEndpointStr(), response);

@@ -264,7 +264,7 @@ public class MembershipChangeTest
     @Test(timeout = 300_000)
     public void when_leaderLeaves_then_itCannotVoteForCommitOfMemberChange()
             throws Exception {
-        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodMillis(1000).build();
+        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).build();
         group = new LocalRaftGroup(3, config);
         group.start();
 
@@ -486,7 +486,7 @@ public class MembershipChangeTest
     @Test(timeout = 300_000)
     public void when_followerAppendsMultipleMembershipChangesAtOnce_then_itCommitsThemCorrectly()
             throws Exception {
-        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodMillis(1000).build();
+        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).build();
         group = new LocalRaftGroup(5, config);
         group.start();
 

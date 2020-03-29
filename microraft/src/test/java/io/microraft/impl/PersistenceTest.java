@@ -53,7 +53,6 @@ import static io.microraft.impl.util.RaftTestUtils.getRaftStore;
 import static io.microraft.impl.util.RaftTestUtils.getRestoredState;
 import static io.microraft.impl.util.RaftTestUtils.getSnapshotEntry;
 import static io.microraft.impl.util.RaftTestUtils.getTerm;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -402,9 +401,9 @@ public class PersistenceTest
     public void when_leaderIsRestarted_then_itBecomesFollowerAndRestoresItsRaftStateWithSnapshot()
             throws Exception {
         int commitCountToTakeSnapshot = 50;
-        RaftConfig config = RaftConfig.newBuilder().setLeaderElectionTimeoutMillis(2000).setLeaderHeartbeatPeriodMillis(1000)
-                                      .setLeaderHeartbeatTimeoutMillis(5000)
-                                      .setCommitCountToTakeSnapshot(commitCountToTakeSnapshot).build();
+        RaftConfig config = RaftConfig.newBuilder().setLeaderElectionTimeoutMillis(2000).setLeaderHeartbeatPeriodSecs(1)
+                                      .setLeaderHeartbeatTimeoutSecs(5).setCommitCountToTakeSnapshot(commitCountToTakeSnapshot)
+                                      .build();
         group = new LocalRaftGroup(3, config, true, LocalRaftEndpoint::newEndpoint, RAFT_STATE_STORE_FACTORY, null);
         group.start();
 
@@ -581,8 +580,7 @@ public class PersistenceTest
     @Test
     public void when_followerIsRestarted_then_itAppliesPreviouslyCommittedMemberList()
             throws Exception {
-        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodMillis(SECONDS.toMillis(30))
-                                      .setLeaderHeartbeatTimeoutMillis(SECONDS.toMillis(30)).build();
+        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(30).setLeaderHeartbeatTimeoutSecs(30).build();
         group = new LocalRaftGroup(3, config, true, LocalRaftEndpoint::newEndpoint, RAFT_STATE_STORE_FACTORY, null);
         group.start();
 
@@ -661,8 +659,7 @@ public class PersistenceTest
             throws Exception {
         int commitCountToTakeSnapshot = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(commitCountToTakeSnapshot)
-                                      .setLeaderHeartbeatPeriodMillis(SECONDS.toMillis(30))
-                                      .setLeaderHeartbeatTimeoutMillis(SECONDS.toMillis(30)).build();
+                                      .setLeaderHeartbeatPeriodSecs(30).setLeaderHeartbeatTimeoutSecs(30).build();
         group = new LocalRaftGroup(3, config, true, LocalRaftEndpoint::newEndpoint, RAFT_STATE_STORE_FACTORY, null);
         group.start();
 

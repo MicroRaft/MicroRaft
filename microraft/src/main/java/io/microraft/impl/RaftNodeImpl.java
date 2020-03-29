@@ -140,6 +140,8 @@ public class RaftNodeImpl
     private static final Logger LOGGER = LoggerFactory.getLogger(RaftNode.class);
     private static final long LEADER_ELECTION_TIMEOUT_NOISE_MILLIS = 100;
     private static final float KEPT_LOG_ENTRY_RATIO_BEFORE_SNAPSHOT_INDEX = 0.1f;
+    private static final long LEADER_BACKOFF_RESET_TASK_PERIOD_MILLIS = 250;
+    private static final int MIN_BACKOFF_ROUNDS = 4;
 
     private final Object groupId;
     private final RaftState state;
@@ -154,6 +156,7 @@ public class RaftNodeImpl
     private final int appendEntriesRequestBatchSize;
     private final int maxUncommittedLogEntryCount;
     private final int maxLogEntryCountToKeepAfterSnapshot;
+    private final int maxBackoffRounds;
 
     private final Runnable leaderBackoffResetTask;
     private final Runnable leaderFlushTask;
@@ -189,6 +192,7 @@ public class RaftNodeImpl
                 .max(1, (int) (commitCountToTakeSnapshot * KEPT_LOG_ENTRY_RATIO_BEFORE_SNAPSHOT_INDEX));
         int logCapacity = commitCountToTakeSnapshot + maxUncommittedLogEntryCount + maxLogEntryCountToKeepAfterSnapshot;
         this.state = RaftState.create(groupId, localEndpoint, initialGroupMembers, logCapacity, store);
+        this.maxBackoffRounds = getMaxBackoffRounds(config);
         this.leaderBackoffResetTask = new LeaderBackoffResetTask();
         if (store instanceof NopRaftStore) {
             this.leaderFlushTask = null;
@@ -219,12 +223,18 @@ public class RaftNodeImpl
                 .max(1, (int) (commitCountToTakeSnapshot * KEPT_LOG_ENTRY_RATIO_BEFORE_SNAPSHOT_INDEX));
         int logCapacity = commitCountToTakeSnapshot + maxUncommittedLogEntryCount + maxLogEntryCountToKeepAfterSnapshot;
         this.state = RaftState.restore(groupId, restoredState, logCapacity, store);
+        this.maxBackoffRounds = getMaxBackoffRounds(config);
         this.leaderBackoffResetTask = new LeaderBackoffResetTask();
         if (store instanceof NopRaftStore) {
             this.leaderFlushTask = null;
         } else {
             this.leaderFlushTask = new LeaderFlushTask();
         }
+    }
+
+    private int getMaxBackoffRounds(RaftConfig config) {
+        long duration = min(config.getLeaderHeartbeatPeriodSecs() * 2, config.getLeaderHeartbeatTimeoutSecs());
+        return (int) (SECONDS.toMillis(duration) / LEADER_BACKOFF_RESET_TASK_PERIOD_MILLIS);
     }
 
     /**
@@ -325,7 +335,7 @@ public class RaftNodeImpl
     }
 
     private void scheduleHeartbeatTask() {
-        schedule(new HeartbeatTask(), config.getLeaderHeartbeatPeriodMillis());
+        schedule(new HeartbeatTask(), SECONDS.toMillis(config.getLeaderHeartbeatPeriodSecs()));
     }
 
     public void sendSnapshotChunk(RaftEndpoint follower, long snapshotIndex, int requestedSnapshotChunkIndex) {
@@ -359,7 +369,7 @@ public class RaftNodeImpl
                                           .setGroupMembersLogIndex(snapshotEntry.getGroupMembersLogIndex())
                                           .setGroupMembers(snapshotEntry.getGroupMembers())
                                           .setQuerySeqNo(leaderState != null ? leaderState.querySeqNo() : 0)
-                                          .setFlowControlSeqNo(followerState != null ? followerState.setMaxRequestBackoff() : 0)
+                                          .setFlowControlSeqNo(followerState != null ? enableBackoff(followerState) : 0)
                                           .build();
 
         runtime.send(follower, request);
@@ -660,16 +670,12 @@ public class RaftNodeImpl
     /**
      * Schedules a task to reset append entries request backoff periods,
      * if not scheduled already.
-     *
-     * @see RaftConfig#getLeaderBackoffDurationMillis()
      */
     private void scheduleLeaderRequestBackoffResetTask(LeaderState leaderState) {
-        if (leaderState.isRequestBackoffResetTaskScheduled()) {
-            return;
+        if (!leaderState.isRequestBackoffResetTaskScheduled()) {
+            leaderState.requestBackoffResetTaskScheduled(true);
+            schedule(leaderBackoffResetTask, LEADER_BACKOFF_RESET_TASK_PERIOD_MILLIS);
         }
-
-        leaderState.requestBackoffResetTaskScheduled(true);
-        schedule(leaderBackoffResetTask, config.getLeaderBackoffDurationMillis());
     }
 
     public void schedule(Runnable task, long delayMillis) {
@@ -1086,7 +1092,7 @@ public class RaftNodeImpl
                                               .setGroupMembersLogIndex(snapshotEntry.getGroupMembersLogIndex())
                                               .setGroupMembers(snapshotEntry.getGroupMembers())
                                               .setQuerySeqNo(leaderState.querySeqNo())
-                                              .setFlowControlSeqNo(followerState.setMaxRequestBackoff()).build();
+                                              .setFlowControlSeqNo(enableBackoff(followerState)).build();
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(
@@ -1147,14 +1153,9 @@ public class RaftNodeImpl
             backoff = false;
         }
 
-        // if the request backoff task is already scheduled, the task may
-        // run too early and complete the backoff round of this follower
-        // prematurely. in order to prevent this possibility, we add one
-        // more backoff round for this follower.
-        long flowControlSeqNo = backoff ? followerState.setRequestBackoff(leaderState.isRequestBackoffResetTaskScheduled()) : 0;
-
         RaftMessage request = requestBuilder.setPreviousLogTerm(prevEntryTerm).setPreviousLogIndex(prevEntryIndex)
-                                            .setFlowControlSeqNo(flowControlSeqNo).setLogEntries(entries).build();
+                                            .setFlowControlSeqNo(backoff ? enableBackoff(followerState) : 0)
+                                            .setLogEntries(entries).build();
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(localEndpointStr + " Sending " + request + " to " + follower.getId() + " with next index: " + nextIndex);
@@ -1174,6 +1175,10 @@ public class RaftNodeImpl
             // and followers flush in parallel...
             submitLeaderFlushTask(leaderState);
         }
+    }
+
+    private long enableBackoff(FollowerState followerState) {
+        return followerState.setRequestBackoff(MIN_BACKOFF_ROUNDS, maxBackoffRounds);
     }
 
     /**
@@ -1311,7 +1316,7 @@ public class RaftNodeImpl
         LeaderState leaderState = state.leaderState();
 
         if (leaderState == null) {
-            LOGGER.debug("{} Not retrying leadership transfer since not leader...", localEndpointStr);
+            LOGGER.debug("{} not retrying leadership transfer since not leader...", localEndpointStr);
             return;
         }
 
@@ -1320,28 +1325,29 @@ public class RaftNodeImpl
             throw new IllegalStateException("No leadership transfer state!");
         }
 
-        if (!leadershipTransferState.retry()) {
+        int tryCount = leadershipTransferState.incrementTryCount();
+
+        if (config.getLeaderHeartbeatTimeoutSecs() <= tryCount * config.getLeaderHeartbeatPeriodSecs()) {
             String msg =
-                    localEndpointStr + " Leadership transfer to " + leadershipTransferState.endpoint().getId() + " timed out!";
+                    localEndpointStr + " leadership transfer to " + leadershipTransferState.endpoint().getId() + " timed out!";
             LOGGER.warn(msg);
             state.completeLeadershipTransfer(new TimeoutException(msg));
             return;
         }
 
         RaftEndpoint targetEndpoint = leadershipTransferState.endpoint();
-        long delayMs = leadershipTransferState.retryDelay(getLeaderElectionTimeoutMs());
 
         if (state.commitIndex() < state.log().lastLogOrSnapshotIndex()) {
-            LOGGER.warn("{} Waiting until all appended entries to be committed before transferring leadership to {}",
+            LOGGER.warn("{} waiting until all appended entries to be committed before transferring leadership to {}",
                     localEndpointStr, targetEndpoint.getId());
-            schedule(this::transferLeadership, delayMs);
+            schedule(this::transferLeadership, SECONDS.toMillis(config.getLeaderHeartbeatPeriodSecs()));
             return;
         }
 
-        if (leadershipTransferState.tryCount() > 1) {
-            LOGGER.debug("{} Retrying leadership transfer to {}", localEndpointStr, leadershipTransferState.endpoint().getId());
+        if (tryCount > 1) {
+            LOGGER.debug("{} retrying leadership transfer to {}", localEndpointStr, leadershipTransferState.endpoint().getId());
         } else {
-            LOGGER.info("{} Transferring leadership to {}", localEndpointStr, leadershipTransferState.endpoint().getId());
+            LOGGER.info("{} transferring leadership to {}", localEndpointStr, leadershipTransferState.endpoint().getId());
         }
 
         leaderState.getFollowerState(targetEndpoint).resetRequestBackoff();
@@ -1353,7 +1359,7 @@ public class RaftNodeImpl
                                           .setLastLogIndex(entry.getIndex()).build();
         send(request, targetEndpoint);
 
-        schedule(this::transferLeadership, delayMs);
+        schedule(this::transferLeadership, SECONDS.toMillis(config.getLeaderHeartbeatPeriodSecs()));
     }
 
     private long findQuorumMatchIndex() {
@@ -1499,9 +1505,10 @@ public class RaftNodeImpl
     }
 
     private boolean isLeaderHeartbeatTimeoutElapsed(long timestamp) {
+        long heartbeatTimeoutMillis = SECONDS.toMillis(config.getLeaderHeartbeatTimeoutSecs());
         long deadline;
-        if (Long.MAX_VALUE - config.getLeaderHeartbeatTimeoutMillis() >= timestamp) {
-            deadline = timestamp + config.getLeaderHeartbeatTimeoutMillis();
+        if (Long.MAX_VALUE - heartbeatTimeoutMillis >= timestamp) {
+            deadline = timestamp + heartbeatTimeoutMillis;
         } else {
             deadline = Long.MAX_VALUE;
         }
@@ -1641,12 +1648,6 @@ public class RaftNodeImpl
     public boolean isReachable(RaftEndpoint endpoint) {
         return runtime.isReachable(endpoint);
     }
-
-    /**
-     * Scheduled only on the Raft group leader with
-     * {@link RaftConfig#getLeaderHeartbeatPeriodMillis()} delay to denote leader
-     * liveliness by sending periodic append entries requests to followers.
-     */
 
     public static class RaftNodeBuilderImpl
             implements RaftNodeBuilder {

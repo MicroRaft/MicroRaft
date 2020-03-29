@@ -46,7 +46,6 @@ import java.util.concurrent.Future;
 import java.util.function.Function;
 
 import static io.microraft.MembershipChangeMode.ADD;
-import static io.microraft.RaftConfig.DEFAULT_SNAPSHOT_TRANSFER_BACKOFF_DURATION_MILLIS;
 import static io.microraft.RaftNodeStatus.ACTIVE;
 import static io.microraft.impl.local.SimpleStateMachine.apply;
 import static io.microraft.impl.util.AssertionUtils.eventually;
@@ -141,19 +140,18 @@ public class SnapshotTest
 
     @Test(timeout = 300_000)
     public void when_followersMatchIndexIsUnknown_then_itInstallsSnapshotFromLeaderOnly() {
-        when_followersMatchIndexIsUnknown_then_itInstallsSnapshot(true);
+        when_followersMatchIndexIsUnknown_then_itInstallsSnapshot(false);
     }
 
     @Test(timeout = 300_000)
     public void when_followersMatchIndexIsUnknown_then_itInstallsSnapshotFromLeaderAndFollowers() {
-        when_followersMatchIndexIsUnknown_then_itInstallsSnapshot(false);
+        when_followersMatchIndexIsUnknown_then_itInstallsSnapshot(true);
     }
 
-    private void when_followersMatchIndexIsUnknown_then_itInstallsSnapshot(boolean leaderOnly) {
+    private void when_followersMatchIndexIsUnknown_then_itInstallsSnapshot(boolean transferSnapshotFromFollowersEnabled) {
         int entryCount = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount)
-                                      .setSnapshotTransferBackoffDurationMillis(
-                                              leaderOnly ? 0 : DEFAULT_SNAPSHOT_TRANSFER_BACKOFF_DURATION_MILLIS).build();
+                                      .setTransferSnapshotsFromFollowersEnabled(transferSnapshotFromFollowersEnabled).build();
         group = new LocalRaftGroup(3, config);
         group.start();
 
@@ -196,19 +194,18 @@ public class SnapshotTest
 
     @Test(timeout = 300_000)
     public void when_followerIsFarBehind_then_itInstallsSnapshotFromLeaderOnly() {
-        when_followerIsFarBehind_then_itInstallsSnapshot(true);
+        when_followerIsFarBehind_then_itInstallsSnapshot(false);
     }
 
     @Test(timeout = 300_000)
     public void when_followerIsFarBehind_then_itInstallsSnapshotFromLeaderAndFollowers() {
-        when_followerIsFarBehind_then_itInstallsSnapshot(false);
+        when_followerIsFarBehind_then_itInstallsSnapshot(true);
     }
 
-    private void when_followerIsFarBehind_then_itInstallsSnapshot(boolean leaderOnly) {
+    private void when_followerIsFarBehind_then_itInstallsSnapshot(boolean transferSnapshotFromFollowersEnabled) {
         int entryCount = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount)
-                                      .setSnapshotTransferBackoffDurationMillis(
-                                              leaderOnly ? 0 : DEFAULT_SNAPSHOT_TRANSFER_BACKOFF_DURATION_MILLIS).build();
+                                      .setTransferSnapshotsFromFollowersEnabled(transferSnapshotFromFollowersEnabled).build();
         group = new LocalRaftGroup(3, config);
         group.start();
 
@@ -253,7 +250,7 @@ public class SnapshotTest
 
     @Test(timeout = 300_000)
     public void when_leaderMissesInstallSnapshotResponse_then_itAdvancesMatchIndexWithNextInstallSnapshotResponse_leaderOnly() {
-        when_leaderMissesInstallSnapshotResponse_then_itAdvancesMatchIndexWithNextInstallSnapshotResponse(true);
+        when_leaderMissesInstallSnapshotResponse_then_itAdvancesMatchIndexWithNextInstallSnapshotResponse(false);
     }
 
     @Test(timeout = 300_000)
@@ -262,11 +259,10 @@ public class SnapshotTest
     }
 
     private void when_leaderMissesInstallSnapshotResponse_then_itAdvancesMatchIndexWithNextInstallSnapshotResponse(
-            boolean leaderOnly) {
+            boolean transferSnapshotFromFollowersEnabled) {
         int entryCount = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount)
-                                      .setSnapshotTransferBackoffDurationMillis(
-                                              leaderOnly ? 0 : DEFAULT_SNAPSHOT_TRANSFER_BACKOFF_DURATION_MILLIS).build();
+                                      .setTransferSnapshotsFromFollowersEnabled(transferSnapshotFromFollowersEnabled).build();
         group = new LocalRaftGroup(3, config);
         group.start();
 
@@ -520,8 +516,8 @@ public class SnapshotTest
     public void when_isolatedLeaderAppendsEntries_then_itInvalidatesTheirFeaturesUponInstallSnapshot()
             throws Exception {
         int entryCount = 50;
-        RaftConfig config = RaftConfig.newBuilder().setLeaderElectionTimeoutMillis(2000).setLeaderHeartbeatPeriodMillis(1000)
-                                      .setLeaderHeartbeatTimeoutMillis(5000).setCommitCountToTakeSnapshot(entryCount).build();
+        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(5)
+                                      .setCommitCountToTakeSnapshot(entryCount).build();
         group = new LocalRaftGroup(3, config);
         group.start();
 
@@ -847,19 +843,20 @@ public class SnapshotTest
 
     @Test(timeout = 300_000)
     public void when_leaderFailsDuringSnapshotTransfer_then_followerTransfersSnapshotFromNewLeader_leaderOnly() {
-        when_leaderFailsDuringSnapshotTransfer_then_followerTransfersSnapshotFromNewLeader(true);
+        when_leaderFailsDuringSnapshotTransfer_then_followerTransfersSnapshotFromNewLeader(false);
     }
 
     @Test(timeout = 300_000)
     public void when_leaderFailsDuringSnapshotTransfer_then_followerTransfersSnapshotFromNewLeader_leaderAndFollowers() {
-        when_leaderFailsDuringSnapshotTransfer_then_followerTransfersSnapshotFromNewLeader(false);
+        when_leaderFailsDuringSnapshotTransfer_then_followerTransfersSnapshotFromNewLeader(true);
     }
 
-    private void when_leaderFailsDuringSnapshotTransfer_then_followerTransfersSnapshotFromNewLeader(boolean leaderOnly) {
+    private void when_leaderFailsDuringSnapshotTransfer_then_followerTransfersSnapshotFromNewLeader(
+            boolean transferSnapshotFromFollowersEnabled) {
         int entryCount = 50;
-        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodMillis(1000).setCommitCountToTakeSnapshot(entryCount)
-                                      .setSnapshotTransferBackoffDurationMillis(
-                                              leaderOnly ? 0 : DEFAULT_SNAPSHOT_TRANSFER_BACKOFF_DURATION_MILLIS).build();
+        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(5)
+                                      .setCommitCountToTakeSnapshot(entryCount)
+                                      .setTransferSnapshotsFromFollowersEnabled(transferSnapshotFromFollowersEnabled).build();
         group = new LocalRaftGroup(3, config);
         group.start();
 

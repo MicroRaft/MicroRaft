@@ -39,7 +39,6 @@ import static io.microraft.MembershipChangeMode.REMOVE;
 import static io.microraft.RaftRole.FOLLOWER;
 import static io.microraft.impl.util.RaftTestUtils.getRole;
 import static io.microraft.impl.util.RaftTestUtils.getTerm;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -115,8 +114,7 @@ public class LeadershipTransferTest
     @Test(timeout = 300_000)
     public void when_leadershipTransferTriggeredDuringMembershipChange_then_leadershipTransferFails()
             throws Exception {
-        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodMillis(SECONDS.toMillis(30))
-                                      .setLeaderHeartbeatTimeoutMillis(SECONDS.toMillis(30)).build();
+        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(30).setLeaderHeartbeatTimeoutSecs(30).build();
         group = new LocalRaftGroup(3, config);
         group.start();
         RaftNodeImpl leader = group.waitUntilLeaderElected();

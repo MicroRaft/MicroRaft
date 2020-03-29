@@ -319,8 +319,8 @@ public class LinearizableQueryTest
     public void when_followersInstallSnapshot_then_queryIsExecutedOnLeaderWithInstallSnapshotResponse() {
         RaftConfig config = RaftConfig.newBuilder()
                                       .setLeaderElectionTimeoutMillis(TEST_RAFT_CONFIG.getLeaderElectionTimeoutMillis())
-                                      .setLeaderHeartbeatPeriodMillis(TEST_RAFT_CONFIG.getLeaderHeartbeatPeriodMillis())
-                                      .setLeaderHeartbeatTimeoutMillis(TEST_RAFT_CONFIG.getLeaderHeartbeatTimeoutMillis())
+                                      .setLeaderHeartbeatPeriodSecs(TEST_RAFT_CONFIG.getLeaderHeartbeatPeriodSecs())
+                                      .setLeaderHeartbeatTimeoutSecs(TEST_RAFT_CONFIG.getLeaderHeartbeatTimeoutSecs())
                                       .setCommitCountToTakeSnapshot(100).build();
         group = new LocalRaftGroup(3, config, true, null, null, null);
         group.start();

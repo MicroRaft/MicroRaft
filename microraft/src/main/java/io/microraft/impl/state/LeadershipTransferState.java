@@ -20,8 +20,6 @@ package io.microraft.impl.state;
 import io.microraft.RaftEndpoint;
 import io.microraft.impl.util.OrderedFuture;
 
-import static java.lang.Math.max;
-
 /**
  * State maintained by the Raft group leader during leadership transfer.
  *
@@ -58,25 +56,10 @@ public class LeadershipTransferState {
     }
 
     /**
-     * Returns how many times the target endpoint is notified
-     * for the leadership transfer.
-     */
-    public int tryCount() {
-        return tryCount;
-    }
-
-    /**
      * Returns if we can retry leadership transfer on the target endpoint.
      */
-    public boolean retry() {
-        return tryCount++ < RETRY_LIMIT;
-    }
-
-    /**
-     * Returns a duration in milliseconds to delay the next retry.
-     */
-    public long retryDelay(long leaderElectionTimeoutMs) {
-        return max(1, leaderElectionTimeoutMs * 2 / RETRY_LIMIT);
+    public int incrementTryCount() {
+        return ++tryCount;
     }
 
     /**

@@ -47,8 +47,8 @@ import static org.junit.Assert.assertNotNull;
 public final class RaftTestUtils {
 
     public static final RaftConfig TEST_RAFT_CONFIG = RaftConfig.newBuilder().setLeaderElectionTimeoutMillis(2000)
-                                                                .setLeaderHeartbeatPeriodMillis(1000)
-                                                                .setLeaderHeartbeatTimeoutMillis(5000).build();
+                                                                .setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(5)
+                                                                .build();
 
     private RaftTestUtils() {
     }

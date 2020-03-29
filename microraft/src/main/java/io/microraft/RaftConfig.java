@@ -68,6 +68,11 @@ public class RaftConfig
     public static final long DEFAULT_LEADER_BACKOFF_DURATION_MILLIS = 100;
 
     /**
+     * The default value for {@link #snapshotTransferBackoffDurationMillis}
+     */
+    public static final long DEFAULT_SNAPSHOT_TRANSFER_BACKOFF_DURATION_MILLIS = 1000;
+
+    /**
      * The default value for {@link #raftNodeReportPublishPeriodSecs}.
      */
     public static final int DEFAULT_RAFT_NODE_REPORT_PUBLISH_PERIOD_SECS = 10;
@@ -150,6 +155,13 @@ public class RaftConfig
      * unresponsive.
      */
     private final long leaderBackoffDurationMillis;
+
+    /**
+     * TODO [basri] make this boolean
+     * TODO [basri] add javadoc
+     */
+    private final long snapshotTransferBackoffDurationMillis;
+
     /**
      * Denotes how frequently a Raft node publishes a report of its internal
      * Raft state.
@@ -158,7 +170,8 @@ public class RaftConfig
 
     public RaftConfig(long leaderElectionTimeoutMillis, long leaderHeartbeatPeriodMillis, long leaderHeartbeatTimeoutMillis,
                       int appendEntriesRequestBatchSize, int commitCountToTakeSnapshot, int maxUncommittedLogEntryCount,
-                      long leaderBackoffDurationMillis, int raftNodeReportPublishPeriodSecs) {
+                      long leaderBackoffDurationMillis, long snapshotTransferBackoffDurationMillis,
+                      int raftNodeReportPublishPeriodSecs) {
         this.leaderElectionTimeoutMillis = leaderElectionTimeoutMillis;
         this.leaderHeartbeatPeriodMillis = leaderHeartbeatPeriodMillis;
         this.leaderHeartbeatTimeoutMillis = leaderHeartbeatTimeoutMillis;
@@ -166,6 +179,7 @@ public class RaftConfig
         this.commitCountToTakeSnapshot = commitCountToTakeSnapshot;
         this.maxUncommittedLogEntryCount = maxUncommittedLogEntryCount;
         this.leaderBackoffDurationMillis = leaderBackoffDurationMillis;
+        this.snapshotTransferBackoffDurationMillis = snapshotTransferBackoffDurationMillis;
         this.raftNodeReportPublishPeriodSecs = raftNodeReportPublishPeriodSecs;
     }
 
@@ -178,6 +192,12 @@ public class RaftConfig
 
     private static void checkPositive(long value, String errorMessage) {
         if (value <= 0) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+    }
+
+    private static void checkNonNegative(long value, String errorMessage) {
+        if (value < 0) {
             throw new IllegalArgumentException(errorMessage);
         }
     }
@@ -232,6 +252,13 @@ public class RaftConfig
     }
 
     /**
+     * @see #snapshotTransferBackoffDurationMillis
+     */
+    public long getSnapshotTransferBackoffDurationMillis() {
+        return snapshotTransferBackoffDurationMillis;
+    }
+
+    /**
      * @see #raftNodeReportPublishPeriodSecs
      */
     public int getRaftNodeReportPublishPeriodSecs() {
@@ -250,6 +277,7 @@ public class RaftConfig
         private int commitCountToTakeSnapshot = DEFAULT_COMMIT_COUNT_TO_TAKE_SNAPSHOT;
         private int maxUncommittedLogEntryCount = DEFAULT_MAX_UNCOMMITTED_LOG_ENTRY_COUNT;
         private long leaderBackoffDurationMillis = DEFAULT_LEADER_BACKOFF_DURATION_MILLIS;
+        private long snapshotTransferBackoffDurationMillis = DEFAULT_SNAPSHOT_TRANSFER_BACKOFF_DURATION_MILLIS;
         private int raftNodeReportPublishPeriodSecs = DEFAULT_RAFT_NODE_REPORT_PUBLISH_PERIOD_SECS;
 
         private RaftConfigBuilder() {
@@ -318,6 +346,12 @@ public class RaftConfig
             return this;
         }
 
+        public RaftConfigBuilder setSnapshotTransferBackoffDurationMillis(long snapshotTransferBackoffDurationMillis) {
+            checkNonNegative(snapshotTransferBackoffDurationMillis, "snapshot transfer backoff duration must be non-negative!");
+            this.snapshotTransferBackoffDurationMillis = snapshotTransferBackoffDurationMillis;
+            return this;
+        }
+
         public RaftConfigBuilder setRaftNodeReportPublishPeriodSecs(int raftNodeReportPublishPeriodSecs) {
             checkPositive(raftNodeReportPublishPeriodSecs, "raft node state snapshot publish period seconds must be positive!");
             this.raftNodeReportPublishPeriodSecs = raftNodeReportPublishPeriodSecs;
@@ -335,7 +369,7 @@ public class RaftConfig
 
             return new RaftConfig(leaderElectionTimeoutMillis, leaderHeartbeatPeriodMillis, leaderHeartbeatTimeoutMillis,
                     appendEntriesRequestBatchSize, commitCountToTakeSnapshot, maxUncommittedLogEntryCount,
-                    leaderBackoffDurationMillis, raftNodeReportPublishPeriodSecs);
+                    leaderBackoffDurationMillis, snapshotTransferBackoffDurationMillis, raftNodeReportPublishPeriodSecs);
         }
 
     }

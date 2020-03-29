@@ -22,8 +22,8 @@ import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.message.InstallSnapshotRequest;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 
@@ -40,7 +40,7 @@ public class DefaultInstallSnapshotRequest
     private int snapshotTerm;
     private long snapshotIndex;
     private int totalSnapshotChunkCount;
-    private List<SnapshotChunk> snapshotChunks;
+    private SnapshotChunk snapshotChunk;
     private long groupMembersLogIndex;
     private Collection<RaftEndpoint> groupMembers;
     private long querySeqNo;
@@ -85,10 +85,10 @@ public class DefaultInstallSnapshotRequest
         return totalSnapshotChunkCount;
     }
 
-    @Nonnull
+    @Nullable
     @Override
-    public List<SnapshotChunk> getSnapshotChunks() {
-        return snapshotChunks;
+    public SnapshotChunk getSnapshotChunk() {
+        return snapshotChunk;
     }
 
     @Override
@@ -116,9 +116,8 @@ public class DefaultInstallSnapshotRequest
     public String toString() {
         return "InstallSnapshotRequest{" + "groupId=" + groupId + ", sender=" + sender + ", term=" + term + ", leader=" + leader
                 + ", snapshotTerm=" + snapshotTerm + ", snapshotIndex=" + snapshotIndex + ", chunkCount="
-                + totalSnapshotChunkCount + ", snapshotChunks=" + snapshotChunks + ", groupMembersLogIndex="
-                + groupMembersLogIndex + ", groupMembers=" + groupMembers + ", querySeqNo=" + querySeqNo + ", flowControlSeqNo="
-                + flowControlSeqNo + '}';
+                + totalSnapshotChunkCount + ", snapshotChunk=" + snapshotChunk + ", groupMembersLogIndex=" + groupMembersLogIndex
+                + ", groupMembers=" + groupMembers + ", querySeqNo=" + querySeqNo + ", flowControlSeqNo=" + flowControlSeqNo + '}';
     }
 
     public static class DefaultInstallSnapshotRequestBuilder
@@ -179,9 +178,8 @@ public class DefaultInstallSnapshotRequest
 
         @Nonnull
         @Override
-        public InstallSnapshotRequestBuilder setSnapshotChunks(@Nonnull List<SnapshotChunk> snapshotChunks) {
-            requireNonNull(snapshotChunks);
-            request.snapshotChunks = snapshotChunks;
+        public InstallSnapshotRequestBuilder setSnapshotChunk(@Nonnull SnapshotChunk snapshotChunk) {
+            request.snapshotChunk = snapshotChunk;
             return this;
         }
 

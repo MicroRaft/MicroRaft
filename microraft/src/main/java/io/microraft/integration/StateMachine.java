@@ -70,6 +70,15 @@ public interface StateMachine {
      * its state into multiple chunks to help the local Raft node send
      * the snapshot to the other Raft nodes in the group without overloading
      * the system.
+     * <p>
+     * Once a follower falls behind the leader and requires to install
+     * a snapshot, it may fetch the latest snapshot chunks both from the leader
+     * and the other followers. Moreover, snapshot chunks can be sent one by
+     * one or multiple at one go to speed up the snapshot installation process.
+     * There is one important caveat here. State machine implementations must
+     * populate the snapshot chunks deterministically, so that a slow follower
+     * always reaches to the same state with the Raft leader and other
+     * followers independent of from which nodes the chunks are fetched.
      *
      * @param commitIndex           commit index on which a snapshot is taken
      * @param snapshotChunkConsumer consumer object to which snapshot chunks
@@ -79,7 +88,9 @@ public interface StateMachine {
 
     /**
      * Installs the given snapshot chunks for the given commit index, which is
-     * same with the commit index on which the snapshot is taken.
+     * same with the commit index on which the last snapshot is taken.
+     * The snapshot chunks are in the order they are provided to the chunk
+     * consumer parameter of {@link #takeSnapshot(long, Consumer)} method.
      *
      * @param commitIndex    commit index of the snapshot
      * @param snapshotChunks snapshot chunks provided by the state machine

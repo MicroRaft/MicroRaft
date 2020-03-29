@@ -328,37 +328,26 @@ public class RaftNodeImpl
         schedule(new HeartbeatTask(), config.getLeaderHeartbeatPeriodMillis());
     }
 
-    public void sendSnapshotChunks(RaftEndpoint follower, long snapshotIndex, List<Integer> requestedSnapshotChunkIndices) {
+    public void sendSnapshotChunk(RaftEndpoint follower, long snapshotIndex, int requestedSnapshotChunkIndex) {
         // this node can be a leader or a follower!
         LeaderState leaderState = state.leaderState();
         FollowerState followerState = leaderState != null ? leaderState.getFollowerState(follower) : null;
         SnapshotEntry snapshotEntry = state.log().snapshotEntry();
-        List<SnapshotChunk> snapshotChunksToSend;
+        SnapshotChunk snapshotChunk = null;
 
         if (snapshotEntry.getIndex() == snapshotIndex) {
             List<SnapshotChunk> snapshotChunks = (List<SnapshotChunk>) snapshotEntry.getOperation();
-            snapshotChunksToSend = requestedSnapshotChunkIndices.stream().map(snapshotChunks::get).collect(toList());
-            LOGGER.info("{} sending snapshot chunks: {} to {} for snapshot index: {}", localEndpointStr,
-                    requestedSnapshotChunkIndices, follower.getId(), snapshotIndex);
+            snapshotChunk = snapshotChunks.get(requestedSnapshotChunkIndex);
+            LOGGER.info("{} sending snapshot chunk: {} to {} for snapshot index: {}", localEndpointStr,
+                    requestedSnapshotChunkIndex, follower.getId(), snapshotIndex);
         } else if (snapshotEntry.getIndex() > snapshotIndex) {
-            if (leaderState == null) {
-                // We allow only the Raft leader to initiate a new snapshot
-                // installation process.
-                LOGGER.info("{} cannot send requested snapshot chunks: {} for snapshot index: {} to {} because the "
-                                + "current snapshot index: {} and I am not the leader!", localEndpointStr, requestedSnapshotChunkIndices,
-                        snapshotIndex, follower, snapshotEntry.getIndex());
-                return;
-            }
-
-            snapshotChunksToSend = emptyList();
             LOGGER.info("{} sending empty snapshot chunk list to {} because requested snapshot index: "
                             + "{} is smaller than the current snapshot index: {}", localEndpointStr, follower.getId(), snapshotIndex,
                     snapshotEntry.getIndex());
         } else {
             LOGGER.error("{} requested snapshot index: {} for snapshot chunk indices: {} from {} is bigger than "
-                            + "current snapshot index: {}", localEndpointStr, snapshotIndex, requestedSnapshotChunkIndices, follower,
+                            + "current snapshot index: {}", localEndpointStr, snapshotIndex, requestedSnapshotChunkIndex, follower,
                     snapshotEntry.getIndex());
-            return;
         }
 
         RaftMessage request = modelFactory.createInstallSnapshotRequestBuilder().setGroupId(getGroupId())
@@ -366,7 +355,7 @@ public class RaftNodeImpl
                                           .setSenderLeader(leaderState != null).setSnapshotTerm(snapshotEntry.getTerm())
                                           .setSnapshotIndex(snapshotEntry.getIndex())
                                           .setTotalSnapshotChunkCount(snapshotEntry.getSnapshotChunkCount())
-                                          .setSnapshotChunks(snapshotChunksToSend)
+                                          .setSnapshotChunk(snapshotChunk)
                                           .setGroupMembersLogIndex(snapshotEntry.getGroupMembersLogIndex())
                                           .setGroupMembers(snapshotEntry.getGroupMembers())
                                           .setQuerySeqNo(leaderState != null ? leaderState.querySeqNo() : 0)
@@ -390,6 +379,12 @@ public class RaftNodeImpl
     @Override
     public RaftEndpoint getLocalEndpoint() {
         return state.localEndpoint();
+    }
+
+    @Nonnull
+    @Override
+    public RaftConfig getConfig() {
+        return config;
     }
 
     @Nonnull
@@ -677,7 +672,7 @@ public class RaftNodeImpl
         schedule(leaderBackoffResetTask, config.getLeaderBackoffDurationMillis());
     }
 
-    private void schedule(Runnable task, long delayMillis) {
+    public void schedule(Runnable task, long delayMillis) {
         runtime.schedule(task, delayMillis, MILLISECONDS);
     }
 
@@ -1062,6 +1057,8 @@ public class RaftNodeImpl
      */
     @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity", "checkstyle:methodlength"})
     public void sendAppendEntriesRequest(RaftEndpoint follower) {
+        // TODO [basri] add a "heartbeat" parameter. if heartbeat, no log entries are put into the request...
+
         RaftLog log = state.log();
         LeaderState leaderState = state.leaderState();
         FollowerState followerState = leaderState.getFollowerState(follower);
@@ -1085,7 +1082,7 @@ public class RaftNodeImpl
                                               .setSender(getLocalEndpoint()).setTerm(state.term()).setSenderLeader(true)
                                               .setSnapshotTerm(snapshotEntry.getTerm()).setSnapshotIndex(snapshotEntry.getIndex())
                                               .setTotalSnapshotChunkCount(snapshotEntry.getSnapshotChunkCount())
-                                              .setSnapshotChunks(emptyList())
+                                              .setSnapshotChunk(null)
                                               .setGroupMembersLogIndex(snapshotEntry.getGroupMembersLogIndex())
                                               .setGroupMembers(snapshotEntry.getGroupMembers())
                                               .setQuerySeqNo(leaderState.querySeqNo())
@@ -1129,6 +1126,8 @@ public class RaftNodeImpl
                 // the follower before we learn its match index
                 entries = emptyList();
             } else if (nextIndex <= lastLogIndex) {
+                // TODO [basri] boost the follower if it has just installed a snapshot...
+
                 // Then, once the matchIndex immediately precedes the nextIndex,
                 // the leader should begin to send the actual entries
                 long end = min(nextIndex + appendEntriesRequestBatchSize, lastLogIndex);
@@ -1637,6 +1636,10 @@ public class RaftNodeImpl
 
     private RaftException newIndeterminateStateException(RaftEndpoint leader) {
         return new IndeterminateStateException(leader);
+    }
+
+    public boolean isReachable(RaftEndpoint endpoint) {
+        return runtime.isReachable(endpoint);
     }
 
     /**

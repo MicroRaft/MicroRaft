@@ -20,8 +20,8 @@ import io.microraft.RaftEndpoint;
 import io.microraft.model.log.SnapshotChunk;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Raft message for the InstallSnapshot RPC.
@@ -49,8 +49,8 @@ public interface InstallSnapshotRequest
 
     int getTotalSnapshotChunkCount();
 
-    @Nonnull
-    List<SnapshotChunk> getSnapshotChunks();
+    @Nullable
+    SnapshotChunk getSnapshotChunk();
 
     long getGroupMembersLogIndex();
 
@@ -89,7 +89,7 @@ public interface InstallSnapshotRequest
         InstallSnapshotRequestBuilder setTotalSnapshotChunkCount(int totalSnapshotChunkCount);
 
         @Nonnull
-        InstallSnapshotRequestBuilder setSnapshotChunks(@Nonnull List<SnapshotChunk> snapshotChunks);
+        InstallSnapshotRequestBuilder setSnapshotChunk(@Nullable SnapshotChunk snapshotChunk);
 
         @Nonnull
         InstallSnapshotRequestBuilder setGroupMembersLogIndex(long groupMembersLogIndex);

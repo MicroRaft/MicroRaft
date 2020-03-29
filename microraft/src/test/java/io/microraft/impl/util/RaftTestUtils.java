@@ -93,12 +93,7 @@ public final class RaftTestUtils {
                 return null;
             }
 
-            SnapshotChunkCollector copy = new SnapshotChunkCollector(snapshotChunkCollector.getSnapshotIndex(),
-                    snapshotChunkCollector.getSnapshotTerm(), snapshotChunkCollector.getChunkCount(),
-                    snapshotChunkCollector.getGroupMembersLogIndex(), snapshotChunkCollector.getGroupMembers());
-            copy.add(snapshotChunkCollector.getChunks());
-
-            return copy;
+            return snapshotChunkCollector.copy();
         });
     }
 

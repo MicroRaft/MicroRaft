@@ -19,7 +19,6 @@ package io.microraft.model.message;
 import io.microraft.RaftEndpoint;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 
 /**
  * Response for {@link InstallSnapshotRequest}.
@@ -39,8 +38,7 @@ public interface InstallSnapshotResponse
 
     long getSnapshotIndex();
 
-    @Nonnull
-    List<Integer> getRequestedSnapshotChunkIndices();
+    int getRequestedSnapshotChunkIndex();
 
     long getQuerySeqNo();
 
@@ -65,7 +63,7 @@ public interface InstallSnapshotResponse
         InstallSnapshotResponseBuilder setSnapshotIndex(long snapshotIndex);
 
         @Nonnull
-        InstallSnapshotResponseBuilder setRequestedSnapshotChunkIndices(@Nonnull List<Integer> requestedSnapshotChunkIndices);
+        InstallSnapshotResponseBuilder setRequestedSnapshotChunkIndex(int requestedSnapshotChunkIndex);
 
         @Nonnull
         InstallSnapshotResponseBuilder setQuerySeqNo(long querySeqNo);

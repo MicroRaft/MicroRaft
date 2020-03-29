@@ -1,6 +1,5 @@
 /*
- * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
- * Modified work Copyright 2020, MicroRaft.
+ * Copyright (c) 2020, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package io.microraft.impl.log;
 
 import io.microraft.RaftEndpoint;
@@ -26,13 +26,15 @@ import io.microraft.model.log.SnapshotEntry.SnapshotEntryBuilder;
 import io.microraft.model.message.InstallSnapshotRequest;
 import io.microraft.model.message.InstallSnapshotResponse;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
@@ -59,6 +61,8 @@ public class SnapshotChunkCollector {
     private final Set<Integer> missingChunkIndices = new LinkedHashSet<>();
     private long groupMembersLogIndex;
     private Collection<RaftEndpoint> groupMembers;
+    private Map<RaftEndpoint, Integer> requestedEndpoints = new HashMap<>();
+    private Set<RaftEndpoint> unresponsiveEndpoints = new HashSet<>();
 
     public SnapshotChunkCollector(long snapshotIndex, int snapshotTerm, int chunkCount, long groupMembersLogIndex,
                                   Collection<RaftEndpoint> groupMembers) {
@@ -70,53 +74,74 @@ public class SnapshotChunkCollector {
         IntStream.range(0, chunkCount).forEach(missingChunkIndices::add);
     }
 
-    public List<SnapshotChunk> add(@Nonnull List<SnapshotChunk> receivedChunks) {
-        requireNonNull(receivedChunks);
-
-        if (missingChunkIndices.isEmpty()) {
-            return Collections.emptyList();
+    public boolean handleReceivedSnapshotChunk(RaftEndpoint endpoint, long snapshotIndex, SnapshotChunk snapshotChunk) {
+        requireNonNull(endpoint);
+        if (this.snapshotIndex != snapshotIndex) {
+            throw new IllegalArgumentException(
+                    "Invalid snapshot chunk at snapshot index: " + snapshotIndex + " current snapshot index: "
+                            + this.snapshotIndex);
         }
 
-        List<SnapshotChunk> added = new ArrayList<>();
+        // TODO [basri] exponential backoff maybe?
 
-        for (SnapshotChunk chunk : receivedChunks) {
-            if (snapshotIndex != chunk.getIndex()) {
-                throw new IllegalArgumentException("Invalid chunk: " + chunk + " for log index: " + snapshotIndex);
-            } else if (missingChunkIndices.remove(chunk.getSnapshotChunkIndex())) {
-                chunks.add(chunk);
-                added.add(chunk);
-            }
+        // Un-mark the unresponsive endpoint even if the given chunk is already here
+        unresponsiveEndpoints.remove(endpoint);
+
+        if (snapshotChunk == null || !missingChunkIndices.remove(snapshotChunk.getSnapshotChunkIndex())) {
+            return false;
         }
+
+        chunks.add(snapshotChunk);
+        requestedEndpoints.remove(endpoint, snapshotChunk.getSnapshotChunkIndex());
 
         if (missingChunkIndices.isEmpty()) {
             chunks.sort(comparingInt(SnapshotChunk::getSnapshotChunkIndex));
         }
 
-        return added;
+        return true;
     }
 
-    public List<Integer> getNextChunks(int limit) {
-        if (limit < 1) {
-            throw new IllegalArgumentException("Invalid limit: " + limit);
+    public Map<RaftEndpoint, Integer> requestSnapshotChunks(List<RaftEndpoint> endpoints, boolean trackRequests) {
+        if (endpoints == null || endpoints.isEmpty()) {
+            throw new IllegalArgumentException("No endpoint provided!");
         } else if (isSnapshotCompleted()) {
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
 
-        // We circle through missing chunk indices so that we can return
-        // different chunk ids to the leader on each InstallSnapshotRequest
-        List<Integer> chunkIndices = new ArrayList<>();
-        Iterator<Integer> it = missingChunkIndices.iterator();
-        while (it.hasNext()) {
-            chunkIndices.add(it.next());
-            it.remove();
-            if (chunkIndices.size() == limit) {
-                break;
+        Map<RaftEndpoint, Integer> requestedSnapshotChunkIndices = new HashMap<>();
+        for (RaftEndpoint endpoint : endpoints) {
+            if (requestedEndpoints.containsKey(endpoint) || unresponsiveEndpoints.contains(endpoint)) {
+                continue;
+            }
+
+            if (trackRequests) {
+                for (int chunkIndex : missingChunkIndices) {
+                    if (!requestedEndpoints.containsValue(chunkIndex)) {
+                        requestedEndpoints.put(endpoint, chunkIndex);
+                        requestedSnapshotChunkIndices.put(endpoint, chunkIndex);
+                        break;
+                    }
+                }
+            } else {
+                Iterator<Integer> it = missingChunkIndices.iterator();
+                int chunkIndex = it.next();
+                requestedSnapshotChunkIndices.put(endpoint, chunkIndex);
+                it.remove();
+                missingChunkIndices.add(chunkIndex);
             }
         }
 
-        missingChunkIndices.addAll(chunkIndices);
+        return requestedSnapshotChunkIndices;
+    }
 
-        return chunkIndices;
+    public boolean cancelSnapshotChunkRequest(RaftEndpoint endpoint, int snapshotChunkIndex) {
+        // Don't mark the endpoint as unresponsive if I already sent another request.
+        if (requestedEndpoints.remove(endpoint, snapshotChunkIndex)) {
+            unresponsiveEndpoints.add(endpoint);
+            return true;
+        }
+
+        return false;
     }
 
     public boolean isSnapshotCompleted() {
@@ -129,10 +154,6 @@ public class SnapshotChunkCollector {
 
     public int getSnapshotTerm() {
         return snapshotTerm;
-    }
-
-    public int getChunkCount() {
-        return chunkCount;
     }
 
     public long getGroupMembersLogIndex() {
@@ -156,6 +177,18 @@ public class SnapshotChunkCollector {
 
         return builder.setTerm(snapshotTerm).setIndex(snapshotIndex).setGroupMembersLogIndex(groupMembersLogIndex)
                       .setGroupMembers(groupMembers).setSnapshotChunks(chunks).build();
+    }
+
+    // for testing
+    public SnapshotChunkCollector copy() {
+        SnapshotChunkCollector copy = new SnapshotChunkCollector(snapshotIndex, snapshotTerm, chunkCount, groupMembersLogIndex,
+                groupMembers);
+        copy.chunks.addAll(chunks);
+        copy.missingChunkIndices.addAll(missingChunkIndices);
+        copy.unresponsiveEndpoints.addAll(unresponsiveEndpoints);
+        copy.requestedEndpoints.putAll(requestedEndpoints);
+
+        return copy;
     }
 
 }

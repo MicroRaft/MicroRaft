@@ -21,7 +21,6 @@ import io.microraft.RaftEndpoint;
 import io.microraft.model.message.InstallSnapshotResponse;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 
@@ -35,7 +34,7 @@ public class DefaultInstallSnapshotResponse
     private RaftEndpoint sender;
     private int term;
     private long snapshotIndex;
-    private List<Integer> requestedSnapshotChunkIndices;
+    private int requestedSnapshotChunkIndex;
     private long querySeqNo;
     private long flowControlSeqNo;
 
@@ -61,9 +60,8 @@ public class DefaultInstallSnapshotResponse
     }
 
     @Override
-    @Nonnull
-    public List<Integer> getRequestedSnapshotChunkIndices() {
-        return requestedSnapshotChunkIndices;
+    public int getRequestedSnapshotChunkIndex() {
+        return requestedSnapshotChunkIndex;
     }
 
     @Override
@@ -79,8 +77,8 @@ public class DefaultInstallSnapshotResponse
     @Override
     public String toString() {
         return "InstallSnapshotResponse{" + "groupId=" + groupId + ", sender=" + sender + ", term=" + term + ", snapshotIndex="
-                + snapshotIndex + ", requestedSnapshotChunkIndices=" + requestedSnapshotChunkIndices + ", querySeqNo="
-                + querySeqNo + ", flowControlSeqNo=" + flowControlSeqNo + '}';
+                + snapshotIndex + ", requestedSnapshotChunkIndex=" + requestedSnapshotChunkIndex + ", querySeqNo=" + querySeqNo
+                + ", flowControlSeqNo=" + flowControlSeqNo + '}';
     }
 
     public static class DefaultInstallSnapshotResponseBuilder
@@ -120,10 +118,8 @@ public class DefaultInstallSnapshotResponse
 
         @Nonnull
         @Override
-        public InstallSnapshotResponseBuilder setRequestedSnapshotChunkIndices(
-                @Nonnull List<Integer> requestedSnapshotChunkIndices) {
-            requireNonNull(requestedSnapshotChunkIndices);
-            response.requestedSnapshotChunkIndices = requestedSnapshotChunkIndices;
+        public InstallSnapshotResponseBuilder setRequestedSnapshotChunkIndex(int requestedSnapshotChunkIndex) {
+            response.requestedSnapshotChunkIndex = requestedSnapshotChunkIndex;
             return this;
         }
 

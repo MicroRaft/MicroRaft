@@ -96,6 +96,22 @@ public interface RaftNodeRuntime {
     void send(@Nonnull RaftEndpoint target, @Nonnull RaftMessage message);
 
     /**
+     * Returns true if the given endpoint is supposedly reachable by the time
+     * this method is called, false otherwise.
+     * <p>
+     * This method is not required to return a precise information. For
+     * instance, the local Raft node runtime does not need to ping the given
+     * endpoint to check if it is reachable when this method is called.
+     * Instead, the local Raft node could use a local information, such as
+     * recency of a message sent by or having a TCP connection to the given
+     * Raft endpoint.
+     *
+     * @param endpoint endpoint
+     * @return true if given endpoint is reachable, false otherwise
+     */
+    boolean isReachable(@Nonnull RaftEndpoint endpoint);
+
+    /**
      * Called when term, role, status, known leader, or member list
      * of the Raft node changes.
      *

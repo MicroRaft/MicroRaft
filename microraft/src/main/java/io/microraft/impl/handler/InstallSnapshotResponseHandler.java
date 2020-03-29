@@ -1,6 +1,5 @@
 /*
- * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
- * Modified work Copyright 2020, MicroRaft.
+ * Copyright (c) 2020, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,11 +88,15 @@ public class InstallSnapshotResponseHandler
 
         LeaderState leaderState = state.leaderState();
         FollowerState followerState = leaderState != null ? leaderState.getFollowerState(response.getSender()) : null;
-        if (followerState != null && !followerState.responseReceived(response.getFlowControlSeqNo())) {
-            return;
+        if (followerState != null) {
+            if (response.getFlowControlSeqNo() == 0) {
+                followerState.resetRequestBackoff();
+            } else if (!followerState.responseReceived(response.getFlowControlSeqNo())) {
+                return;
+            }
         }
 
-        node.sendSnapshotChunks(response.getSender(), response.getSnapshotIndex(), response.getRequestedSnapshotChunkIndices());
+        node.sendSnapshotChunk(response.getSender(), response.getSnapshotIndex(), response.getRequestedSnapshotChunkIndex());
     }
 
 }

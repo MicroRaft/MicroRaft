@@ -102,6 +102,12 @@ public interface RaftNode {
     RaftEndpoint getLocalEndpoint();
 
     /**
+     * Returns the config object this Raft node is initialized with.
+     */
+    @Nonnull
+    RaftConfig getConfig();
+
+    /**
      * Returns the locally known term information.
      * <p>
      * Please note that the other Raft nodes in the Raft group may have

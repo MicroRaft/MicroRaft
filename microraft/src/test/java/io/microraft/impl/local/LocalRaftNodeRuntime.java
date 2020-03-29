@@ -96,8 +96,9 @@ public class LocalRaftNodeRuntime
         return stateMachine;
     }
 
-    public boolean isReachable(@Nonnull RaftEndpoint member) {
-        return localMember.equals(member) || nodes.containsKey(member);
+    @Override
+    public boolean isReachable(@Nonnull RaftEndpoint endpoint) {
+        return localMember.equals(endpoint) || nodes.containsKey(endpoint);
     }
 
     @Override

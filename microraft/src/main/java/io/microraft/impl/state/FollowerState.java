@@ -27,8 +27,8 @@ import static java.lang.Math.min;
  */
 public class FollowerState {
 
-    // TODO [basri] make this configurable???
-    private static final int MAX_BACKOFF_ROUND = 20;
+    // TODO [basri] this must be at most leader hb period
+    static final int MAX_BACKOFF_ROUND = 20;
 
     /**
      * index of highest log entry known to be replicated
@@ -63,15 +63,6 @@ public class FollowerState {
      * entries or install snapshot request
      */
     private long flowControlSeqNo;
-
-    /**
-     * the last flow control sequence number for which the request backoff
-     * reset task is scheduled. this field may be behind
-     * {@link #flowControlSeqNo} if the follower sends a response and another
-     * request is sent to it before the request backoff task of the first
-     * request runs.
-     */
-    private long resetBackOffTaskScheduledFlowControlSeqNo;
 
     FollowerState(long matchIndex, long nextIndex) {
         this.matchIndex = matchIndex;
@@ -121,26 +112,23 @@ public class FollowerState {
      * this follower either until it sends a response or the backoff timeout
      * elapses.
      * <p>
-     * If the "twice" parameter is set and the backoff state is initialized
-     * with only 1 round, one more backoff round is added.
+     * If the "extraRound" is true and the backoff state is initialized with
+     * only 1 round, one more backoff round is added.
      * <p>
-     * Returns the next available flow control sequence number for the append
-     * entries or install snapshot request about to be sent.
+     * Returns the flow control sequence number to be put into the append
+     * entries or install snapshot request which is to be sent to the follower.
      */
-    public long setRequestBackoff(boolean twice) {
-        backoffRound = nextRequestBackoffRound();
-        if (twice && backoffRound == 1) {
+    public long setRequestBackoff(boolean extraRound) {
+        assert backoffRound == 0 : "backoff round: " + backoffRound;
+        backoffRound = min(1 << (nextBackoffRoundPower++), MAX_BACKOFF_ROUND);
+        if (extraRound && backoffRound < MAX_BACKOFF_ROUND) {
             backoffRound++;
         }
-        nextBackoffRoundPower++;
 
         return nextFlowControlSeqNo();
     }
 
-    private int nextRequestBackoffRound() {
-        return min(1 << nextBackoffRoundPower, MAX_BACKOFF_ROUND);
-    }
-
+    // TODO [basri] unify backoff. no need for max. use a single backoff which is leader heartbeat timeout
     /**
      * Enables the longest request backoff period.
      * <p>
@@ -148,6 +136,7 @@ public class FollowerState {
      * entries or install snapshot request about to be sent.
      */
     public long setMaxRequestBackoff() {
+        assert backoffRound == 0 : "backoff round: " + backoffRound;
         backoffRound = MAX_BACKOFF_ROUND;
 
         return nextFlowControlSeqNo();
@@ -159,21 +148,8 @@ public class FollowerState {
      * @return true if the current backoff period is completed, false otherwise
      */
     public boolean completeBackoffRound() {
-        assert resetBackOffTaskScheduledFlowControlSeqNo != 0;
-
-        if (resetBackOffTaskScheduledFlowControlSeqNo != flowControlSeqNo) {
-            // The leader has sent a new request after the last request sent
-            // before the request backoff task is executed. In this case,
-            // we cannot complete this current backoff round, and we should
-            // go for one more backoff round.
-            resetBackOffTaskScheduledFlowControlSeqNo = flowControlSeqNo;
-            return false;
-        } else if (--backoffRound > 0) {
-            return false;
-        }
-
-        resetBackOffTaskScheduledFlowControlSeqNo = 0;
-        return true;
+        assert backoffRound > 0;
+        return --backoffRound == 0;
     }
 
     /**
@@ -198,7 +174,6 @@ public class FollowerState {
     public void resetRequestBackoff() {
         backoffRound = 0;
         nextBackoffRoundPower = 0;
-        resetBackOffTaskScheduledFlowControlSeqNo = 0;
     }
 
     /**
@@ -209,20 +184,22 @@ public class FollowerState {
     }
 
     private long nextFlowControlSeqNo() {
-        long nextFlowControlSeqNo = ++flowControlSeqNo;
-        if (resetBackOffTaskScheduledFlowControlSeqNo == 0) {
-            resetBackOffTaskScheduledFlowControlSeqNo = nextFlowControlSeqNo;
-        }
+        return ++flowControlSeqNo;
+    }
 
-        return nextFlowControlSeqNo;
+    int backoffRound() {
+        return backoffRound;
+    }
+
+    long flowControlSeqNo() {
+        return flowControlSeqNo;
     }
 
     @Override
     public String toString() {
         return "FollowerState{" + "matchIndex=" + matchIndex + ", nextIndex=" + nextIndex + ", backoffRound=" + backoffRound
                 + ", nextBackoffPower=" + nextBackoffRoundPower + ", responseTimestamp=" + responseTimestamp
-                + ", flowControlSeqNo=" + flowControlSeqNo + ", resetBackOffTaskScheduledFlowControlSeqNo="
-                + resetBackOffTaskScheduledFlowControlSeqNo + '}';
+                + ", flowControlSeqNo=" + flowControlSeqNo + '}';
     }
 
 }

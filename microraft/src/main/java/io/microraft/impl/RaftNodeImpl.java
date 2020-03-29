@@ -1063,8 +1063,6 @@ public class RaftNodeImpl
      */
     @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity", "checkstyle:methodlength"})
     public void sendAppendEntriesRequest(RaftEndpoint follower) {
-        // TODO [basri] add a "heartbeat" parameter. if heartbeat, no log entries are put into the request...
-
         RaftLog log = state.log();
         LeaderState leaderState = state.leaderState();
         FollowerState followerState = leaderState.getFollowerState(follower);

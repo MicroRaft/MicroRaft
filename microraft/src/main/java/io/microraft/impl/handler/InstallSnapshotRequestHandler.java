@@ -196,7 +196,7 @@ public class InstallSnapshotRequestHandler
         } else if (snapshotChunkCollector.getSnapshotIndex() > request.getSnapshotIndex()) {
             LOGGER.warn("{} current snapshot chunks at log index: {} are more recent than received snapshot "
                             + "chunks at log index: {} from sender: {} (is leader: {})", localEndpointStr(),
-                    snapshotChunkCollector.getSnapshotIndex(), request.getSnapshotIndex(), request.getSender(),
+                    snapshotChunkCollector.getSnapshotIndex(), request.getSnapshotIndex(), request.getSender().getId(),
                     request.isSenderLeader());
 
             return null;

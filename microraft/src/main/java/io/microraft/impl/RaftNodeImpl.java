@@ -96,6 +96,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -152,6 +153,7 @@ public class RaftNodeImpl
     private final String localEndpointStr;
     private final Long2ObjectHashMap<OrderedFuture> futures = new Long2ObjectHashMap<>();
 
+    private final long leaderHeartbeatTimeoutMillis;
     private final int commitCountToTakeSnapshot;
     private final int appendEntriesRequestBatchSize;
     private final int maxUncommittedLogEntryCount;
@@ -185,6 +187,7 @@ public class RaftNodeImpl
         this.modelFactory = modelFactory;
         this.config = config;
         this.localEndpointStr = localEndpoint.getId() + "<" + groupId + ">";
+        this.leaderHeartbeatTimeoutMillis = SECONDS.toMillis(config.getLeaderHeartbeatTimeoutSecs());
         this.commitCountToTakeSnapshot = config.getCommitCountToTakeSnapshot();
         this.appendEntriesRequestBatchSize = config.getAppendEntriesRequestBatchSize();
         this.maxUncommittedLogEntryCount = config.getMaxUncommittedLogEntryCount();
@@ -216,6 +219,7 @@ public class RaftNodeImpl
         this.modelFactory = modelFactory;
         this.config = config;
         this.localEndpointStr = restoredState.getLocalEndpoint().getId() + "<" + groupId + ">";
+        this.leaderHeartbeatTimeoutMillis = SECONDS.toMillis(config.getLeaderHeartbeatTimeoutSecs());
         this.commitCountToTakeSnapshot = config.getCommitCountToTakeSnapshot();
         this.appendEntriesRequestBatchSize = config.getAppendEntriesRequestBatchSize();
         this.maxUncommittedLogEntryCount = config.getMaxUncommittedLogEntryCount();
@@ -340,17 +344,34 @@ public class RaftNodeImpl
 
     public void sendSnapshotChunk(RaftEndpoint follower, long snapshotIndex, int requestedSnapshotChunkIndex) {
         // this node can be a leader or a follower!
+
         LeaderState leaderState = state.leaderState();
         FollowerState followerState = leaderState != null ? leaderState.getFollowerState(follower) : null;
         SnapshotEntry snapshotEntry = state.log().snapshotEntry();
         SnapshotChunk snapshotChunk = null;
+        Collection<RaftEndpoint> snapshottedMembers;
 
         if (snapshotEntry.getIndex() == snapshotIndex) {
             List<SnapshotChunk> snapshotChunks = (List<SnapshotChunk>) snapshotEntry.getOperation();
             snapshotChunk = snapshotChunks.get(requestedSnapshotChunkIndex);
+            if (leaderState != null && snapshotEntry.getTerm() < state.term()) {
+                // I am the new leader but there is no new snapshot yet.
+                // So I'll send my own snapshotted members list.
+                snapshottedMembers = getSnapshottedMembers(leaderState, snapshotEntry);
+            } else {
+                snapshottedMembers = Collections.emptyList();
+            }
+
             LOGGER.info("{} sending snapshot chunk: {} to {} for snapshot index: {}", localEndpointStr,
                     requestedSnapshotChunkIndex, follower.getId(), snapshotIndex);
         } else if (snapshotEntry.getIndex() > snapshotIndex) {
+            if (leaderState == null) {
+                return;
+            }
+
+            // there is a new snapshot. I'll send a new snapshotted members list.
+            snapshottedMembers = getSnapshottedMembers(leaderState, snapshotEntry);
+
             LOGGER.info("{} sending empty snapshot chunk list to {} because requested snapshot index: "
                             + "{} is smaller than the current snapshot index: {}", localEndpointStr, follower.getId(), snapshotIndex,
                     snapshotEntry.getIndex());
@@ -358,6 +379,7 @@ public class RaftNodeImpl
             LOGGER.error("{} requested snapshot index: {} for snapshot chunk indices: {} from {} is bigger than "
                             + "current snapshot index: {}", localEndpointStr, snapshotIndex, requestedSnapshotChunkIndex, follower,
                     snapshotEntry.getIndex());
+            return;
         }
 
         RaftMessage request = modelFactory.createInstallSnapshotRequestBuilder().setGroupId(getGroupId())
@@ -365,7 +387,7 @@ public class RaftNodeImpl
                                           .setSenderLeader(leaderState != null).setSnapshotTerm(snapshotEntry.getTerm())
                                           .setSnapshotIndex(snapshotEntry.getIndex())
                                           .setTotalSnapshotChunkCount(snapshotEntry.getSnapshotChunkCount())
-                                          .setSnapshotChunk(snapshotChunk)
+                                          .setSnapshotChunk(snapshotChunk).setSnapshottedMembers(snapshottedMembers)
                                           .setGroupMembersLogIndex(snapshotEntry.getGroupMembersLogIndex())
                                           .setGroupMembers(snapshotEntry.getGroupMembers())
                                           .setQuerySeqNo(leaderState != null ? leaderState.querySeqNo() : 0)
@@ -1082,11 +1104,12 @@ public class RaftNodeImpl
             // We send an empty request to notify the follower so that it could
             // trigger the actual snapshot installation process...
             SnapshotEntry snapshotEntry = log.snapshotEntry();
+            List<RaftEndpoint> snapshottedMembers = getSnapshottedMembers(leaderState, snapshotEntry);
             RaftMessage request = modelFactory.createInstallSnapshotRequestBuilder().setGroupId(getGroupId())
                                               .setSender(getLocalEndpoint()).setTerm(state.term()).setSenderLeader(true)
                                               .setSnapshotTerm(snapshotEntry.getTerm()).setSnapshotIndex(snapshotEntry.getIndex())
                                               .setTotalSnapshotChunkCount(snapshotEntry.getSnapshotChunkCount())
-                                              .setSnapshotChunk(null)
+                                              .setSnapshotChunk(null).setSnapshottedMembers(snapshottedMembers)
                                               .setGroupMembersLogIndex(snapshotEntry.getGroupMembersLogIndex())
                                               .setGroupMembers(snapshotEntry.getGroupMembers())
                                               .setQuerySeqNo(leaderState.querySeqNo())
@@ -1173,6 +1196,26 @@ public class RaftNodeImpl
             // and followers flush in parallel...
             submitLeaderFlushTask(leaderState);
         }
+    }
+
+    private List<RaftEndpoint> getSnapshottedMembers(LeaderState leaderState, SnapshotEntry snapshotEntry) {
+        if (!config.isTransferSnapshotsFromFollowersEnabled()) {
+            return Collections.singletonList(state.localEndpoint());
+        }
+
+        long now = System.currentTimeMillis();
+        List<RaftEndpoint> snapshottedMembers = new ArrayList<>();
+        snapshottedMembers.add(state.localEndpoint());
+        for (Entry<RaftEndpoint, FollowerState> e : leaderState.getFollowerStates().entrySet()) {
+            RaftEndpoint follower = e.getKey();
+            FollowerState followerState = e.getValue();
+            if (followerState.matchIndex() > snapshotEntry.getIndex() && runtime.isReachable(follower)
+                    && !isLeaderHeartbeatTimeoutElapsed(followerState.responseTimestamp(), now)) {
+                snapshottedMembers.add(follower);
+            }
+        }
+
+        return snapshottedMembers;
     }
 
     private long enableBackoff(FollowerState followerState) {
@@ -1499,19 +1542,15 @@ public class RaftNodeImpl
     }
 
     public boolean isLeaderHeartbeatTimeoutElapsed() {
-        return isLeaderHeartbeatTimeoutElapsed(lastLeaderHeartbeatTimestamp);
+        return isLeaderHeartbeatTimeoutElapsed(lastLeaderHeartbeatTimestamp, System.currentTimeMillis());
     }
 
     private boolean isLeaderHeartbeatTimeoutElapsed(long timestamp) {
-        long heartbeatTimeoutMillis = SECONDS.toMillis(config.getLeaderHeartbeatTimeoutSecs());
-        long deadline;
-        if (Long.MAX_VALUE - heartbeatTimeoutMillis >= timestamp) {
-            deadline = timestamp + heartbeatTimeoutMillis;
-        } else {
-            deadline = Long.MAX_VALUE;
-        }
+        return isLeaderHeartbeatTimeoutElapsed(timestamp, System.currentTimeMillis());
+    }
 
-        return deadline < System.currentTimeMillis();
+    private boolean isLeaderHeartbeatTimeoutElapsed(long timestamp, long now) {
+        return now - timestamp >= leaderHeartbeatTimeoutMillis;
     }
 
     private void initRestoredState() {
@@ -1641,10 +1680,6 @@ public class RaftNodeImpl
 
     private RaftException newIndeterminateStateException(RaftEndpoint leader) {
         return new IndeterminateStateException(leader);
-    }
-
-    public boolean isReachable(RaftEndpoint endpoint) {
-        return runtime.isReachable(endpoint);
     }
 
     public static class RaftNodeBuilderImpl
@@ -1784,6 +1819,7 @@ public class RaftNodeImpl
                 if (state.leaderState() != null) {
                     if (!demoteToFollowerIfMajorityHeartbeatTimeoutElapsed()) {
                         broadcastAppendEntriesRequest();
+                        // TODO [basri] append no-op if snapshotIndex > 0 && snapshotIndex == lastLogIndex
                     }
 
                     return;

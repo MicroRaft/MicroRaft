@@ -565,12 +565,11 @@ public class LocalRaftGroup {
     }
 
     public void terminateNode(RaftEndpoint endpoint) {
-        //        terminateNode(getIndexOf(endpoint));
         assertNotNull(endpoint);
+
         for (int i = 0; i < members.length; i++) {
             if (endpoint.equals(members[i])) {
                 split(i);
-                // TODO [basri] do we need to split() here...
                 runtimes[i].shutdown();
             }
         }

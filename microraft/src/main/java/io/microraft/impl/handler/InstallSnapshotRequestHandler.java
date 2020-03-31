@@ -32,15 +32,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import static io.microraft.RaftRole.FOLLOWER;
-import static java.util.Collections.shuffle;
-import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -188,8 +184,7 @@ public class InstallSnapshotRequestHandler
     private SnapshotChunkCollector getOrCreateSnapshotChunkCollector(InstallSnapshotRequest request) {
         SnapshotChunkCollector snapshotChunkCollector = state.snapshotChunkCollector();
         if (snapshotChunkCollector == null) {
-            snapshotChunkCollector = new SnapshotChunkCollector(request.getSnapshotIndex(), request.getSnapshotTerm(),
-                    request.getTotalSnapshotChunkCount(), request.getGroupMembersLogIndex(), request.getGroupMembers());
+            snapshotChunkCollector = new SnapshotChunkCollector(request);
             state.snapshotChunkCollector(snapshotChunkCollector);
 
             return snapshotChunkCollector;
@@ -213,9 +208,10 @@ public class InstallSnapshotRequestHandler
                 }
             }
 
-            snapshotChunkCollector = new SnapshotChunkCollector(request.getSnapshotIndex(), request.getSnapshotTerm(),
-                    request.getTotalSnapshotChunkCount(), request.getGroupMembersLogIndex(), request.getGroupMembers());
+            snapshotChunkCollector = new SnapshotChunkCollector(request);
             state.snapshotChunkCollector(snapshotChunkCollector);
+        } else {
+            snapshotChunkCollector.updateSnapshottedMembers(request.getSnapshottedMembers());
         }
 
         if (snapshotChunkCollector.getSnapshotTerm() != request.getSnapshotTerm()) {
@@ -248,51 +244,9 @@ public class InstallSnapshotRequestHandler
         return snapshotChunkCollector.isSnapshotCompleted();
     }
 
-    private Map<RaftEndpoint, Integer> getRequestedSnapshotChunkIndices(InstallSnapshotRequest request,
-                                                                        SnapshotChunkCollector snapshotChunkCollector) {
-        List<RaftEndpoint> members;
-        if (request.getSnapshotChunk() == null && node.getConfig().isTransferSnapshotsFromFollowersEnabled()) {
-            // If this is the first install snapshot request sent by the
-            // leader, we start asking snapshot chunks from all remote group
-            // members. There is one caveat here. We have a backoff mechanism
-            // for the requests that go from the leader to the followers. Once
-            // the leader sends a request to a follower, it does not send
-            // another request to the same follower either until the follower
-            // responds to the previous request or the backoff timeout elapses.
-            // However, we don't have the same backoff mechanism for
-            // the install snapshot response this node will send to another
-            // follower. If the leader sends too many empty install snapshot
-            // requests very quickly, we may flood the other followers here.
-            // Thankfully, we use the max backoff period on the leader when it
-            // sends an install snapshot request and hence we don't expect to
-            // encounter the aforementioned problem...
-            members = getReachableRemoteMembers();
-        } else {
-            // If we receive a snapshot chunk from a remote member, we only
-            // ask that member to send a new snapshot chunk.
-            members = singletonList(request.getSender());
-        }
-
-        return snapshotChunkCollector.requestSnapshotChunks(members, node.getConfig().isTransferSnapshotsFromFollowersEnabled());
-    }
-
-    private List<RaftEndpoint> getReachableRemoteMembers() {
-        List<RaftEndpoint> remoteMembers = new ArrayList<>();
-        for (RaftEndpoint endpoint : state.committedGroupMembers().remoteMembers()) {
-            if (!endpoint.equals(state.leader()) && node.isReachable(endpoint)) {
-                remoteMembers.add(endpoint);
-            }
-        }
-
-        shuffle(remoteMembers);
-        remoteMembers.add(state.leader());
-
-        return remoteMembers;
-    }
-
     private void requestMissingSnapshotChunks(InstallSnapshotRequest request, SnapshotChunkCollector snapshotChunkCollector) {
-        Map<RaftEndpoint, Integer> requestedSnapshotChunkIndices = getRequestedSnapshotChunkIndices(request,
-                snapshotChunkCollector);
+        Map<RaftEndpoint, Integer> requestedSnapshotChunkIndices = snapshotChunkCollector
+                .requestSnapshotChunks(node.getConfig().isTransferSnapshotsFromFollowersEnabled());
         if (requestedSnapshotChunkIndices.isEmpty()) {
             return;
         }
@@ -339,9 +293,7 @@ public class InstallSnapshotRequestHandler
         LOGGER.warn("{} marked {} as unresponsive after requesting snapshot chunk: {} at snapshot index: {}", localEndpointStr(),
                 endpoint.getId(), snapshotChunkIndex, snapshotIndex);
 
-        Map<RaftEndpoint, Integer> requestedSnapshotChunkIndices = snapshotChunkCollector
-                .requestSnapshotChunks(getReachableRemoteMembers(), true);
-
+        Map<RaftEndpoint, Integer> requestedSnapshotChunkIndices = snapshotChunkCollector.requestSnapshotChunks(true);
         if (requestedSnapshotChunkIndices.isEmpty()) {
             return;
         }

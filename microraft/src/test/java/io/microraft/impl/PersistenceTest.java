@@ -220,7 +220,7 @@ public class PersistenceTest
         });
 
         RaftNodeImpl[] followers = group.getNodesExcept(leader.getLocalEndpoint());
-        group.split(group.getIndexOfRunning(leader.getLocalEndpoint()));
+        group.split(group.getIndexOf(leader.getLocalEndpoint()));
 
         for (int i = 0; i < 10; i++) {
             leader.replicate(apply("isolated" + i));

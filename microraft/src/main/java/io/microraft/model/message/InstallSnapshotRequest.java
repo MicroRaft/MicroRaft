@@ -52,6 +52,9 @@ public interface InstallSnapshotRequest
     @Nullable
     SnapshotChunk getSnapshotChunk();
 
+    @Nonnull
+    Collection<RaftEndpoint> getSnapshottedMembers();
+
     long getGroupMembersLogIndex();
 
     @Nonnull
@@ -90,6 +93,9 @@ public interface InstallSnapshotRequest
 
         @Nonnull
         InstallSnapshotRequestBuilder setSnapshotChunk(@Nullable SnapshotChunk snapshotChunk);
+
+        @Nonnull
+        InstallSnapshotRequestBuilder setSnapshottedMembers(@Nonnull Collection<RaftEndpoint> snapshottedMembers);
 
         @Nonnull
         InstallSnapshotRequestBuilder setGroupMembersLogIndex(long groupMembersLogIndex);

@@ -57,21 +57,40 @@ public class SnapshotChunkCollector {
     private final long snapshotIndex;
     private final int snapshotTerm;
     private final int chunkCount;
+    private final Collection<RaftEndpoint> snapshottedMembers = new HashSet<>();
     private final List<SnapshotChunk> chunks = new ArrayList<>();
     private final Set<Integer> missingChunkIndices = new LinkedHashSet<>();
     private long groupMembersLogIndex;
     private Collection<RaftEndpoint> groupMembers;
-    private Map<RaftEndpoint, Integer> requestedEndpoints = new HashMap<>();
-    private Set<RaftEndpoint> unresponsiveEndpoints = new HashSet<>();
+    private Map<RaftEndpoint, Integer> requestedMembers = new HashMap<>();
+    private Set<RaftEndpoint> unresponsiveMembers = new HashSet<>();
 
-    public SnapshotChunkCollector(long snapshotIndex, int snapshotTerm, int chunkCount, long groupMembersLogIndex,
-                                  Collection<RaftEndpoint> groupMembers) {
+    public SnapshotChunkCollector(InstallSnapshotRequest request) {
+        this(request.getSnapshotIndex(), request.getSnapshotTerm(), request.getTotalSnapshotChunkCount(),
+                request.getSnapshottedMembers(), request.getGroupMembersLogIndex(), request.getGroupMembers());
+    }
+
+    private SnapshotChunkCollector(long snapshotIndex, int snapshotTerm, int chunkCount,
+                                   Collection<RaftEndpoint> snapshottedMembers, long groupMembersLogIndex,
+                                   Collection<RaftEndpoint> groupMembers) {
         this.snapshotIndex = snapshotIndex;
         this.snapshotTerm = snapshotTerm;
         this.chunkCount = chunkCount;
+        this.snapshottedMembers.addAll(snapshottedMembers);
         this.groupMembersLogIndex = groupMembersLogIndex;
         this.groupMembers = groupMembers;
         IntStream.range(0, chunkCount).forEach(missingChunkIndices::add);
+    }
+
+    public void updateSnapshottedMembers(Collection<RaftEndpoint> snapshottedMembers) {
+        if (snapshottedMembers == null || snapshottedMembers.isEmpty()) {
+            return;
+        }
+
+        this.snapshottedMembers.clear();
+        this.snapshottedMembers.addAll(snapshottedMembers);
+        this.requestedMembers.keySet().retainAll(snapshottedMembers);
+        this.unresponsiveMembers.retainAll(snapshottedMembers);
     }
 
     public boolean handleReceivedSnapshotChunk(RaftEndpoint endpoint, long snapshotIndex, SnapshotChunk snapshotChunk) {
@@ -85,14 +104,14 @@ public class SnapshotChunkCollector {
         // TODO [basri] exponential backoff maybe?
 
         // Un-mark the unresponsive endpoint even if the given chunk is already here
-        unresponsiveEndpoints.remove(endpoint);
+        unresponsiveMembers.remove(endpoint);
 
         if (snapshotChunk == null || !missingChunkIndices.remove(snapshotChunk.getSnapshotChunkIndex())) {
             return false;
         }
 
         chunks.add(snapshotChunk);
-        requestedEndpoints.remove(endpoint, snapshotChunk.getSnapshotChunkIndex());
+        requestedMembers.remove(endpoint, snapshotChunk.getSnapshotChunkIndex());
 
         if (missingChunkIndices.isEmpty()) {
             chunks.sort(comparingInt(SnapshotChunk::getSnapshotChunkIndex));
@@ -101,23 +120,21 @@ public class SnapshotChunkCollector {
         return true;
     }
 
-    public Map<RaftEndpoint, Integer> requestSnapshotChunks(List<RaftEndpoint> endpoints, boolean trackRequests) {
-        if (endpoints == null || endpoints.isEmpty()) {
-            throw new IllegalArgumentException("No endpoint provided!");
-        } else if (isSnapshotCompleted()) {
+    public Map<RaftEndpoint, Integer> requestSnapshotChunks(boolean trackRequests) {
+        if (isSnapshotCompleted()) {
             return Collections.emptyMap();
         }
 
         Map<RaftEndpoint, Integer> requestedSnapshotChunkIndices = new HashMap<>();
-        for (RaftEndpoint endpoint : endpoints) {
-            if (requestedEndpoints.containsKey(endpoint) || unresponsiveEndpoints.contains(endpoint)) {
+        for (RaftEndpoint endpoint : snapshottedMembers) {
+            if (requestedMembers.containsKey(endpoint) || unresponsiveMembers.contains(endpoint)) {
                 continue;
             }
 
             if (trackRequests) {
                 for (int chunkIndex : missingChunkIndices) {
-                    if (!requestedEndpoints.containsValue(chunkIndex)) {
-                        requestedEndpoints.put(endpoint, chunkIndex);
+                    if (!requestedMembers.containsValue(chunkIndex)) {
+                        requestedMembers.put(endpoint, chunkIndex);
                         requestedSnapshotChunkIndices.put(endpoint, chunkIndex);
                         break;
                     }
@@ -136,8 +153,8 @@ public class SnapshotChunkCollector {
 
     public boolean cancelSnapshotChunkRequest(RaftEndpoint endpoint, int snapshotChunkIndex) {
         // Don't mark the endpoint as unresponsive if I already sent another request.
-        if (requestedEndpoints.remove(endpoint, snapshotChunkIndex)) {
-            unresponsiveEndpoints.add(endpoint);
+        if (requestedMembers.remove(endpoint, snapshotChunkIndex)) {
+            unresponsiveMembers.add(endpoint);
             return true;
         }
 
@@ -181,14 +198,19 @@ public class SnapshotChunkCollector {
 
     // for testing
     public SnapshotChunkCollector copy() {
-        SnapshotChunkCollector copy = new SnapshotChunkCollector(snapshotIndex, snapshotTerm, chunkCount, groupMembersLogIndex,
-                groupMembers);
+        SnapshotChunkCollector copy = new SnapshotChunkCollector(snapshotIndex, snapshotTerm, chunkCount, snapshottedMembers,
+                groupMembersLogIndex, groupMembers);
         copy.chunks.addAll(chunks);
         copy.missingChunkIndices.addAll(missingChunkIndices);
-        copy.unresponsiveEndpoints.addAll(unresponsiveEndpoints);
-        copy.requestedEndpoints.putAll(requestedEndpoints);
+        copy.unresponsiveMembers.addAll(unresponsiveMembers);
+        copy.requestedMembers.putAll(requestedMembers);
 
         return copy;
+    }
+
+    // for testing
+    public Collection<RaftEndpoint> getSnapshottedMembers() {
+        return snapshottedMembers;
     }
 
 }

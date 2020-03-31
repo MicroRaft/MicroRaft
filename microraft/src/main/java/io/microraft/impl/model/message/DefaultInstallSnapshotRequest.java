@@ -41,6 +41,7 @@ public class DefaultInstallSnapshotRequest
     private long snapshotIndex;
     private int totalSnapshotChunkCount;
     private SnapshotChunk snapshotChunk;
+    private Collection<RaftEndpoint> snapshottedMembers;
     private long groupMembersLogIndex;
     private Collection<RaftEndpoint> groupMembers;
     private long querySeqNo;
@@ -91,6 +92,12 @@ public class DefaultInstallSnapshotRequest
         return snapshotChunk;
     }
 
+    @Nonnull
+    @Override
+    public Collection<RaftEndpoint> getSnapshottedMembers() {
+        return snapshottedMembers;
+    }
+
     @Override
     public long getGroupMembersLogIndex() {
         return groupMembersLogIndex;
@@ -116,8 +123,9 @@ public class DefaultInstallSnapshotRequest
     public String toString() {
         return "InstallSnapshotRequest{" + "groupId=" + groupId + ", sender=" + sender + ", term=" + term + ", leader=" + leader
                 + ", snapshotTerm=" + snapshotTerm + ", snapshotIndex=" + snapshotIndex + ", chunkCount="
-                + totalSnapshotChunkCount + ", snapshotChunk=" + snapshotChunk + ", groupMembersLogIndex=" + groupMembersLogIndex
-                + ", groupMembers=" + groupMembers + ", querySeqNo=" + querySeqNo + ", flowControlSeqNo=" + flowControlSeqNo + '}';
+                + totalSnapshotChunkCount + ", snapshotChunk=" + snapshotChunk + ", snapshottedMembers=" + snapshottedMembers
+                + ", groupMembersLogIndex=" + groupMembersLogIndex + ", groupMembers=" + groupMembers + ", querySeqNo="
+                + querySeqNo + ", flowControlSeqNo=" + flowControlSeqNo + '}';
     }
 
     public static class DefaultInstallSnapshotRequestBuilder
@@ -178,8 +186,16 @@ public class DefaultInstallSnapshotRequest
 
         @Nonnull
         @Override
-        public InstallSnapshotRequestBuilder setSnapshotChunk(@Nonnull SnapshotChunk snapshotChunk) {
+        public InstallSnapshotRequestBuilder setSnapshotChunk(@Nullable SnapshotChunk snapshotChunk) {
             request.snapshotChunk = snapshotChunk;
+            return this;
+        }
+
+        @Nonnull
+        @Override
+        public InstallSnapshotRequestBuilder setSnapshottedMembers(@Nonnull Collection<RaftEndpoint> snapshottedMembers) {
+            requireNonNull(snapshottedMembers);
+            request.snapshottedMembers = snapshottedMembers;
             return this;
         }
 

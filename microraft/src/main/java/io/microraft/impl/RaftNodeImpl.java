@@ -391,8 +391,7 @@ public class RaftNodeImpl
                                           .setGroupMembersLogIndex(snapshotEntry.getGroupMembersLogIndex())
                                           .setGroupMembers(snapshotEntry.getGroupMembers())
                                           .setQuerySeqNo(leaderState != null ? leaderState.querySeqNo() : 0)
-                                          .setFlowControlSeqNo(followerState != null ? enableBackoff(followerState) : 0)
-                                          .build();
+                                          .setFlowControlSeqNo(followerState != null ? enableBackoff(followerState) : 0).build();
 
         runtime.send(follower, request);
 
@@ -713,13 +712,8 @@ public class RaftNodeImpl
      * @see RaftState#commitIndex()
      */
     public void applyLogEntries() {
-        long commitIndex = state.commitIndex();
-        if (commitIndex == state.lastApplied()) {
-            return;
-        }
-
-        assert commitIndex > state.lastApplied() :
-                localEndpointStr + " commit index: " + commitIndex + " cannot be smaller than last applied: " + state
+        assert state.commitIndex() >= state.lastApplied() :
+                localEndpointStr + " commit index: " + state.commitIndex() + " cannot be smaller than last applied: " + state
                         .lastApplied();
 
         assert state.role() == LEADER || state.role() == FOLLOWER :
@@ -727,25 +721,28 @@ public class RaftNodeImpl
 
         // Apply all committed but not-yet-applied log entries
         RaftLog log = state.log();
-        for (long logIndex = state.lastApplied() + 1, snapshotIndex = log.snapshotIndex(); logIndex <= commitIndex; logIndex++) {
-            LogEntry entry = log.getLogEntry(logIndex);
-            if (entry == null) {
-                String msg = localEndpointStr + " failed to get log entry at index: " + logIndex;
-                LOGGER.error(msg);
-                throw new AssertionError(msg);
+
+        while (state.lastApplied() < state.commitIndex()) {
+            for (long logIndex = state.lastApplied() + 1, applyUntil = min(state.commitIndex(),
+                    log.snapshotIndex() + commitCountToTakeSnapshot); logIndex <= applyUntil; logIndex++) {
+                LogEntry entry = log.getLogEntry(logIndex);
+                if (entry == null) {
+                    String msg = localEndpointStr + " failed to get log entry at index: " + logIndex;
+                    LOGGER.error(msg);
+                    throw new AssertionError(msg);
+                }
+
+                applyLogEntry(entry);
             }
 
-            applyLogEntry(entry);
-
-            if ((logIndex - snapshotIndex) == commitCountToTakeSnapshot && !isTerminal(status)) {
-                // If the status is terminal, then there will not be any new appends or commits.
-                takeSnapshot(log, logIndex);
-                snapshotIndex = log.snapshotIndex();
+            if ((state.lastApplied() - log.snapshotIndex()) == commitCountToTakeSnapshot && !isTerminal(status)) {
+                // If the status is terminal, then there will be no new append or commit.
+                takeSnapshot(log, state.lastApplied());
             }
         }
 
-        assert (status != TERMINATED || commitIndex == log.lastLogOrSnapshotIndex()) :
-                localEndpointStr + " commit index: " + commitIndex + " must be equal to " + log.lastLogOrSnapshotIndex()
+        assert (status != TERMINATED || state.commitIndex() == log.lastLogOrSnapshotIndex()) :
+                localEndpointStr + " commit index: " + state.commitIndex() + " must be equal to " + log.lastLogOrSnapshotIndex()
                         + " on termination.";
     }
 

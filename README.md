@@ -174,7 +174,7 @@ behind the `RaftNodeRuntime` and `RaftStore` interfaces.
 The following figure depicts an architectural overview of a Raft group based on
 the abstractions explained above.
 
-![Integration](microraft/architectural_overview.png)
+![Integration](architectural_overview.png)
  
  
 ## How to Use MicroRaft

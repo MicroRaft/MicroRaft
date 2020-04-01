@@ -47,17 +47,14 @@ Additionally, it offers the following optimizations and enhancements:
 * Leadership transfer [(Section 3.10 of the Raft dissertation)](https://github.com/ongardie/dissertation).
 
 
+
 ## Who uses MicroRaft?
 
-TBD
+I am currently working on a proof-of-concept KV store implementation to 
+demonstrate how to implement MicroRaft's abstractions. I am hoping to release
+it soon. 
 
-## Acknowledgements
 
-MicroRaft originates from 
-[the Raft implementation](https://github.com/hazelcast/hazelcast/tree/master/hazelcast/src/main/java/com/hazelcast/cp/internal/raft) 
-that empowers Hazelcast IMDG's 
-[CP Subsystem module](https://docs.hazelcast.org/docs/latest/manual/html-single/index.html#cp-subsystem),
-and includes several improvements on the public API and internals.
 
 ## Main abstractions
 
@@ -171,12 +168,14 @@ the `RaftModel` objects and implement the networking and persistence concerns
 behind the `RaftNodeRuntime` and `RaftStore` interfaces.   
 
  
+ 
 ## Architectural overview of a Raft group
 
 The following figure depicts an architectural overview of a Raft group based on
 the abstractions explained above.
 
 ![Integration](misc/architectural_overview.png)
+ 
  
  
 ## How to Use MicroRaft
@@ -266,6 +265,7 @@ a new leader election round. Once the leader election is done, operations can
 be replicated and queries can be executed on the Raft group. You can learn 
 the leader endpoint via `RaftNode.getLeaderEndpoint()`. 
 
+
 ### How to Commit an Operation on the Raft Group
 
 Let's see how to replicate and commit an operation via the Raft group leader. 
@@ -349,7 +349,6 @@ call, the returned `CompletableFuture` object fails with
 Please refer to 
 [Section 6.4.1 of theRaft dissertation](https://github.com/ongardie/dissertation)
 for more details.
-
 
 ```
 
@@ -495,6 +494,7 @@ of the system, you should remove the crashed `RaftNode` first and then add
 a new `RaftEndpoint` to the Raft group. 
 
 
+
 ## Fault Tolerance
 
 The availability of a Raft group depends on if the majority (i.e., more than 
@@ -619,3 +619,34 @@ to lose a committed operation and break determinism of the `StateMachine`.
 > durability and integrity of the persisted Raft state. `RaftNode`s do not 
 > perform any checks when they are restored with `RestoredRaftState` objects.    
 
+
+
+## Roadmap
+
+I am planning to work on the following tasks in future:
+
+- Learner nodes. When a new Raft node is added to a running Raft group, it can
+start with the "learner" role. In this role, the new Raft node is excluded in 
+the quorum calculations to not to hurt availability of the Raft group until
+it catches up with the Raft group leader.
+
+- Opt-in deduplication mechanism via implementation of the 
+[Implementing Linearizability at Large Scale and Low Latency](https://dl.acm.org/doi/10.1145/2815400.2815416) 
+paper. Currently, one can implement deduplication inside his custom 
+`StateMachine` implementation. I would like to offer a generic and opt-in 
+solution by MicroRaft.
+ 
+- Witness replicas via implementation of the 
+[Pirogue, a lighter dynamic version of the Raft distributed consensus algorithm](https://dl.acm.org/doi/10.1109/PCCC.2015.7410281) 
+paper. Witness replicas participate in quorum calculations but do not keep any
+state for `StateMachine` to reduce the storage overhead.
+
+
+
+## Acknowledgements
+
+MicroRaft originates from 
+[the Raft implementation](https://github.com/hazelcast/hazelcast/tree/master/hazelcast/src/main/java/com/hazelcast/cp/internal/raft) 
+that empowers Hazelcast IMDG's 
+[CP Subsystem module](https://docs.hazelcast.org/docs/latest/manual/html-single/index.html#cp-subsystem),
+and includes several significant improvements on the public API and internals.  

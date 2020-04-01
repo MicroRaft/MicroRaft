@@ -1,4 +1,6 @@
 
+![Java CI](https://github.com/metanet/MicroRaft/workflows/Java%20CI/badge.svg)
+
 # MicroRaft
 
 ## Overview

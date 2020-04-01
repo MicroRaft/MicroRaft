@@ -11,6 +11,8 @@
 
     <modules>
         <module>microraft</module>
+        <module>microraft-hocon</module>
+        <module>microraft-yaml</module>
     </modules>
 
     <developers>

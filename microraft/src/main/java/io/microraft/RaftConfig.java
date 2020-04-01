@@ -60,7 +60,7 @@ public class RaftConfig
     /**
      * The default value for {@link #maxUncommittedLogEntryCount}.
      */
-    public static final int DEFAULT_MAX_UNCOMMITTED_LOG_ENTRY_COUNT = 1000;
+    public static final int DEFAULT_MAX_UNCOMMITTED_LOG_ENTRY_COUNT = 5000;
 
     /**
      * The default value for {@link #transferSnapshotsFromFollowersEnabled}

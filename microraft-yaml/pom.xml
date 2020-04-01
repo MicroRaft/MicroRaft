@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>io.microraft</groupId>
+        <artifactId>microraft-root</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <name>MicroRaft Config Parser for YAML Files</name>
+    <artifactId>microraft-yaml</artifactId>
+    <packaging>jar</packaging>
+
+    <properties>
+        <root.dir>${project.parent.basedir}</root.dir>
+        <snakeyaml.version>1.26</snakeyaml.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.microraft</groupId>
+            <artifactId>microraft</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>${snakeyaml.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.microraft</groupId>
+            <artifactId>microraft</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>

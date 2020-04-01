@@ -33,7 +33,7 @@ of these abstractions.
 
 MicroRaft implements the leader election, log replication, log compaction, and 
 cluster membership changes components of the Raft consensus algorithm. 
-Additionally, it offers the following optimizations and enhancements:
+Additionally, it offers a rich set of optimizations and enhancements:
 
 * Pipelining and batching during log replication,
 * Back pressure to prevent OOMEs on Raft leader and followers,
@@ -42,7 +42,7 @@ Additionally, it offers the following optimizations and enhancements:
 * Auto-demotion of Raft leader on loss of quorum heartbeats,
 * Linearizable quorum reads without appending log entries [(Section 6.4 of the Raft dissertation)](https://github.com/ongardie/dissertation),
 * Lease-based local queries on Raft leader [(Section 6.4.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
-* Local queries on Raft followers,
+* Monotonic local queries on Raft followers [(Section 6.4.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
 * Parallel disk writes on Raft leader and followers [(Section 10.2.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
 * Leadership transfer [(Section 3.10 of the Raft dissertation)](https://github.com/ongardie/dissertation).
 

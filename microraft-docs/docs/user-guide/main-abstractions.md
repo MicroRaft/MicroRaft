@@ -87,10 +87,10 @@ and the `RaftNode` could be restored back with `RestoredRaftState`.
 `RestoredRaftState` contains all the necessary information to recover a 
 `RaftNode` from a failure.
 
-> :information_source: `RaftStore` does not persist internal state of 
->`StateMachine` implementations. Upon recovery, a `RaftNode` discovers 
-> the current commit index and re-executes all of the operations in the Raft
-> log up to the commit index.
+![](/img/info.png){: style="height:25px;width:25px"} `RaftStore` does not 
+persist internal state of `StateMachine` implementations. Upon recovery, 
+a `RaftNode` discovers the current commit index and re-executes all of 
+the operations in the Raft log up to the commit index.
 
 
 ## RaftModel, RaftMessage and RaftModelFactory

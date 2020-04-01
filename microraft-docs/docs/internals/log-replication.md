@@ -1,3 +1,3 @@
-# Log Replication
+## Log Replication
 
 tbd

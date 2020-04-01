@@ -236,7 +236,7 @@ public class LocalRaftNodeRuntime
     }
 
     @Override
-    public void onRaftNodeReport(@Nonnull RaftNodeReport report) {
+    public void handleRaftNodeReport(@Nonnull RaftNodeReport report) {
         if (isTerminal(report.getStatus())) {
             shutdown();
         }

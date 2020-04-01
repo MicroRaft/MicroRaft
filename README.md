@@ -50,8 +50,9 @@ Additionally, it offers the following optimizations and enhancements:
 ## Who uses MicroRaft?
 
 I am currently working on a proof-of-concept KV store implementation to 
-demonstrate how to implement MicroRaft's abstractions. I am hoping to release
-it soon. 
+demonstrate how to implement MicroRaft's abstractions. It internally uses gRPC 
+to transfer Raft messages between Raft nodes running on different machines. I 
+am hoping to release this project soon. 
 
 
 ## Roadmap

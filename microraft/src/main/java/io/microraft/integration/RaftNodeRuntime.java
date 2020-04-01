@@ -117,7 +117,7 @@ public interface RaftNodeRuntime {
      *
      * @param report report object of the new state of the Raft node
      */
-    void onRaftNodeReport(@Nonnull RaftNodeReport report);
+    void handleRaftNodeReport(@Nonnull RaftNodeReport report);
 
     /**
      * Called when a Raft group is terminated gracefully via

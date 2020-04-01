@@ -1,0 +1,27 @@
+site_name: MicroRaft Docs
+use_directory_urls: true
+
+theme: bootstrap4
+
+plugins:
+  - search
+
+markdown_extensions:
+  - attr_list
+  - fenced_code
+
+nav:
+  - Introduction: 'index.md'
+  - 'User Guide':
+      - Main Abstractions: 'user-guide/main-abstractions.md'
+      - Configuration: 'user-guide/configuration.md'
+      - How to Use MicroRaft: 'user-guide/how-to-use-microraft.md'
+      - Monitoring: 'user-guide/monitoring.md'
+  - Fault Tolerance: 'fault-tolerance.md'
+  - 'Internals':
+      - Threading and Execution Model: 'internals/threading-and-execution-model.md'
+      - Leader Election: 'internals/leader-election.md'
+      - Log Replication: 'internals/log-replication.md'
+      - Snapshotting: 'internals/snapshotting.md'
+      - Persistence: 'internals/persistence.md'
+

@@ -1021,7 +1021,7 @@ public class RaftNodeImpl
         }
 
         try {
-            runtime.onRaftNodeReport(report);
+            runtime.handleRaftNodeReport(report);
         } catch (Throwable t) {
             LOGGER.error(localEndpointStr + " runtime failed on handling " + report, t);
         }

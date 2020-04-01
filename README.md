@@ -1,5 +1,5 @@
 
-![Java CI](https://github.com/metanet/MicroRaft/workflows/Java%20CI/badge.svg)
+![Java CI](https://github.com/metanet/MicroRaft/workflows/Java%20CI/badge.svg) [![Integration](misc/license-Apache-2.svg)](https://github.com/metanet/MicroRaft/blob/master/LICENSE)
 
 # MicroRaft
 
@@ -176,7 +176,7 @@ behind the `RaftNodeRuntime` and `RaftStore` interfaces.
 The following figure depicts an architectural overview of a Raft group based on
 the abstractions explained above.
 
-![Integration](architectural_overview.png)
+![Integration](misc/architectural_overview.png)
  
  
 ## How to Use MicroRaft

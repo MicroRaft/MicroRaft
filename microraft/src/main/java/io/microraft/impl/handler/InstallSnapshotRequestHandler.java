@@ -52,22 +52,23 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * <i>In Search of an Understandable Consensus Algorithm</i>
  * paper by <i>Diego Ongaro</i> and <i>John Ousterhout</i>.
  * <p>
- * If the request contains no snapshot chunks, it means that the Raft leader
- * intends to send a snapshot to the follower. In this case, the follower
- * initializes its {@link SnapshotChunkCollector} state based on the snapshot
- * chunk count present in the request, then starts asking snapshot chunks via
- * {@link InstallSnapshotResponse}. The follower collects the snapshot chunks
- * received via following {@link InstallSnapshotRequest} objects and once all
- * snapshot chunks are received, the follower installs the snapshot and sends
- * an {@link AppendEntriesSuccessResponse} back to the leader.
+ * If the request contains no snapshot chunk, it means that the Raft leader
+ * intends to transfer a new snapshot to the follower. In this case,
+ * the follower initializes its {@link SnapshotChunkCollector} state based on
+ * the total snapshot chunk count present in the request, then starts asking
+ * snapshot chunks via sending {@link InstallSnapshotResponse} objects.
+ * Once the follower collects all snapshot chunks, it installs the snapshot and
+ * sends an {@link AppendEntriesSuccessResponse} back to the leader.
  * <p>
  * Our Raft log design ensures that every Raft group member takes a snapshot
  * at exactly the same commit index. This behaviour enables an optimization.
- * When a follower receives a InstallSnapshotRequest from the leader, it can
- * ask snapshot chunks not only from the leader, but also from the followers.
+ * The {@link InstallSnapshotRequest} object sent by the leader contains a list
+ * of followers whom are known to be installed the given snapshot. Using this
+ * information, when a follower receives an {@link InstallSnapshotRequest} from
+ * the leader, it can ask snapshot chunks not only from the leader, but also
+ * from the followers provided in the received {@link InstallSnapshotRequest}.
  * By this way, we utilize the bandwidth of the followers and speed up
- * the snapshot installation process by transferring snapshot chunks in
- * parallel.
+ * the process by transferring snapshot chunks to the follower in parallel.
  *
  * @author metanet
  * @see InstallSnapshotRequest

@@ -212,16 +212,27 @@ public interface RaftNode {
      * The returned future is notified with an {@link Ordered} object that
      * contains the commit index at which the given query is executed.
      * <p>
+     * If the caller is providing a query policy which is weaker than
+     * {@link QueryPolicy#LINEARIZABLE}, it can also provide a minimum commit
+     * index. Then, the local Raft node executes the given query only if its
+     * local commit index is greater than or equal to the required commit
+     * index. If the local commit index is smaller than the required commit
+     * index, then the returned future is notified with
+     * {@link LaggingCommitIndexException} so that the caller could retry its
+     * query on the same Raft node after some time or forward it to another
+     * Raft node. This mechanism enables callers to execute queries on Raft
+     * nodes without hitting the majority and preserve monotonicity of query
+     * results. Please see the <i>Section: 6.4 Processing read-only queries
+     * more efficiently</i> of the Raft dissertation for more details.
+     * <p>
      * The returned future can be notified with {@link NotLeaderException},
      * {@link CannotReplicateException} or {@link LaggingCommitIndexException}.
-     * See individual exception classes and the <i>Section: 6.4 Processing
-     * read-only queries more efficiently</i> of the Raft dissertation for more
-     * details.
+     * See individual exception classes for more details.
      *
      * @param operation      query operation
      * @param queryPolicy    query policy to decide how to execute the query
-     * @param minCommitIndex minimum commit index that this Raft node to have
-     *                       to execute the given query.
+     * @param minCommitIndex minimum commit index that this Raft node needs to
+     *                       have in order to execute the given query.
      * @see QueryPolicy
      * @see NotLeaderException
      * @see CannotReplicateException

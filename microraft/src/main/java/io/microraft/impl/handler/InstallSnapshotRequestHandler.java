@@ -61,7 +61,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * sends an {@link AppendEntriesSuccessResponse} back to the leader.
  * <p>
  * Our Raft log design ensures that every Raft group member takes a snapshot
- * at exactly the same commit index. This behaviour enables an optimization.
+ * at exactly the same log index. This behaviour enables an optimization.
  * The {@link InstallSnapshotRequest} object sent by the leader contains a list
  * of followers whom are known to be installed the given snapshot. Using this
  * information, when a follower receives an {@link InstallSnapshotRequest} from

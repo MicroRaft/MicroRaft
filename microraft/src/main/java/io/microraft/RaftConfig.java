@@ -17,14 +17,16 @@
 
 package io.microraft;
 
+import io.microraft.exception.CannotReplicateException;
+import io.microraft.report.RaftNodeReport;
+
 import java.io.Serializable;
 
 /**
- * Contains the configuration parameters for MicroRaft's algorithm. Some of
- * the parameters are related to the Raft consensus algorithm itself and while
- * some others are for fine-tuning the implementation.
+ * Contains the configuration parameters for MicroRaft's implementation.
  * <p>
- * This is an immutable class.
+ * RaftConfig is an immutable configuration class.
+ * You can use a RaftConfigBuilder to build a RaftConfig object.
  *
  * @author mdogan
  * @author metanet
@@ -77,19 +79,17 @@ public class RaftConfig
      */
     public static final RaftConfig DEFAULT_RAFT_CONFIG = new RaftConfigBuilder().build();
     /**
-     * Leader election timeout in milliseconds. If a candidate cannot win
-     * majority votes before this timeout elapses, a new election round is
-     * started. See "Section 5.2: Leader Election" in the Raft paper.
+     * If a candidate cannot win majority votes before this timeout elapses,
+     * a new election round is started. See "Section 5.2: Leader Election"
+     * in the Raft paper.
      */
     private final long leaderElectionTimeoutMillis;
     /**
      * Duration in seconds for a Raft leader node to send periodic heartbeat
-     * requests to its followers in order to denote its liveliness. See
-     * "Section 5.2: Leader Election" in the Raft paper. Periodic heartbeat
-     * requests are actually append entries requests and can contain log
-     * entries for lagging followers. A heartbeat request is not sent to
-     * a follower if an append entries request has been sent to that follower
-     * recently.
+     * requests to its followers in order to denote its liveliness. Periodic
+     * heartbeat requests are actually append entries requests and can contain
+     * log entries. A heartbeat request is not sent to a follower if an append
+     * entries request has been sent to that follower recently.
      */
     private final long leaderHeartbeatPeriodSecs;
     /**
@@ -104,13 +104,15 @@ public class RaftConfig
      * of the leader, MicroRaft uses two different parameters for these cases.
      * <p>
      * You can set {@link #leaderElectionTimeoutMillis} and this field to
-     * the same value to align with the "election timeout" definition
+     * the same duration to align with the "election timeout" definition
      * in the Raft paper.
      */
     private final long leaderHeartbeatTimeoutSecs;
     /**
-     * Maximum number of Raft log entries that can be sent as a batch
-     * in a single append entries request.
+     * In MicroRaft, a leader Raft node sends log entries to its followers in
+     * batches to improve the throughput. This configuration parameter specifies
+     * the maximum number of Raft log entries that can be sent as a batch in a
+     * single append entries request.
      */
     private final int appendEntriesRequestBatchSize;
     /**
@@ -128,28 +130,30 @@ public class RaftConfig
     private final int commitCountToTakeSnapshot;
     /**
      * Maximum number of uncommitted log entries in the leader's Raft log
-     * before temporarily rejecting new requests of clients. Since a Raft
-     * leader sends log entries to followers in batches, it accumulates
-     * incoming requests in order to improve the throughput. You can configure
-     * this field by considering the degree of concurrency of the clients.
-     * For instance, if there are at most 1000 clients sending requests
-     * to a Raft leader, this field can be set to 1000 so that clients do not
-     * get retry responses unnecessarily.
+     * before temporarily rejecting new requests of clients. This configuration
+     * enables a back pressure mechanism to prevent OOME when a Raft leader
+     * cannot keep up with the requests sent by the clients. When
+     * the "uncommitted log entries buffer" whose capacity is specified with
+     * this configuration field is filled, new requests fail with
+     * {@link CannotReplicateException} to slow down the clients. You can
+     * configure this field by considering the degree of concurrency of your
+     * clients.
      */
     private final int maxUncommittedLogEntryCount;
 
     /**
      * If enabled, when a Raft follower falls far behind the Raft leader and
      * needs to install a snapshot, it transfers the snapshot chunks from both
-     * the Raft leader and followers in parallel. This is a safe optimization
-     * because in MicroRaft snapshots are taken at the same log indices on all
-     * Raft nodes.
+     * the Raft leader and other followers in parallel. This is a safe
+     * optimization because in MicroRaft snapshots are taken at the same log
+     * indices on all Raft nodes.
      */
     private final boolean transferSnapshotsFromFollowersEnabled;
 
     /**
      * Denotes how frequently a Raft node publishes a report of its internal
-     * Raft state.
+     * Raft state. {@link RaftNodeReport} objects can be used for monitoring
+     * a running Raft group.
      */
     private final int raftNodeReportPublishPeriodSecs;
 

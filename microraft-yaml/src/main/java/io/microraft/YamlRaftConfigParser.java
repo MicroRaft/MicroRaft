@@ -36,21 +36,23 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * {@link RaftConfig} parser for YAML files.
- * <p>
- * A sample YAML string is below:
- * ---
- * raft:
- * leader-election-timeout-millis: 1000
- * leader-heartbeat-period-secs: 2
- * leader-heartbeat-timeout-secs: 10
- * append-entries-request-batch-size: 1000
- * commit-count-to-take-snapshot: 50000
- * max-uncommitted-log-entry-count: 5000
- * transfer-snapshots-from-followers-enabled: false
- * raft-node-report-publish-period-secs: 10
  */
 public final class YamlRaftConfigParser {
 
+    /*
+        A sample YAML string is below:
+        ---
+        raft:
+         leader-election-timeout-millis: 750
+         leader-heartbeat-period-secs: 15
+         leader-heartbeat-timeout-secs: 45
+         append-entries-request-batch-size: 750
+         commit-count-to-take-snapshot: 7500
+         max-uncommitted-log-entry-count: 1500
+         transfer-snapshots-from-followers-enabled: false
+         raft-node-report-publish-period-secs: 20
+
+     */
     private YamlRaftConfigParser() {
     }
 

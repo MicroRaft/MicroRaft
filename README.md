@@ -561,7 +561,7 @@ not trigger a new leader election round as long as the current leader continues
 to send `AppendEntries` RPCs. The Raft paper uses a single parameter, 
 __election timeout__, to both detect failure of the leader and perform a leader 
 election round. A follower decides the current leader to be crashed if the
-__election timeout__ duration passes after its last `AppendEntriesRPC`. 
+__election timeout__ elapses after the last received `AppendEntriesRPC`. 
 Moreover, a candidate starts a new leader election round if the __election 
 timeout__ elapses before it acquires the majority votes or another candidate 
 announces the leadership. The Raft paper discusses the __election timeout__ to 
@@ -576,10 +576,10 @@ specified by `RaftConfig.getLeaderHeartbeatTimeoutMillis()` and 10 seconds by
 default, to detect failure of the leader and __leader election timeout__, which
 is specified by `RaftConfig.getLeaderElectionTimeoutMillis()` and 500 
 milliseconds by default, to terminate the current leader election round and 
-start a new one. If both values are configured the same, MicroRaft's behaviour
-becomes identical to the behaviour described in the Raft paper. Please note
-that having 2 timeout parameters does not make any difference in terms of 
-the safety property. 
+start a new one. Please note that having 2 timeout parameters does not make any
+difference in terms of the safety property. If both values are configured 
+the same, MicroRaft's behaviour becomes identical to the behaviour described in 
+the Raft paper.  
 
 
 ### Network Partition

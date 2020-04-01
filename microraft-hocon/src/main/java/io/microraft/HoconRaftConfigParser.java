@@ -34,22 +34,25 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * {@link RaftConfig} parser for HOCON files
- * <p>
- * A sample HOCON string is below:
- * ---
- * raft {
- * leader-election-timeout-millis: 1000
- * leader-heartbeat-period-secs: 2
- * leader-heartbeat-timeout-secs: 10
- * append-entries-request-batch-size: 1000
- * commit-count-to-take-snapshot: 50000
- * max-uncommitted-log-entry-count: 5000
- * transfer-snapshots-from-followers-enabled: false
- * raft-node-report-publish-period-secs: 10
- * }
  */
 public final class HoconRaftConfigParser {
 
+    /*
+
+        A sample HOCON string is below:
+        ---
+        raft {
+          leader-election-timeout-millis: 1000
+          leader-heartbeat-timeout-secs: 10
+          leader-heartbeat-period-secs: 2
+          max-uncommitted-log-entry-count: 5000
+          append-entries-request-batch-size: 1000
+          commit-count-to-take-snapshot: 50000
+          transfer-snapshots-from-followers-enabled: false
+          raft-node-report-publish-period-secs: 10
+        }
+
+     */
     private HoconRaftConfigParser() {
     }
 

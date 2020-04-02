@@ -1035,7 +1035,9 @@ public class SnapshotTest
 
         group.terminateNode(leader.getLocalEndpoint());
 
-        eventually(() -> assertThat(slowFollower.getLeaderEndpoint()).isNotNull().isNotEqualTo(leader.getLocalEndpoint()));
+        for (RaftNodeImpl follower : followers) {
+            eventually(() -> assertThat(follower.getLeaderEndpoint()).isNotNull().isNotEqualTo(leader.getLocalEndpoint()));
+        }
 
         RaftNodeImpl newLeader = group.getLeaderNode();
         newLeader.replicate(apply("newLeaderVal")).join();

@@ -332,7 +332,8 @@ public class RaftState {
      * Initializes the Raft state by initializing the state store
      * and persisting the initial member list
      *
-     * @throws IOException if an IO error occurs inside the state store
+     * @throws IOException
+     *         if an IO error occurs inside the state store
      * @see RaftStore#open()
      * @see RaftStore#persistInitialMembers(RaftEndpoint, Collection)
      */
@@ -346,7 +347,8 @@ public class RaftState {
      * Switches this Raft node to follower role.
      * Clears leader and (pre)candidate states, updates the term.
      *
-     * @param term current term
+     * @param term
+     *         current term
      */
     public void toFollower(int term) {
         role = FOLLOWER;
@@ -483,8 +485,10 @@ public class RaftState {
      * in the committed members and the committed members that don't exist
      * in the latest applied members are removed.
      *
-     * @param logIndex log index of membership change
-     * @param members  latest applied members
+     * @param logIndex
+     *         log index of membership change
+     * @param members
+     *         latest applied members
      */
     public void updateGroupMembers(long logIndex, Collection<RaftEndpoint> members) {
         assert committedGroupMembers == effectiveGroupMembers :

@@ -25,38 +25,54 @@ public interface RaftLogStats {
 
     /**
      * Returns index of the highest log entry known to be committed.
+     *
+     * @return index of the highest log entry known to be committed
      */
     long getCommitIndex();
 
     /**
      * Returns the last term in the Raft log, either from the last log entry
      * or from the last locally taken or installed snapshot.
+     *
+     * @return the last term in the Raft log, either from the last log entry
+     *         or from the last locally taken or installed snapshot
      */
     long getLastLogOrSnapshotTerm();
 
     /**
      * Returns the last log entry index in the Raft log, either from the last
      * log entry or from the last locally taken or installed snapshot.
+     *
+     * @return the last log entry index in the Raft log, either from the last
+     *         log entry or from the last locally taken or installed snapshot
      */
     long getLastLogOrSnapshotIndex();
 
     /**
-     * Returns term of the last locally taken or installed snapshot.
+     * Returns the term of the last locally taken or installed snapshot.
+     *
+     * @return the term of the last locally taken or installed snapshot
      */
     long getLastSnapshotTerm();
 
     /**
-     * Returns log index of the last locally taken or installed snapshot.
+     * Returns the log index of the last locally taken or installed snapshot.
+     *
+     * @return the log index of the last locally taken or installed snapshot
      */
     long getLastSnapshotIndex();
 
     /**
-     * Returns how many times a new snapshot is taken by a Raft node.
+     * Returns the number of snapshots are taken by a Raft node.
+     *
+     * @return the number of snapshots are taken by a Raft node
      */
     int getTakeSnapshotCount();
 
     /**
-     * Returns how many times a new snapshot is installed at a Raft node.
+     * Returns the number of snapshots installed by a Raft node.
+     *
+     * @return the number of snapshots installed by a Raft node
      */
     int getInstallSnapshotCount();
 

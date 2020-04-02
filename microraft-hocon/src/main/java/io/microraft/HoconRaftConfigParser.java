@@ -21,6 +21,7 @@ import io.microraft.RaftConfig.RaftConfigBuilder;
 
 import javax.annotation.Nonnull;
 
+import static com.typesafe.config.ConfigException.WrongType;
 import static io.microraft.HoconRaftConfigFields.APPEND_ENTRIES_REQUEST_BATCH_SIZE_FIELD_NAME;
 import static io.microraft.HoconRaftConfigFields.COMMIT_COUNT_TO_TAKE_SNAPSHOT_FIELD_NAME;
 import static io.microraft.HoconRaftConfigFields.LEADER_ELECTION_TIMEOUT_MILLIS_FIELD_NAME;
@@ -59,9 +60,15 @@ public final class HoconRaftConfigParser {
     /**
      * Parses the given config object to populate RaftConfig
      *
-     * @throws NullPointerException     if the given config object is null
-     * @throws IllegalArgumentException if the given config object has no
-     *                                  "raft.*" field
+     * @return the created RaftConfig object
+     *
+     * @throws NullPointerException
+     *         if the given config object is null
+     * @throws IllegalArgumentException
+     *         if the given config object has no
+     *         "raft.*" field
+     * @throws WrongType
+     *         if a configuration value has wrong type
      */
     public static RaftConfig parseRaftConfig(@Nonnull Config config) {
         requireNonNull(config);

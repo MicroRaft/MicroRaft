@@ -41,8 +41,8 @@ import javax.annotation.Nonnull;
 /**
  * Used for creating {@link RaftModel} objects.
  * <p>
- * Users of MicroRaft must provide an implementation of this interface to
- * initialize {@link RaftNode} instances. {@link RaftModel} objects created by
+ * Users of MicroRaft must provide an implementation of this interface while
+ * creating {@link RaftNode} instances. {@link RaftModel} objects created by
  * a Raft model factory implementation are passed to {@link RaftNodeRuntime},
  * {@link StateMachine} and {@link RaftStore} for networking, operation
  * execution, and persistence.

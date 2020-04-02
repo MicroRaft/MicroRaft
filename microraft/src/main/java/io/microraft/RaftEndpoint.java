@@ -35,6 +35,8 @@ public interface RaftEndpoint {
 
     /**
      * Returns the unique identifier of the Raft endpoint.
+     *
+     * @return the unique identifier of the Raft endpoint
      */
     @Nonnull
     Object getId();

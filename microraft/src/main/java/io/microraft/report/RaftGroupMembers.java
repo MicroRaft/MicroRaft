@@ -33,11 +33,15 @@ public interface RaftGroupMembers {
 
     /**
      * Returns the Raft log index that contains this Raft group member list.
+     *
+     * @return the Raft log index that contains this Raft group member list
      */
     long getLogIndex();
 
     /**
      * Returns the member list of the Raft group.
+     *
+     * @return the member list of the Raft group
      */
     @Nonnull
     Collection<RaftEndpoint> getMembers();

@@ -52,7 +52,8 @@ public interface RaftNodeRuntime {
      * The underlying platform is free to execute the given task immediately
      * if it fits to the defined guarantees.
      *
-     * @param task the task to be executed.
+     * @param task
+     *         the task to be executed.
      */
     void execute(@Nonnull Runnable task);
 
@@ -63,7 +64,8 @@ public interface RaftNodeRuntime {
      * the given task cannot be executed immediately and it must be put into
      * the internal task queue for execution in future.
      *
-     * @param task to be executed later.
+     * @param task
+     *         the task object to be executed later.
      */
     void submit(@Nonnull Runnable task);
 
@@ -76,9 +78,12 @@ public interface RaftNodeRuntime {
      * the happens-before relationship must be maintained between given tasks
      * of the Raft node.
      *
-     * @param task     the task to be executed in future
-     * @param delay    the time from now to delay execution
-     * @param timeUnit the time unit of the delay
+     * @param task
+     *         the task to be executed in future
+     * @param delay
+     *         the time from now to delay execution
+     * @param timeUnit
+     *         the time unit of the delay
      */
     void schedule(@Nonnull Runnable task, long delay, @Nonnull TimeUnit timeUnit);
 
@@ -90,8 +95,10 @@ public interface RaftNodeRuntime {
      * {@link RaftMessage} object has not been sent to the given endpoint or
      * an internal error has occurred.
      *
-     * @param target  the target endpoint to send the Raft message
-     * @param message the {@link RaftMessage} object to be sent
+     * @param target
+     *         the target endpoint to send the Raft message
+     * @param message
+     *         the Raft message object to be sent
      */
     void send(@Nonnull RaftEndpoint target, @Nonnull RaftMessage message);
 
@@ -106,7 +113,9 @@ public interface RaftNodeRuntime {
      * recency of a message sent by or having a TCP connection to the given
      * Raft endpoint.
      *
-     * @param endpoint endpoint
+     * @param endpoint
+     *         the Raft endpoint to check reachability
+     *
      * @return true if given endpoint is reachable, false otherwise
      */
     boolean isReachable(@Nonnull RaftEndpoint endpoint);
@@ -115,7 +124,8 @@ public interface RaftNodeRuntime {
      * Called when term, role, status, known leader, or member list
      * of the Raft node changes.
      *
-     * @param report report object of the new state of the Raft node
+     * @param report
+     *         the report of the new state of the Raft node
      */
     void handleRaftNodeReport(@Nonnull RaftNodeReport report);
 

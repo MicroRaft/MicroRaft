@@ -237,8 +237,14 @@ public class RaftNodeImpl
     }
 
     private int getMaxBackoffRounds(RaftConfig config) {
-        long duration = min(config.getLeaderHeartbeatPeriodSecs() * 2, config.getLeaderHeartbeatTimeoutSecs());
-        return (int) (SECONDS.toMillis(duration) / LEADER_BACKOFF_RESET_TASK_PERIOD_MILLIS);
+        long durationSecs;
+        if (config.getLeaderHeartbeatPeriodSecs() == 1 && config.getLeaderHeartbeatTimeoutSecs() > 1) {
+            durationSecs = 2;
+        } else {
+            durationSecs = config.getLeaderHeartbeatPeriodSecs();
+        }
+
+        return (int) (SECONDS.toMillis(durationSecs) / LEADER_BACKOFF_RESET_TASK_PERIOD_MILLIS);
     }
 
     /**
@@ -1030,7 +1036,8 @@ public class RaftNodeImpl
     /**
      * Updates the known leader endpoint.
      *
-     * @param member the discovered leader endpoint
+     * @param member
+     *         the discovered leader endpoint
      */
     public void leader(RaftEndpoint member) {
         state.leader(member);
@@ -1663,7 +1670,8 @@ public class RaftNodeImpl
      * queries waiting to be executed. Those queries are also failed with
      * {@link NotLeaderException}.
      *
-     * @param term the new term to switch
+     * @param term
+     *         the new term to switch
      */
     public void toFollower(int term) {
         LeaderState leaderState = state.leaderState();

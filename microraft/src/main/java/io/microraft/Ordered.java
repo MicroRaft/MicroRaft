@@ -21,18 +21,24 @@ package io.microraft;
  * of the methods in the {@link RaftNode} interface, along with at which commit
  * index the given operation is executed / performed.
  *
- * @param <T> type of the actual result object
+ * @param <T>
+ *         type of the actual result object
+ *
  * @author metanet
  */
 public interface Ordered<T> {
 
     /**
      * Returns the commit index at which the operation is executed / performed.
+     *
+     * @return the commit index at which the operation is executed / performed.
      */
     long getCommitIndex();
 
     /**
      * Returns the actual result of the operation.
+     *
+     * @return the actual result of the operation.
      */
     T getResult();
 

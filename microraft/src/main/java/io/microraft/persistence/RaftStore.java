@@ -45,6 +45,9 @@ public interface RaftStore
      * Initializes the store before starting to persist Raft state. This method
      * is called before any other method in this interface. After this method
      * returns, the state store must be ready to accept all other method calls.
+     *
+     * @throws IOException
+     *         if any problem occurs during initializing the Raft store
      */
     void open()
             throws IOException;
@@ -53,6 +56,14 @@ public interface RaftStore
      * Persists the given local Raft endpoint and initial Raft group members.
      * <p>
      * When this method returns, all the provided data has become durable.
+     *
+     * @param localEndpoint
+     *         the local endpoint to persist
+     * @param initialMembers
+     *         the initial Raft group member list to persist
+     *
+     * @throws IOException
+     *         if any failure occurs during persisting the given values
      */
     void persistInitialMembers(@Nonnull RaftEndpoint localEndpoint, @Nonnull Collection<RaftEndpoint> initialMembers)
             throws IOException;
@@ -62,6 +73,14 @@ public interface RaftStore
      * for in the given term.
      * <p>
      * When this method returns, all the provided data has become durable.
+     *
+     * @param term
+     *         the term value to persist
+     * @param votedFor
+     *         the voted Raft endpoint to persist
+     *
+     * @throws IOException
+     *         if any failure occurs during persisting the given values
      */
     void persistTerm(int term, @Nullable RaftEndpoint votedFor)
             throws IOException;
@@ -91,6 +110,11 @@ public interface RaftStore
      * After this call sequence log indices will remain sequential and the next
      * persistLogEntry() call will be for <em>index=2</em>.
      *
+     * @param logEntry
+     *         the log entry object to persist
+     *
+     * @throws IOException
+     *         if any failure occurs during persisting the given log entry
      * @see #flush()
      * @see #persistSnapshotChunk(SnapshotChunk)
      * @see #truncateLogEntriesFrom(long)
@@ -134,8 +158,12 @@ public interface RaftStore
      * case, the follower receives a snapshot from the leader. There is no
      * upper-bound on the gap between the highest log entry and the index of
      * the received snapshot.
-     * </ul>
      *
+     * @param snapshotChunk
+     *         the snapshot chunk object to persist
+     *
+     * @throws IOException
+     *         if any failure occurs during persisting the given snapshot chunk
      * @see #flush()
      * @see #persistLogEntry(LogEntry)
      * @see RaftConfig
@@ -155,6 +183,12 @@ public interface RaftStore
      * highest entries can be truncated, hence truncation can start at index=16
      * or higher.
      *
+     * @param logIndexInclusive
+     *         the log index value from which the log entries
+     *         must be truncated
+     *
+     * @throws IOException
+     *         if any failure occurs during truncating the log entries
      * @see #flush()
      * @see #persistLogEntry(LogEntry)
      * @see RaftConfig
@@ -168,6 +202,12 @@ public interface RaftStore
      * no longer valid and must not be restored (or at least must be ignored
      * during the restore process).
      *
+     * @param logIndexInclusive
+     *         the log index value until which the log entries
+     *         must be truncated
+     *
+     * @throws IOException
+     *         if any failure occurs during truncating the log entries
      * @see #persistSnapshotChunk(SnapshotChunk)
      */
     void truncateSnapshotChunksUntil(long logIndexInclusive)
@@ -180,6 +220,8 @@ public interface RaftStore
      * When this method returns, all the changes done via the other methods
      * have become durable.
      *
+     * @throws IOException
+     *         if any failure occurs during the flush operation
      * @see #persistLogEntry(LogEntry)
      * @see #persistSnapshotChunk(SnapshotChunk)
      * @see #truncateSnapshotChunksUntil(long)

@@ -36,17 +36,33 @@ import javax.annotation.Nonnull;
 public interface RaftMessage
         extends RaftModel {
 
+    /**
+     * Returns the group id of the Raft node which created this message
+     *
+     * @return the group id of the Raft node which created this message
+     */
     Object getGroupId();
 
+    /**
+     * Returns the endpoint of the Raft node which created this message
+     *
+     * @return the endpoint of the Raft node which created this message
+     */
     @Nonnull
     RaftEndpoint getSender();
 
+    /**
+     * Returns the term at which the Raft node created this message
+     *
+     * @return the term at which the Raft node created this message
+     */
     int getTerm();
 
     /**
      * The base builder interface for Raft message classes
      *
-     * @param <T> the concrete type of the Raft message
+     * @param <T>
+     *         the concrete type of the Raft message
      */
     interface RaftMessageBuilder<T extends RaftMessage> {
 

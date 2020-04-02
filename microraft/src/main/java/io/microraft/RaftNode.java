@@ -82,27 +82,34 @@ import java.util.concurrent.TimeoutException;
 public interface RaftNode {
 
     /**
-     * Returns a new Raft node builder object which can be used for
-     * configuring the Raft node that is going to be created.
+     * Returns a new builder to configure RaftNode that is going to be created.
+     *
+     * @return a new builder to configure RaftNode that is going to be created
      */
     static RaftNodeBuilder newBuilder() {
         return new RaftNodeBuilderImpl();
     }
 
     /**
-     * Returns unique id of the Raft group which this Raft node belongs to.
+     * Returns the unique id of the Raft group which this Raft node belongs to.
+     *
+     * @return the unique id of the Raft group which this Raft node belongs to
      */
     @Nonnull
     Object getGroupId();
 
     /**
      * Returns the local endpoint of this Raft node.
+     *
+     * @return the local endpoint of this Raft node
      */
     @Nonnull
     RaftEndpoint getLocalEndpoint();
 
     /**
      * Returns the config object this Raft node is initialized with.
+     *
+     * @return the config object this Raft node is initialized with
      */
     @Nonnull
     RaftConfig getConfig();
@@ -112,43 +119,56 @@ public interface RaftNode {
      * <p>
      * Please note that the other Raft nodes in the Raft group may have
      * already switched to a higher term.
+     *
+     * @return the locally known term information
      */
     @Nonnull
     RaftGroupTerm getTerm();
 
     /**
      * Returns the current status of this Raft node.
+     *
+     * @return the current status of this Raft node
      */
     @Nonnull
     RaftNodeStatus getStatus();
 
     /**
-     * Returns the initial member list of the Raft group
-     * this Raft node belongs to.
+     * Returns the initial member list of the Raft group.
+     *
+     * @return the initial member list of the Raft group
      */
     @Nonnull
     RaftGroupMembers getInitialMembers();
 
     /**
      * Returns the last committed member list of the Raft group this Raft node
-     * belongs to. Please note that the returned member list is read from
-     * the local state and can be different from the currently effective
-     * applied member list, if this Raft node is part of the minority and there
-     * is an ongoing (appended but not-yet-committed) membership change in
-     * the majority of the Raft group. Similarly, it can be different from
-     * the current committed member list of the Raft group, also if a new
-     * membership change is committed by the majority Raft nodes but not-learnt
-     * by this Raft node yet.
+     * belongs to.
+     * <p>
+     * Please note that the returned member list is read from the local state
+     * and can be different from the currently effective applied member list,
+     * if this Raft node is part of the minority and there is an ongoing
+     * (appended but not-yet-committed) membership change in the majority of
+     * the Raft group. Similarly, it can be different from the current
+     * committed member list of the Raft group, also if a new membership change
+     * is committed by the majority Raft nodes but not-learnt by this Raft node
+     * yet.
+     *
+     * @return the last committed member list of the Raft group
      */
     @Nonnull
     RaftGroupMembers getCommittedMembers();
 
     /**
      * Returns the currently effective member list of the Raft group this Raft
-     * node belongs to. Please note that the returned member list is read from
-     * the local state and can be different from the committed member list,
-     * if there is an ongoing (appended but not-yet committed) membership
-     * change in the Raft group.
+     * node belongs to.
+     * <p>
+     * Please note that the returned member list is read from the local state
+     * and can be different from the committed member list, if there is
+     * an ongoing (appended but not-yet committed) membership change
+     * in the Raft group.
+     *
+     * @return the currently effective member list of the Raft group
      */
     @Nonnull
     RaftGroupMembers getEffectiveMembers();
@@ -158,6 +178,8 @@ public interface RaftNode {
      * <p>
      * The returned future is completed with {@link IllegalStateException}
      * if this Raft node has already started.
+     *
+     * @return the future object to be notified after this Raft node starts
      */
     @Nonnull
     CompletableFuture<Ordered<Object>> start();
@@ -166,6 +188,8 @@ public interface RaftNode {
      * Forcefully sets the status of this Raft node to
      * {@link RaftNodeStatus#TERMINATED} and makes the Raft node stops
      * executing the Raft consensus algorithm.
+     *
+     * @return the future object to be notified after this Raft node terminates
      */
     @Nonnull
     CompletableFuture<Ordered<Object>> terminate();
@@ -177,8 +201,11 @@ public interface RaftNode {
      * Silently ignores the given Raft message if this Raft node has already
      * terminated or left the Raft group.
      *
-     * @param message the object sent by another Raft node of this Raft group
-     * @throws IllegalArgumentException if an unknown message is received.
+     * @param message
+     *         the object sent by another Raft node of this Raft group
+     *
+     * @throws IllegalArgumentException
+     *         if an unknown message is received.
      * @see RaftMessage
      */
     void handle(@Nonnull RaftMessage message);
@@ -198,7 +225,14 @@ public interface RaftNode {
      * The returned future be can notified with {@link NotLeaderException},
      * {@link CannotReplicateException} or {@link IndeterminateStateException}.
      *
-     * @param operation operation to replicate
+     * @param operation
+     *         the operation to be replicated on the Raft group
+     *
+     * @param <T> type of the result of the operation execution
+     *
+     * @return the future to be notified with the result of the operation
+     *         execution, or the exception if the replication fails
+     *
      * @see NotLeaderException
      * @see CannotReplicateException
      * @see IndeterminateStateException
@@ -229,10 +263,19 @@ public interface RaftNode {
      * {@link CannotReplicateException} or {@link LaggingCommitIndexException}.
      * See individual exception classes for more details.
      *
-     * @param operation      query operation
-     * @param queryPolicy    query policy to decide how to execute the query
-     * @param minCommitIndex minimum commit index that this Raft node needs to
-     *                       have in order to execute the given query.
+     * @param operation
+     *         the query operation to be executed
+     * @param queryPolicy
+     *         the query policy to decide how to execute the given query
+     * @param minCommitIndex
+     *         the minimum commit index that this Raft node has to have
+     *         in order to execute the given query.
+     *
+     * @param <T> type of the result of the query execution
+     *
+     * @return the future to be notified with the result of the query
+     *         execution, or the exception if the query cannot be executed
+     *
      * @see QueryPolicy
      * @see NotLeaderException
      * @see CannotReplicateException
@@ -262,9 +305,17 @@ public interface RaftNode {
      * The majority value of the Raft group can increase or decrease by 1 after
      * the given membership change is committed.</p>
      *
-     * @param endpoint                        endpoint to add or remove
-     * @param mode                            type of membership change
-     * @param expectedGroupMembersCommitIndex expected members commit index
+     * @param endpoint
+     *         the endpoint to add to or remove from the Raft group
+     * @param mode
+     *         the type of the membership change
+     * @param expectedGroupMembersCommitIndex
+     *         the expected members commit index
+     *
+     * @return the future to be notified with the new member list of the Raft
+     *         group if the membership change is successful, or the exception
+     *         if the membership change failed
+     *
      * @see #replicate(Object)
      * @see MismatchingRaftGroupMembersCommitIndexException
      * @see NotLeaderException
@@ -300,6 +351,13 @@ public interface RaftNode {
      * if the given endpoint is not in the committed Raft group member list, and
      * {@link TimeoutException} if the leadership transfer process has timed out.
      *
+     * @param endpoint
+     *         the Raft endpoint to which the leadership will be
+     *         transferred
+     *
+     * @return the future to be notified when the leadership transfer is done,
+     *         or with the execution if the leader transfer could not be done.
+     *
      * @see CannotReplicateException
      * @see NotLeaderException
      */
@@ -323,6 +381,9 @@ public interface RaftNode {
      * The returned future can notified with {@link CannotReplicateException},
      * {@link NotLeaderException}, or {@link IndeterminateStateException}.
      *
+     * @return the future to be notified when the Raft group is terminated,
+     *         or with the execution if the termination fails
+     *
      * @see CannotReplicateException
      * @see NotLeaderException
      * @see IndeterminateStateException
@@ -331,8 +392,11 @@ public interface RaftNode {
     CompletableFuture<Ordered<Object>> terminateGroup();
 
     /**
-     * Returns a report object that contains information about Raft node's
+     * Returns a report object that contains information about this Raft node's
      * local state related to the execution of the Raft consensus algorithm.
+     *
+     * @return a report object that contains information about this Raft node's
+     *         local state
      */
     @Nonnull
     CompletableFuture<Ordered<RaftNodeReport>> getReport();
@@ -344,6 +408,11 @@ public interface RaftNode {
 
         /**
          * Sets the unique ID of the Raft group that this Raft node belongs to.
+         *
+         * @param groupId
+         *         the group id to create the Raft node with
+         *
+         * @return the builder object for fluent calls
          */
         @Nonnull
         RaftNodeBuilder setGroupId(@Nonnull Object groupId);
@@ -355,6 +424,10 @@ public interface RaftNode {
          * {@link #setInitialGroupMembers(Collection)} when either a new Raft
          * group is bootstrapping for the first time or a new Raft node is
          * being added to a running Raft group.
+         *
+         * @param localEndpoint the Raft endpoint to create the Raft node with
+         *
+         * @return the builder object for fluent calls
          */
         @Nonnull
         RaftNodeBuilder setLocalEndpoint(@Nonnull RaftEndpoint localEndpoint);
@@ -373,6 +446,11 @@ public interface RaftNode {
          * {@link #setLocalEndpoint(RaftEndpoint)} when either a new Raft group
          * is bootstrapping for the first time or a new Raft node is being
          * added to a running Raft group.
+         *
+         * @param initialGroupMembers the initial group members of the Raft
+         *                            group which the Raft node belongs to
+         *
+         * @return the builder object for fluent calls
          */
         @Nonnull
         RaftNodeBuilder setInitialGroupMembers(@Nonnull Collection<RaftEndpoint> initialGroupMembers);
@@ -390,6 +468,13 @@ public interface RaftNode {
          * {@link #setLocalEndpoint(RaftEndpoint)} and
          * {@link #setInitialGroupMembers(Collection)} must not be called when
          * a {@link RestoredRaftState} object is provided via this method.
+         *
+         * @param restoredState the restored Raft state which will be used while
+         *                      creating the Raft node
+         *
+         * @return the builder object for fluent calls
+         *
+         * @see RestoredRaftState
          */
         @Nonnull
         RaftNodeBuilder setRestoredState(@Nonnull RestoredRaftState restoredState);
@@ -398,37 +483,86 @@ public interface RaftNode {
          * Sets the Raft config.
          * <p>
          * If not set, {@link RaftConfig#DEFAULT_RAFT_CONFIG} is used.
+         *
+         * @param config
+         *         the config object to create the Raft node with
+         *
+         * @return the builder object for fluent calls
+         *
+         * @see RaftConfig
          */
         @Nonnull
         RaftNodeBuilder setConfig(@Nonnull RaftConfig config);
 
+        /**
+         * Sets the runtime object which will be used by the Raft node
+         * for task execution and networking.
+         *
+         * @param runtime
+         *         the runtime object which will be used
+         *         by the Raft node for task execution and networking
+         *
+         * @return the builder object for fluent calls
+         *
+         * @see RaftNodeRuntime
+         */
         @Nonnull
         RaftNodeBuilder setRuntime(@Nonnull RaftNodeRuntime runtime);
 
+        /**
+         * Sets the state machine object which will be used by the Raft node
+         * for execution of the committed operations.
+         *
+         * @param stateMachine
+         *         the state machine object which will be used by
+         *         the Raft node for execution of the committed
+         *         operations
+         *
+         * @return the builder object for fluent calls
+         *
+         * @see StateMachine
+         */
         @Nonnull
         RaftNodeBuilder setStateMachine(@Nonnull StateMachine stateMachine);
 
         /**
-         * Sets the {@link RaftStore} to be used for persisting internal Raft
-         * state.
+         * Sets the Raft state object to be used by the Raft node for
+         * persisting internal Raft state.
          * <p>
          * If not set, {@link NopRaftStore} is used which keeps the internal
          * Raft state in memory and disables crash-recover scenarios.
+         *
+         * @param store the Raft state object to be used by the Raft node for
+         *              persisting internal Raft state
+         *
+         * @return the builder object for fluent calls
+         *
+         * @see RaftStore
          */
         @Nonnull
         RaftNodeBuilder setStore(@Nonnull RaftStore store);
 
         /**
-         * Sets the {@link RaftModelFactory} to be used for creating
-         * {@link RaftModel} objects.
+         * Sets the Raft model factory object to be used by the Raft node for
+         * creating Raft model objects.
          * <p>
          * If not set, {@link DefaultRaftModelFactory} is used.
+         *
+         * @param modelFactory the factory object to be used by the Raft node
+         *                     for creating Raft model objects
+         *
+         * @return the builder object for fluent calls
+         *
+         * @see RaftModelFactory
+         * @see RaftModel
          */
         @Nonnull
         RaftNodeBuilder setModelFactory(@Nonnull RaftModelFactory modelFactory);
 
         /**
-         * Builds the Raft node instance.
+         * Builds and returns the RaftNode instance with the given settings.
+         *
+         * @return the built RaftNode instance.
          */
         @Nonnull
         RaftNode build();

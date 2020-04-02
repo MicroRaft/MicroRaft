@@ -38,7 +38,8 @@ import static java.util.Objects.requireNonNull;
  * <p>
  * NOTE: This map doesn't support {@code null} keys and values.
  *
- * @param <V> values stored in the {@link java.util.Map}
+ * @param <V>
+ *         values stored in the {@link java.util.Map}
  */
 public class Long2ObjectHashMap<V>
         implements Map<Long, V> {
@@ -71,8 +72,10 @@ public class Long2ObjectHashMap<V>
     /**
      * Construct a new map allowing a configuration for initial capacity and load factor.
      *
-     * @param initialCapacity for the backing array
-     * @param loadFactor      limit for resizing on puts
+     * @param initialCapacity
+     *         for the backing array
+     * @param loadFactor
+     *         limit for resizing on puts
      */
     public Long2ObjectHashMap(final int initialCapacity, final double loadFactor) {
         this.loadFactor = loadFactor;
@@ -136,8 +139,11 @@ public class Long2ObjectHashMap<V>
      * Get a value for a given key, or if it does ot exist then default the value via a {@link LongFunction}
      * and put it in the map.
      *
-     * @param key             to search on.
-     * @param mappingFunction to provide a value if the get returns null.
+     * @param key
+     *         to search on.
+     * @param mappingFunction
+     *         to provide a value if the get returns null.
+     *
      * @return the value if found otherwise the default.
      */
     public V computeIfAbsent(final long key, final LongFunction<? extends V> mappingFunction) {
@@ -180,7 +186,9 @@ public class Long2ObjectHashMap<V>
     /**
      * Overloaded version of {@link Map#containsKey(Object)} that takes a primitive long key.
      *
-     * @param key for indexing the {@link Map}
+     * @param key
+     *         for indexing the {@link Map}
+     *
      * @return true if the key is found otherwise false.
      */
     public boolean containsKey(final long key) {
@@ -213,7 +221,9 @@ public class Long2ObjectHashMap<V>
     /**
      * Overloaded version of {@link Map#get(Object)} that takes a primitive long key.
      *
-     * @param key for indexing the {@link Map}
+     * @param key
+     *         for indexing the {@link Map}
+     *
      * @return the value if found otherwise null
      */
     @SuppressWarnings("unchecked")
@@ -237,8 +247,11 @@ public class Long2ObjectHashMap<V>
     /**
      * Overloaded version of {@link Map#put(Object, Object)} that takes a primitive long key.
      *
-     * @param key   for indexing the {@link Map}
-     * @param value to be inserted in the {@link Map}
+     * @param key
+     *         for indexing the {@link Map}
+     * @param value
+     *         to be inserted in the {@link Map}
+     *
      * @return the previous value if found otherwise null
      */
     @SuppressWarnings("unchecked")
@@ -280,7 +293,9 @@ public class Long2ObjectHashMap<V>
     /**
      * Overloaded version of {@link Map#remove(Object)} that takes a primitive long key.
      *
-     * @param key for indexing the {@link Map}
+     * @param key
+     *         for indexing the {@link Map}
+     *
      * @return the value if found otherwise null
      */
     @SuppressWarnings("unchecked")

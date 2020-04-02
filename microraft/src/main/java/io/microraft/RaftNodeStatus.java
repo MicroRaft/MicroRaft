@@ -68,12 +68,19 @@ public enum RaftNodeStatus {
      * terminated, it is removed from the Raft group member list, or it is
      * being terminated on its own, for instance, because its JVM is shutting
      * down.
+     * <p>
+     * A Raft node stops running the Raft consensus algorithm in this status.
      */
     TERMINATED;
 
     /**
      * Returns true if the given Raft node status is a terminal. A Raft node
      * stops running the Raft consensus algorithm in a terminal status.
+     *
+     * @param status
+     *         the status object to check
+     *
+     * @return true if the given status is terminal, false otherwise
      */
     public static boolean isTerminal(RaftNodeStatus status) {
         return status == TERMINATED;

@@ -28,7 +28,9 @@ import java.util.Arrays;
  * the replicas. No thread safety is needed since a partition can only be
  * accessed by a single thread at any given moment.
  *
- * @param <E> the type of the data stored in the ringbuffer
+ * @param <E>
+ *         the type of the data stored in the ringbuffer
+ *
  * @author mdogan
  * @author metanet
  */

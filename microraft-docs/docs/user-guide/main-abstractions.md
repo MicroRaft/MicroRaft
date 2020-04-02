@@ -102,8 +102,8 @@ log and snapshot entries stored in the Raft log. `RaftMessage` is used for
 Raft RPCs and their responses. Please see the interfaces inside 
 `io.microraft.model` for more details. In addition, there is a 
 `RaftModelFactory` interface for creating `RaftModel` objects. Users of 
-MicroRaft must provide an implementation of this interface during 
-initialization of `RaftNode`s. 
+MicroRaft must provide an implementation of this interface while 
+creating `RaftNode` instances. 
 
 In short, users of MicroRaft can create their own representation of 
 the `RaftModel` objects and implement the networking and persistence concerns

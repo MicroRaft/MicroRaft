@@ -55,10 +55,26 @@ public interface StateMachine {
      * <p>
      * Please note that the given operation must be deterministic and return
      * the same result on all Raft nodes of the Raft group.
+     * <p>An operation is executed when it is replicated to the majority of
+     * the Raft group, hence committed. In addition to that, an operation can
+     * be replayed, i.e., executed again, if a Raft node crashes and restarts
+     * with persisting its internal state.
+     * <p>
+     * MicroRaft does not inform the state machines if the operation is being
+     * executed for the first time or replayed, and it is the state machine
+     * implementations' responsibility to ensure determinism in both cases. For
+     * instance, if a state machine implementation creates some side effects on
+     * operation execution, it can also persist the log index of the last
+     * executed operation so that replays do not cause duplicate side effects.
+     * Another option would be creating side effects idempotently, so that
+     * replays do not make any difference.
      *
-     * @param commitIndex Raft log index the given operation is committed at
-     * @param operation   user-supplied operation to execute
-     * @return result of the operation execution
+     * @param commitIndex
+     *         the Raft log index on which the given operation is committed
+     * @param operation
+     *         the user-supplied operation to be executed
+     *
+     * @return the result of the operation execution
      */
     Object runOperation(long commitIndex, @Nullable Object operation);
 
@@ -80,9 +96,10 @@ public interface StateMachine {
      * always reaches to the same state with the Raft leader and other
      * followers independent of from which nodes the chunks are fetched.
      *
-     * @param commitIndex           commit index on which a snapshot is taken
-     * @param snapshotChunkConsumer consumer object to which snapshot chunks
-     *                              must be passed
+     * @param commitIndex
+     *         the commit index on which the current snapshot is being taken
+     * @param snapshotChunkConsumer
+     *         the consumer object to collect the snapshot chunks
      */
     void takeSnapshot(long commitIndex, Consumer<Object> snapshotChunkConsumer);
 
@@ -92,14 +109,16 @@ public interface StateMachine {
      * The snapshot chunks are in the order they are provided to the chunk
      * consumer parameter of {@link #takeSnapshot(long, Consumer)} method.
      *
-     * @param commitIndex    commit index of the snapshot
-     * @param snapshotChunks snapshot chunks provided by the state machine
-     *                       implementation
+     * @param commitIndex
+     *         the commit index on which the given snapshot is taken
+     * @param snapshotChunks
+     *         the list of snapshot chunk provided by the state machine when
+     *         the snapshot is taken
      */
     void installSnapshot(long commitIndex, @Nonnull List<Object> snapshotChunks);
 
     /**
-     * Returns and operation to be appended after a new leader is elected in
+     * Returns the operation to be appended after a new leader is elected in
      * a new term. Null return value means no entry will be appended.
      * <p>
      * See <a href="https://groups.google.com/forum/#!msg/raft-dev/t4xj6dJTP6E/d2D9LrWRza8J">
@@ -108,6 +127,9 @@ public interface StateMachine {
      * <p>
      * At least a NOP object is strongly recommended to be returned
      * on production because it has zero overhead.
+     *
+     * @return the operation to be appended after a new leader is elected in
+     *         a new term. Null return value means no entry will be appended.
      */
     @Nullable
     Object getNewTermOperation();

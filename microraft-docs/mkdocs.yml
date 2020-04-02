@@ -1,4 +1,4 @@
-site_name: MicroRaft Docs
+site_name: MicroRaft
 use_directory_urls: true
 
 theme: bootstrap4
@@ -11,13 +11,13 @@ markdown_extensions:
   - fenced_code
 
 nav:
-  - Introduction: 'index.md'
+  #  - Home: 'index.md'
   - 'User Guide':
       - Getting Started: 'user-guide/getting-started.md'
       - Main Abstractions: 'user-guide/main-abstractions.md'
       - Configuration: 'user-guide/configuration.md'
       - How to Use MicroRaft: 'user-guide/how-to-use-microraft.md'
-  - Fault Tolerance: 'fault-tolerance.md'
+      - Fault Tolerance: 'user-guide/fault-tolerance.md'
   - 'Internals':
       - Threading and Execution Model: 'internals/threading-and-execution-model.md'
       - Leader Election: 'internals/leader-election.md'

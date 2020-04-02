@@ -52,8 +52,11 @@ public class RaftException
     }
 
     /**
-     * Returns the leader member of related Raft group, if known/available
-     * by the time this exception is thrown.
+     * Returns the leader endpoint of the related Raft group, if available and
+     * known by the Raft node by the time this exception is thrown.
+     *
+     * @return the leader endpoint of the related Raft group, if available and
+     *         known by the Raft node by the time this exception is thrown
      */
     public RaftEndpoint getLeader() {
         return leader;

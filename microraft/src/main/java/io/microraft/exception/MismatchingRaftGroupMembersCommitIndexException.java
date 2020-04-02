@@ -30,11 +30,10 @@ import java.util.Collection;
  *
  * @author mdogan
  * @author metanet
- * <p>
- * // TODO [basri] find a shorter name
  */
 public class MismatchingRaftGroupMembersCommitIndexException
         extends RaftException {
+    // TODO [basri] find a shorter name
 
     private static final long serialVersionUID = -109570074579015635L;
 

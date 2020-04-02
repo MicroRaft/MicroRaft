@@ -29,12 +29,17 @@ public interface RaftGroupTerm {
 
     /**
      * Returns the term this Raft node is currently at.
+     *
+     * @return the term this Raft node is currently at
      */
     int getTerm();
 
     /**
      * Returns the known Raft leader endpoint in the current term,
      * or null if unknown.
+     *
+     * @return the known Raft leader endpoint in the current term,
+     *         or null if unknown
      */
     @Nullable
     RaftEndpoint getLeaderEndpoint();
@@ -42,6 +47,9 @@ public interface RaftGroupTerm {
     /**
      * Returns the Raft endpoint that this Raft node has voted for
      * in the current term, or null if none.
+     *
+     * @return the Raft endpoint that this Raft node has voted for
+     *         in the current term, or null if none
      */
     @Nullable
     RaftEndpoint getVotedEndpoint();

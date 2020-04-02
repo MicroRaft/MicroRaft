@@ -85,14 +85,6 @@ public class RaftConfig
      */
     private final long leaderElectionTimeoutMillis;
     /**
-     * Duration in seconds for a Raft leader node to send periodic heartbeat
-     * requests to its followers in order to denote its liveliness. Periodic
-     * heartbeat requests are actually append entries requests and can contain
-     * log entries. A heartbeat request is not sent to a follower if an append
-     * entries request has been sent to that follower recently.
-     */
-    private final long leaderHeartbeatPeriodSecs;
-    /**
      * Duration in seconds for a follower to decide on failure of the current
      * leader and start a new leader election round. If this duration is too
      * small, a leader could be considered as failed unnecessarily in case of
@@ -108,6 +100,27 @@ public class RaftConfig
      * in the Raft paper.
      */
     private final long leaderHeartbeatTimeoutSecs;
+    /**
+     * Duration in seconds for a Raft leader node to send periodic heartbeat
+     * requests to its followers in order to denote its liveliness. Periodic
+     * heartbeat requests are actually append entries requests and can contain
+     * log entries. A heartbeat request is not sent to a follower if an append
+     * entries request has been sent to that follower recently.
+     */
+    private final long leaderHeartbeatPeriodSecs;
+    /**
+     * Maximum number of uncommitted log entries in the leader's Raft log
+     * before temporarily rejecting new requests of clients. This configuration
+     * enables a back pressure mechanism to prevent OOME when a Raft leader
+     * cannot keep up with the requests sent by the clients. When
+     * the "uncommitted log entries buffer" whose capacity is specified with
+     * this configuration field is filled, new requests fail with
+     * {@link CannotReplicateException} to slow down the clients. You can
+     * configure this field by considering the degree of concurrency of your
+     * clients.
+     */
+    private final int maxUncommittedLogEntryCount;
+
     /**
      * In MicroRaft, a leader Raft node sends log entries to its followers in
      * batches to improve the throughput. This configuration parameter specifies
@@ -128,18 +141,6 @@ public class RaftConfig
      * log entries are going to be kept in memory until the next snapshot.
      */
     private final int commitCountToTakeSnapshot;
-    /**
-     * Maximum number of uncommitted log entries in the leader's Raft log
-     * before temporarily rejecting new requests of clients. This configuration
-     * enables a back pressure mechanism to prevent OOME when a Raft leader
-     * cannot keep up with the requests sent by the clients. When
-     * the "uncommitted log entries buffer" whose capacity is specified with
-     * this configuration field is filled, new requests fail with
-     * {@link CannotReplicateException} to slow down the clients. You can
-     * configure this field by considering the degree of concurrency of your
-     * clients.
-     */
-    private final int maxUncommittedLogEntryCount;
 
     /**
      * If enabled, when a Raft follower falls far behind the Raft leader and
@@ -171,7 +172,9 @@ public class RaftConfig
     }
 
     /**
-     * Creates a new Raft config builder
+     * Creates a new Raft config builder.
+     *
+     * @return the builder to populate the parameters for RaftConfig.
      */
     public static RaftConfigBuilder newBuilder() {
         return new RaftConfigBuilder();
@@ -184,6 +187,8 @@ public class RaftConfig
     }
 
     /**
+     * @return the leader election timeout in milliseconds
+     *
      * @see #leaderElectionTimeoutMillis
      */
     public long getLeaderElectionTimeoutMillis() {
@@ -191,34 +196,8 @@ public class RaftConfig
     }
 
     /**
-     * @see #leaderHeartbeatPeriodSecs
-     */
-    public long getLeaderHeartbeatPeriodSecs() {
-        return leaderHeartbeatPeriodSecs;
-    }
-
-    /**
-     * @see #appendEntriesRequestBatchSize
-     */
-    public int getAppendEntriesRequestBatchSize() {
-        return appendEntriesRequestBatchSize;
-    }
-
-    /**
-     * @see #commitCountToTakeSnapshot
-     */
-    public int getCommitCountToTakeSnapshot() {
-        return commitCountToTakeSnapshot;
-    }
-
-    /**
-     * @see #maxUncommittedLogEntryCount
-     */
-    public int getMaxUncommittedLogEntryCount() {
-        return maxUncommittedLogEntryCount;
-    }
-
-    /**
+     * @return leader heartbeat timeout seconds
+     *
      * @see #leaderHeartbeatTimeoutSecs
      */
     public long getLeaderHeartbeatTimeoutSecs() {
@@ -226,6 +205,44 @@ public class RaftConfig
     }
 
     /**
+     * @return the leader election heartbeat period in seconds
+     *
+     * @see #leaderHeartbeatPeriodSecs
+     */
+    public long getLeaderHeartbeatPeriodSecs() {
+        return leaderHeartbeatPeriodSecs;
+    }
+
+    /**
+     * @return the max uncommitted log entry count
+     *
+     * @see #maxUncommittedLogEntryCount
+     */
+    public int getMaxUncommittedLogEntryCount() {
+        return maxUncommittedLogEntryCount;
+    }
+
+    /**
+     * @return the append entries request batch size
+     *
+     * @see #appendEntriesRequestBatchSize
+     */
+    public int getAppendEntriesRequestBatchSize() {
+        return appendEntriesRequestBatchSize;
+    }
+
+    /**
+     * @return the commit count to take snapshot
+     *
+     * @see #commitCountToTakeSnapshot
+     */
+    public int getCommitCountToTakeSnapshot() {
+        return commitCountToTakeSnapshot;
+    }
+
+    /**
+     * @return true if the transfer snapshots from followers enabled
+     *
      * @see #transferSnapshotsFromFollowersEnabled
      */
     public boolean isTransferSnapshotsFromFollowersEnabled() {
@@ -233,6 +250,8 @@ public class RaftConfig
     }
 
     /**
+     * @return the raft node report publish period in seconds
+     *
      * @see #raftNodeReportPublishPeriodSecs
      */
     public int getRaftNodeReportPublishPeriodSecs() {
@@ -257,6 +276,12 @@ public class RaftConfig
         }
 
         /**
+         * @param leaderElectionTimeoutMillis
+         *         the leader election timeout in
+         *         milliseconds value to set
+         *
+         * @return the builder object for fluent calls
+         *
          * @see RaftConfig#leaderElectionTimeoutMillis
          */
         public RaftConfigBuilder setLeaderElectionTimeoutMillis(long leaderElectionTimeoutMillis) {
@@ -266,6 +291,27 @@ public class RaftConfig
         }
 
         /**
+         * @param leaderHeartbeatTimeoutSecs
+         *         the leader heartbeat timeout in
+         *         seconds value to set
+         *
+         * @return the builder object for fluent calls
+         *
+         * @see RaftConfig#leaderHeartbeatTimeoutSecs
+         */
+        public RaftConfigBuilder setLeaderHeartbeatTimeoutSecs(long leaderHeartbeatTimeoutSecs) {
+            checkPositive(leaderHeartbeatTimeoutSecs, "leader heartbeat timeout secs must be positive!");
+            this.leaderHeartbeatTimeoutSecs = leaderHeartbeatTimeoutSecs;
+            return this;
+        }
+
+        /**
+         * @param leaderHeartbeatPeriodSecs
+         *         the leader heartbeat period in
+         *         seconds value to set
+         *
+         * @return the builder object for fluent calls
+         *
          * @see RaftConfig#leaderHeartbeatPeriodSecs
          */
         public RaftConfigBuilder setLeaderHeartbeatPeriodSecs(long leaderHeartbeatPeriodSecs) {
@@ -275,6 +321,12 @@ public class RaftConfig
         }
 
         /**
+         * @param appendEntriesRequestBatchSize
+         *         the append entries request
+         *         batch size value to set
+         *
+         * @return the builder object for fluent calls
+         *
          * @see RaftConfig#appendEntriesRequestBatchSize
          */
         public RaftConfigBuilder setAppendEntriesRequestBatchSize(int appendEntriesRequestBatchSize) {
@@ -284,6 +336,12 @@ public class RaftConfig
         }
 
         /**
+         * @param commitCountToTakeSnapshot
+         *         the commit count to take snapshot
+         *         value to set
+         *
+         * @return the builder object for fluent calls
+         *
          * @see RaftConfig#commitCountToTakeSnapshot
          */
         public RaftConfigBuilder setCommitCountToTakeSnapshot(int commitCountToTakeSnapshot) {
@@ -293,6 +351,12 @@ public class RaftConfig
         }
 
         /**
+         * @param maxUncommittedLogEntryCount
+         *         the max uncommitted log entry
+         *         count value to set
+         *
+         * @return the builder object for fluent calls
+         *
          * @see RaftConfig#maxUncommittedLogEntryCount
          */
         public RaftConfigBuilder setMaxUncommittedLogEntryCount(int maxUncommittedLogEntryCount) {
@@ -302,19 +366,29 @@ public class RaftConfig
         }
 
         /**
-         * @see RaftConfig#leaderHeartbeatTimeoutSecs
+         * @param transferSnapshotsFromFollowersEnabled
+         *         the transfer snapshot
+         *         from followers value
+         *         to set
+         *
+         * @return the builder object for fluent calls
+         *
+         * @see #transferSnapshotsFromFollowersEnabled
          */
-        public RaftConfigBuilder setLeaderHeartbeatTimeoutSecs(long leaderHeartbeatTimeoutSecs) {
-            checkPositive(leaderHeartbeatTimeoutSecs, "leader heartbeat timeout secs must be positive!");
-            this.leaderHeartbeatTimeoutSecs = leaderHeartbeatTimeoutSecs;
-            return this;
-        }
-
         public RaftConfigBuilder setTransferSnapshotsFromFollowersEnabled(boolean transferSnapshotsFromFollowersEnabled) {
             this.transferSnapshotsFromFollowersEnabled = transferSnapshotsFromFollowersEnabled;
             return this;
         }
 
+        /**
+         * @param raftNodeReportPublishPeriodSecs
+         *         the raft node report publish
+         *         period value to set
+         *
+         * @return the builder object for fluent calls
+         *
+         * @see #raftNodeReportPublishPeriodSecs
+         */
         public RaftConfigBuilder setRaftNodeReportPublishPeriodSecs(int raftNodeReportPublishPeriodSecs) {
             checkPositive(raftNodeReportPublishPeriodSecs, "raft node state snapshot publish period seconds must be positive!");
             this.raftNodeReportPublishPeriodSecs = raftNodeReportPublishPeriodSecs;
@@ -322,7 +396,9 @@ public class RaftConfig
         }
 
         /**
-         * Builds the Raft config object
+         * Builds the RaftConfig object.
+         *
+         * @return the RaftConfig object.
          */
         public RaftConfig build() {
             if (leaderHeartbeatTimeoutSecs < leaderHeartbeatPeriodSecs) {

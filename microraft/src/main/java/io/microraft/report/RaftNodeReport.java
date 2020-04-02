@@ -36,53 +36,72 @@ public interface RaftNodeReport {
 
     /**
      * Returns the unique ID of the Raft group that this Raft node belongs to.
+     *
+     * @return the unique ID of the Raft group that this Raft node belongs to
      */
     @Nonnull
     Object getGroupId();
 
     /**
-     * Returns endpoint of the Raft node
+     * Returns the local endpoint of the Raft node.
+     *
+     * @return the local endpoint of the Raft node
      */
     @Nonnull
     RaftEndpoint getEndpoint();
 
     /**
-     * Returns initial members of the Raft group.
+     * Returns the initial members of the Raft group this Raft node belongs to.
+     *
+     * @return the initial members of the Raft group this Raft node belongs to
      */
     @Nonnull
     RaftGroupMembers getInitialMembers();
 
     /**
      * Returns the last committed member list of the Raft group this Raft node
-     * belongs to. Please note that the returned member list is read from
-     * the local state and can be different from the currently effective
-     * applied member list, if there is an ongoing (appended but not-yet
-     * committed) membership change in the group. It can be different from
-     * the current committed member list of the Raft group, also if a new
-     * membership change is committed by other Raft nodes of the group but
-     * not learnt by this Raft node yet.
+     * belongs to.
+     * <p>
+     * Please note that the returned member list is read from the local state
+     * and can be different from the currently effective applied member list,
+     * if there is an ongoing (appended but not-yet committed) membership
+     * change in the group. It can be different from the current committed
+     * member list of the Raft group, also if a new membership change is
+     * committed by other Raft nodes of the group but not learnt by this Raft
+     * node yet.
+     *
+     * @return the last committed member list of the Raft group this Raft node
+     *         belongs to
      */
     @Nonnull
     RaftGroupMembers getCommittedMembers();
 
     /**
      * Returns the currently effective member list of the Raft group this Raft
-     * node belongs to. Please note that the returned member list is read from
-     * the local state and can be different from the committed member list,
-     * if there is an ongoing (appended but not-yet committed) membership
-     * change in the Raft group.
+     * node belongs to.
+     * <p>
+     * Please note that the returned member list is read from the local state
+     * and can be different from the committed member list, if there is
+     * an ongoing (appended but not-yet committed) membership change
+     * in the Raft group.
+     *
+     * @return the currently effective member list of the Raft group this Raft node belongs to
      */
     @Nonnull
     RaftGroupMembers getEffectiveMembers();
 
     /**
-     * Returns role of the Raft node in the current term
+     * Returns the role of the Raft node in the current term.
+     *
+     * @return the role of the Raft node in the current term
      */
     @Nonnull
     RaftRole getRole();
 
     /**
-     * Returns status of the Raft node.
+     * Returns the status of the Raft node.
+     *
+     * @return the status of the Raft node
      */
     @Nonnull
     RaftNodeStatus getStatus();
@@ -91,12 +110,16 @@ public interface RaftNodeReport {
      * Returns the locally known term information.
      * <p>
      * Please note that other nodes may have already switched to a higher term.
+     *
+     * @return the locally known term information
      */
     @Nonnull
     RaftGroupTerm getTerm();
 
     /**
      * Returns statistics about a Raft node's local Raft log.
+     *
+     * @return statistics about a Raft node's local Raft log
      */
     @Nonnull
     RaftLogStats getLog();

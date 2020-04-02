@@ -59,6 +59,18 @@ public final class YamlRaftConfigParser {
     /**
      * Loads a parameter map from the yaml object with the given string and
      * populates a {@link RaftConfig} object from the returned parameter map.
+     *
+     * @return the created RaftConfig object
+     *
+     * @throws NullPointerException
+     *         if no yaml object passed
+     * @throws NullPointerException
+     *         if no string passed
+     * @throws NullPointerException
+     *         if no RaftConfig present in the string
+     * @throws ClassCastException
+     *         if a configuration value has wrong type
+     * @see RaftConfig
      */
     public static RaftConfig parseString(Yaml yaml, String string) {
         requireNonNull(yaml, "No yaml object!");
@@ -70,6 +82,15 @@ public final class YamlRaftConfigParser {
     /**
      * Loads a parameter map from the yaml object with the given reader and
      * populates a {@link RaftConfig} object from the returned parameter map.
+     *
+     * @return the created RaftConfig object
+     *
+     * @throws NullPointerException if no yaml object passed
+     * @throws NullPointerException if no reader passed
+     * @throws NullPointerException if no RaftConfig present in the reader
+     * @throws ClassCastException if a configuration value has wrong type
+     *
+     * @see RaftConfig
      */
     public static RaftConfig parseReader(Yaml yaml, Reader reader) {
         requireNonNull(yaml, "No yaml object!");
@@ -82,6 +103,15 @@ public final class YamlRaftConfigParser {
     /**
      * Loads a parameter map from the yaml object with the given stream and
      * populates a {@link RaftConfig} object from the returned parameter map.
+     *
+     * @return the created RaftConfig object
+     *
+     * @throws NullPointerException if no yaml object passed
+     * @throws NullPointerException if no input stream passed
+     * @throws NullPointerException if no RaftConfig present in the stream
+     * @throws ClassCastException if a configuration value has wrong type
+     *
+     * @see RaftConfig
      */
     public static RaftConfig parseInputStream(Yaml yaml, InputStream inputStream) {
         requireNonNull(yaml, "No yaml object!");

@@ -52,7 +52,7 @@ import static java.util.Objects.requireNonNull;
  * @see InstallSnapshotRequestHandler
  * @see InstallSnapshotResponseHandler
  */
-public class SnapshotChunkCollector {
+public final class SnapshotChunkCollector {
 
     private final long snapshotIndex;
     private final int snapshotTerm;
@@ -67,7 +67,7 @@ public class SnapshotChunkCollector {
 
     public SnapshotChunkCollector(InstallSnapshotRequest request) {
         this(request.getSnapshotIndex(), request.getSnapshotTerm(), request.getTotalSnapshotChunkCount(),
-                request.getSnapshottedMembers(), request.getGroupMembersLogIndex(), request.getGroupMembers());
+             request.getSnapshottedMembers(), request.getGroupMembersLogIndex(), request.getGroupMembers());
     }
 
     private SnapshotChunkCollector(long snapshotIndex, int snapshotTerm, int chunkCount,
@@ -199,7 +199,7 @@ public class SnapshotChunkCollector {
     // for testing
     public SnapshotChunkCollector copy() {
         SnapshotChunkCollector copy = new SnapshotChunkCollector(snapshotIndex, snapshotTerm, chunkCount, snapshottedMembers,
-                groupMembersLogIndex, groupMembers);
+                                                                 groupMembersLogIndex, groupMembers);
         copy.chunks.addAll(chunks);
         copy.missingChunkIndices.addAll(missingChunkIndices);
         copy.unresponsiveMembers.addAll(unresponsiveMembers);

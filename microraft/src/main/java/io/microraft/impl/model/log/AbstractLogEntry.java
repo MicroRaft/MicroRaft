@@ -19,7 +19,7 @@ package io.microraft.impl.model.log;
 
 import io.microraft.model.log.BaseLogEntry;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 
 /**
  * @author metanet
@@ -44,7 +44,7 @@ public class AbstractLogEntry
         return term;
     }
 
-    @Nullable
+    @Nonnull
     @Override
     public Object getOperation() {
         return operation;

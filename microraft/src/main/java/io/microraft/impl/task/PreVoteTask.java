@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
  * @author mdogan
  * @author metanet
  */
-public class PreVoteTask
+public final class PreVoteTask
         extends RaftNodeStatusAwareTask
         implements Runnable {
 

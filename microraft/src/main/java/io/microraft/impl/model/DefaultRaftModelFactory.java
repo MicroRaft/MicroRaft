@@ -58,7 +58,7 @@ import javax.annotation.Nonnull;
  *
  * @author metanet
  */
-public class DefaultRaftModelFactory
+public final class DefaultRaftModelFactory
         implements RaftModelFactory {
 
     public static final RaftModelFactory INSTANCE = new DefaultRaftModelFactory();

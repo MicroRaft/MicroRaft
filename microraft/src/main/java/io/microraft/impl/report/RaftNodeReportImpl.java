@@ -31,7 +31,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * Contains a snapshot of a Raft node's internal state.
  */
-public class RaftNodeReportImpl
+public final class RaftNodeReportImpl
         implements RaftNodeReport {
 
     private final RaftNodeReportReason reason;

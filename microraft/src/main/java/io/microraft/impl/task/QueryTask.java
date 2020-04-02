@@ -42,7 +42,7 @@ import static io.microraft.RaftRole.LEADER;
  * @author metanet
  * @see QueryPolicy
  */
-public class QueryTask
+public final class QueryTask
         implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(QueryTask.class);
@@ -101,7 +101,7 @@ public class QueryTask
     private void handleAnyLocalRead() {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(raftNode.localEndpointStr() + " Querying: " + operation + " with policy: " + queryPolicy + " in term: "
-                    + state.term());
+                                 + state.term());
         }
 
         raftNode.runQuery(operation, minCommitIndex, future);
@@ -126,7 +126,7 @@ public class QueryTask
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(raftNode.localEndpointStr() + " Adding query at commit index: " + commitIndex + ", query seq no: "
-                    + queryState.querySeqNo());
+                                 + queryState.querySeqNo());
         }
 
         if (queryState.addQuery(commitIndex, operation, future)) {
@@ -147,12 +147,12 @@ public class QueryTask
         RaftNodeStatus status = raftNode.getStatus();
         if (status == INITIAL) {
             LOGGER.debug("{} Won't {} query {}, since Raft node is not started.", raftNode.localEndpointStr(), queryPolicy,
-                    operation);
+                         operation);
             future.fail(new IllegalStateException("Cannot query because Raft node not started"));
             return false;
         } else if (isTerminal(status)) {
             LOGGER.debug("{} Won't {} query {}, since Raft node is {}.", raftNode.localEndpointStr(), queryPolicy, operation,
-                    status);
+                         status);
             future.fail(raftNode.newNotLeaderException());
             return false;
         }

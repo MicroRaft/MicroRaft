@@ -90,14 +90,14 @@ public class PreVoteRequestHandler
         BaseLogEntry lastLogEntry = state.log().lastLogOrSnapshotEntry();
         if (lastLogEntry.getTerm() > request.getLastLogTerm()) {
             LOGGER.info("{} Rejecting {} since our last log term: {} is greater.", localEndpointStr(), request,
-                    lastLogEntry.getTerm());
+                        lastLogEntry.getTerm());
             node.send(responseBuilder.setTerm(nextTerm).setGranted(false).build(), candidate);
             return;
         }
 
         if (lastLogEntry.getTerm() == request.getLastLogTerm() && lastLogEntry.getIndex() > request.getLastLogIndex()) {
             LOGGER.info("{} Rejecting {} since our last log index: {} is greater.", localEndpointStr(), request,
-                    lastLogEntry.getIndex());
+                        lastLogEntry.getIndex());
             node.send(responseBuilder.setTerm(nextTerm).setGranted(false).build(), candidate);
             return;
         }

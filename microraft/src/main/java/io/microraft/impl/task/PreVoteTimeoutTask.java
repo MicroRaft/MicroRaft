@@ -31,7 +31,7 @@ import static io.microraft.RaftRole.FOLLOWER;
  * @author mdogan
  * @author metanet
  */
-public class PreVoteTimeoutTask
+public final class PreVoteTimeoutTask
         extends RaftNodeStatusAwareTask
         implements Runnable {
 

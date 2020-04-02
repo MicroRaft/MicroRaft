@@ -33,7 +33,7 @@ import static java.util.Collections.unmodifiableSet;
  * @author mdogan
  * @author metanet
  **/
-public class RaftGroupMembersState
+public final class RaftGroupMembersState
         implements RaftGroupMembers {
 
     private long index;

@@ -31,7 +31,7 @@ import java.util.Map;
  * @author metanet
  * @see FollowerState
  */
-public class LeaderState {
+public final class LeaderState {
 
     /**
      * A {@link FollowerState} object will be maintained for each follower.
@@ -151,7 +151,8 @@ public class LeaderState {
     public long majorityAppendEntriesResponseTimestamp(int majority) {
         long[] timestamps = new long[followerStates.size() + 1];
         int i = 0;
-        timestamps[i] = Long.MAX_VALUE; // for the local RaftNode
+        // for the local RaftNode
+        timestamps[i] = Long.MAX_VALUE;
         for (FollowerState followerState : followerStates.values()) {
             timestamps[++i] = followerState.responseTimestamp();
         }

@@ -26,7 +26,7 @@ import java.util.Set;
  * @author mdogan
  * @author metanet
  */
-public class CandidateState {
+public final class CandidateState {
 
     private final int majority;
     private final Set<Object> voters = new HashSet<>();

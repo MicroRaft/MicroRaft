@@ -93,6 +93,11 @@ public class LocalRaftGroup {
             members[createdNodeCount] = runtime.getLocalMember();
         }
 
+        createNodes(size, config, raftStoreFactory, raftStateLoaderFactory);
+    }
+
+    private void createNodes(int size, RaftConfig config, BiFunction<RaftEndpoint, RaftConfig, RaftStore> raftStoreFactory,
+                             BiFunction<RaftEndpoint, RaftConfig, Supplier<RestoredRaftState>> raftStateLoaderFactory) {
         nodes = new RaftNodeImpl[size];
         for (int i = 0; i < size; i++) {
             LocalRaftNodeRuntime runtime = runtimes[i];
@@ -113,7 +118,6 @@ public class LocalRaftGroup {
                                                           .setInitialGroupMembers(asList(members)).setConfig(config)
                                                           .setRuntime(runtime).setStateMachine(runtime).build();
                 }
-
             } else {
                 RaftStore raftStore = raftStoreFactory.apply(members[i], config);
                 if (raftStateLoaderFactory != null) {
@@ -121,17 +125,14 @@ public class LocalRaftGroup {
                         Supplier<RestoredRaftState> loader = raftStateLoaderFactory.apply(members[i], config);
                         RestoredRaftState state = loader.get();
                         assertNotNull(state);
-                        nodes[i] = (RaftNodeImpl) newBuilder().setGroupId("default").setRestoredState(state).setConfig(config)
-                                                              .setRuntime(runtime).setStateMachine(runtime).setStore(raftStore)
+                        nodes[i] = (RaftNodeImpl) newBuilder().setGroupId("default").setRestoredState(state).setConfig(config).setRuntime(runtime).setStateMachine(runtime).setStore(raftStore)
                                                               .build();
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 } else {
-                    nodes[i] = (RaftNodeImpl) newBuilder().setGroupId("default").setLocalEndpoint(members[i])
-                                                          .setInitialGroupMembers(asList(members)).setConfig(config)
-                                                          .setRuntime(runtime).setStateMachine(runtime).setStore(raftStore)
-                                                          .build();
+                    nodes[i] = (RaftNodeImpl) newBuilder().setGroupId("default").setLocalEndpoint(members[i]).setInitialGroupMembers(asList(members)).setConfig(config)
+                                                          .setRuntime(runtime).setStateMachine(runtime).setStore(raftStore).build();
                 }
             }
         }
@@ -537,7 +538,7 @@ public class LocalRaftGroup {
         for (RaftEndpoint endpoint : members) {
             if (!runtime.isReachable(endpoint)) {
                 throw new IllegalStateException("Cannot allow " + messageType + " from " + from + " -> " + endpoint
-                        + ", since all messages are dropped between.");
+                                                        + ", since all messages are dropped between.");
             }
         }
         runtime.allowMessagesToAll(messageType);

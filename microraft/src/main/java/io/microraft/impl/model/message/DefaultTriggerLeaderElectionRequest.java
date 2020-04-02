@@ -27,7 +27,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public class DefaultTriggerLeaderElectionRequest
+public final class DefaultTriggerLeaderElectionRequest
         implements TriggerLeaderElectionRequest {
 
     private Object groupId;
@@ -71,7 +71,7 @@ public class DefaultTriggerLeaderElectionRequest
                 + lastLogTerm + ", lastLogIndex=" + lastLogIndex + '}';
     }
 
-    public static class DefaultTriggerLeaderElectionRequestBuilder
+    public static final class DefaultTriggerLeaderElectionRequestBuilder
             implements TriggerLeaderElectionRequestBuilder {
 
         private DefaultTriggerLeaderElectionRequest request = new DefaultTriggerLeaderElectionRequest();

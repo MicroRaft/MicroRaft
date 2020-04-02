@@ -17,7 +17,6 @@
 package io.microraft.model.log;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * Represents an entry in the Raft log.
@@ -39,7 +38,7 @@ public interface LogEntry
         LogEntryBuilder setTerm(int term);
 
         @Nonnull
-        LogEntryBuilder setOperation(@Nullable Object operation);
+        LogEntryBuilder setOperation(@Nonnull Object operation);
 
         @Nonnull
         LogEntry build();

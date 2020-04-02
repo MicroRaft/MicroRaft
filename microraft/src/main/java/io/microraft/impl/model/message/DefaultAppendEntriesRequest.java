@@ -29,7 +29,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public class DefaultAppendEntriesRequest
+public final class DefaultAppendEntriesRequest
         implements AppendEntriesRequest {
 
     private Object groupId;
@@ -99,7 +99,7 @@ public class DefaultAppendEntriesRequest
                 + logEntries + ", querySeqNo=" + querySeqNo + ", flowControlSeqNo=" + flowControlSeqNo + '}';
     }
 
-    public static class DefaultAppendEntriesRequestBuilder
+    public static final class DefaultAppendEntriesRequestBuilder
             implements AppendEntriesRequestBuilder {
 
         private DefaultAppendEntriesRequest request = new DefaultAppendEntriesRequest();

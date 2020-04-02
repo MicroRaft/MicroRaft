@@ -69,7 +69,8 @@ public class AppendEntriesRequestHandler
     }
 
     @Override
-    @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity", "checkstyle:methodlength", "checkstyle:nestedifdepth"})
+    @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity", "checkstyle:methodlength",
+                       "checkstyle:nestedifdepth"})
     // Justification: It is easier to follow the AppendEntriesRPC logic in a single method
     protected void handle(@Nonnull AppendEntriesRequest request) {
         requireNonNull(request);
@@ -93,7 +94,7 @@ public class AppendEntriesRequestHandler
         if (request.getTerm() > state.term() || state.role() != FOLLOWER) {
             // If the request term is greater than the local term, update the local term and convert to follower (§5.1)
             LOGGER.info("{} Demoting to FOLLOWER from current role: {}, term: {} to new term: {} and leader: {}",
-                    localEndpointStr(), state.role(), state.term(), request.getTerm(), leader.getId());
+                        localEndpointStr(), state.role(), state.term(), request.getTerm(), leader.getId());
             node.toFollower(request.getTerm());
         }
 
@@ -156,7 +157,7 @@ public class AppendEntriesRequestHandler
                 if (prevEntry == null) {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.warn(localEndpointStr() + " Failed to get previous log index for " + request + ", last"
-                                + " log index: " + lastLogIndex);
+                                            + " log index: " + lastLogIndex);
                     }
 
                     return false;
@@ -195,8 +196,8 @@ public class AppendEntriesRequestHandler
 
                 LogEntry localEntry = log.getLogEntry(requestEntry.getIndex());
 
-                assert localEntry != null :
-                        localEndpointStr() + " Entry not found on log index: " + requestEntry.getIndex() + " for " + request;
+                assert localEntry != null : localEndpointStr() + " Entry not found on log index: " + requestEntry.getIndex()
+                        + " for " + request;
 
                 // If an existing entry conflicts with a new one (same index but different terms),
                 // delete the existing entry and all that follow it (§5.3)
@@ -208,7 +209,7 @@ public class AppendEntriesRequestHandler
                                         + requestEntry.getIndex() + " => " + truncatedEntries);
                     } else {
                         LOGGER.warn("{} Truncated {} entries from entry index: {}", localEndpointStr(), truncatedEntries.size(),
-                                requestEntry.getIndex());
+                                    requestEntry.getIndex());
                     }
 
                     node.invalidateFuturesFrom(requestEntry.getIndex());

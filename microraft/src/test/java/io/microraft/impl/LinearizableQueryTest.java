@@ -376,7 +376,7 @@ public class LinearizableQueryTest
         CompletableFuture<Ordered<Object>> f = leader.query(query(), LINEARIZABLE, 0);
 
         group.allowMessagesToMember(newFollower.getLocalEndpoint(), leader.getLocalEndpoint(),
-                AppendEntriesFailureResponse.class);
+                                    AppendEntriesFailureResponse.class);
         group.allowMessagesToMember(leader.getLocalEndpoint(), newFollower.getLocalEndpoint(), AppendEntriesRequest.class);
 
         f.join();

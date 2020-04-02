@@ -116,7 +116,7 @@ public class AppendEntriesSuccessResponseHandler
             return true;
         } else if (followerLastLogIndex < matchIndex && LOGGER.isDebugEnabled()) {
             LOGGER.debug(localEndpointStr() + " Will not update match index for follower: " + follower.getId()
-                    + ". follower last log index: " + followerLastLogIndex + ", match index: " + matchIndex);
+                                 + ". follower last log index: " + followerLastLogIndex + ", match index: " + matchIndex);
         }
 
         return false;

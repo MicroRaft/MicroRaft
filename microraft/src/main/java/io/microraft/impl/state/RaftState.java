@@ -44,7 +44,7 @@ import static java.util.Objects.requireNonNull;
  * @author metanet
  */
 @SuppressWarnings({"checkstyle:methodcount"})
-public class RaftState {
+public final class RaftState {
 
     /**
      * Unique ID of the Raft group that this Raft node belongs to
@@ -171,7 +171,7 @@ public class RaftState {
         SnapshotEntry snapshot = restoredState.getSnapshotEntry();
         if (isNonInitial(snapshot)) {
             RaftGroupMembersState groupMembers = new RaftGroupMembersState(snapshot.getGroupMembersLogIndex(),
-                    snapshot.getGroupMembers(), this.localEndpoint);
+                                                                           snapshot.getGroupMembers(), this.localEndpoint);
             this.committedGroupMembers = groupMembers;
             this.effectiveGroupMembers = groupMembers;
             this.commitIndex = snapshot.getIndex();
@@ -491,12 +491,11 @@ public class RaftState {
      *         latest applied members
      */
     public void updateGroupMembers(long logIndex, Collection<RaftEndpoint> members) {
-        assert committedGroupMembers == effectiveGroupMembers :
-                "Cannot update group members to: " + members + " at log index: " + logIndex + " because last group " + "members: "
-                        + effectiveGroupMembers + " is different than committed group members: " + committedGroupMembers;
-        assert effectiveGroupMembers.getLogIndex() < logIndex :
-                "Cannot update group members to: " + members + " at log index: " + logIndex + " because last group " + "members: "
-                        + effectiveGroupMembers + " has a bigger log index.";
+        assert committedGroupMembers == effectiveGroupMembers : "Cannot update group members to: " + members + " at log index: "
+                + logIndex + " because last group " + "members: " + effectiveGroupMembers
+                + " is different than committed group members: " + committedGroupMembers;
+        assert effectiveGroupMembers.getLogIndex() < logIndex : "Cannot update group members to: " + members + " at log index: "
+                + logIndex + " because last group " + "members: " + effectiveGroupMembers + " has a bigger log index.";
 
         RaftGroupMembersState newGroupMembers = new RaftGroupMembersState(logIndex, members, localEndpoint);
         committedGroupMembers = effectiveGroupMembers;
@@ -517,9 +516,8 @@ public class RaftState {
      * and {@link #effectiveGroupMembers} are the same.
      */
     public void commitGroupMembers() {
-        assert committedGroupMembers != effectiveGroupMembers :
-                "Cannot commit last group members: " + effectiveGroupMembers + " because it is same with committed " + "group "
-                        + "members";
+        assert committedGroupMembers != effectiveGroupMembers : "Cannot commit last group members: " + effectiveGroupMembers
+                + " because it is same with committed " + "group " + "members";
 
         committedGroupMembers = effectiveGroupMembers;
     }
@@ -542,9 +540,8 @@ public class RaftState {
      * member list.
      */
     public boolean restoreGroupMembers(long logIndex, Collection<RaftEndpoint> members) {
-        assert effectiveGroupMembers.getLogIndex() <= logIndex :
-                "Cannot restore group members to: " + members + " at log index: " + logIndex + " because last group "
-                        + "members: " + effectiveGroupMembers + " has a bigger log index.";
+        assert effectiveGroupMembers.getLogIndex() <= logIndex : "Cannot restore group members to: " + members + " at log index: "
+                + logIndex + " because last group " + "members: " + effectiveGroupMembers + " has a bigger log index.";
 
         // there is no leader state to clean up
 

@@ -283,9 +283,9 @@ public class PersistenceTest
         RaftNodeImpl restartedNode = group.createNewRaftNode(terminatedState, stateStore);
 
         assertEquals(new ArrayList<>(getCommittedGroupMembers(newLeader).getMembers()),
-                new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
+                     new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
         assertEquals(new ArrayList<>(getEffectiveGroupMembers(newLeader).getMembers()),
-                new ArrayList<>(getEffectiveGroupMembers(restartedNode).getMembers()));
+                     new ArrayList<>(getEffectiveGroupMembers(restartedNode).getMembers()));
 
         eventually(() -> {
             assertEquals(newLeader.getLocalEndpoint(), restartedNode.getLeaderEndpoint());
@@ -378,9 +378,9 @@ public class PersistenceTest
         RaftNodeImpl restartedNode = group.createNewRaftNode(terminatedState, stateStore);
 
         assertEquals(new ArrayList<>(getCommittedGroupMembers(leader).getMembers()),
-                new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
+                     new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
         assertEquals(new ArrayList<>(getEffectiveGroupMembers(leader).getMembers()),
-                new ArrayList<>(getEffectiveGroupMembers(restartedNode).getMembers()));
+                     new ArrayList<>(getEffectiveGroupMembers(restartedNode).getMembers()));
 
         eventually(() -> {
             assertEquals(leader.getLocalEndpoint(), restartedNode.getLeaderEndpoint());
@@ -424,9 +424,9 @@ public class PersistenceTest
         RaftNodeImpl restartedNode = group.createNewRaftNode(terminatedState, stateStore);
 
         assertEquals(new ArrayList<>(getCommittedGroupMembers(newLeader).getMembers()),
-                new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
+                     new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
         assertEquals(new ArrayList<>(getEffectiveGroupMembers(newLeader).getMembers()),
-                new ArrayList<>(getEffectiveGroupMembers(restartedNode).getMembers()));
+                     new ArrayList<>(getEffectiveGroupMembers(restartedNode).getMembers()));
 
         eventually(() -> {
             assertEquals(newLeader.getLocalEndpoint(), restartedNode.getLeaderEndpoint());
@@ -475,9 +475,9 @@ public class PersistenceTest
         RaftNodeImpl restartedNode = group.createNewRaftNode(terminatedState, stateStore);
 
         assertEquals(new ArrayList<>(getCommittedGroupMembers(leader).getMembers()),
-                new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
+                     new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
         assertEquals(new ArrayList<>(getEffectiveGroupMembers(leader).getMembers()),
-                new ArrayList<>(getEffectiveGroupMembers(restartedNode).getMembers()));
+                     new ArrayList<>(getEffectiveGroupMembers(restartedNode).getMembers()));
 
         eventually(() -> {
             assertEquals(leader.getLocalEndpoint(), restartedNode.getLeaderEndpoint());
@@ -571,9 +571,9 @@ public class PersistenceTest
         eventually(() -> {
             assertEquals(getCommitIndex(runningFollower), getCommitIndex(restartedNode));
             assertEquals(new ArrayList<>(getCommittedGroupMembers(runningFollower).getMembers()),
-                    new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
+                         new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
             assertEquals(new ArrayList<>(getEffectiveGroupMembers(runningFollower).getMembers()),
-                    new ArrayList<>(getEffectiveGroupMembers(restartedNode).getMembers()));
+                         new ArrayList<>(getEffectiveGroupMembers(restartedNode).getMembers()));
         });
     }
 
@@ -604,9 +604,9 @@ public class PersistenceTest
             assertEquals(getCommitIndex(leader), getCommitIndex(restartedNode));
             assertEquals(getLastApplied(leader), getLastApplied(restartedNode));
             assertEquals(new ArrayList<>(getCommittedGroupMembers(leader).getMembers()),
-                    new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
+                         new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
             assertEquals(new ArrayList<>(getEffectiveGroupMembers(leader).getMembers()),
-                    new ArrayList<>(getEffectiveGroupMembers(restartedNode).getMembers()));
+                         new ArrayList<>(getEffectiveGroupMembers(restartedNode).getMembers()));
         });
     }
 
@@ -648,9 +648,9 @@ public class PersistenceTest
         eventually(() -> {
             assertEquals(getCommitIndex(runningFollower), getCommitIndex(restartedNode));
             assertEquals(new ArrayList<>(getCommittedGroupMembers(runningFollower).getMembers()),
-                    new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
+                         new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
             assertEquals(new ArrayList<>(getEffectiveGroupMembers(runningFollower).getMembers()),
-                    new ArrayList<>(getEffectiveGroupMembers(restartedNode).getMembers()));
+                         new ArrayList<>(getEffectiveGroupMembers(restartedNode).getMembers()));
         });
     }
 
@@ -687,9 +687,9 @@ public class PersistenceTest
             assertEquals(getCommitIndex(leader), getCommitIndex(restartedNode));
             assertEquals(getLastApplied(leader), getLastApplied(restartedNode));
             assertEquals(new ArrayList<>(getCommittedGroupMembers(leader).getMembers()),
-                    new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
+                         new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
             assertEquals(new ArrayList<>(getEffectiveGroupMembers(leader).getMembers()),
-                    new ArrayList<>(getEffectiveGroupMembers(restartedNode).getMembers()));
+                         new ArrayList<>(getEffectiveGroupMembers(restartedNode).getMembers()));
         });
     }
 

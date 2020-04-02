@@ -77,7 +77,7 @@ public class InstallSnapshotResponseHandler
                 // If the request term is greater than the local term,
                 // update the local term and convert to follower (§5.1)
                 LOGGER.info("{} Demoting to FOLLOWER from current role: {}, term: {} to new term: {} and sender: {}",
-                        localEndpointStr(), state.role(), state.term(), response.getTerm(), response.getSender().getId());
+                            localEndpointStr(), state.role(), state.term(), response.getTerm(), response.getSender().getId());
 
                 node.toFollower(response.getTerm());
             }

@@ -59,7 +59,7 @@ public class TriggerLeaderElectionHandler
         // with the leader's log.
         if (!(request.getTerm() == state.term() && request.getSender().equals(state.leader()))) {
             LOGGER.debug("{} Ignoring {} since term: {} and leader: {}", localEndpointStr(), request, state.term(),
-                    state.leader() != null ? state.leader().getId() : "-");
+                         state.leader() != null ? state.leader().getId() : "-");
 
             return;
         }
@@ -69,7 +69,7 @@ public class TriggerLeaderElectionHandler
         if (!(entry.getIndex() == request.getLastLogIndex() && entry.getTerm() == request.getLastLogTerm())) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("{} Could not accept leadership transfer because local Raft log is not same with the current "
-                        + "leader. " + "Last log entry: {}, request: {}", localEndpointStr(), entry, request);
+                                     + "leader. " + "Last log entry: {}, request: {}", localEndpointStr(), entry, request);
             }
 
             return;
@@ -77,7 +77,7 @@ public class TriggerLeaderElectionHandler
 
         // I will send a non-sticky VoteRequest to bypass leader stickiness
         LOGGER.info("{} Starting a new leader election since the current leader: {} in term: {} asked for a "
-                + "leadership transfer!", localEndpointStr(), request.getSender().getId(), request.getTerm());
+                            + "leadership transfer!", localEndpointStr(), request.getSender().getId(), request.getTerm());
         node.leader(null);
         new LeaderElectionTask(node, false).run();
     }

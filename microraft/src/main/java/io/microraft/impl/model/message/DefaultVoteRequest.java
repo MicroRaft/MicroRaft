@@ -27,7 +27,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public class DefaultVoteRequest
+public final class DefaultVoteRequest
         implements VoteRequest {
 
     private Object groupId;
@@ -77,7 +77,7 @@ public class DefaultVoteRequest
                 + ", lastLogIndex=" + lastLogIndex + ", sticky=" + sticky + '}';
     }
 
-    public static class DefaultVoteRequestBuilder
+    public static final class DefaultVoteRequestBuilder
             implements VoteRequestBuilder {
 
         private DefaultVoteRequest request = new DefaultVoteRequest();

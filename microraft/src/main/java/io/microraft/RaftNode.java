@@ -37,10 +37,8 @@ import io.microraft.report.RaftGroupTerm;
 import io.microraft.report.RaftNodeReport;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -213,13 +211,13 @@ public interface RaftNode {
     /**
      * Replicates, commits, and executes the given operation via this Raft
      * node. The given operation is executed once it is committed in the Raft
-     * group, and the returned {@link Future} object is notified with its
-     * execution result.
+     * group, and the returned future object is notified with its execution
+     * result.
      * <p>
      * Please note that the given operation must be deterministic.
      * <p>
      * The returned future is notified with an {@link Ordered} object that
-     * contains the log index at which the given operation is committed and
+     * contains the log index on which the given operation is committed and
      * executed.
      * <p>
      * The returned future be can notified with {@link NotLeaderException},
@@ -227,8 +225,8 @@ public interface RaftNode {
      *
      * @param operation
      *         the operation to be replicated on the Raft group
-     *
-     * @param <T> type of the result of the operation execution
+     * @param <T>
+     *         type of the result of the operation execution
      *
      * @return the future to be notified with the result of the operation
      *         execution, or the exception if the replication fails
@@ -238,13 +236,13 @@ public interface RaftNode {
      * @see IndeterminateStateException
      */
     @Nonnull
-    <T> CompletableFuture<Ordered<T>> replicate(@Nullable Object operation);
+    <T> CompletableFuture<Ordered<T>> replicate(@Nonnull Object operation);
 
     /**
      * Executes the given query operation based on the given query policy.
      * <p>
      * The returned future is notified with an {@link Ordered} object that
-     * contains the commit index at which the given query is executed.
+     * contains the commit index on which the given query is executed.
      * <p>
      * If the caller is providing a query policy which is weaker than
      * {@link QueryPolicy#LINEARIZABLE}, it can also provide a minimum commit
@@ -270,8 +268,8 @@ public interface RaftNode {
      * @param minCommitIndex
      *         the minimum commit index that this Raft node has to have
      *         in order to execute the given query.
-     *
-     * @param <T> type of the result of the query execution
+     * @param <T>
+     *         type of the result of the query execution
      *
      * @return the future to be notified with the result of the query
      *         execution, or the exception if the query cannot be executed
@@ -282,7 +280,7 @@ public interface RaftNode {
      * @see LaggingCommitIndexException
      */
     @Nonnull
-    <T> CompletableFuture<Ordered<T>> query(@Nullable Object operation, @Nonnull QueryPolicy queryPolicy, long minCommitIndex);
+    <T> CompletableFuture<Ordered<T>> query(@Nonnull Object operation, @Nonnull QueryPolicy queryPolicy, long minCommitIndex);
 
     /**
      * Replicates and commits the given membership change to the Raft group,
@@ -339,7 +337,7 @@ public interface RaftNode {
      * is very unlikely that another endpoint will become the new leader.
      * <p>
      * The returned future is notified with an {@link Ordered} object that
-     * contains the commit index at which this Raft node turns into a follower.
+     * contains the commit index on which this Raft node turns into a follower.
      * <p>
      * This Raft node does not replicate any new operation until the leadership
      * transfer process is completed and new {@link #replicate(Object)} calls
@@ -425,7 +423,8 @@ public interface RaftNode {
          * group is bootstrapping for the first time or a new Raft node is
          * being added to a running Raft group.
          *
-         * @param localEndpoint the Raft endpoint to create the Raft node with
+         * @param localEndpoint
+         *         the Raft endpoint to create the Raft node with
          *
          * @return the builder object for fluent calls
          */
@@ -447,8 +446,9 @@ public interface RaftNode {
          * is bootstrapping for the first time or a new Raft node is being
          * added to a running Raft group.
          *
-         * @param initialGroupMembers the initial group members of the Raft
-         *                            group which the Raft node belongs to
+         * @param initialGroupMembers
+         *         the initial group members of the Raft
+         *         group which the Raft node belongs to
          *
          * @return the builder object for fluent calls
          */
@@ -469,8 +469,9 @@ public interface RaftNode {
          * {@link #setInitialGroupMembers(Collection)} must not be called when
          * a {@link RestoredRaftState} object is provided via this method.
          *
-         * @param restoredState the restored Raft state which will be used while
-         *                      creating the Raft node
+         * @param restoredState
+         *         the restored Raft state which will be used while
+         *         creating the Raft node
          *
          * @return the builder object for fluent calls
          *
@@ -532,8 +533,9 @@ public interface RaftNode {
          * If not set, {@link NopRaftStore} is used which keeps the internal
          * Raft state in memory and disables crash-recover scenarios.
          *
-         * @param store the Raft state object to be used by the Raft node for
-         *              persisting internal Raft state
+         * @param store
+         *         the Raft state object to be used by the Raft node for
+         *         persisting internal Raft state
          *
          * @return the builder object for fluent calls
          *
@@ -548,8 +550,9 @@ public interface RaftNode {
          * <p>
          * If not set, {@link DefaultRaftModelFactory} is used.
          *
-         * @param modelFactory the factory object to be used by the Raft node
-         *                     for creating Raft model objects
+         * @param modelFactory
+         *         the factory object to be used by the Raft node
+         *         for creating Raft model objects
          *
          * @return the builder object for fluent calls
          *

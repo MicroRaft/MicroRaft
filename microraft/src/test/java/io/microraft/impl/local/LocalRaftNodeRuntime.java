@@ -54,7 +54,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author mdogan
  * @author metanet
  */
-public class LocalRaftNodeRuntime
+public final class LocalRaftNodeRuntime
         implements RaftNodeRuntime, StateMachine {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LocalRaftNodeRuntime.class);
@@ -246,7 +246,7 @@ public class LocalRaftNodeRuntime
     public void onRaftGroupTerminated() {
     }
 
-    private static class EndpointDropRule {
+    private static final class EndpointDropRule {
         final Class<? extends RaftMessage> clazz;
         final RaftEndpoint endpoint;
 

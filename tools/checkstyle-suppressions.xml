@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE suppressions PUBLIC
+        "-//Puppy Crawl//DTD Suppressions 1.1//EN"
+        "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
+
+<suppressions>
+
+    <!-- Suppress strict duplicate code checking -->
+    <suppress checks="StrictDuplicateCode" files="\.java" lines="1-15"/>
+
+    <!-- Exclude implementation classes from JavaDoc checks -->
+    <suppress checks="Javadoc(Package|Method|Type|Variable)" files="io[\\/]microraft[\\/]impl[\\/]"/>
+
+    <suppress checks="FileLength|MethodCount|ClassFanOutComplexity|ClassDataAbstractionCoupling"
+              files="io[\\/]microraft[\\/]impl[\\/]RaftNodeImpl"/>
+
+    <!-- Suppress checks for tests -->
+    <suppress checks="Javadoc|Name|MagicNumber|VisibilityModifier|MethodCount|NPathComplexity" files="[\\/]src[\\/]test[\\/]"/>
+
+    <!-- module-info.java -->
+    <suppress checks="" files="[\\/]module-info"/>
+
+</suppressions>

@@ -18,6 +18,8 @@ package io.microraft.model.log;
 
 import io.microraft.model.RaftModel;
 
+import javax.annotation.Nonnull;
+
 /**
  * Base class for Raft log entries.
  * <p>
@@ -36,6 +38,7 @@ public interface BaseLogEntry
 
     int getTerm();
 
+    @Nonnull
     Object getOperation();
 
 }

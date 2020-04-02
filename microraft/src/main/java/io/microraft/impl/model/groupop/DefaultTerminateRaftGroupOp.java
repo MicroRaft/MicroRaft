@@ -24,7 +24,7 @@ import javax.annotation.Nonnull;
 /**
  * @author metanet
  */
-public class DefaultTerminateRaftGroupOp
+public final class DefaultTerminateRaftGroupOp
         implements TerminateRaftGroupOp {
 
     private DefaultTerminateRaftGroupOp() {
@@ -35,7 +35,7 @@ public class DefaultTerminateRaftGroupOp
         return "TerminateRaftGroupOp{}";
     }
 
-    public static class DefaultTerminateRaftGroupOpBuilder
+    public static final class DefaultTerminateRaftGroupOpBuilder
             implements TerminateRaftGroupOpBuilder {
 
         private boolean built;

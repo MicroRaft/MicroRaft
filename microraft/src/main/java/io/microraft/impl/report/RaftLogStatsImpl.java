@@ -27,7 +27,7 @@ import static java.util.Objects.requireNonNull;
  *
  * @author metanet
  */
-public class RaftLogStatsImpl
+public final class RaftLogStatsImpl
         implements RaftLogStats {
 
     private final long commitIndex;

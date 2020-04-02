@@ -27,7 +27,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public class DefaultInstallSnapshotResponse
+public final class DefaultInstallSnapshotResponse
         implements InstallSnapshotResponse {
 
     private Object groupId;
@@ -81,7 +81,7 @@ public class DefaultInstallSnapshotResponse
                 + ", flowControlSeqNo=" + flowControlSeqNo + '}';
     }
 
-    public static class DefaultInstallSnapshotResponseBuilder
+    public static final class DefaultInstallSnapshotResponseBuilder
             implements InstallSnapshotResponseBuilder {
 
         private DefaultInstallSnapshotResponse response = new DefaultInstallSnapshotResponse();

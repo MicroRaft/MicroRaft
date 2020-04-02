@@ -23,6 +23,7 @@ import org.junit.runner.Description;
 public class BaseTest {
 
     @Rule
+    @SuppressWarnings("checkstyle:anoninnerlength")
     public final TestWatcher testWatcher = new TestWatcher() {
         private long start;
 

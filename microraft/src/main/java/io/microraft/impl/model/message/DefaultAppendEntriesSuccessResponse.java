@@ -27,7 +27,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public class DefaultAppendEntriesSuccessResponse
+public final class DefaultAppendEntriesSuccessResponse
         implements AppendEntriesSuccessResponse {
 
     private Object groupId;
@@ -78,7 +78,7 @@ public class DefaultAppendEntriesSuccessResponse
                 + '}';
     }
 
-    public static class DefaultAppendEntriesSuccessResponseBuilder
+    public static final class DefaultAppendEntriesSuccessResponseBuilder
             implements AppendEntriesSuccessResponseBuilder {
 
         private DefaultAppendEntriesSuccessResponse response = new DefaultAppendEntriesSuccessResponse();

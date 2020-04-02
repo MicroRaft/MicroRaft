@@ -54,7 +54,7 @@ import static java.util.Objects.requireNonNull;
  * @see LogEntry
  * @see SnapshotEntry
  */
-public class RaftLog {
+public final class RaftLog {
 
     /**
      * Array of log entries stored in the Raft log.
@@ -299,9 +299,11 @@ public class RaftLog {
         long lastIndex = lastLogOrSnapshotIndex();
 
         if (!checkAvailableCapacity(1)) {
-            throw new IllegalStateException("Not enough capacity! Capacity: " + log.getCapacity() + ", Size: " + log.size() + ", 1 new entry!");
+            throw new IllegalStateException(
+                    "Not enough capacity! Capacity: " + log.getCapacity() + ", Size: " + log.size() + ", 1 new entry!");
         } else if (entry.getTerm() < lastTerm) {
-            throw new IllegalArgumentException("Cannot append " + entry + " since its term is lower than last log term: " + lastTerm);
+            throw new IllegalArgumentException(
+                    "Cannot append " + entry + " since its term is lower than last log term: " + lastTerm);
         } else if (entry.getIndex() != lastIndex + 1) {
             throw new IllegalArgumentException(
                     "Cannot append " + entry + " since its index is bigger than (lastLogIndex + 1): " + (lastIndex + 1));

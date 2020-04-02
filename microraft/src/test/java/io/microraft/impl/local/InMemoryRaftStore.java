@@ -34,7 +34,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class InMemoryRaftStore
+public final class InMemoryRaftStore
         implements RaftStore {
 
     private RaftEndpoint localEndpoint;

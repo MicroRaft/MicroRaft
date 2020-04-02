@@ -25,7 +25,7 @@ import static java.lang.Math.min;
  * @author mdogan
  * @author metanet
  */
-public class FollowerState {
+public final class FollowerState {
 
     /**
      * index of highest log entry known to be replicated

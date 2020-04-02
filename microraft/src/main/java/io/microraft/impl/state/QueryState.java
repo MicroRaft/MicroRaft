@@ -45,7 +45,7 @@ import java.util.Set;
  * @author mdogan
  * @author metanet
  */
-public class QueryState {
+public final class QueryState {
 
     /**
      * Queries waiting to be executed.

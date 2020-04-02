@@ -272,7 +272,7 @@ public class MembershipChangeTest
         RaftNodeImpl[] followers = group.getNodesExcept(leader.getLocalEndpoint());
 
         group.dropMessagesToMember(followers[0].getLocalEndpoint(), leader.getLocalEndpoint(),
-                AppendEntriesSuccessResponse.class);
+                                   AppendEntriesSuccessResponse.class);
         leader.replicate(apply("val")).get();
 
         leader.changeMembership(leader.getLocalEndpoint(), REMOVE, 0);
@@ -451,9 +451,9 @@ public class MembershipChangeTest
 
         for (RaftNodeImpl follower : followers) {
             group.dropMessagesToMember(follower.getLocalEndpoint(), leader.getLocalEndpoint(),
-                    AppendEntriesSuccessResponse.class);
+                                       AppendEntriesSuccessResponse.class);
             group.dropMessagesToMember(follower.getLocalEndpoint(), leader.getLocalEndpoint(),
-                    AppendEntriesFailureResponse.class);
+                                       AppendEntriesFailureResponse.class);
         }
 
         leader.changeMembership(leader.getLocalEndpoint(), REMOVE, 0);
@@ -506,9 +506,9 @@ public class MembershipChangeTest
         for (RaftNodeImpl follower : followers) {
             if (follower != slowFollower) {
                 group.dropMessagesToMember(follower.getLocalEndpoint(), follower.getLeaderEndpoint(),
-                        AppendEntriesSuccessResponse.class);
+                                           AppendEntriesSuccessResponse.class);
                 group.dropMessagesToMember(follower.getLocalEndpoint(), follower.getLeaderEndpoint(),
-                        AppendEntriesFailureResponse.class);
+                                           AppendEntriesFailureResponse.class);
             }
         }
 

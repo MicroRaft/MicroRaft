@@ -48,8 +48,8 @@ public class SimpleStateMachine {
     }
 
     private Object apply(long commitIndex, Object value) {
-        assert !values.containsKey(commitIndex) :
-                "Cannot apply " + value + "since commitIndex: " + commitIndex + " already contains: " + values.get(commitIndex);
+        assert !values.containsKey(commitIndex) : "Cannot apply " + value + "since commitIndex: " + commitIndex
+                + " already contains: " + values.get(commitIndex);
 
         values.put(commitIndex, value);
         return value;

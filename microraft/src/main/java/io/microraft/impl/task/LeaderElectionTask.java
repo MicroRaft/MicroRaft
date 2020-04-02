@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  * @author mdogan
  * @author metanet
  */
-public class LeaderElectionTask
+public final class LeaderElectionTask
         extends RaftNodeStatusAwareTask
         implements Runnable {
 

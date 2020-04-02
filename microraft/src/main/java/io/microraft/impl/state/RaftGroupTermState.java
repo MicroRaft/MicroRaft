@@ -26,7 +26,7 @@ import static java.util.Objects.requireNonNull;
  *
  * @author metanet
  */
-public class RaftGroupTermState
+public final class RaftGroupTermState
         implements RaftGroupTerm {
 
     public static final RaftGroupTermState INITIAL = new RaftGroupTermState(0, null, null);
@@ -85,16 +85,15 @@ public class RaftGroupTermState
     public RaftGroupTermState grantVote(int term, RaftEndpoint votedEndpoint) {
         requireNonNull(votedEndpoint);
         assert this.term == term : "current term: " + this.term + " voted term: " + term + " voted for: " + votedEndpoint;
-        assert this.votedEndpoint == null :
-                "current term: " + this.term + " already voted for: " + this.votedEndpoint + " new vote to: " + votedEndpoint;
+        assert this.votedEndpoint == null : "current term: " + this.term + " already voted for: " + this.votedEndpoint
+                + " new vote to: " + votedEndpoint;
 
         return new RaftGroupTermState(this.term, this.leaderEndpoint, votedEndpoint);
     }
 
     public RaftGroupTermState withLeader(RaftEndpoint leaderEndpoint) {
-        assert this.leaderEndpoint == null || leaderEndpoint == null :
-                "current term: " + this.term + " current " + "leader: " + this.leaderEndpoint + " new " + "leader: "
-                        + leaderEndpoint;
+        assert this.leaderEndpoint == null || leaderEndpoint == null : "current term: " + this.term + " current " + "leader: "
+                + this.leaderEndpoint + " new " + "leader: " + leaderEndpoint;
 
         return new RaftGroupTermState(this.term, leaderEndpoint, this.votedEndpoint);
     }

@@ -28,7 +28,7 @@ import static java.util.Objects.requireNonNull;
  * @author mdogan
  * @author metanet
  */
-public class LocalRaftEndpoint
+public final class LocalRaftEndpoint
         implements RaftEndpoint {
 
     private static final AtomicInteger COUNTER = new AtomicInteger();

@@ -96,10 +96,10 @@ public class VoteRequestHandler
             // If the request term is greater than the local term, update the local term and convert to follower (§5.1)
             if (state.role() != FOLLOWER) {
                 LOGGER.info("{} Demoting to FOLLOWER after {} since current term: {} is smaller.", localEndpointStr(), request,
-                        state.term());
+                            state.term());
             } else {
                 LOGGER.info("{} Moving to new term: {} from current term: {} after {}", localEndpointStr(), candidateTerm,
-                        state.term(), request);
+                            state.term(), request);
             }
 
             node.toFollower(candidateTerm);
@@ -118,7 +118,7 @@ public class VoteRequestHandler
                 LOGGER.info("{} Vote granted for duplicate {}", localEndpointStr(), request);
             } else {
                 LOGGER.info("{} no vote for {}. currently voted-for: {}", localEndpointStr(), request,
-                        state.votedEndpoint().getId());
+                            state.votedEndpoint().getId());
             }
             node.send(responseBuilder.setTerm(candidateTerm).setGranted(granted).build(), candidate);
             return;
@@ -127,14 +127,14 @@ public class VoteRequestHandler
         BaseLogEntry lastLogEntry = state.log().lastLogOrSnapshotEntry();
         if (lastLogEntry.getTerm() > request.getLastLogTerm()) {
             LOGGER.info("{} Rejecting {} since our last log term: {} is greater.", localEndpointStr(), request,
-                    lastLogEntry.getTerm());
+                        lastLogEntry.getTerm());
             node.send(responseBuilder.setTerm(candidateTerm).setGranted(false).build(), candidate);
             return;
         }
 
         if (lastLogEntry.getTerm() == request.getLastLogTerm() && lastLogEntry.getIndex() > request.getLastLogIndex()) {
             LOGGER.info("{} Rejecting {} since our last log index: {} is greater.", localEndpointStr(), request,
-                    lastLogEntry.getIndex());
+                        lastLogEntry.getIndex());
             node.send(responseBuilder.setTerm(candidateTerm).setGranted(false).build(), candidate);
             return;
         }

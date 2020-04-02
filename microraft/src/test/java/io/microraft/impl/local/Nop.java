@@ -23,7 +23,7 @@ import java.util.function.BiFunction;
  * @author mdogan
  * @author metanet
  */
-public class Nop
+public final class Nop
         implements BiFunction<SimpleStateMachine, Long, Object> {
     @Override
     public Object apply(SimpleStateMachine stateMachine, Long aLong) {
@@ -32,7 +32,7 @@ public class Nop
 
     @Override
     public String toString() {
-        return "NopEntry{}";
+        return "Nop{}";
     }
 
 }

@@ -59,7 +59,7 @@ import static java.util.stream.Collectors.toList;
  * @author metanet
  * @see MembershipChangeMode
  */
-public class MembershipChangeTask
+public final class MembershipChangeTask
         implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MembershipChangeTask.class);
@@ -126,7 +126,7 @@ public class MembershipChangeTask
             }
 
             LOGGER.info("{} New group members after {} {} -> {}", raftNode.localEndpointStr(), membershipChangeMode,
-                    endpoint.getId(), members.stream().map(RaftEndpoint::getId).collect(toList()));
+                        endpoint.getId(), members.stream().map(RaftEndpoint::getId).collect(toList()));
             RaftGroupOp operation = raftNode.getModelFactory().createUpdateRaftGroupMembersOpBuilder().setMembers(members)
                                             .setEndpoint(endpoint).setMode(membershipChangeMode).build();
             new ReplicateTask(raftNode, operation, future).run();
@@ -140,12 +140,12 @@ public class MembershipChangeTask
         RaftNodeStatus status = raftNode.getStatus();
         if (status == INITIAL) {
             LOGGER.error("{} Cannot {} {} with expected members commit index: {} since Raft node is not started.",
-                    raftNode.localEndpointStr(), membershipChangeMode, endpoint.getId(), groupMembersCommitIndex);
+                         raftNode.localEndpointStr(), membershipChangeMode, endpoint.getId(), groupMembersCommitIndex);
             future.fail(new IllegalStateException("Cannot change group membership because Raft node not started"));
             return false;
         } else if (isTerminal(status)) {
             LOGGER.error("{} Cannot {} {} with expected members commit index: {} since Raft node is {}.",
-                    raftNode.localEndpointStr(), membershipChangeMode, endpoint.getId(), groupMembersCommitIndex, status);
+                         raftNode.localEndpointStr(), membershipChangeMode, endpoint.getId(), groupMembersCommitIndex, status);
             future.fail(raftNode.newNotLeaderException());
             return false;
         }
@@ -157,10 +157,10 @@ public class MembershipChangeTask
         RaftGroupMembersState groupMembers = state.committedGroupMembers();
         if (groupMembers.getLogIndex() != groupMembersCommitIndex) {
             LOGGER.error("{} Cannot {} {} because expected members commit index: {} is different than group members commit"
-                            + " index: {}", raftNode.localEndpointStr(), membershipChangeMode, endpoint.getId(), groupMembersCommitIndex,
-                    groupMembers.getLogIndex());
+                                 + " index: {}", raftNode.localEndpointStr(), membershipChangeMode, endpoint.getId(),
+                         groupMembersCommitIndex, groupMembers.getLogIndex());
             Throwable t = new MismatchingRaftGroupMembersCommitIndexException(groupMembers.getLogIndex(),
-                    groupMembers.getMembers());
+                                                                              groupMembers.getMembers());
             future.fail(t);
             return false;
         }

@@ -34,7 +34,7 @@ import java.util.Arrays;
  * @author mdogan
  * @author metanet
  */
-public class ArrayRingbuffer<E> {
+public final class ArrayRingbuffer<E> {
 
     private E[] ringItems;
     private long tailSequence = -1;

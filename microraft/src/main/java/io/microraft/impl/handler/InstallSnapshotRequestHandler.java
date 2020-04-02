@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
 import static io.microraft.RaftRole.FOLLOWER;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Handles an {@link InstallSnapshotRequest} which could be sent by the leader
@@ -85,21 +87,18 @@ public class InstallSnapshotRequestHandler
         super(raftNode, request);
     }
 
+    @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity"})
     @Override
     protected void handle(@Nonnull InstallSnapshotRequest request) {
         requireNonNull(request);
 
         RaftEndpoint sender = request.getSender();
 
-        LOGGER.info("{} received snapshot chunk: {} from {} at snapshot index: {}.", localEndpointStr(),
-                request.getSnapshotChunk() != null ? request.getSnapshotChunk().getSnapshotChunkIndex() : "-", sender.getId(),
-                request.getSnapshotIndex());
-
         // Reply false if term < currentTerm (§5.1)
         if (request.getTerm() < state.term()) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.warn(localEndpointStr() + " received stale " + request + " in current term: " + state.term());
-            }
+            LOGGER.info("{} received stale snapshot chunk: {} from {} at snapshot index: {}.", localEndpointStr(),
+                        request.getSnapshotChunk() != null ? request.getSnapshotChunk().getSnapshotChunkIndex() : "-",
+                        sender.getId(), request.getSnapshotIndex());
 
             if (request.isSenderLeader()) {
                 RaftMessage response = modelFactory.createAppendEntriesFailureResponseBuilder().setGroupId(node.getGroupId())
@@ -111,11 +110,22 @@ public class InstallSnapshotRequestHandler
             return;
         }
 
+        if (request.getSnapshotChunk() == null) {
+            List<Object> endpointIds = request.getSnapshottedMembers().stream().map(RaftEndpoint::getId).collect(toList());
+            LOGGER.info("{} is going to transfer {} snapshot chunks at log index: {} from: {}, initiated by: {}",
+                        localEndpointStr(), request.getTotalSnapshotChunkCount(), request.getSnapshotIndex(), endpointIds,
+                        sender.getId());
+        } else {
+            LOGGER.info("{} received snapshot chunk: {} from {} at snapshot index: {}.", localEndpointStr(),
+                        request.getSnapshotChunk() != null ? request.getSnapshotChunk().getSnapshotChunkIndex() : "-",
+                        sender.getId(), request.getSnapshotIndex());
+        }
+
         // Transform into follower if a newer term is seen or another node wins the election of the current term
         if (request.getTerm() > state.term() || state.role() != FOLLOWER) {
             // If the request term is greater than the local term, update the local term and convert to follower (§5.1)
             LOGGER.info("{} Demoting to FOLLOWER from current role: {}, term: {} to new term: {} and sender: {}",
-                    localEndpointStr(), state.role(), state.term(), request.getTerm(), sender.getId());
+                        localEndpointStr(), state.role(), state.term(), request.getTerm(), sender.getId());
 
             node.toFollower(request.getTerm());
 
@@ -131,10 +141,6 @@ public class InstallSnapshotRequestHandler
             }
 
             node.leaderHeartbeatReceived();
-        }
-
-        if (!checkSnapshotIndex(request)) {
-            return;
         }
 
         SnapshotChunkCollector snapshotChunkCollector = getOrCreateSnapshotChunkCollector(request);
@@ -155,15 +161,15 @@ public class InstallSnapshotRequestHandler
     private boolean checkSnapshotIndex(InstallSnapshotRequest request) {
         if (request.getSnapshotIndex() < state.commitIndex()) {
             LOGGER.debug("{} ignored stale snapshot chunk: {} at log index: {} from: {}. current commit index: {}",
-                    localEndpointStr(),
-                    request.getSnapshotChunk() != null ? request.getSnapshotChunk().getSnapshotChunkIndex() : "-",
-                    request.getSnapshotIndex(), request.getSender().getId(), state.commitIndex());
+                         localEndpointStr(),
+                         request.getSnapshotChunk() != null ? request.getSnapshotChunk().getSnapshotChunkIndex() : "-",
+                         request.getSnapshotIndex(), request.getSender().getId(), state.commitIndex());
             return false;
         } else if (request.getSnapshotIndex() == state.commitIndex()) {
             LOGGER.debug("{} ignored snapshot chunk: {} at log index: {} from: {} since commit index is same.",
-                    localEndpointStr(),
-                    request.getSnapshotChunk() != null ? request.getSnapshotChunk().getSnapshotChunkIndex() : "-",
-                    request.getSnapshotIndex(), request.getSender().getId());
+                         localEndpointStr(),
+                         request.getSnapshotChunk() != null ? request.getSnapshotChunk().getSnapshotChunkIndex() : "-",
+                         request.getSnapshotIndex(), request.getSender().getId());
             if (request.isSenderLeader()) {
                 sendAppendEntriesSuccessResponse(request);
             }
@@ -183,6 +189,10 @@ public class InstallSnapshotRequestHandler
     }
 
     private SnapshotChunkCollector getOrCreateSnapshotChunkCollector(InstallSnapshotRequest request) {
+        if (!checkSnapshotIndex(request)) {
+            return null;
+        }
+
         SnapshotChunkCollector snapshotChunkCollector = state.snapshotChunkCollector();
         if (snapshotChunkCollector == null) {
             snapshotChunkCollector = new SnapshotChunkCollector(request);
@@ -191,9 +201,9 @@ public class InstallSnapshotRequestHandler
             return snapshotChunkCollector;
         } else if (snapshotChunkCollector.getSnapshotIndex() > request.getSnapshotIndex()) {
             LOGGER.warn("{} current snapshot chunks at log index: {} are more recent than received snapshot "
-                            + "chunks at log index: {} from sender: {} (is leader: {})", localEndpointStr(),
-                    snapshotChunkCollector.getSnapshotIndex(), request.getSnapshotIndex(), request.getSender().getId(),
-                    request.isSenderLeader());
+                                + "chunks at log index: {} from sender: {} (is leader: {})", localEndpointStr(),
+                        snapshotChunkCollector.getSnapshotIndex(), request.getSnapshotIndex(), request.getSender().getId(),
+                        request.isSenderLeader());
 
             return null;
         } else if (snapshotChunkCollector.getSnapshotIndex() < request.getSnapshotIndex()) {
@@ -201,7 +211,7 @@ public class InstallSnapshotRequestHandler
                 try {
                     state.store().truncateSnapshotChunksUntil(snapshotChunkCollector.getSnapshotIndex());
                     LOGGER.warn("{} truncated {} snapshot chunks at log index: {}", localEndpointStr(),
-                            snapshotChunkCollector.getChunks().size(), snapshotChunkCollector.getSnapshotIndex());
+                                snapshotChunkCollector.getChunks().size(), snapshotChunkCollector.getSnapshotIndex());
                 } catch (IOException e) {
                     throw new RaftException(
                             "Could not truncate snapshot chunks at log index: " + snapshotChunkCollector.getSnapshotIndex(),
@@ -232,7 +242,7 @@ public class InstallSnapshotRequestHandler
                     state.store().persistSnapshotChunk(snapshotChunk);
                     // we will flush() after all snapshot chunks are persisted.
                     LOGGER.debug(localEndpointStr() + " added new snapshot chunk: " + snapshotChunk.getSnapshotChunkIndex()
-                            + " at snapshot index: " + request.getSnapshotIndex());
+                                         + " at snapshot index: " + request.getSnapshotIndex());
                 } catch (IOException e) {
                     throw new RaftException(
                             "Could not persist snapshot chunk: " + snapshotChunk.getSnapshotChunkIndex() + " at snapshot index: "
@@ -266,7 +276,7 @@ public class InstallSnapshotRequestHandler
 
             if (node.getConfig().isTransferSnapshotsFromFollowersEnabled()) {
                 node.schedule(() -> handleUnresponsiveEndpoint(state.term(), target, request.getSnapshotIndex(), e.getValue()),
-                        SECONDS.toMillis(node.getConfig().getLeaderHeartbeatPeriodSecs()));
+                              SECONDS.toMillis(node.getConfig().getLeaderHeartbeatPeriodSecs()));
             }
         }
     }
@@ -292,7 +302,7 @@ public class InstallSnapshotRequestHandler
         }
 
         LOGGER.warn("{} marked {} as unresponsive after requesting snapshot chunk: {} at snapshot index: {}", localEndpointStr(),
-                endpoint.getId(), snapshotChunkIndex, snapshotIndex);
+                    endpoint.getId(), snapshotChunkIndex, snapshotIndex);
 
         Map<RaftEndpoint, Integer> requestedSnapshotChunkIndices = snapshotChunkCollector.requestSnapshotChunks(true);
         if (requestedSnapshotChunkIndices.isEmpty()) {
@@ -310,7 +320,7 @@ public class InstallSnapshotRequestHandler
 
             node.send(response, target);
             node.schedule(() -> handleUnresponsiveEndpoint(term, target, snapshotIndex, e.getValue()),
-                    SECONDS.toMillis(node.getConfig().getLeaderHeartbeatPeriodSecs()));
+                          SECONDS.toMillis(node.getConfig().getLeaderHeartbeatPeriodSecs()));
         }
     }
 

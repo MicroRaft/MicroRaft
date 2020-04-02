@@ -26,9 +26,7 @@ import io.microraft.impl.util.OrderedFuture;
  * @author mdogan
  * @author metanet
  */
-public class LeadershipTransferState {
-
-    private static final int RETRY_LIMIT = 5;
+public final class LeadershipTransferState {
 
     private int term;
     private RaftEndpoint endpoint;

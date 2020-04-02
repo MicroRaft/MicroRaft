@@ -27,7 +27,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public class DefaultAppendEntriesFailureResponse
+public final class DefaultAppendEntriesFailureResponse
         implements AppendEntriesFailureResponse {
 
     private Object groupId;
@@ -78,7 +78,7 @@ public class DefaultAppendEntriesFailureResponse
                 + flowControlSeqNo + '}';
     }
 
-    public static class DefaultAppendEntriesFailureResponseBuilder
+    public static final class DefaultAppendEntriesFailureResponseBuilder
             implements AppendEntriesFailureResponseBuilder {
 
         private DefaultAppendEntriesFailureResponse response = new DefaultAppendEntriesFailureResponse();

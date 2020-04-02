@@ -29,7 +29,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public class DefaultUpdateRaftGroupMembersOp
+public final class DefaultUpdateRaftGroupMembersOp
         implements UpdateRaftGroupMembersOp {
 
     private Collection<RaftEndpoint> members;
@@ -62,7 +62,7 @@ public class DefaultUpdateRaftGroupMembersOp
         return "UpdateRaftGroupMembersOp{" + "members=" + members + ", endpoint=" + endpoint + ", mode=" + mode + '}';
     }
 
-    public static class DefaultUpdateRaftGroupMembersOpBuilder
+    public static final class DefaultUpdateRaftGroupMembersOpBuilder
             implements UpdateRaftGroupMembersOpBuilder {
 
         private DefaultUpdateRaftGroupMembersOp op = new DefaultUpdateRaftGroupMembersOp();

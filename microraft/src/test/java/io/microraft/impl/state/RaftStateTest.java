@@ -47,7 +47,7 @@ public class RaftStateTest {
     @Before
     public void setup() {
         members = new HashSet<>(asList(localMember, localMember, LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint(),
-                LocalRaftEndpoint.newEndpoint()));
+                                       LocalRaftEndpoint.newEndpoint()));
         state = RaftState.create("default", localMember, members, 100);
     }
 

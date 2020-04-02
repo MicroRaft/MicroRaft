@@ -42,6 +42,6 @@ public abstract class AbstractMessageHandler<T extends RaftMessage>
         handle(message);
     }
 
-    abstract protected void handle(@Nonnull T message);
+    protected abstract void handle(@Nonnull T message);
 
 }

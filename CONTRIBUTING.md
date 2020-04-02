@@ -8,7 +8,8 @@ can find in the MicroRaft repository.
 
 ## How to Report an Issue
 
-If you want to report an issue or a bug, please provide details and steps to 
+If you want to report an issue or a bug, please provide details, such as Java
+version, JVM parameters, logs or stack traces, operation system, and steps to 
 reproduce your issue. I would be grateful If you could include a unit or an 
 integration test as a reproducer.
 
@@ -35,5 +36,12 @@ provide a code change:
 2. Create a branch for your code change, 
 3. Push to your branch on your fork,
 4. Create a pull request to the MicroRaft repository.
+
+MicroRaft contains `checkstyle` and `spotbugs` tools for static code analysis.
+Please run the following commands locally before issuing your pull request.
+
+`mvn clean validate -P checkstyle`
+
+`mvn clean compile -P spotbugs`
 
 Thanks for your help and effort!

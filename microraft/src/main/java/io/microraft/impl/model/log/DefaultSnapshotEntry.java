@@ -30,7 +30,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public class DefaultSnapshotEntry
+public final class DefaultSnapshotEntry
         extends AbstractLogEntry
         implements SnapshotEntry {
 
@@ -62,7 +62,7 @@ public class DefaultSnapshotEntry
                 + ", groupMembersLogIndex=" + groupMembersLogIndex + ", groupMembers=" + groupMembers + '}';
     }
 
-    public static class DefaultSnapshotEntryBuilder
+    public static final class DefaultSnapshotEntryBuilder
             implements SnapshotEntryBuilder {
 
         private DefaultSnapshotEntry entry = new DefaultSnapshotEntry();

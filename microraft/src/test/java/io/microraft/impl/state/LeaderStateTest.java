@@ -46,7 +46,7 @@ public class LeaderStateTest {
         lastLogIndex = 123;
         remoteEndpoints = new HashSet<>(
                 asList(LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint(),
-                        LocalRaftEndpoint.newEndpoint()));
+                       LocalRaftEndpoint.newEndpoint()));
         state = new LeaderState(remoteEndpoints, lastLogIndex);
     }
 

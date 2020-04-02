@@ -30,7 +30,7 @@ import static io.microraft.RaftRole.CANDIDATE;
  * @author mdogan
  * @author metanet
  */
-public class LeaderElectionTimeoutTask
+public final class LeaderElectionTimeoutTask
         extends RaftNodeStatusAwareTask
         implements Runnable {
 

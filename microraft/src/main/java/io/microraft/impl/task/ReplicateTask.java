@@ -55,7 +55,7 @@ import static io.microraft.RaftRole.LEADER;
  * @author mdogan
  * @author metanet
  */
-public class ReplicateTask
+public final class ReplicateTask
         implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ReplicateTask.class);

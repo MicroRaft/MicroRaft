@@ -30,7 +30,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public class DefaultInstallSnapshotRequest
+public final class DefaultInstallSnapshotRequest
         implements InstallSnapshotRequest {
 
     private Object groupId;
@@ -128,7 +128,7 @@ public class DefaultInstallSnapshotRequest
                 + querySeqNo + ", flowControlSeqNo=" + flowControlSeqNo + '}';
     }
 
-    public static class DefaultInstallSnapshotRequestBuilder
+    public static final class DefaultInstallSnapshotRequestBuilder
             implements InstallSnapshotRequestBuilder {
 
         private DefaultInstallSnapshotRequest request = new DefaultInstallSnapshotRequest();

@@ -194,12 +194,12 @@ public class SnapshotTest
     }
 
     @Test(timeout = 300_000)
-    public void when_leaderKnowsOtherFollowerInstalledSnapshot_then_slowFollowerInstallsSnapshotFromLeaderOnlyWhenOptimizationDisabled() {
+    public void when_leaderKnowsOthersSnapshot_then_slowFollowerInstallsSnapshotFromLeaderWithoutOptimization() {
         when_leaderKnowsOtherFollowerInstalledSnapshot_then_slowFollowerInstallsSnapshot(false);
     }
 
     @Test(timeout = 300_000)
-    public void when_leaderKnowsOtherFollowerInstalledSnapshot_then_slowFollowerInstallsSnapshotFromLeaderAndOtherFollowerWhenOptimizationEnabled() {
+    public void when_leaderKnowsOthersSnapshot_then_slowFollowerInstallsSnapshotFromAllWithOptimization() {
         when_leaderKnowsOtherFollowerInstalledSnapshot_then_slowFollowerInstallsSnapshot(true);
     }
 
@@ -258,12 +258,12 @@ public class SnapshotTest
     }
 
     @Test(timeout = 300_000)
-    public void when_leaderDoesNotKnowOtherFollowerInstalledSnapshot_then_slowFollowerInstallsSnapshotFromLeaderOnlyWhenOptimizationDisabled() {
+    public void when_leaderDoesNotKnowOthersSnapshot_then_slowFollowerInstallsSnapshotFromLeaderOnlyWithoutOptimization() {
         when_leaderDoesNotKnowOtherFollowerInstalledSnapshot_then_slowFollowerInstallsSnapshotFromLeaderOnly(false);
     }
 
     @Test(timeout = 300_000)
-    public void when_leaderDoesNotKnowOtherFollowerInstalledSnapshot_then_slowFollowerInstallsSnapshotFromLeaderAndOtherFollowerWhenOptimizationEnabled() {
+    public void when_leaderDoesNotKnowOthersSnapshot_then_slowFollowerInstallsSnapshotFromLeaderOnlyWithOptimization() {
         when_leaderDoesNotKnowOtherFollowerInstalledSnapshot_then_slowFollowerInstallsSnapshotFromLeaderOnly(true);
     }
 
@@ -310,13 +310,13 @@ public class SnapshotTest
     }
 
     @Test(timeout = 300_000)
-    public void when_leaderMissesInstallSnapshotResponse_then_itAdvancesMatchIndexWithNextInstallSnapshotResponse_leaderOnly() {
+    public void when_leaderMissesResponse_then_itAdvancesMatchIndexWithNextResponse_leaderOnly() {
         when_leaderMissesInstallSnapshotResponse_then_itAdvancesMatchIndexWithNextInstallSnapshotResponse(false);
     }
 
     @Test(timeout = 300_000)
-    public void when_leaderMissesInstallSnapshotResponse_then_itAdvancesMatchIndexWithNextInstallSnapshotResponse_leaderAndFollowers() {
-        when_leaderMissesInstallSnapshotResponse_then_itAdvancesMatchIndexWithNextInstallSnapshotResponse(false);
+    public void when_leaderMissesResponse_then_itAdvancesMatchIndexWithNextResponse_leaderAndFollowers() {
+        when_leaderMissesInstallSnapshotResponse_then_itAdvancesMatchIndexWithNextInstallSnapshotResponse(true);
     }
 
     private void when_leaderMissesInstallSnapshotResponse_then_itAdvancesMatchIndexWithNextInstallSnapshotResponse(
@@ -337,7 +337,7 @@ public class SnapshotTest
 
         // the follower cannot send append response to the leader after installing the snapshot
         group.dropMessagesToMember(slowFollower.getLocalEndpoint(), leader.getLocalEndpoint(),
-                AppendEntriesSuccessResponse.class);
+                                   AppendEntriesSuccessResponse.class);
 
         for (int i = 0; i < entryCount; i++) {
             leader.replicate(apply("val" + i)).join();
@@ -444,9 +444,9 @@ public class SnapshotTest
         group.dropMessagesToMember(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), InstallSnapshotRequest.class);
         group.dropMessagesToMember(slowFollower.getLocalEndpoint(), leader.getLocalEndpoint(), InstallSnapshotResponse.class);
         group.dropMessagesToMember(slowFollower.getLocalEndpoint(), followers[2].getLocalEndpoint(),
-                InstallSnapshotResponse.class);
+                                   InstallSnapshotResponse.class);
         group.dropMessagesToMember(slowFollower.getLocalEndpoint(), followers[3].getLocalEndpoint(),
-                InstallSnapshotResponse.class);
+                                   InstallSnapshotResponse.class);
 
         for (int i = 1; i < entryCount; i++) {
             leader.replicate(apply("val" + i)).join();
@@ -526,7 +526,8 @@ public class SnapshotTest
     @Test(timeout = 300_000)
     public void when_followerMissesAFewEntriesBeforeTheSnapshot_then_itCatchesUpWithoutInstallingSnapshot() {
         int entryCount = 50;
-        int missingEntryCountOnSlowFollower = 4; // entryCount * 0.1 - 2
+        // entryCount * 0.1 - 2
+        int missingEntryCountOnSlowFollower = 4;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount).build();
         group = new LocalRaftGroup(3, config);
         group.start();
@@ -642,7 +643,6 @@ public class SnapshotTest
                 for (int i = 0; i < 51; i++) {
                     assertThat(stateMachine.get(i + 1)).isEqualTo("val" + i);
                 }
-
             }
         });
     }
@@ -670,9 +670,9 @@ public class SnapshotTest
         for (RaftNodeImpl follower : followers) {
             if (follower != slowFollower) {
                 group.dropMessagesToMember(follower.getLocalEndpoint(), follower.getLeaderEndpoint(),
-                        AppendEntriesSuccessResponse.class);
+                                           AppendEntriesSuccessResponse.class);
                 group.dropMessagesToMember(follower.getLocalEndpoint(), follower.getLeaderEndpoint(),
-                        AppendEntriesFailureResponse.class);
+                                           AppendEntriesFailureResponse.class);
             }
         }
 
@@ -1009,9 +1009,9 @@ public class SnapshotTest
         for (RaftNodeImpl follower : followers) {
             if (follower != slowFollower) {
                 group.dropMessagesToMember(follower.getLocalEndpoint(), slowFollower.getLocalEndpoint(),
-                        InstallSnapshotRequest.class);
+                                           InstallSnapshotRequest.class);
                 group.dropMessagesToMember(slowFollower.getLocalEndpoint(), follower.getLocalEndpoint(),
-                        InstallSnapshotResponse.class);
+                                           InstallSnapshotResponse.class);
             }
         }
 
@@ -1049,9 +1049,9 @@ public class SnapshotTest
         for (RaftNodeImpl follower : followers) {
             if (follower != slowFollower) {
                 group.allowMessagesToMember(follower.getLocalEndpoint(), slowFollower.getLocalEndpoint(),
-                        InstallSnapshotRequest.class);
+                                            InstallSnapshotRequest.class);
                 group.allowMessagesToMember(slowFollower.getLocalEndpoint(), follower.getLocalEndpoint(),
-                        InstallSnapshotResponse.class);
+                                            InstallSnapshotResponse.class);
             }
         }
 

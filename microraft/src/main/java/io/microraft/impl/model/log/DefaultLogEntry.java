@@ -20,12 +20,13 @@ package io.microraft.impl.model.log;
 import io.microraft.model.log.LogEntry;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * @author metanet
  */
-public class DefaultLogEntry
+public final class DefaultLogEntry
         extends AbstractLogEntry
         implements LogEntry {
 
@@ -37,7 +38,7 @@ public class DefaultLogEntry
         return "LogEntry{" + "term=" + term + ", index=" + index + ", operation=" + operation + '}';
     }
 
-    public static class DefaultLogEntryBuilder
+    public static final class DefaultLogEntryBuilder
             implements LogEntryBuilder {
 
         private DefaultLogEntry entry = new DefaultLogEntry();
@@ -58,7 +59,8 @@ public class DefaultLogEntry
 
         @Nonnull
         @Override
-        public LogEntryBuilder setOperation(@Nullable Object operation) {
+        public LogEntryBuilder setOperation(@Nonnull Object operation) {
+            requireNonNull(operation);
             entry.operation = operation;
             return this;
         }

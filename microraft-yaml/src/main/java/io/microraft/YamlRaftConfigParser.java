@@ -85,11 +85,14 @@ public final class YamlRaftConfigParser {
      *
      * @return the created RaftConfig object
      *
-     * @throws NullPointerException if no yaml object passed
-     * @throws NullPointerException if no reader passed
-     * @throws NullPointerException if no RaftConfig present in the reader
-     * @throws ClassCastException if a configuration value has wrong type
-     *
+     * @throws NullPointerException
+     *         if no yaml object passed
+     * @throws NullPointerException
+     *         if no reader passed
+     * @throws NullPointerException
+     *         if no RaftConfig present in the reader
+     * @throws ClassCastException
+     *         if a configuration value has wrong type
      * @see RaftConfig
      */
     public static RaftConfig parseReader(Yaml yaml, Reader reader) {
@@ -106,11 +109,14 @@ public final class YamlRaftConfigParser {
      *
      * @return the created RaftConfig object
      *
-     * @throws NullPointerException if no yaml object passed
-     * @throws NullPointerException if no input stream passed
-     * @throws NullPointerException if no RaftConfig present in the stream
-     * @throws ClassCastException if a configuration value has wrong type
-     *
+     * @throws NullPointerException
+     *         if no yaml object passed
+     * @throws NullPointerException
+     *         if no input stream passed
+     * @throws NullPointerException
+     *         if no RaftConfig present in the stream
+     * @throws ClassCastException
+     *         if a configuration value has wrong type
      * @see RaftConfig
      */
     public static RaftConfig parseInputStream(Yaml yaml, InputStream inputStream) {
@@ -120,6 +126,7 @@ public final class YamlRaftConfigParser {
         return parse(yaml.load(inputStream));
     }
 
+    @SuppressWarnings("checkstyle:npathcomplexity")
     private static RaftConfig parse(Map<String, Object> map) {
         requireNonNull(map, "RaftConfig not provided!");
         Map<String, Object> params = (Map<String, Object>) map.get(RAFT_CONFIG_CONTAINER_NAME);
@@ -157,8 +164,7 @@ public final class YamlRaftConfigParser {
             builder.setMaxUncommittedLogEntryCount(maxUncommittedLogEntryCount);
         }
 
-        Boolean transferSnapshotsFromFollowersEnabled = (Boolean) params
-                .get(TRANSFER_SNAPSHOTS_FROM_FOLLOWERS_ENABLED_FIELD_NAME);
+        Boolean transferSnapshotsFromFollowersEnabled = (Boolean) params.get(TRANSFER_SNAPSHOTS_FROM_FOLLOWERS_ENABLED_FIELD_NAME);
         if (transferSnapshotsFromFollowersEnabled != null) {
             builder.setTransferSnapshotsFromFollowersEnabled(transferSnapshotsFromFollowersEnabled);
         }

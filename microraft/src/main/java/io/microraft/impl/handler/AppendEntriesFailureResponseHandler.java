@@ -94,7 +94,7 @@ public class AppendEntriesFailureResponseHandler
             nextIndex--;
             if (nextIndex <= matchIndex) {
                 LOGGER.error("{} Cannot decrement next index: {} below match index: {} for follower: {}", localEndpointStr(),
-                        nextIndex, matchIndex, follower.getId());
+                             nextIndex, matchIndex, follower.getId());
                 return false;
             }
 

@@ -31,7 +31,7 @@ import java.io.Serializable;
  * @author mdogan
  * @author metanet
  */
-public class RaftConfig
+public final class RaftConfig
         implements Serializable {
 
     /**
@@ -261,7 +261,7 @@ public class RaftConfig
     /**
      * Builder for Raft config
      */
-    public static class RaftConfigBuilder {
+    public static final class RaftConfigBuilder {
 
         private long leaderElectionTimeoutMillis = DEFAULT_LEADER_ELECTION_TIMEOUT_MILLIS;
         private long leaderHeartbeatPeriodSecs = DEFAULT_LEADER_HEARTBEAT_PERIOD_SECS;
@@ -403,12 +403,13 @@ public class RaftConfig
         public RaftConfig build() {
             if (leaderHeartbeatTimeoutSecs < leaderHeartbeatPeriodSecs) {
                 throw new IllegalArgumentException("leader heartbeat timeout secs: " + leaderHeartbeatTimeoutSecs
-                        + " cannot be smaller than leader heartbeat timeout period secs: " + leaderHeartbeatPeriodSecs);
+                                                           + " cannot be smaller than leader heartbeat timeout period secs: "
+                                                           + leaderHeartbeatPeriodSecs);
             }
 
             return new RaftConfig(leaderElectionTimeoutMillis, leaderHeartbeatPeriodSecs, leaderHeartbeatTimeoutSecs,
-                    appendEntriesRequestBatchSize, commitCountToTakeSnapshot, maxUncommittedLogEntryCount,
-                    transferSnapshotsFromFollowersEnabled, raftNodeReportPublishPeriodSecs);
+                                  appendEntriesRequestBatchSize, commitCountToTakeSnapshot, maxUncommittedLogEntryCount,
+                                  transferSnapshotsFromFollowersEnabled, raftNodeReportPublishPeriodSecs);
         }
 
     }

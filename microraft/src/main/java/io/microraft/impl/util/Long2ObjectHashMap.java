@@ -41,7 +41,8 @@ import static java.util.Objects.requireNonNull;
  * @param <V>
  *         values stored in the {@link java.util.Map}
  */
-public class Long2ObjectHashMap<V>
+@SuppressWarnings("checkstyle:magicnumber")
+public final class Long2ObjectHashMap<V>
         implements Map<Long, V> {
 
     /**

@@ -49,6 +49,7 @@ public class DefaultSnapshotChunk
         return term;
     }
 
+    @Nonnull
     @Override
     public Object getOperation() {
         return operation;
@@ -82,7 +83,7 @@ public class DefaultSnapshotChunk
                 + groupMembers + '}';
     }
 
-    public static class DefaultSnapshotChunkBuilder
+    public static final class DefaultSnapshotChunkBuilder
             implements SnapshotChunkBuilder {
 
         private DefaultSnapshotChunk chunk = new DefaultSnapshotChunk();

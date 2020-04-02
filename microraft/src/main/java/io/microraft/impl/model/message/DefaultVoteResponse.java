@@ -27,7 +27,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public class DefaultVoteResponse
+public final class DefaultVoteResponse
         implements VoteResponse {
 
     private Object groupId;
@@ -64,7 +64,7 @@ public class DefaultVoteResponse
         return "VoteResponse{" + "groupId=" + groupId + ", sender=" + sender + ", term=" + term + ", granted=" + granted + '}';
     }
 
-    public static class DefaultVoteResponseBuilder
+    public static final class DefaultVoteResponseBuilder
             implements VoteResponseBuilder {
 
         private DefaultVoteResponse response = new DefaultVoteResponse();

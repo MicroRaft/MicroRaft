@@ -27,7 +27,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public class DefaultPreVoteRequest
+public final class DefaultPreVoteRequest
         implements PreVoteRequest {
 
     private Object groupId;
@@ -71,7 +71,7 @@ public class DefaultPreVoteRequest
                 + lastLogTerm + ", lastLogIndex=" + lastLogIndex + '}';
     }
 
-    public static class DefaultPreVoteRequestBuilder
+    public static final class DefaultPreVoteRequestBuilder
             implements PreVoteRequestBuilder {
 
         private DefaultPreVoteRequest request = new DefaultPreVoteRequest();

@@ -68,7 +68,7 @@ public class VoteResponseHandler
         } else if (response.getTerm() > state.term()) {
             // If the response term is greater than the local term, update the local term and convert to follower (§5.1)
             LOGGER.info("{} Demoting to FOLLOWER from current term: {} to new term: {} after {}", localEndpointStr(),
-                    state.term(), response.getTerm(), response);
+                        state.term(), response.getTerm(), response);
             node.toFollower(response.getTerm());
             return;
         } else if (response.getTerm() < state.term()) {
@@ -79,7 +79,7 @@ public class VoteResponseHandler
         CandidateState candidateState = state.candidateState();
         if (response.isGranted() && candidateState.grantVote(response.getSender())) {
             LOGGER.info("{} Vote granted from {} for term: {}, number of votes: {}, majority: {}", localEndpointStr(),
-                    response.getSender().getId(), state.term(), candidateState.voteCount(), candidateState.majority());
+                        response.getSender().getId(), state.term(), candidateState.voteCount(), candidateState.majority());
         }
 
         if (candidateState.isMajorityGranted()) {

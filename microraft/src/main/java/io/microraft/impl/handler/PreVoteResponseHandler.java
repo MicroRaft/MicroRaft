@@ -73,8 +73,8 @@ public class PreVoteResponseHandler
 
         if (response.isGranted() && preCandidateState.grantVote(response.getSender())) {
             LOGGER.info("{} Pre-vote granted from {} for term: {}, number of votes: {}, majority: {}", localEndpointStr(),
-                    response.getSender().getId(), response.getTerm(), preCandidateState.voteCount(),
-                    preCandidateState.majority());
+                        response.getSender().getId(), response.getTerm(), preCandidateState.voteCount(),
+                        preCandidateState.majority());
         }
 
         if (preCandidateState.isMajorityGranted()) {

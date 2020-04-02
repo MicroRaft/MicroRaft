@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
+package io.microraft;
+
 import com.typesafe.config.ConfigFactory;
-import io.microraft.RaftConfig;
 import io.microraft.impl.util.BaseTest;
 import org.junit.Test;
 

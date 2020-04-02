@@ -1,37 +1,31 @@
+![](img/logo.png){: style="height:64px;width:348px"}
 
-MicroRaft is a future-complete, stable and production-grade implementation of 
-the Raft consensus algorithm in Java. It requires Java 8 at minimum. It can be 
-used for building fault tolerant and strongly-consistent (CP) data, metadata 
+MicroRaft is a future-complete, stable and production-grade open-source 
+implementation of the Raft consensus algorithm in Java. It requires Java 8 
+at minimum. It can be used for building fault tolerant and strongly-consistent (CP) data, metadata 
 and coordination services. A few examples of possible use-cases are building
 distributed file systems, distributed lock services, key-value stores, etc.
 
-Consensus is one of the fundamental problems in distributed systems, involving
-multiple servers agree on values. Once a value is decided, the decision is 
-final. Majority-based consensus algorithms, such as Raft, make progress when 
-the majority (i.e., more than half) of the servers are up an running and never 
-return incorrect values.
+MicroRaft works on top of a minimalistic and modular design. __It is a single 
+lightweight JAR file of a few hundred KBs of size.__  It contains an isolated 
+implementation of the Raft consensus algorithm and a set of accompanying 
+abstractions to run the algorithm in a multi-threaded and distributed 
+environment. These abstractions are defined to isolate the core algorithm from
+the concerns of persistence, thread-safety, serialization, networking, and 
+execution of committed operations. Users are required to provide their own 
+implementations of these abstractions to build their custom CP distributed 
+systems.
 
-Raft uses a replicated log to order requests sent by clients and apply them on
-a set of state machine replicas in a coordinated, deterministic and fault 
-tolerant manner (i.e., replicated state machines). For more details, please see 
-[In Search of an Understandable Consensus Algorithm](https://raft.github.io/raft.pdf) 
-by Diego Ongaro and John Ousterhout. 
-
-MicroRaft works on top of a minimalistic and modular design. It consists of 
-an isolated implementation of the Raft consensus algorithm and a set of 
-accompanying abstractions to run it in a multi-threaded and distributed 
-environment. These abstractions are defined to isolate the core Raft logic from
-the concerns of persistence, thread-safety, serialization, networking, and
-execution of committed operations. Users must provide their own implementations
-of these abstractions.
+## Features
 
 MicroRaft implements the leader election, log replication, log compaction 
 (snapshotting), and cluster membership changes components of the Raft consensus
-algorithm. Additionally, it offers a rich set of optimizations and enhancements:
+algorithm. Additionally, it offers a rich set of optimizations and 
+enhancements:
 
 * Pipelining and batching during log replication,
 * Back pressure to prevent OOMEs on Raft leader and followers,
-* Parallel snapshot chunk transfer from Raft leader and followers,
+* Parallel snapshot transfer from Raft leader and followers,
 * Pre-voting and leader stickiness [(4 Modifications for Raft Consensus)](https://openlife.cc/system/files/4-modifications-for-Raft-consensus.pdf),
 * Auto-demotion of Raft leader on loss of quorum heartbeats,
 * Linearizable quorum reads without appending log entries [(Section 6.4 of the Raft dissertation)](https://github.com/ongardie/dissertation),
@@ -39,3 +33,52 @@ algorithm. Additionally, it offers a rich set of optimizations and enhancements:
 * Monotonic local queries on Raft followers [(Section 6.4.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
 * Parallel disk writes on Raft leader and followers [(Section 10.2.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
 * Leadership transfer [(Section 3.10 of the Raft dissertation)](https://github.com/ongardie/dissertation).
+
+
+## Getting Started
+
+If you want to learn more about how to use MicroRaft for building a CP 
+distributed system, you can check out 
+[the Getting Started guide](user-guide/getting-started.md).
+
+## Getting Involved
+
+MicroRaft is a new open-source library and there is tons of work to do! So 
+any kind of feedback and contribution is welcome! You can improve the source
+code, add new tests, create issues or feature requests, or just ask questions!
+
+The development happens on [Github](https://github.com/metanet/microraft). 
+There is also a [Slack group](https://join.slack.com/t/microraft/shared_invite/zt-dc6utpfk-84P0VbK7EcrD3lIme2IaaQ) 
+for discussions and questions. Last, you can follow [@MicroRaft](https://twitter.com/microraft) 
+on Twitter for announcements. 
+
+## Who uses MicroRaft?
+
+I am currently working on a proof-of-concept KV store implementation to 
+demonstrate how to implement MicroRaft's abstractions. It internally uses gRPC 
+to transfer Raft messages between Raft nodes running on different machines. I 
+am hoping to release this project soon. 
+
+
+## What is Consensus?
+
+Consensus is one of the fundamental problems in distributed systems, involving
+multiple servers agree on values. Once a value is decided, the decision is 
+final. Majority-based consensus algorithms, such as Raft, make progress when 
+the majority (i.e., more than half) of the servers are up and running, and 
+never return incorrect responses.
+
+Raft uses a replicated log to order requests sent by clients and apply them on
+a set of state machine replicas in a coordinated, deterministic and fault 
+tolerant manner (i.e., replicated state machines). For more details, please see 
+[In Search of an Understandable Consensus Algorithm](https://raft.github.io/raft.pdf) 
+by Diego Ongaro and John Ousterhout. 
+
+
+## Acknowledgements
+
+MicroRaft originates from 
+[the Raft implementation](https://github.com/hazelcast/hazelcast/tree/master/hazelcast/src/main/java/com/hazelcast/cp/internal/raft) 
+that empowers Hazelcast IMDG's 
+[CP Subsystem module](https://docs.hazelcast.org/docs/latest/manual/html-single/index.html#cp-subsystem),
+and includes several significant improvements on the public APIs and internals. 

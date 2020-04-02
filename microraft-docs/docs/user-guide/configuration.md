@@ -116,7 +116,7 @@ group.
 <dependency>
 	<groupId>io.microraft</groupId>
 	<artifactId>microraft-hocon</artifactId>
-	<version>${io.microraft.version}</version>
+	<version>1.0</version>
 </dependency>
 ~~~~
 
@@ -148,7 +148,7 @@ add the `microraft-yaml` dependency to your classpath.
 <dependency>
 	<groupId>io.microraft</groupId>
 	<artifactId>microraft-yaml</artifactId>
-	<version>${io.microraft.version}</version>
+	<version>1.0</version>
 </dependency>
 ~~~~
 

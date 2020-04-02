@@ -25,9 +25,9 @@ the concerns of persistence, thread-safety, serialization, networking, and
 execution of committed operations. Users must provide their own implementations
 of these abstractions.
 
-MicroRaft implements the leader election, log replication, log compaction, and 
-cluster membership changes components of the Raft consensus algorithm. 
-Additionally, it offers a rich set of optimizations and enhancements:
+MicroRaft implements the leader election, log replication, log compaction 
+(snapshotting), and cluster membership changes components of the Raft consensus
+algorithm. Additionally, it offers a rich set of optimizations and enhancements:
 
 * Pipelining and batching during log replication,
 * Back pressure to prevent OOMEs on Raft leader and followers,

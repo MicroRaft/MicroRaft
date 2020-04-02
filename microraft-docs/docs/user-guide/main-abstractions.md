@@ -6,7 +6,7 @@ The main APIs and abstractions of MicroRaft are listed below.
 
 `RaftConfig` contains configuration options related to the Raft consensus 
 algorithm and MicroRaft's implementation. Please check 
-the [Configuration section](../../user-guide/configuration/) for details about configuring MicroRaft.
+the [Configuration section](../../user-guide/configuration/) for details.
 
 
 ## RaftNode
@@ -109,7 +109,6 @@ In short, users of MicroRaft can create their own representation of
 the `RaftModel` objects and implement the networking and persistence concerns
 behind the `RaftNodeRuntime` and `RaftStore` interfaces.
 
-
  
 ## Architectural overview of a Raft group
 
@@ -117,3 +116,9 @@ The following figure depicts an architectural overview of a Raft group based on
 the abstractions explained above.
 
 ![Integration](/img/architectural_overview.png)
+
+
+## What is Next?
+
+Wow! That was fast, wasn't it? I guess you are ready to 
+[get your hands dirty](how-to-use-microraft.md)!

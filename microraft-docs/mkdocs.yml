@@ -13,10 +13,10 @@ markdown_extensions:
 nav:
   - Introduction: 'index.md'
   - 'User Guide':
+      - Getting Started: 'user-guide/getting-started.md'
       - Main Abstractions: 'user-guide/main-abstractions.md'
       - Configuration: 'user-guide/configuration.md'
       - How to Use MicroRaft: 'user-guide/how-to-use-microraft.md'
-      - Monitoring: 'user-guide/monitoring.md'
   - Fault Tolerance: 'fault-tolerance.md'
   - 'Internals':
       - Threading and Execution Model: 'internals/threading-and-execution-model.md'
@@ -24,4 +24,6 @@ nav:
       - Log Replication: 'internals/log-replication.md'
       - Snapshotting: 'internals/snapshotting.md'
       - Persistence: 'internals/persistence.md'
+  - 'Release Notes':
+      - 1.0: 'release-notes/1-0.md'
 

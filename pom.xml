@@ -50,6 +50,9 @@
         <jdk.version>8</jdk.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+        <vmHeapSettings>-Xms1G -Xmx2G</vmHeapSettings>
+        <extraVmSettings/>
+
         <slf4j.api.version>1.7.30</slf4j.api.version>
         <log4j.version>2.13.0</log4j.version>
         <junit.version>4.12</junit.version>
@@ -64,6 +67,7 @@
         <maven.resources.plugin.version>3.1.0</maven.resources.plugin.version>
         <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
         <maven.javadoc.plugin.version>3.2.0</maven.javadoc.plugin.version>
+        <maven.jacoco.plugin.version>0.8.5</maven.jacoco.plugin.version>
     </properties>
 
     <dependencies>
@@ -152,8 +156,14 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven.surefire.plugin.version}</version>
                 <configuration>
+                    <forkCount>2</forkCount>
+                    <reuseForks>true</reuseForks>
                     <runOrder>random</runOrder>
-                    <argLine>-Xms1G -Xmx4G</argLine>
+                    <argLine>
+                        ${vmHeapSettings}
+                        ${extraVmSettings}
+                        -ea
+                    </argLine>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
                 </configuration>
             </plugin>
@@ -252,6 +262,57 @@
                             <enableRulesSummary>true</enableRulesSummary>
                             <propertyExpansion>basedir=${root.dir}</propertyExpansion>
                         </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>coverage</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${maven.surefire.plugin.version}</version>
+                        <configuration>
+                            <forkCount>2</forkCount>
+                            <reuseForks>true</reuseForks>
+                            <runOrder>random</runOrder>
+                            <argLine>
+                                @{argLine}
+                                ${vmHeapSettings}
+                                ${extraVmSettings}
+                                -ea
+                            </argLine>
+                            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>${maven.jacoco.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>default-prepare-agent</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>default-report</id>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>report</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
+                        </executions>
                     </plugin>
                 </plugins>
             </build>

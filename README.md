@@ -29,12 +29,7 @@ enhancements:
 
 ## Getting Started
 
-See [Getting Started Guide](https://microraft.io/user-guide/getting-started)
-
-
-## Documentation
-
-See the documentation at [microraft.io](https://microraft.io)
+See [the Getting Started Guide](https://microraft.io/user-guide/getting-started)
 
 
 ## Building from Source
@@ -58,7 +53,7 @@ the [microraft.io](https://microraft.io) website.
 ## Contributing to MicroRaft
 
 MicroRaft is a new open source project with tons of work to do! You can see 
-[the guide](CONTRIBUTING.md) for contributing to MicroRaft.
+[this guide](CONTRIBUTING.md) for contributing to MicroRaft.
 
 
 ## License

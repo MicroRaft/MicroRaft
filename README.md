@@ -2,7 +2,7 @@
 ![Java CI](https://github.com/metanet/MicroRaft/workflows/Java%20CI/badge.svg) [![Integration](license-apache-2.svg)](https://github.com/metanet/MicroRaft/blob/master/LICENSE)
 
 
-![](microraft-docs/docs/img/logo.png)
+![](microraft.io/docs/img/logo.png)
 
 MicroRaft is a future-complete, stable and production-grade open-source 
 implementation of the Raft consensus algorithm in Java. It requires Java 8 
@@ -49,13 +49,17 @@ Pull the latest code with `git pull origin master` and build with
 and integration test suite. 
 
 `microraft-hocon` and `microraft-yaml` modules are utility libraries for 
-parsing HOCON and YAML files to start Raft nodes.  
+parsing HOCON and YAML files to start Raft nodes. 
+
+`microraft-io` contains the source files of 
+the [microraft.io](https://microraft.io) website.
+
 
 ## Contributing to MicroRaft
 
-Any kind of contribution is welcome. Just pull the source code and start 
-rocking! No direct commits are allowed. Please create a pull request for your
-code changes, and a Github issue for feature requests.
+MicroRaft is a new open source project with tons of work to do! You can see 
+[the guide](CONTRIBUTING.md) for contributing to MicroRaft.
+
 
 ## License
 

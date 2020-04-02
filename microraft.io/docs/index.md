@@ -41,6 +41,7 @@ If you want to learn more about how to use MicroRaft for building a CP
 distributed system, you can check out 
 [the Getting Started guide](user-guide/getting-started.md).
 
+
 ## Getting Involved
 
 MicroRaft is a new open-source library and there is tons of work to do! So 
@@ -51,6 +52,7 @@ The development happens on [Github](https://github.com/metanet/microraft).
 There is also a [Slack group](https://join.slack.com/t/microraft/shared_invite/zt-dc6utpfk-84P0VbK7EcrD3lIme2IaaQ) 
 for discussions and questions. Last, you can follow [@MicroRaft](https://twitter.com/microraft) 
 on Twitter for announcements. 
+
 
 ## Who uses MicroRaft?
 

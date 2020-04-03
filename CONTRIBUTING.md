@@ -38,10 +38,8 @@ provide a code change:
 4. Create a pull request to the MicroRaft repository.
 
 MicroRaft contains `checkstyle` and `spotbugs` tools for static code analysis.
-Please run the following commands locally before issuing your pull request.
-
-`mvn clean validate -P checkstyle`
-
-`mvn clean compile -P spotbugs`
+Please run `mvn clean validate -P checkstyle` and 
+`mvn clean compile -P spotbugs` locally before issuing your pull request. You
+can also check test coverage with `mvn clean test -Pcoverage`.
 
 Thanks for your help and effort!

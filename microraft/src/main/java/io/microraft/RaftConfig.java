@@ -40,14 +40,19 @@ public final class RaftConfig
     public static final long DEFAULT_LEADER_ELECTION_TIMEOUT_MILLIS = 1000;
 
     /**
+     * The default value for {@link #leaderHeartbeatTimeoutSecs}
+     */
+    public static final long DEFAULT_LEADER_HEARTBEAT_TIMEOUT_SECS = 10;
+
+    /**
      * The default value for {@link #leaderHeartbeatPeriodSecs}.
      */
     public static final long DEFAULT_LEADER_HEARTBEAT_PERIOD_SECS = 2;
 
     /**
-     * The default value for {@link #leaderHeartbeatTimeoutSecs}
+     * The default value for {@link #maxUncommittedLogEntryCount}.
      */
-    public static final long DEFAULT_LEADER_HEARTBEAT_TIMEOUT_SECS = 10;
+    public static final int DEFAULT_MAX_UNCOMMITTED_LOG_ENTRY_COUNT = 5000;
 
     /**
      * The default value for {@link #appendEntriesRequestBatchSize}.
@@ -58,11 +63,6 @@ public final class RaftConfig
      * The default value for {@link #commitCountToTakeSnapshot}.
      */
     public static final int DEFAULT_COMMIT_COUNT_TO_TAKE_SNAPSHOT = 50000;
-
-    /**
-     * The default value for {@link #maxUncommittedLogEntryCount}.
-     */
-    public static final int DEFAULT_MAX_UNCOMMITTED_LOG_ENTRY_COUNT = 5000;
 
     /**
      * The default value for {@link #transferSnapshotsFromFollowersEnabled}
@@ -79,8 +79,9 @@ public final class RaftConfig
      */
     public static final RaftConfig DEFAULT_RAFT_CONFIG = new RaftConfigBuilder().build();
     /**
-     * If a candidate cannot win majority votes before this timeout elapses,
-     * a new election round is started. See "Section 5.2: Leader Election"
+     * Duration of leader election rounds in milliseconds. If a candidate
+     * cannot win majority votes before this timeout elapses, a new leader
+     * election round is started. See "Section 5.2: Leader Election"
      * in the Raft paper.
      */
     private final long leaderElectionTimeoutMillis;

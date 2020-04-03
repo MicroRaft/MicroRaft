@@ -18,9 +18,10 @@ while building your `RaftNode` instances.
 You can see MicroRaft's configuration parameters below:
 
 * __Leader election timeout milliseconds:__
-
-If a candidate cannot win majority votes before this timeout elapses, a new
-election round is started. See "Section 5.2: Leader Election" in the
+     
+Duration of leader election rounds in milliseconds. If a candidate cannot win 
+majority votes before this timeout elapses, a new leader election round is 
+started. See "Section 5.2: Leader Election" in the 
 [Raft paper]((https://raft.github.io/raft.pdf)) for more details about how 
 leader elections work in Raft.
 
@@ -130,7 +131,7 @@ raft {
   max-uncommitted-log-entry-count: 5000
   append-entries-request-batch-size: 1000
   commit-count-to-take-snapshot: 50000
-  transfer-snapshots-from-followers-enabled: false
+  transfer-snapshots-from-followers-enabled: true
   raft-node-report-publish-period-secs: 10
 }
 ~~~~
@@ -165,14 +166,14 @@ You can see a YAML config string below:
 
 ~~~~
 raft:
- leader-election-timeout-millis: 750
- leader-heartbeat-period-secs: 15
- leader-heartbeat-timeout-secs: 45
- append-entries-request-batch-size: 750
- commit-count-to-take-snapshot: 7500
- max-uncommitted-log-entry-count: 1500
- transfer-snapshots-from-followers-enabled: false
- raft-node-report-publish-period-secs: 20
+ leader-election-timeout-millis: 1000
+ leader-heartbeat-timeout-secs: 10
+ leader-heartbeat-period-secs: 2
+ max-uncommitted-log-entry-count: 5000
+ append-entries-request-batch-size: 1000
+ commit-count-to-take-snapshot: 50000
+ transfer-snapshots-from-followers-enabled: true
+ raft-node-report-publish-period-secs: 10
 ~~~~
 
 You can parse a YAML file as shown below:

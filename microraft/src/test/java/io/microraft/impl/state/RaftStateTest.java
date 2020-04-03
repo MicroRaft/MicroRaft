@@ -20,7 +20,7 @@ package io.microraft.impl.state;
 import io.microraft.RaftEndpoint;
 import io.microraft.impl.local.LocalRaftEndpoint;
 import io.microraft.impl.log.RaftLog;
-import io.microraft.impl.model.log.DefaultLogEntry.DefaultLogEntryBuilder;
+import io.microraft.impl.model.log.DefaultLogEntryOrBuilder;
 import io.microraft.impl.util.RaftTestUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -158,9 +158,9 @@ public class RaftStateTest {
 
         int term = state.term();
         RaftLog log = state.log();
-        log.appendEntry(new DefaultLogEntryBuilder().setTerm(term).setIndex(1).build());
-        log.appendEntry(new DefaultLogEntryBuilder().setTerm(term).setIndex(2).build());
-        log.appendEntry(new DefaultLogEntryBuilder().setTerm(term).setIndex(3).build());
+        log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(term).setIndex(1).build());
+        log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(term).setIndex(2).build());
+        log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(term).setIndex(3).build());
         long lastLogIndex = log.lastLogOrSnapshotIndex();
 
         state.toLeader();

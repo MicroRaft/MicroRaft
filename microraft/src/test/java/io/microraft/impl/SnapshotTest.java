@@ -24,8 +24,8 @@ import io.microraft.exception.IndeterminateStateException;
 import io.microraft.impl.local.LocalRaftGroup;
 import io.microraft.impl.local.SimpleStateMachine;
 import io.microraft.impl.log.SnapshotChunkCollector;
-import io.microraft.impl.model.groupop.DefaultUpdateRaftGroupMembersOp;
-import io.microraft.impl.model.message.DefaultAppendEntriesRequest.DefaultAppendEntriesRequestBuilder;
+import io.microraft.impl.model.groupop.DefaultUpdateRaftGroupMembersOpOrBuilder;
+import io.microraft.impl.model.message.DefaultAppendEntriesRequestOrBuilder;
 import io.microraft.impl.util.BaseTest;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.message.AppendEntriesFailureResponse;
@@ -765,26 +765,28 @@ public class SnapshotTest
                 AppendEntriesRequest request = (AppendEntriesRequest) o;
                 List<LogEntry> entries = request.getLogEntries();
                 if (entries.size() > 0) {
-                    if (entries.get(entries.size() - 1).getOperation() instanceof DefaultUpdateRaftGroupMembersOp) {
+                    if (entries.get(entries.size() - 1).getOperation() instanceof DefaultUpdateRaftGroupMembersOpOrBuilder) {
                         entries = entries.subList(0, entries.size() - 1);
-                        return new DefaultAppendEntriesRequestBuilder().setSender(request.getSender()).setTerm(request.getTerm())
-                                                                       .setPreviousLogTerm(request.getPreviousLogTerm())
-                                                                       .setPreviousLogIndex(request.getPreviousLogIndex())
-                                                                       .setCommitIndex(request.getCommitIndex())
-                                                                       .setLogEntries(entries)
-                                                                       .setQuerySeqNo(request.getQuerySeqNo())
-                                                                       .setFlowControlSeqNo(request.getFlowControlSeqNo())
-                                                                       .build();
-                    } else if (entries.get(0).getOperation() instanceof DefaultUpdateRaftGroupMembersOp) {
+                        return new DefaultAppendEntriesRequestOrBuilder().setSender(request.getSender())
+                                                                         .setTerm(request.getTerm())
+                                                                         .setPreviousLogTerm(request.getPreviousLogTerm())
+                                                                         .setPreviousLogIndex(request.getPreviousLogIndex())
+                                                                         .setCommitIndex(request.getCommitIndex())
+                                                                         .setLogEntries(entries)
+                                                                         .setQuerySeqNo(request.getQuerySeqNo())
+                                                                         .setFlowControlSeqNo(request.getFlowControlSeqNo())
+                                                                         .build();
+                    } else if (entries.get(0).getOperation() instanceof DefaultUpdateRaftGroupMembersOpOrBuilder) {
                         entries = emptyList();
-                        return new DefaultAppendEntriesRequestBuilder().setSender(request.getSender()).setTerm(request.getTerm())
-                                                                       .setPreviousLogTerm(request.getPreviousLogTerm())
-                                                                       .setPreviousLogIndex(request.getPreviousLogIndex())
-                                                                       .setCommitIndex(request.getCommitIndex())
-                                                                       .setLogEntries(entries)
-                                                                       .setQuerySeqNo(request.getQuerySeqNo())
-                                                                       .setFlowControlSeqNo(request.getFlowControlSeqNo())
-                                                                       .build();
+                        return new DefaultAppendEntriesRequestOrBuilder().setSender(request.getSender())
+                                                                         .setTerm(request.getTerm())
+                                                                         .setPreviousLogTerm(request.getPreviousLogTerm())
+                                                                         .setPreviousLogIndex(request.getPreviousLogIndex())
+                                                                         .setCommitIndex(request.getCommitIndex())
+                                                                         .setLogEntries(entries)
+                                                                         .setQuerySeqNo(request.getQuerySeqNo())
+                                                                         .setFlowControlSeqNo(request.getFlowControlSeqNo())
+                                                                         .build();
                     }
                 }
             }

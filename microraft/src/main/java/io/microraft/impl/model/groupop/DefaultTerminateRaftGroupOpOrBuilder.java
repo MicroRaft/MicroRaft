@@ -18,40 +18,25 @@
 package io.microraft.impl.model.groupop;
 
 import io.microraft.model.groupop.TerminateRaftGroupOp;
+import io.microraft.model.groupop.TerminateRaftGroupOp.TerminateRaftGroupOpBuilder;
 
 import javax.annotation.Nonnull;
 
 /**
  * @author metanet
  */
-public final class DefaultTerminateRaftGroupOp
-        implements TerminateRaftGroupOp {
-
-    private DefaultTerminateRaftGroupOp() {
-    }
+public final class DefaultTerminateRaftGroupOpOrBuilder
+        implements TerminateRaftGroupOp, TerminateRaftGroupOpBuilder {
 
     @Override
     public String toString() {
         return "TerminateRaftGroupOp{}";
     }
 
-    public static final class DefaultTerminateRaftGroupOpBuilder
-            implements TerminateRaftGroupOpBuilder {
-
-        private boolean built;
-
-        @Nonnull
-        @Override
-        public TerminateRaftGroupOp build() {
-            if (built) {
-                throw new IllegalStateException("TerminateRaftGroupOp already built!");
-            }
-
-            built = true;
-
-            return new DefaultTerminateRaftGroupOp();
-        }
-
+    @Nonnull
+    @Override
+    public TerminateRaftGroupOp build() {
+        return this;
     }
 
 }

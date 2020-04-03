@@ -16,21 +16,21 @@
 
 package io.microraft.impl.model;
 
-import io.microraft.impl.model.groupop.DefaultTerminateRaftGroupOp.DefaultTerminateRaftGroupOpBuilder;
-import io.microraft.impl.model.groupop.DefaultUpdateRaftGroupMembersOp.DefaultUpdateRaftGroupMembersOpBuilder;
-import io.microraft.impl.model.log.DefaultLogEntry.DefaultLogEntryBuilder;
-import io.microraft.impl.model.log.DefaultSnapshotChunk.DefaultSnapshotChunkBuilder;
+import io.microraft.impl.model.groupop.DefaultTerminateRaftGroupOpOrBuilder;
+import io.microraft.impl.model.groupop.DefaultUpdateRaftGroupMembersOpOrBuilder;
+import io.microraft.impl.model.log.DefaultLogEntryOrBuilder;
+import io.microraft.impl.model.log.DefaultSnapshotChunkOrBuilder;
 import io.microraft.impl.model.log.DefaultSnapshotEntry.DefaultSnapshotEntryBuilder;
-import io.microraft.impl.model.message.DefaultAppendEntriesFailureResponse.DefaultAppendEntriesFailureResponseBuilder;
-import io.microraft.impl.model.message.DefaultAppendEntriesRequest.DefaultAppendEntriesRequestBuilder;
-import io.microraft.impl.model.message.DefaultAppendEntriesSuccessResponse.DefaultAppendEntriesSuccessResponseBuilder;
-import io.microraft.impl.model.message.DefaultInstallSnapshotRequest.DefaultInstallSnapshotRequestBuilder;
-import io.microraft.impl.model.message.DefaultInstallSnapshotResponse.DefaultInstallSnapshotResponseBuilder;
-import io.microraft.impl.model.message.DefaultPreVoteRequest.DefaultPreVoteRequestBuilder;
-import io.microraft.impl.model.message.DefaultPreVoteResponse.DefaultPreVoteResponseBuilder;
-import io.microraft.impl.model.message.DefaultTriggerLeaderElectionRequest.DefaultTriggerLeaderElectionRequestBuilder;
-import io.microraft.impl.model.message.DefaultVoteRequest.DefaultVoteRequestBuilder;
-import io.microraft.impl.model.message.DefaultVoteResponse.DefaultVoteResponseBuilder;
+import io.microraft.impl.model.message.DefaultAppendEntriesFailureResponseOrBuilder;
+import io.microraft.impl.model.message.DefaultAppendEntriesRequestOrBuilder;
+import io.microraft.impl.model.message.DefaultAppendEntriesSuccessResponseOrBuilder;
+import io.microraft.impl.model.message.DefaultInstallSnapshotRequestOrBuilder;
+import io.microraft.impl.model.message.DefaultInstallSnapshotResponseOrBuilder;
+import io.microraft.impl.model.message.DefaultPreVoteRequestOrBuilder;
+import io.microraft.impl.model.message.DefaultPreVoteResponseOrBuilder;
+import io.microraft.impl.model.message.DefaultTriggerLeaderElectionRequestOrBuilder;
+import io.microraft.impl.model.message.DefaultVoteRequestOrBuilder;
+import io.microraft.impl.model.message.DefaultVoteResponseOrBuilder;
 import io.microraft.model.RaftModel;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.model.groupop.TerminateRaftGroupOp.TerminateRaftGroupOpBuilder;
@@ -69,7 +69,7 @@ public final class DefaultRaftModelFactory
     @Nonnull
     @Override
     public LogEntryBuilder createLogEntryBuilder() {
-        return new DefaultLogEntryBuilder();
+        return new DefaultLogEntryOrBuilder();
     }
 
     @Nonnull
@@ -81,79 +81,79 @@ public final class DefaultRaftModelFactory
     @Nonnull
     @Override
     public SnapshotChunkBuilder createSnapshotChunkBuilder() {
-        return new DefaultSnapshotChunkBuilder();
+        return new DefaultSnapshotChunkOrBuilder();
     }
 
     @Nonnull
     @Override
     public AppendEntriesRequestBuilder createAppendEntriesRequestBuilder() {
-        return new DefaultAppendEntriesRequestBuilder();
+        return new DefaultAppendEntriesRequestOrBuilder();
     }
 
     @Nonnull
     @Override
     public AppendEntriesSuccessResponseBuilder createAppendEntriesSuccessResponseBuilder() {
-        return new DefaultAppendEntriesSuccessResponseBuilder();
+        return new DefaultAppendEntriesSuccessResponseOrBuilder();
     }
 
     @Nonnull
     @Override
     public AppendEntriesFailureResponseBuilder createAppendEntriesFailureResponseBuilder() {
-        return new DefaultAppendEntriesFailureResponseBuilder();
+        return new DefaultAppendEntriesFailureResponseOrBuilder();
     }
 
     @Nonnull
     @Override
     public InstallSnapshotRequestBuilder createInstallSnapshotRequestBuilder() {
-        return new DefaultInstallSnapshotRequestBuilder();
+        return new DefaultInstallSnapshotRequestOrBuilder();
     }
 
     @Nonnull
     @Override
     public InstallSnapshotResponseBuilder createInstallSnapshotResponseBuilder() {
-        return new DefaultInstallSnapshotResponseBuilder();
+        return new DefaultInstallSnapshotResponseOrBuilder();
     }
 
     @Nonnull
     @Override
     public PreVoteRequestBuilder createPreVoteRequestBuilder() {
-        return new DefaultPreVoteRequestBuilder();
+        return new DefaultPreVoteRequestOrBuilder();
     }
 
     @Nonnull
     @Override
     public PreVoteResponseBuilder createPreVoteResponseBuilder() {
-        return new DefaultPreVoteResponseBuilder();
+        return new DefaultPreVoteResponseOrBuilder();
     }
 
     @Nonnull
     @Override
     public TriggerLeaderElectionRequestBuilder createTriggerLeaderElectionRequestBuilder() {
-        return new DefaultTriggerLeaderElectionRequestBuilder();
+        return new DefaultTriggerLeaderElectionRequestOrBuilder();
     }
 
     @Nonnull
     @Override
     public VoteRequestBuilder createVoteRequestBuilder() {
-        return new DefaultVoteRequestBuilder();
+        return new DefaultVoteRequestOrBuilder();
     }
 
     @Nonnull
     @Override
     public VoteResponseBuilder createVoteResponseBuilder() {
-        return new DefaultVoteResponseBuilder();
+        return new DefaultVoteResponseOrBuilder();
     }
 
     @Nonnull
     @Override
     public TerminateRaftGroupOpBuilder createTerminateRaftGroupOpBuilder() {
-        return new DefaultTerminateRaftGroupOpBuilder();
+        return new DefaultTerminateRaftGroupOpOrBuilder();
     }
 
     @Nonnull
     @Override
     public UpdateRaftGroupMembersOpBuilder createUpdateRaftGroupMembersOpBuilder() {
-        return new DefaultUpdateRaftGroupMembersOpBuilder();
+        return new DefaultUpdateRaftGroupMembersOpOrBuilder();
     }
 
 }

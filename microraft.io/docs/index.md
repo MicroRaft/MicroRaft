@@ -16,6 +16,11 @@ execution of committed operations. Users are required to provide their own
 implementations of these abstractions to build their custom CP distributed 
 systems.
 
+__Please note that MicroRaft is not a high-level solution like a distributed 
+key-value store or a distributed lock service. It is a core library that
+offers a set of abstractions and functionalities to help you build such 
+high-level systems.__ 
+
 ## Features
 
 MicroRaft implements the leader election, log replication, log compaction 

@@ -13,8 +13,8 @@ your `pom.xml`:
 ~~~~
 
 If you are using HOCON or YAML files for configuration, the following 
-dependencies provide parsers to populate the MicroRaft configuration objects 
-from HOCON and YAML files:
+dependencies provide parsers to configure MicroRaft configuration from HOCON 
+and YAML files:
 
 ~~~~
 <dependency>
@@ -32,16 +32,19 @@ from HOCON and YAML files:
 </dependency>
 ~~~~
 
-If you are going old school, you can download the microraft-1.0.zip or 
-microraft-1.0.tar.gz from microraft.io and add the JARs to your classpath. 
+If you don't have Maven but want to build the project on your machine, `mvnw` 
+is available in the MicroRaft repository. Just clone 
+`https://github.com/metanet/MicroRaft.git` and hit `./mvnw clean package`. 
+Then you can get the jars from `microraft/target`, `microraft-hocon/target`, 
+and `microraft-yaml/target` directories. 
 
 
 ## Logging
 
-MicroRaft depends on the SLF4J library for logging. Make sure you enable 
-the `INFO` logging level for the `io.microraft` package. If you are going hard, 
-you can also give the `DEBUG` level a shot, but I assure you it will be a bumpy 
-ride.
+MicroRaft depends on the SLF4J library for logging. Actually it is the only
+dependency of MicroRaft. Make sure you enable the `INFO` logging level for the 
+the `io.microraft` package. If you are going hard, you can also give 
+the `DEBUG` level a shot, but I assure you it will be a bumpy ride.
 
 
 ## What is Next?

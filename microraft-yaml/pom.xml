@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>MicroRaft Config Parser for YAML Files</name>
+    <name>MicroRaft YAML Config Parser</name>
     <artifactId>microraft-yaml</artifactId>
     <packaging>jar</packaging>
 

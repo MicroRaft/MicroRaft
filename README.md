@@ -37,7 +37,7 @@ See [the Getting Started Guide](https://microraft.io/user-guide/getting-started)
 ## Building from Source
 
 Pull the latest code with `git pull origin master` and build with 
-`maven clean install`. 
+`./mvnw clean package`. 
 
 
 ## Source Code Layout 

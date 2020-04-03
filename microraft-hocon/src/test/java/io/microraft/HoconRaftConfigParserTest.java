@@ -20,7 +20,7 @@ import com.typesafe.config.ConfigFactory;
 import io.microraft.impl.util.BaseTest;
 import org.junit.Test;
 
-import static io.microraft.HoconRaftConfigParser.parseRaftConfig;
+import static io.microraft.HoconRaftConfigParser.parseConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class HoconRaftConfigParserTest
@@ -33,7 +33,7 @@ public class HoconRaftConfigParserTest
                 + "  commit-count-to-take-snapshot: 7500\n" + "  max-uncommitted-log-entry-count: 1500\n"
                 + "  transfer-snapshots-from-followers-enabled: false\n" + "  raft-node-report-publish-period-secs: 20\n" + "}\n";
 
-        RaftConfig config = parseRaftConfig(ConfigFactory.parseString(configString));
+        RaftConfig config = parseConfig(ConfigFactory.parseString(configString));
 
         assertThat(config.getLeaderElectionTimeoutMillis()).isEqualTo(750L);
         assertThat(config.getLeaderHeartbeatPeriodSecs()).isEqualTo(15L);
@@ -47,12 +47,12 @@ public class HoconRaftConfigParserTest
 
     @Test(expected = IllegalArgumentException.class)
     public void test_nonExistingConfig() {
-        parseRaftConfig(ConfigFactory.parseString(""));
+        parseConfig(ConfigFactory.parseString(""));
     }
 
     @Test(expected = NullPointerException.class)
     public void test_nullConfig() {
-        parseRaftConfig(null);
+        parseConfig(null);
     }
 
 }

@@ -19,6 +19,9 @@ package io.microraft;
 import io.microraft.RaftConfig.RaftConfigBuilder;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.util.Map;
@@ -104,6 +107,57 @@ public final class YamlRaftConfigParser {
     }
 
     /**
+     * Loads a parameter map from the yaml object with the given file and
+     * populates a {@link RaftConfig} object from the returned parameter map.
+     *
+     * @return the created RaftConfig object
+     *
+     * @throws IOException
+     *         if an error occurs during reading the file
+     * @throws NullPointerException
+     *         if no yaml object passed
+     * @throws NullPointerException
+     *         if no reader passed
+     * @throws NullPointerException
+     *         if no RaftConfig present in the reader
+     * @throws ClassCastException
+     *         if a configuration value has wrong type
+     * @see RaftConfig
+     */
+    public static RaftConfig parseFile(Yaml yaml, String filePath)
+            throws IOException {
+        return parseFile(yaml, new File(filePath));
+    }
+
+    /**
+     * Loads a parameter map from the yaml object with the given file and
+     * populates a {@link RaftConfig} object from the returned parameter map.
+     *
+     * @return the created RaftConfig object
+     *
+     * @throws IOException
+     *         if an error occurs during reading the file
+     * @throws NullPointerException
+     *         if no yaml object passed
+     * @throws NullPointerException
+     *         if no reader passed
+     * @throws NullPointerException
+     *         if no RaftConfig present in the reader
+     * @throws ClassCastException
+     *         if a configuration value has wrong type
+     * @see RaftConfig
+     */
+    public static RaftConfig parseFile(Yaml yaml, File file)
+            throws IOException {
+        requireNonNull(yaml, "No yaml object!");
+        requireNonNull(file, "No file!");
+
+        try (FileReader reader = new FileReader(file)) {
+            return parseReader(yaml, reader);
+        }
+    }
+
+    /**
      * Loads a parameter map from the yaml object with the given stream and
      * populates a {@link RaftConfig} object from the returned parameter map.
      *
@@ -164,7 +218,8 @@ public final class YamlRaftConfigParser {
             builder.setMaxUncommittedLogEntryCount(maxUncommittedLogEntryCount);
         }
 
-        Boolean transferSnapshotsFromFollowersEnabled = (Boolean) params.get(TRANSFER_SNAPSHOTS_FROM_FOLLOWERS_ENABLED_FIELD_NAME);
+        Boolean transferSnapshotsFromFollowersEnabled = (Boolean) params
+                .get(TRANSFER_SNAPSHOTS_FROM_FOLLOWERS_ENABLED_FIELD_NAME);
         if (transferSnapshotsFromFollowersEnabled != null) {
             builder.setTransferSnapshotsFromFollowersEnabled(transferSnapshotsFromFollowersEnabled);
         }

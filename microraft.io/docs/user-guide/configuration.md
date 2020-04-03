@@ -11,9 +11,9 @@ object via a `RaftConfigBuilder`, which is returned from
 `RaftConfig.newBuilder()`. Your software in which MicroRaft is embedded could be 
 already working with HOCON or YAML configuration files. MicroRaft also offers 
 HOCON and YAML parsers to populate `RaftConfig` objects for such cases. Once 
-you create a `RaftConfig` object either programatically, or by parsing a HOCON
-or YAML file, you can provide your configuration to `RaftNodeBuilder` while
-building your `RaftNode` instances.
+you create a `RaftConfig` object either programmatically, or by parsing a 
+HOCON or YAML file, you can provide your configuration to `RaftNodeBuilder` 
+while building your `RaftNode` instances.
 
 You can see MicroRaft's configuration parameters below:
 
@@ -135,9 +135,18 @@ raft {
 }
 ~~~~
 
-You can check the 
-[MicroRaft HOCON project](https://github.com/metanet/MicroRaft/blob/master/microraft-hocon/microraft-default-full.conf) for the default
-MicroRaft HOCON configuration.
+You can parse a HOCON file as shown below:
+
+~~~~{.java}
+String configFilePath = "...";
+Config hoconConfig = ConfigFactory.parseFile(new File(configFilePath));
+RaftConfig raftConfig = HoconRaftConfigParser.parseConfig(hoconConfig);
+~~~~ 
+
+Please refer to
+[MicroRaft HOCON project](https://github.com/metanet/MicroRaft/tree/master/microraft-hocon) 
+for details.
+
 
 ## YAML Files
 
@@ -166,6 +175,13 @@ raft:
  raft-node-report-publish-period-secs: 20
 ~~~~
 
-You can check the 
-[MicroRaft YAML project](https://github.com/metanet/MicroRaft/blob/master/microraft-yaml/microraft-default-full.yaml) for the default
-MicroRaft YAML configuration.
+You can parse a YAML file as shown below:
+
+~~~~{.java}
+String configFilePath = "...";
+RaftConfig raftConfig = YamlRaftConfigParser.parseFile(new Yaml(), configFilePath);
+~~~~
+
+Please refer to
+[MicroRaft YAML project](https://github.com/metanet/MicroRaft/tree/master/microraft-yaml) 
+for details.

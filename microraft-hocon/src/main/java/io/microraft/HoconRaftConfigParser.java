@@ -71,7 +71,7 @@ public final class HoconRaftConfigParser {
      *         if a configuration value has wrong type
      */
     @SuppressWarnings("checkstyle:npathcomplexity")
-    public static RaftConfig parseRaftConfig(@Nonnull Config config) {
+    public static RaftConfig parseConfig(@Nonnull Config config) {
         requireNonNull(config);
         if (!config.hasPath(RAFT_CONFIG_CONTAINER_NAME)) {
             throw new IllegalArgumentException("No raft config provided!");

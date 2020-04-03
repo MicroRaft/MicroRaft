@@ -17,10 +17,15 @@
 package io.microraft;
 
 import io.microraft.impl.util.BaseTest;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.StringReader;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,38 +38,57 @@ public class YamlRaftConfigParserTest
             + " commit-count-to-take-snapshot: 7500\n" + " max-uncommitted-log-entry-count: 1500\n"
             + " transfer-snapshots-from-followers-enabled: false\n" + " raft-node-report-publish-period-secs: 20";
 
+    @Rule
+    public final TemporaryFolder folder = new TemporaryFolder();
+
     @Test
     public void test_parseValidYamlString() {
         RaftConfig config = YamlRaftConfigParser.parseString(new Yaml(), yamlString);
 
-        assertThat(config.getLeaderElectionTimeoutMillis()).isEqualTo(750L);
-        assertThat(config.getLeaderHeartbeatPeriodSecs()).isEqualTo(15L);
-        assertThat(config.getLeaderHeartbeatTimeoutSecs()).isEqualTo(45L);
-        assertThat(config.getAppendEntriesRequestBatchSize()).isEqualTo(750);
-        assertThat(config.getCommitCountToTakeSnapshot()).isEqualTo(7500);
-        assertThat(config.getMaxUncommittedLogEntryCount()).isEqualTo(1500);
-        assertThat(config.isTransferSnapshotsFromFollowersEnabled()).isFalse();
-        assertThat(config.getRaftNodeReportPublishPeriodSecs()).isEqualTo(20);
+        assertConfig(config);
     }
 
     @Test
     public void test_parseValidYamlReader() {
         RaftConfig config = YamlRaftConfigParser.parseReader(new Yaml(), new StringReader(yamlString));
 
-        assertThat(config.getLeaderElectionTimeoutMillis()).isEqualTo(750L);
-        assertThat(config.getLeaderHeartbeatPeriodSecs()).isEqualTo(15L);
-        assertThat(config.getLeaderHeartbeatTimeoutSecs()).isEqualTo(45L);
-        assertThat(config.getAppendEntriesRequestBatchSize()).isEqualTo(750);
-        assertThat(config.getCommitCountToTakeSnapshot()).isEqualTo(7500);
-        assertThat(config.getMaxUncommittedLogEntryCount()).isEqualTo(1500);
-        assertThat(config.isTransferSnapshotsFromFollowersEnabled()).isFalse();
-        assertThat(config.getRaftNodeReportPublishPeriodSecs()).isEqualTo(20);
+        assertConfig(config);
     }
 
     @Test
     public void test_parseValidYamlInputReader() {
         RaftConfig config = YamlRaftConfigParser.parseInputStream(new Yaml(), new ByteArrayInputStream(yamlString.getBytes()));
 
+        assertConfig(config);
+    }
+
+    @Test
+    public void test_parseValidFile()
+            throws IOException {
+        File file = folder.newFile();
+        FileWriter writer = new FileWriter(file);
+        writer.write(yamlString);
+        writer.close();
+
+        RaftConfig config = YamlRaftConfigParser.parseFile(new Yaml(), file);
+
+        assertConfig(config);
+    }
+
+    @Test
+    public void test_parseValidFileName()
+            throws IOException {
+        File file = folder.newFile();
+        FileWriter writer = new FileWriter(file);
+        writer.write(yamlString);
+        writer.close();
+
+        RaftConfig config = YamlRaftConfigParser.parseFile(new Yaml(), file.getPath());
+
+        assertConfig(config);
+    }
+
+    private void assertConfig(RaftConfig config) {
         assertThat(config.getLeaderElectionTimeoutMillis()).isEqualTo(750L);
         assertThat(config.getLeaderHeartbeatPeriodSecs()).isEqualTo(15L);
         assertThat(config.getLeaderHeartbeatTimeoutSecs()).isEqualTo(45L);

@@ -2,7 +2,7 @@
 ![Java CI](https://github.com/metanet/MicroRaft/workflows/Java%20CI/badge.svg) [![Integration](license-apache-2.svg)](https://github.com/metanet/MicroRaft/blob/master/LICENSE)
 
 
-![](microraft.io/docs/img/logo.png)
+![](microraft.io/src/img/logo.png)
 
 MicroRaft is a future-complete, stable and production-grade open-source 
 implementation of the Raft consensus algorithm in Java. __It is a single 

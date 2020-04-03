@@ -1,7 +1,12 @@
 site_name: MicroRaft
+site_description: 'MicroRaft: Java implementation of the Raft consensus algorithm'
+site_url: https://microraft.io
+site_author: 'Ensar Basri Kahveci'
+copyright: 'MicroRaft, 2020. Ensar Basri Kahveci'
+docs_dir: src
 use_directory_urls: true
-
 theme: bootstrap4
+google_analytics: ['UA-485423-8', 'MicroRaft']
 
 plugins:
   - search
@@ -11,20 +16,21 @@ markdown_extensions:
   - fenced_code
 
 nav:
-  #  - Home: 'index.md'
   - 'User Guide':
       - Getting Started: 'user-guide/getting-started.md'
       - Main Abstractions: 'user-guide/main-abstractions.md'
       - Configuration: 'user-guide/configuration.md'
       - How to Use MicroRaft: 'user-guide/how-to-use-microraft.md'
       - Fault Tolerance: 'user-guide/fault-tolerance.md'
-  - 'Internals':
-      - Architecture: 'internals/architecture.md'
-      - Leader Election: 'internals/leader-election.md'
-      - Log Replication: 'internals/log-replication.md'
-      - Snapshotting: 'internals/snapshotting.md'
-      - Persistence: 'internals/persistence.md'
-  - 'Release Notes':
-      - 1.0: 'release-notes/1-0.md'
-  - Roadmap: 'roadmap.md'
-
+      - Release Notes: 'user-guide/release-notes.md'
+  - 'Documentation':
+      - Architecture: 'documentation/architecture.md'
+      - Leader Election: 'documentation/leader-election.md'
+      - Log Replication: 'documentation/log-replication.md'
+      - Snapshotting: 'documentation/snapshotting.md'
+      - Persistence: 'documentation/persistence.md'
+      - Roadmap: 'documentation/roadmap.md'
+  - 'Javadoc':
+      - '1.0': 'javadoc/1.0/index.html'
+  - Github: 'https://github.com/metanet/microraft'
+  - Slack: 'https://join.slack.com/t/microraft/shared_invite/zt-dc6utpfk-84P0VbK7EcrD3lIme2IaaQ'

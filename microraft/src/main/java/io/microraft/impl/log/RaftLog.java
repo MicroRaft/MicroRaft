@@ -56,6 +56,8 @@ import static java.util.Objects.requireNonNull;
  */
 public final class RaftLog {
 
+    private static final float KEPT_LOG_ENTRY_RATIO_BEFORE_SNAPSHOT_INDEX = 0.1f;
+
     /**
      * Array of log entries stored in the Raft log.
      * <p>
@@ -418,6 +420,16 @@ public final class RaftLog {
      */
     public SnapshotEntry snapshotEntry() {
         return snapshot;
+    }
+
+    public static int getMaxLogEntryCountToKeepAfterSnapshot(int commitCountToTakeSnapshot) {
+        return Math.max(1, (int) (commitCountToTakeSnapshot * KEPT_LOG_ENTRY_RATIO_BEFORE_SNAPSHOT_INDEX));
+    }
+
+    public static int getLogCapacity(int commitCountToTakeSnapshot, int maxUncommittedLogEntryCount) {
+        int maxLogEntryCountToKeepAfterSnapshot = Math
+                .max(1, (int) (commitCountToTakeSnapshot * KEPT_LOG_ENTRY_RATIO_BEFORE_SNAPSHOT_INDEX));
+        return commitCountToTakeSnapshot + maxUncommittedLogEntryCount + maxLogEntryCountToKeepAfterSnapshot;
     }
 
 }

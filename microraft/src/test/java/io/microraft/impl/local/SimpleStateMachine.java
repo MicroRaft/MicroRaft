@@ -17,86 +17,160 @@
 
 package io.microraft.impl.local;
 
-import java.util.Comparator;
-import java.util.HashMap;
+import io.microraft.integration.StateMachine;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 /**
+ * A simple {@link StateMachine} implementation used for testing.
+ * <p>
+ * This state machine implementation just collects all committed values along
+ * with their commit indices, and those values can be used for assertions
+ * in tests.
+ * <p>
+ * This method is thread safe. Committed values can be queried from test
+ * threads while they are being updated in Raft node threads.
+ *
  * @author mdogan
  * @author metanet
  */
-public class SimpleStateMachine {
+public class SimpleStateMachine
+        implements StateMachine {
 
-    private final Map<Long, Object> values = new ConcurrentHashMap<>();
+    private final Map<Long, Object> map = createMap();
+    private final boolean newTermOpEnabled;
 
-    SimpleStateMachine() {
+    public SimpleStateMachine(boolean newTermOpEnabled) {
+        this.newTermOpEnabled = newTermOpEnabled;
     }
 
-    public static BiFunction<SimpleStateMachine, Long, Object> apply(Object val) {
+    /**
+     * Returns an operation that will add the given value to the state machine.
+     *
+     * @param val
+     *         the value to be added to the state machine
+     *
+     * @return the operation that will add the given value to the state machine
+     */
+    public static Object apply(Object val) {
         return new Apply(val);
     }
 
-    public static BiFunction<SimpleStateMachine, Long, Object> query() {
+    /**
+     * Returns an operation that will query the value committed at the commit
+     * index of the query.
+     *
+     * @return the operation that will query the value committed at the commit
+     *         index of the query
+     */
+    public static Object query() {
         return new Query();
     }
 
-    private Object apply(long commitIndex, Object value) {
-        assert !values.containsKey(commitIndex) : "Cannot apply " + value + "since commitIndex: " + commitIndex
-                + " already contains: " + values.get(commitIndex);
-
-        values.put(commitIndex, value);
-        return value;
+    /**
+     * Returns the value committed at the given commit index.
+     *
+     * @param commitIndex
+     *         the commit index to get the value
+     *
+     * @return the value committed at the given commit index
+     */
+    public synchronized Object get(long commitIndex) {
+        return map.get(commitIndex);
     }
 
-    public Object get(long commitIndex) {
-        return values.get(commitIndex);
+    /**
+     * Returns the number of values committed.
+     *
+     * @return the number of values committed
+     */
+    public synchronized int size() {
+        return map.size();
     }
 
-    public int size() {
-        return values.size();
+    /**
+     * Returns a set of committed values.
+     *
+     * @return a set of committed values.
+     */
+    public synchronized Set<Object> valueSet() {
+        return new HashSet<>(map.values());
     }
 
-    public Set<Object> values() {
-        return new HashSet<>(values.values());
+    /**
+     * Returns a list of committed values sorted by their commit indices.
+     *
+     * @return a list of committed values sorted by their commit indices
+     */
+    public synchronized List<Object> valueList() {
+        return new ArrayList<>(map.values());
     }
 
-    public Object[] valuesArray() {
-        return values.entrySet().stream().sorted(Comparator.comparingLong(Entry::getKey)).map(Entry::getValue).toArray();
+    @Override
+    public synchronized Object runOperation(long commitIndex, @Nonnull Object operation) {
+        if (operation instanceof Apply) {
+            Apply apply = (Apply) operation;
+            assert !map.containsKey(commitIndex) : "Cannot apply " + apply.val + "since commitIndex: " + commitIndex
+                    + " already contains: " + map.get(commitIndex);
+            map.put(commitIndex, apply.val);
+            return apply.val;
+        } else if (operation instanceof Query) {
+            return map.get(commitIndex);
+        } else if (operation instanceof NewTermOp) {
+            return null;
+        }
+
+        throw new IllegalArgumentException("Invalid op: " + operation + " at commit index: " + commitIndex);
     }
 
-    void takeSnapshot(long commitIndex, Consumer<Object> chunkConsumer) {
-        Map<Long, Object> chunk = new HashMap<>();
-        for (Entry<Long, Object> e : values.entrySet()) {
+    @Override
+    public void takeSnapshot(long commitIndex, Consumer<Object> chunkConsumer) {
+        // no need for synchronized because we are not mutating the map
+        // and we are on the RaftNode thread
+
+        Map<Long, Object> chunk = createMap();
+        for (Entry<Long, Object> e : map.entrySet()) {
             assert e.getKey() <= commitIndex : "Key: " + e.getKey() + ", commit-index: " + commitIndex;
             chunk.put(e.getKey(), e.getValue());
             if (chunk.size() == 10) {
                 chunkConsumer.accept(chunk);
-                chunk = new HashMap<>();
+                chunk = createMap();
             }
         }
 
-        if (values.size() == 0 || chunk.size() > 0) {
+        if (map.size() == 0 || chunk.size() > 0) {
             chunkConsumer.accept(chunk);
         }
     }
 
-    void installSnapshot(long commitIndex, List<Object> chunks) {
-        values.clear();
+    @Override
+    public synchronized void installSnapshot(long commitIndex, List<Object> chunks) {
+        map.clear();
         for (Object chunk : chunks) {
-            values.putAll((Map<Long, Object>) chunk);
+            map.putAll((Map<Long, Object>) chunk);
         }
     }
 
-    private static class Apply
-            implements BiFunction<SimpleStateMachine, Long, Object> {
+    @Nullable
+    @Override
+    public Object getNewTermOperation() {
+        return newTermOpEnabled ? new NewTermOp() : null;
+    }
 
+    private Map<Long, Object> createMap() {
+        return new LinkedHashMap<>();
+    }
+
+    private static class Apply {
         private Object val;
 
         Apply(Object val) {
@@ -104,30 +178,23 @@ public class SimpleStateMachine {
         }
 
         @Override
-        public Object apply(SimpleStateMachine stateMachine, Long commitIndex) {
-            return stateMachine.apply(commitIndex, val);
-        }
-
-        @Override
         public String toString() {
             return "Apply{" + "val=" + val + '}';
         }
-
     }
 
-    private static class Query
-            implements BiFunction<SimpleStateMachine, Long, Object> {
-
-        @Override
-        public Object apply(SimpleStateMachine stateMachine, Long commitIndex) {
-            return stateMachine.get(commitIndex);
-        }
-
+    private static class Query {
         @Override
         public String toString() {
             return "Query{}";
         }
+    }
 
+    private static final class NewTermOp {
+        @Override
+        public String toString() {
+            return "NewTermOp{}";
+        }
     }
 
 }

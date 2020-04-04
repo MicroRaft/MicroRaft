@@ -33,7 +33,7 @@ public final class AssertionUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AssertionUtils.class);
 
-    private static final int EVENTUAL_ASSERTION_TIMEOUT_SECS;
+    public static final int EVENTUAL_ASSERTION_TIMEOUT_SECS;
 
     private AssertionUtils() {
     }

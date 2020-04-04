@@ -34,6 +34,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * A very simple in-memory {@link RaftStore} implementation used for testing.
+ *
+ * @author mdogan
+ * @author metanet
+ */
 public final class InMemoryRaftStore
         implements RaftStore {
 
@@ -44,33 +50,34 @@ public final class InMemoryRaftStore
     private RaftLog raftLog;
     private List<SnapshotChunk> snapshotChunks = new ArrayList<>();
 
-    public InMemoryRaftStore(int capacity) {
-        this.raftLog = RaftLog.create(capacity);
+    public InMemoryRaftStore(int logCapacity) {
+        this.raftLog = RaftLog.create(logCapacity);
     }
 
     @Override
-    public void open() {
+    public synchronized void open() {
     }
 
     @Override
-    public void persistInitialMembers(@Nonnull RaftEndpoint localEndpoint, @Nonnull Collection<RaftEndpoint> initialMembers) {
+    public synchronized void persistInitialMembers(@Nonnull RaftEndpoint localEndpoint,
+                                                   @Nonnull Collection<RaftEndpoint> initialMembers) {
         this.localEndpoint = localEndpoint;
         this.initialMembers = initialMembers;
     }
 
     @Override
-    public void persistTerm(int term, @Nullable RaftEndpoint votedFor) {
+    public synchronized void persistTerm(int term, @Nullable RaftEndpoint votedFor) {
         this.term = term;
         this.votedFor = votedFor;
     }
 
     @Override
-    public void persistLogEntry(@Nonnull LogEntry logEntry) {
+    public synchronized void persistLogEntry(@Nonnull LogEntry logEntry) {
         raftLog.appendEntry(logEntry);
     }
 
     @Override
-    public void persistSnapshotChunk(@Nonnull SnapshotChunk snapshotChunk) {
+    public synchronized void persistSnapshotChunk(@Nonnull SnapshotChunk snapshotChunk) {
         snapshotChunks.add(snapshotChunk);
 
         if (snapshotChunk.getSnapshotChunkCount() == snapshotChunks.size()) {
@@ -88,24 +95,24 @@ public final class InMemoryRaftStore
     }
 
     @Override
-    public void truncateLogEntriesFrom(long logIndexInclusive) {
+    public synchronized void truncateLogEntriesFrom(long logIndexInclusive) {
         raftLog.truncateEntriesFrom(logIndexInclusive);
     }
 
     @Override
-    public void truncateSnapshotChunksUntil(long logIndexInclusive) {
+    public synchronized void truncateSnapshotChunksUntil(long logIndexInclusive) {
         snapshotChunks.clear();
     }
 
     @Override
-    public void flush() {
+    public synchronized void flush() {
     }
 
     @Override
-    public void close() {
+    public synchronized void close() {
     }
 
-    public RestoredRaftState toRestoredRaftState() {
+    public synchronized RestoredRaftState toRestoredRaftState() {
         List<LogEntry> entries;
         if (raftLog.snapshotIndex() < raftLog.lastLogOrSnapshotIndex()) {
             entries = raftLog.getLogEntriesBetween(raftLog.snapshotIndex() + 1, raftLog.lastLogOrSnapshotIndex());

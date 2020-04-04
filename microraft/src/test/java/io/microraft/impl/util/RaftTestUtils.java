@@ -138,19 +138,16 @@ public final class RaftTestUtils {
 
     public static RaftGroupMembersState getEffectiveGroupMembers(RaftNodeImpl node) {
         Callable<RaftGroupMembersState> task = () -> node.state().effectiveGroupMembers();
-
         return readRaftState(node, task);
     }
 
     public static RaftGroupMembersState getCommittedGroupMembers(RaftNodeImpl node) {
         Callable<RaftGroupMembersState> task = () -> node.state().committedGroupMembers();
-
         return readRaftState(node, task);
     }
 
     public static <T extends RaftStore> T getRaftStore(RaftNodeImpl node) {
         Callable<RaftStore> task = () -> node.state().store();
-
         return (T) readRaftState(node, task);
     }
 

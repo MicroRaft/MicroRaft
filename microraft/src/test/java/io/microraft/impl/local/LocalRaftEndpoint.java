@@ -25,6 +25,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static java.util.Objects.requireNonNull;
 
 /**
+ * A very simple {@link RaftEndpoint} implementation used for testing.
+ * <p>
+ * Unique Raft endpoints can be created
+ * via {@link LocalRaftEndpoint#newEndpoint()}.
+ *
  * @author mdogan
  * @author metanet
  */
@@ -39,6 +44,11 @@ public final class LocalRaftEndpoint
         this.id = id;
     }
 
+    /**
+     * Returns a new unique Raft endpoint.
+     *
+     * @return a new unique Raft endpoint
+     */
     public static LocalRaftEndpoint newEndpoint() {
         return new LocalRaftEndpoint("node" + COUNTER.incrementAndGet());
     }

@@ -34,6 +34,7 @@ import static io.microraft.QueryPolicy.LEADER_LOCAL;
 import static io.microraft.impl.local.SimpleStateMachine.apply;
 import static io.microraft.impl.local.SimpleStateMachine.query;
 import static io.microraft.impl.util.AssertionUtils.eventually;
+import static io.microraft.impl.util.RaftTestUtils.TEST_RAFT_CONFIG;
 import static io.microraft.impl.util.RaftTestUtils.getCommitIndex;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -57,8 +58,7 @@ public class LocalQueryTest
     @Test(timeout = 300_000)
     public void when_queryFromLeader_withoutAnyCommit_thenReturnDefaultValue()
             throws Exception {
-        group = new LocalRaftGroup(3);
-        group.start();
+        group = LocalRaftGroup.start(3);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
@@ -70,8 +70,7 @@ public class LocalQueryTest
     @Test(timeout = 300_000)
     public void when_queryFromLeaderWithCommitIndex_withoutAnyCommit_thenFail()
             throws Exception {
-        group = new LocalRaftGroup(3);
-        group.start();
+        group = LocalRaftGroup.start(3);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
@@ -86,11 +85,10 @@ public class LocalQueryTest
     @Test(timeout = 300_000)
     public void when_queryFromFollower_withoutAnyCommit_thenReturnDefaultValue()
             throws Exception {
-        group = new LocalRaftGroup(3);
-        group.start();
+        group = LocalRaftGroup.start(3);
 
         group.waitUntilLeaderElected();
-        RaftNodeImpl follower = group.getAnyFollowerNode();
+        RaftNodeImpl follower = group.getAnyFollower();
 
         Ordered<Object> o = follower.query(query(), ANY_LOCAL, 0).get();
         assertThat(o.getResult()).isNull();
@@ -100,11 +98,10 @@ public class LocalQueryTest
     @Test(timeout = 300_000)
     public void when_queryFromFollowerWithCommitIndex_withoutAnyCommit_thenReturnDefaultValue()
             throws Exception {
-        group = new LocalRaftGroup(3);
-        group.start();
+        group = LocalRaftGroup.start(3);
 
         group.waitUntilLeaderElected();
-        RaftNodeImpl follower = group.getAnyFollowerNode();
+        RaftNodeImpl follower = group.getAnyFollower();
 
         try {
             follower.query(query(), ANY_LOCAL, getCommitIndex(follower) + 1).get();
@@ -117,8 +114,7 @@ public class LocalQueryTest
     @Test(timeout = 300_000)
     public void when_queryFromLeaderWithoutCommitIndex_onStableCluster_thenReadLatestValue()
             throws Exception {
-        group = new LocalRaftGroup(3);
-        group.start();
+        group = LocalRaftGroup.start(3);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
@@ -136,8 +132,7 @@ public class LocalQueryTest
     @Test(timeout = 300_000)
     public void when_queryFromLeaderWithCommitIndex_onStableCluster_thenReadLatestValue()
             throws Exception {
-        group = new LocalRaftGroup(3);
-        group.start();
+        group = LocalRaftGroup.start(3);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
@@ -155,8 +150,7 @@ public class LocalQueryTest
     @Test(timeout = 300_000)
     public void when_queryFromLeaderWithFurtherCommitIndex_onStableCluster_thenFail()
             throws Exception {
-        group = new LocalRaftGroup(3);
-        group.start();
+        group = LocalRaftGroup.start(3);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
@@ -176,14 +170,13 @@ public class LocalQueryTest
     @Test(timeout = 300_000)
     public void when_queryFromFollower_withLeaderLocalPolicy_thenFail()
             throws Exception {
-        group = new LocalRaftGroup(3);
-        group.start();
+        group = LocalRaftGroup.start(3);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         leader.replicate(apply("value")).get();
 
         try {
-            group.getAnyFollowerNode().query(query(), LEADER_LOCAL, 0).get();
+            group.getAnyFollower().query(query(), LEADER_LOCAL, 0).get();
         } catch (ExecutionException e) {
             assertThat(e).hasCauseInstanceOf(NotLeaderException.class);
         }
@@ -192,8 +185,7 @@ public class LocalQueryTest
     @Test(timeout = 300_000)
     public void when_queryFromFollowerWithoutCommitIndex_onStableCluster_thenReadLatestValue()
             throws Exception {
-        group = new LocalRaftGroup(3);
-        group.start();
+        group = LocalRaftGroup.start(3);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
@@ -218,8 +210,7 @@ public class LocalQueryTest
     @Test(timeout = 300_000)
     public void when_queryFromFollowerWithCommitIndex_onStableCluster_thenReadLatestValue()
             throws Exception {
-        group = new LocalRaftGroup(3);
-        group.start();
+        group = LocalRaftGroup.start(3);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
@@ -244,11 +235,10 @@ public class LocalQueryTest
     @Test(timeout = 300_000)
     public void when_queryFromSlowFollower_thenReadStaleValue()
             throws Exception {
-        group = new LocalRaftGroup(3);
-        group.start();
+        group = LocalRaftGroup.start(3);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
-        RaftNodeImpl slowFollower = group.getAnyFollowerNode();
+        RaftNodeImpl slowFollower = group.getAnyFollower();
 
         Object firstValue = "value1";
         leader.replicate(apply(firstValue)).get();
@@ -256,7 +246,7 @@ public class LocalQueryTest
 
         eventually(() -> assertThat(getCommitIndex(slowFollower)).isEqualTo(leaderCommitIndex));
 
-        group.dropMessagesToMember(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), AppendEntriesRequest.class);
+        group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), AppendEntriesRequest.class);
 
         leader.replicate(apply("value2")).get();
 
@@ -268,19 +258,18 @@ public class LocalQueryTest
     @Test(timeout = 300_000)
     public void when_queryFromSlowFollower_thenEventuallyReadLatestValue()
             throws Exception {
-        group = new LocalRaftGroup(3);
-        group.start();
+        group = LocalRaftGroup.start(3);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         leader.replicate(apply("value1")).get();
 
-        RaftNodeImpl slowFollower = group.getAnyFollowerNode();
-        group.dropMessagesToMember(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), AppendEntriesRequest.class);
+        RaftNodeImpl slowFollower = group.getAnyFollower();
+        group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), AppendEntriesRequest.class);
 
         Object lastValue = "value2";
         leader.replicate(apply(lastValue)).get();
 
-        group.allowAllMessagesToMember(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint());
+        group.allowAllMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint());
 
         eventually(() -> {
             long commitIndex = getCommitIndex(leader);
@@ -293,8 +282,7 @@ public class LocalQueryTest
     @Test(timeout = 300_000)
     public void when_queryFromSplitLeaderWithAnyLocal_thenReadStaleValue()
             throws Exception {
-        group = new LocalRaftGroup(3);
-        group.start();
+        group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
@@ -308,7 +296,7 @@ public class LocalQueryTest
             }
         });
 
-        RaftNodeImpl followerNode = group.getAnyFollowerNode();
+        RaftNodeImpl followerNode = group.getAnyFollower();
         group.splitMembers(leader.getLocalEndpoint());
 
         eventually(() -> {
@@ -333,8 +321,7 @@ public class LocalQueryTest
     @Test(timeout = 300_000)
     public void when_queryFromSplitLeaderWithLeaderLocal_then_readFailsAfterLeaderDemotesToFollower()
             throws Exception {
-        group = new LocalRaftGroup(3);
-        group.start();
+        group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
@@ -363,8 +350,7 @@ public class LocalQueryTest
     @Test(timeout = 300_000)
     public void when_queryFromSplitLeader_thenEventuallyReadLatestValue()
             throws Exception {
-        group = new LocalRaftGroup(3);
-        group.start();
+        group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
@@ -378,7 +364,7 @@ public class LocalQueryTest
             }
         });
 
-        RaftNodeImpl followerNode = group.getAnyFollowerNode();
+        RaftNodeImpl followerNode = group.getAnyFollower();
         group.splitMembers(leader.getLocalEndpoint());
 
         eventually(() -> {

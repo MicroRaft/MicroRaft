@@ -36,8 +36,8 @@ See [the Getting Started Guide](https://microraft.io/user-guide/getting-started)
 
 ## Building from Source
 
-Pull the latest code with `git pull origin master` and build with 
-`./mvnw clean package`. 
+Pull the latest code with `git clone https://github.com/metanet/MicroRaft.git` 
+and build with `cd MicroRaft && ./mvnw clean package`. 
 
 
 ## Source Code Layout 

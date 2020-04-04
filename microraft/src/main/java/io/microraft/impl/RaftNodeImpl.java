@@ -112,6 +112,8 @@ import static io.microraft.RaftNodeStatus.UPDATING_RAFT_GROUP_MEMBER_LIST;
 import static io.microraft.RaftNodeStatus.isTerminal;
 import static io.microraft.RaftRole.FOLLOWER;
 import static io.microraft.RaftRole.LEADER;
+import static io.microraft.impl.log.RaftLog.getLogCapacity;
+import static io.microraft.impl.log.RaftLog.getMaxLogEntryCountToKeepAfterSnapshot;
 import static io.microraft.impl.util.RandomPicker.getRandomInt;
 import static io.microraft.model.log.SnapshotEntry.isNonInitial;
 import static java.lang.Math.min;
@@ -139,7 +141,6 @@ public final class RaftNodeImpl
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RaftNode.class);
     private static final long LEADER_ELECTION_TIMEOUT_NOISE_MILLIS = 100;
-    private static final float KEPT_LOG_ENTRY_RATIO_BEFORE_SNAPSHOT_INDEX = 0.1f;
     private static final long LEADER_BACKOFF_RESET_TASK_PERIOD_MILLIS = 250;
     private static final int MIN_BACKOFF_ROUNDS = 4;
 
@@ -190,9 +191,8 @@ public final class RaftNodeImpl
         this.commitCountToTakeSnapshot = config.getCommitCountToTakeSnapshot();
         this.appendEntriesRequestBatchSize = config.getAppendEntriesRequestBatchSize();
         this.maxUncommittedLogEntryCount = config.getMaxUncommittedLogEntryCount();
-        this.maxLogEntryCountToKeepAfterSnapshot = Math
-                .max(1, (int) (commitCountToTakeSnapshot * KEPT_LOG_ENTRY_RATIO_BEFORE_SNAPSHOT_INDEX));
-        int logCapacity = commitCountToTakeSnapshot + maxUncommittedLogEntryCount + maxLogEntryCountToKeepAfterSnapshot;
+        this.maxLogEntryCountToKeepAfterSnapshot = getMaxLogEntryCountToKeepAfterSnapshot(commitCountToTakeSnapshot);
+        int logCapacity = getLogCapacity(commitCountToTakeSnapshot, maxUncommittedLogEntryCount);
         this.state = RaftState.create(groupId, localEndpoint, initialGroupMembers, logCapacity, store);
         this.maxBackoffRounds = getMaxBackoffRounds(config);
         this.leaderBackoffResetTask = new LeaderBackoffResetTask();
@@ -222,9 +222,8 @@ public final class RaftNodeImpl
         this.commitCountToTakeSnapshot = config.getCommitCountToTakeSnapshot();
         this.appendEntriesRequestBatchSize = config.getAppendEntriesRequestBatchSize();
         this.maxUncommittedLogEntryCount = config.getMaxUncommittedLogEntryCount();
-        this.maxLogEntryCountToKeepAfterSnapshot = Math
-                .max(1, (int) (commitCountToTakeSnapshot * KEPT_LOG_ENTRY_RATIO_BEFORE_SNAPSHOT_INDEX));
-        int logCapacity = commitCountToTakeSnapshot + maxUncommittedLogEntryCount + maxLogEntryCountToKeepAfterSnapshot;
+        this.maxLogEntryCountToKeepAfterSnapshot = getMaxLogEntryCountToKeepAfterSnapshot(commitCountToTakeSnapshot);
+        int logCapacity = getLogCapacity(commitCountToTakeSnapshot, maxUncommittedLogEntryCount);
         this.state = RaftState.restore(groupId, restoredState, logCapacity, store);
         this.maxBackoffRounds = getMaxBackoffRounds(config);
         this.leaderBackoffResetTask = new LeaderBackoffResetTask();

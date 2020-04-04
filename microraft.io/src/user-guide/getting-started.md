@@ -33,10 +33,11 @@ and YAML files:
 ~~~~
 
 If you don't have Maven but want to build the project on your machine, `mvnw` 
-is available in the MicroRaft repository. Just clone 
-`https://github.com/metanet/MicroRaft.git` and hit `./mvnw clean package`. 
-Then you can get the jars from `microraft/target`, `microraft-hocon/target`, 
-and `microraft-yaml/target` directories. 
+is available in the MicroRaft repository. Just clone with  
+`git clone https://github.com/metanet/MicroRaft.git` and hit 
+`cd MicroRaft && ./mvnw clean package`. Then you can get the jars from 
+`microraft/target`, `microraft-hocon/target`, and `microraft-yaml/target` 
+directories. 
 
 
 ## Logging

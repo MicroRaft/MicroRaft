@@ -29,11 +29,10 @@
         </developer>
     </developers>
 
-    <scm>
-        <url>https://github.com/metanet/MicroRaft</url>
-        <connection>scm:git:git@github.com:metanet/MicroRaft</connection>
-        <developerConnection>scm:git:git@github.com:metanet/MicroRaft.git</developerConnection>
-    </scm>
+    <organization>
+        <name>MicroRaft</name>
+        <url>https://microraft.io/</url>
+    </organization>
 
     <licenses>
         <license>
@@ -42,6 +41,17 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <scm>
+        <url>https://github.com/metanet/MicroRaft</url>
+        <connection>scm:git:git@github.com:metanet/MicroRaft</connection>
+        <developerConnection>scm:git:git@github.com:metanet/MicroRaft.git</developerConnection>
+    </scm>
+
+    <issueManagement>
+        <system>Github</system>
+        <url>https://github.com/metanet/MicroRaft/issues</url>
+    </issueManagement>
 
     <properties>
         <root.dir>${project.basedir}</root.dir>

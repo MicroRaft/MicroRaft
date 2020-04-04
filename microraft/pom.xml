@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>MicroRaft - Java implementation of Raft consensus algorithm</name>
+    <name>MicroRaft</name>
     <artifactId>microraft</artifactId>
     <packaging>jar</packaging>
 

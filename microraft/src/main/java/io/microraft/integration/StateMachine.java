@@ -17,6 +17,7 @@
 
 package io.microraft.integration;
 
+import io.microraft.RaftConfig;
 import io.microraft.RaftNode;
 
 import javax.annotation.Nonnull;
@@ -76,7 +77,7 @@ public interface StateMachine {
      *
      * @return the result of the operation execution
      */
-    Object runOperation(long commitIndex, @Nullable Object operation);
+    Object runOperation(long commitIndex, @Nonnull Object operation);
 
     /**
      * Takes a snapshot of the state machine for the given commit index
@@ -92,9 +93,15 @@ public interface StateMachine {
      * and the other followers. Moreover, snapshot chunks can be sent one by
      * one or multiple at one go to speed up the snapshot installation process.
      * There is one important caveat here. State machine implementations must
-     * populate the snapshot chunks deterministically, so that a slow follower
-     * always reaches to the same state with the Raft leader and other
+     * populate the snapshot chunks in a deterministic way, so that a slow
+     * follower always reaches to the same state with the Raft leader and other
      * followers independent of from which nodes the chunks are fetched.
+     * If a state machine cannot create multiple snapshot chunks
+     * in a deterministic way, then it can create a single big snapshot chunk to
+     * disable optimization, or it can be directly disabled via
+     * {@link RaftConfig}. However, disabling this optimization can cause longer
+     * snapshot transfer durations since the bandwidth of followers is not
+     * utilized.
      *
      * @param commitIndex
      *         the commit index on which the current snapshot is being taken

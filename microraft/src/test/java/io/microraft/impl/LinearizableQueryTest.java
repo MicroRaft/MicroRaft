@@ -31,9 +31,9 @@ import io.microraft.model.message.AppendEntriesRequest;
 import io.microraft.model.message.AppendEntriesSuccessResponse;
 import io.microraft.model.message.InstallSnapshotRequest;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -46,6 +46,7 @@ import static io.microraft.impl.util.RaftTestUtils.TEST_RAFT_CONFIG;
 import static io.microraft.impl.util.RaftTestUtils.getCommitIndex;
 import static io.microraft.impl.util.RaftTestUtils.getLeaderQuerySeqNo;
 import static io.microraft.impl.util.RaftTestUtils.getSnapshotEntry;
+import static io.microraft.impl.util.RaftTestUtils.majority;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
@@ -58,12 +59,6 @@ public class LinearizableQueryTest
 
     private LocalRaftGroup group;
 
-    @Before
-    public void init() {
-        RaftConfig config = RaftConfig.newBuilder().setMaxUncommittedLogEntryCount(1).build();
-        group = new LocalRaftGroup(5, config, true, null, null, null);
-    }
-
     @After
     public void destroy() {
         if (group != null) {
@@ -74,8 +69,7 @@ public class LinearizableQueryTest
     @Test(timeout = 300_000)
     public void when_linearizableQueryIsIssuedWithoutCommitIndex_then_itReadsLastState()
             throws Exception {
-        group = newGroup();
-        group.start();
+        startGroup(5, TEST_RAFT_CONFIG);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         leader.replicate(apply("value1")).get();
@@ -101,15 +95,10 @@ public class LinearizableQueryTest
         assertThat(getCommitIndex(leader)).isEqualTo(commitIndex2);
     }
 
-    private LocalRaftGroup newGroup() {
-        return new LocalRaftGroup(5, TEST_RAFT_CONFIG, true, null, null, null);
-    }
-
     @Test(timeout = 300_000)
     public void when_linearizableQueryIsIssuedWithCommitIndex_then_itReadsLastState()
             throws Exception {
-        group = newGroup();
-        group.start();
+        startGroup(5, TEST_RAFT_CONFIG);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         leader.replicate(apply("value1")).get();
@@ -138,8 +127,7 @@ public class LinearizableQueryTest
     @Test(timeout = 300_000)
     public void when_linearizableQueryIsIssuedWithFurtherCommitIndex_then_itReadsLastState()
             throws Exception {
-        group = newGroup();
-        group.start();
+        startGroup(5, TEST_RAFT_CONFIG);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         leader.replicate(apply("value1")).get();
@@ -156,15 +144,14 @@ public class LinearizableQueryTest
     @Test(timeout = 300_000)
     public void when_newCommitIsDoneWhileThereIsWaitingQuery_then_queryRunsAfterNewCommit()
             throws Exception {
-        group = newGroup();
-        group.start();
+        startGroup(5, TEST_RAFT_CONFIG);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         leader.replicate(apply("value1")).get();
-        RaftNodeImpl[] followers = group.getNodesExcept(leader.getLocalEndpoint());
-        group.dropMessagesToMember(leader.getLocalEndpoint(), followers[0].getLocalEndpoint(), AppendEntriesRequest.class);
-        group.dropMessagesToMember(leader.getLocalEndpoint(), followers[1].getLocalEndpoint(), AppendEntriesRequest.class);
-        group.dropMessagesToMember(leader.getLocalEndpoint(), followers[2].getLocalEndpoint(), AppendEntriesRequest.class);
+        List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(0).getLocalEndpoint(), AppendEntriesRequest.class);
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint(), AppendEntriesRequest.class);
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(2).getLocalEndpoint(), AppendEntriesRequest.class);
 
         Future<Ordered<Object>> replicateFuture = leader.replicate(apply("value2"));
         Future<Ordered<Object>> queryFuture = leader.query(query(), LINEARIZABLE, 0);
@@ -177,18 +164,21 @@ public class LinearizableQueryTest
         assertThat(queryResult.getCommitIndex()).isEqualTo(replicationResult.getCommitIndex());
     }
 
+    private void startGroup(int groupSize, RaftConfig config) {
+        group = LocalRaftGroup.newBuilder(groupSize).setConfig(config).enableNewTermOperation().start();
+    }
+
     @Test(timeout = 300_000)
     public void when_multipleQueriesAreIssuedBeforeHeartbeatAcksReceived_then_allQueriesExecutedAtOnce()
             throws Exception {
-        group = newGroup();
-        group.start();
+        startGroup(5, TEST_RAFT_CONFIG);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         leader.replicate(apply("value1")).get();
-        RaftNodeImpl[] followers = group.getNodesExcept(leader.getLocalEndpoint());
-        group.dropMessagesToMember(leader.getLocalEndpoint(), followers[0].getLocalEndpoint(), AppendEntriesRequest.class);
-        group.dropMessagesToMember(leader.getLocalEndpoint(), followers[1].getLocalEndpoint(), AppendEntriesRequest.class);
-        group.dropMessagesToMember(leader.getLocalEndpoint(), followers[2].getLocalEndpoint(), AppendEntriesRequest.class);
+        List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(0).getLocalEndpoint(), AppendEntriesRequest.class);
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint(), AppendEntriesRequest.class);
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(2).getLocalEndpoint(), AppendEntriesRequest.class);
 
         Future<Ordered<Object>> queryFuture1 = leader.query(query(), LINEARIZABLE, 0);
         Future<Ordered<Object>> queryFuture2 = leader.query(query(), LINEARIZABLE, 0);
@@ -208,15 +198,14 @@ public class LinearizableQueryTest
     @Test(timeout = 300_000)
     public void when_newCommitIsDoneWhileThereAreMultipleQueries_then_allQueriesRunAfterCommit()
             throws Exception {
-        group = newGroup();
-        group.start();
+        startGroup(5, TEST_RAFT_CONFIG);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         leader.replicate(apply("value1")).get();
-        RaftNodeImpl[] followers = group.getNodesExcept(leader.getLocalEndpoint());
-        group.dropMessagesToMember(leader.getLocalEndpoint(), followers[0].getLocalEndpoint(), AppendEntriesRequest.class);
-        group.dropMessagesToMember(leader.getLocalEndpoint(), followers[1].getLocalEndpoint(), AppendEntriesRequest.class);
-        group.dropMessagesToMember(leader.getLocalEndpoint(), followers[2].getLocalEndpoint(), AppendEntriesRequest.class);
+        List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(0).getLocalEndpoint(), AppendEntriesRequest.class);
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint(), AppendEntriesRequest.class);
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(2).getLocalEndpoint(), AppendEntriesRequest.class);
 
         Future<Ordered<Object>> replicateFuture = leader.replicate(apply("value2"));
         Future<Ordered<Object>> queryFuture1 = leader.query(query(), LINEARIZABLE, 0);
@@ -236,12 +225,11 @@ public class LinearizableQueryTest
     @Test(timeout = 300_000)
     public void when_linearizableQueryIsIssuedToFollower_then_queryFails()
             throws Exception {
-        group = newGroup();
-        group.start();
+        startGroup(5, TEST_RAFT_CONFIG);
 
         group.waitUntilLeaderElected();
         try {
-            group.getAnyFollowerNode().query(query(), LINEARIZABLE, 0).get();
+            group.getAnyFollower().query(query(), LINEARIZABLE, 0).get();
             fail();
         } catch (ExecutionException e) {
             assertThat(e).hasCauseInstanceOf(NotLeaderException.class);
@@ -252,16 +240,15 @@ public class LinearizableQueryTest
     public void when_multipleQueryLimitIsReachedBeforeHeartbeatAcks_then_noNewQueryIsAccepted()
             throws Exception {
         RaftConfig config = RaftConfig.newBuilder().setMaxUncommittedLogEntryCount(1).build();
-        group = new LocalRaftGroup(5, config, true, null, null, null);
-        group.start();
+        startGroup(5, config);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         eventually(() -> assertThat(getCommitIndex(leader)).isEqualTo(1));
 
-        RaftNodeImpl[] followers = group.getNodesExcept(leader.getLocalEndpoint());
-        group.dropMessagesToMember(leader.getLocalEndpoint(), followers[0].getLocalEndpoint(), AppendEntriesRequest.class);
-        group.dropMessagesToMember(leader.getLocalEndpoint(), followers[1].getLocalEndpoint(), AppendEntriesRequest.class);
-        group.dropMessagesToMember(leader.getLocalEndpoint(), followers[2].getLocalEndpoint(), AppendEntriesRequest.class);
+        List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(0).getLocalEndpoint(), AppendEntriesRequest.class);
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint(), AppendEntriesRequest.class);
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(2).getLocalEndpoint(), AppendEntriesRequest.class);
 
         Future<Ordered<Object>> queryFuture1 = leader.query(query(), LINEARIZABLE, 0);
         Future<Ordered<Object>> queryFuture2 = leader.query(query(), LINEARIZABLE, 0);
@@ -281,25 +268,23 @@ public class LinearizableQueryTest
     @Test(timeout = 300_000)
     public void when_leaderDemotesToFollowerWhileThereIsOngoingQuery_then_queryFails()
             throws Exception {
-        group = newGroup();
-        group.start();
+        startGroup(5, TEST_RAFT_CONFIG);
 
         RaftNodeImpl oldLeader = group.waitUntilLeaderElected();
 
-        int[] majorityNodeIndices = group.createMajoritySplitIndexes(false);
-        group.split(majorityNodeIndices);
+        List<RaftEndpoint> majoritySplitMembers = group.getRandomNodes(majority(5), false);
+        group.splitMembers(majoritySplitMembers);
 
         Future<Ordered<Object>> queryFuture = oldLeader.query(query(), LINEARIZABLE, 0);
 
         eventually(() -> {
-            for (int ix : majorityNodeIndices) {
-                RaftEndpoint newLeader = group.getNode(ix).getLeaderEndpoint();
-                assertThat(newLeader).isNotNull();
-                assertThat(newLeader).isNotEqualTo(oldLeader.getLocalEndpoint());
+            for (RaftEndpoint endpoint : majoritySplitMembers) {
+                RaftEndpoint newLeader = group.getNode(endpoint).getLeaderEndpoint();
+                assertThat(newLeader).isNotNull().isNotEqualTo(oldLeader.getLocalEndpoint());
             }
         });
 
-        RaftNodeImpl newLeader = group.getNode(group.getNode(majorityNodeIndices[0]).getLeaderEndpoint());
+        RaftNodeImpl newLeader = group.getNode(group.getNode(majoritySplitMembers.get(0)).getLeaderEndpoint());
         newLeader.replicate(apply("value1")).get();
 
         group.merge();
@@ -322,41 +307,42 @@ public class LinearizableQueryTest
                                       .setLeaderHeartbeatPeriodSecs(TEST_RAFT_CONFIG.getLeaderHeartbeatPeriodSecs())
                                       .setLeaderHeartbeatTimeoutSecs(TEST_RAFT_CONFIG.getLeaderHeartbeatTimeoutSecs())
                                       .setCommitCountToTakeSnapshot(100).build();
-        group = new LocalRaftGroup(3, config, true, null, null, null);
-        group.start();
+        group = startGroup(config, 3);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
-        RaftNodeImpl[] followers = group.getNodesExcept(leader.getLocalEndpoint());
-        group.dropMessagesToMember(leader.getLocalEndpoint(), followers[1].getLocalEndpoint(), AppendEntriesRequest.class);
-        group.dropMessagesToMember(leader.getLocalEndpoint(), followers[1].getLocalEndpoint(), InstallSnapshotRequest.class);
+        List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint(), AppendEntriesRequest.class);
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint(), InstallSnapshotRequest.class);
 
         int i = 0;
         while (getSnapshotEntry(leader).getIndex() == 0) {
             leader.replicate(apply("val" + (++i))).join();
         }
 
-        group.dropMessagesToMember(leader.getLocalEndpoint(), followers[0].getLocalEndpoint(), AppendEntriesRequest.class);
-        group.dropMessagesToMember(leader.getLocalEndpoint(), followers[0].getLocalEndpoint(), InstallSnapshotRequest.class);
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(0).getLocalEndpoint(), AppendEntriesRequest.class);
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(0).getLocalEndpoint(), InstallSnapshotRequest.class);
 
         CompletableFuture<Ordered<Object>> f = leader.query(query(), LINEARIZABLE, 0);
 
         eventually(() -> assertThat(getLeaderQuerySeqNo(leader)).isEqualTo(1));
 
-        group.allowAllMessagesToMember(leader.getLocalEndpoint(), followers[0].getLocalEndpoint());
-        group.allowAllMessagesToMember(leader.getLocalEndpoint(), followers[1].getLocalEndpoint());
+        group.allowAllMessagesTo(leader.getLocalEndpoint(), followers.get(0).getLocalEndpoint());
+        group.allowAllMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint());
 
         Ordered<Object> result = f.join();
         assertThat(result.getResult()).isEqualTo("val" + i);
     }
 
+    private LocalRaftGroup startGroup(RaftConfig config, int i) {
+        return LocalRaftGroup.newBuilder(i).setConfig(config).enableNewTermOperation().start();
+    }
+
     @Test
     public void when_followerFallsBehind_then_queryIsExecutedOnLeaderWithAppendEntriesFailureResponse() {
-        group = new LocalRaftGroup(2, TEST_RAFT_CONFIG, true, null, null, null);
-        group.start();
+        startGroup(2, TEST_RAFT_CONFIG);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
-        RaftNodeImpl[] followers = group.getNodesExcept(leader.getLocalEndpoint());
-        RaftNodeImpl follower = followers[0];
+        RaftNodeImpl follower = group.getAnyFollower();
 
         int count = 10;
         for (int i = 0; i < count; i++) {
@@ -365,19 +351,18 @@ public class LinearizableQueryTest
 
         RaftNodeImpl newFollower = group.createNewRaftNode();
 
-        group.dropMessagesToMember(leader.getLocalEndpoint(), newFollower.getLocalEndpoint(), AppendEntriesRequest.class);
-        group.dropMessagesToMember(newFollower.getLocalEndpoint(), leader.getLocalEndpoint(), AppendEntriesSuccessResponse.class);
-        group.dropMessagesToMember(newFollower.getLocalEndpoint(), leader.getLocalEndpoint(), AppendEntriesFailureResponse.class);
+        group.dropMessagesTo(leader.getLocalEndpoint(), newFollower.getLocalEndpoint(), AppendEntriesRequest.class);
+        group.dropMessagesTo(newFollower.getLocalEndpoint(), leader.getLocalEndpoint(), AppendEntriesSuccessResponse.class);
+        group.dropMessagesTo(newFollower.getLocalEndpoint(), leader.getLocalEndpoint(), AppendEntriesFailureResponse.class);
 
         leader.changeMembership(newFollower.getLocalEndpoint(), MembershipChangeMode.ADD, 0).join();
 
-        group.dropMessagesToMember(leader.getLocalEndpoint(), follower.getLocalEndpoint(), AppendEntriesRequest.class);
+        group.dropMessagesTo(leader.getLocalEndpoint(), follower.getLocalEndpoint(), AppendEntriesRequest.class);
 
         CompletableFuture<Ordered<Object>> f = leader.query(query(), LINEARIZABLE, 0);
 
-        group.allowMessagesToMember(newFollower.getLocalEndpoint(), leader.getLocalEndpoint(),
-                                    AppendEntriesFailureResponse.class);
-        group.allowMessagesToMember(leader.getLocalEndpoint(), newFollower.getLocalEndpoint(), AppendEntriesRequest.class);
+        group.allowMessagesTo(newFollower.getLocalEndpoint(), leader.getLocalEndpoint(), AppendEntriesFailureResponse.class);
+        group.allowMessagesTo(leader.getLocalEndpoint(), newFollower.getLocalEndpoint(), AppendEntriesRequest.class);
 
         f.join();
     }

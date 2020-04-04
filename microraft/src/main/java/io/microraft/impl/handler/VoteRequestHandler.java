@@ -115,10 +115,10 @@ public class VoteRequestHandler
         if (state.votedEndpoint() != null) {
             boolean granted = (candidate.equals(state.votedEndpoint()));
             if (granted) {
-                LOGGER.info("{} Vote granted for duplicate {}", localEndpointStr(), request);
+                LOGGER.debug("{} Vote granted for {} (duplicate)", localEndpointStr(), request);
             } else {
-                LOGGER.info("{} no vote for {}. currently voted-for: {}", localEndpointStr(), request,
-                            state.votedEndpoint().getId());
+                LOGGER.debug("{} no vote for {}. currently voted-for: {}", localEndpointStr(), request,
+                             state.votedEndpoint().getId());
             }
             node.send(responseBuilder.setTerm(candidateTerm).setGranted(granted).build(), candidate);
             return;

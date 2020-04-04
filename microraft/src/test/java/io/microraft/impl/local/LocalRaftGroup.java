@@ -19,184 +19,169 @@ package io.microraft.impl.local;
 
 import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
+import io.microraft.RaftNode;
 import io.microraft.impl.RaftNodeImpl;
+import io.microraft.impl.util.AssertionUtils;
+import io.microraft.integration.StateMachine;
 import io.microraft.model.message.RaftMessage;
 import io.microraft.persistence.NopRaftStore;
 import io.microraft.persistence.RaftStore;
 import io.microraft.persistence.RestoredRaftState;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static io.microraft.RaftConfig.DEFAULT_RAFT_CONFIG;
-import static io.microraft.RaftNode.newBuilder;
 import static io.microraft.impl.util.AssertionUtils.eventually;
 import static io.microraft.impl.util.RaftTestUtils.getTerm;
-import static io.microraft.impl.util.RaftTestUtils.majority;
-import static io.microraft.impl.util.RaftTestUtils.minority;
-import static java.lang.System.arraycopy;
-import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
 
 /**
- * Represents a single Raft group of which all members run locally,
- * and provides methods to access specific nodes, terminate nodes, split/merge
- * the group and define allow/drop rules between nodes.
+ * This class is used for running a Raft group with local Raft nodes.
+ * It provides methods to access specific Raft nodes, a set of functionalities
+ * over them, such as terminations, creating network partitions, dropping or
+ * altering network messages.
  *
  * @author mdogan
  * @author metanet
+ * @see LocalRaftEndpoint
+ * @see LocalRaftNodeRuntime
+ * @see SimpleStateMachine
+ * @see Firewall
  */
 public class LocalRaftGroup {
 
     private final RaftConfig config;
-    private final boolean appendNopEntryOnLeaderElection;
-    private RaftEndpoint[] initialMembers;
-    private RaftEndpoint[] members;
-    private LocalRaftNodeRuntime[] runtimes;
-    private RaftNodeImpl[] nodes;
-    private int createdNodeCount;
+    private final boolean newTermEntryEnabled;
+    private final List<RaftEndpoint> initialMembers = new ArrayList<>();
+    private Map<RaftEndpoint, RaftNodeContext> nodeContexts = new HashMap<>();
     private BiFunction<RaftEndpoint, RaftConfig, RaftStore> raftStoreFactory;
-    private Supplier<LocalRaftEndpoint> endpointFactory = LocalRaftEndpoint::newEndpoint;
 
-    public LocalRaftGroup(int size) {
-        this(size, DEFAULT_RAFT_CONFIG);
-    }
-
-    public LocalRaftGroup(int size, RaftConfig config) {
-        this(size, config, false, LocalRaftEndpoint::newEndpoint, (raftEndpoint, c) -> NopRaftStore.INSTANCE, null);
-    }
-
-    public LocalRaftGroup(int size, RaftConfig config, boolean appendNopEntryOnLeaderElection,
-                          Supplier<LocalRaftEndpoint> endpointFactory,
-                          BiFunction<RaftEndpoint, RaftConfig, RaftStore> raftStoreFactory,
-                          BiFunction<RaftEndpoint, RaftConfig, Supplier<RestoredRaftState>> raftStateLoaderFactory) {
-        this.initialMembers = new RaftEndpoint[size];
-        this.members = new RaftEndpoint[size];
-        this.runtimes = new LocalRaftNodeRuntime[size];
+    private LocalRaftGroup(int size, RaftConfig config, boolean newTermEntryEnabled,
+                           BiFunction<RaftEndpoint, RaftConfig, RaftStore> raftStoreFactory) {
         this.config = config;
-        this.appendNopEntryOnLeaderElection = appendNopEntryOnLeaderElection;
-
-        if (endpointFactory != null) {
-            this.endpointFactory = endpointFactory;
-        }
-
+        this.newTermEntryEnabled = newTermEntryEnabled;
         this.raftStoreFactory = raftStoreFactory;
 
-        for (; createdNodeCount < size; createdNodeCount++) {
-            LocalRaftNodeRuntime runtime = createNewLocalRaftNodeRuntime();
-            runtimes[createdNodeCount] = runtime;
-            initialMembers[createdNodeCount] = runtime.getLocalMember();
-            members[createdNodeCount] = runtime.getLocalMember();
-        }
-
-        createNodes(size, config, raftStoreFactory, raftStateLoaderFactory);
+        createNodes(size, config, raftStoreFactory);
     }
 
-    private void createNodes(int size, RaftConfig config, BiFunction<RaftEndpoint, RaftConfig, RaftStore> raftStoreFactory,
-                             BiFunction<RaftEndpoint, RaftConfig, Supplier<RestoredRaftState>> raftStateLoaderFactory) {
-        nodes = new RaftNodeImpl[size];
+    /**
+     * Creates and starts a Raft group for the given number of Raft nodes.
+     *
+     * @param groupSize
+     *         the number of Raft nodes to create the Raft group
+     *
+     * @return the created and started Raft group
+     */
+    public static LocalRaftGroup start(int groupSize) {
+        LocalRaftGroup group = new LocalRaftGroupBuilder(groupSize).build();
+        group.start();
+
+        return group;
+    }
+
+    /**
+     * Creates and starts a Raft group for the given number of Raft nodes.
+     *
+     * @param groupSize
+     *         the number of Raft nodes to create the Raft group
+     * @param config
+     *         the RaftConfig object to create the Raft nodes with
+     *
+     * @return the created and started Raft group
+     */
+    public static LocalRaftGroup start(int groupSize, RaftConfig config) {
+        LocalRaftGroup group = new LocalRaftGroupBuilder(groupSize).setConfig(config).build();
+        group.start();
+
+        return group;
+    }
+
+    /**
+     * Returns a new Raft group builder object
+     *
+     * @param groupSize
+     *         the number of Raft nodes to create the Raft group
+     *
+     * @return a new Raft group builder object
+     */
+    public static LocalRaftGroupBuilder newBuilder(int groupSize) {
+        return new LocalRaftGroupBuilder(groupSize);
+    }
+
+    private void createNodes(int size, RaftConfig config, BiFunction<RaftEndpoint, RaftConfig, RaftStore> raftStoreFactory) {
         for (int i = 0; i < size; i++) {
-            LocalRaftNodeRuntime runtime = runtimes[i];
+            RaftEndpoint endpoint = LocalRaftEndpoint.newEndpoint();
+            initialMembers.add(endpoint);
+        }
 
-            if (raftStoreFactory == null) {
-                if (raftStateLoaderFactory != null) {
-                    try {
-                        Supplier<RestoredRaftState> loader = raftStateLoaderFactory.apply(members[i], config);
-                        RestoredRaftState state = loader.get();
-                        assertNotNull(state);
-                        nodes[i] = (RaftNodeImpl) newBuilder().setGroupId("default").setRestoredState(state).setConfig(config)
-                                                              .setRuntime(runtime).setStateMachine(runtime).build();
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                } else {
-                    nodes[i] = (RaftNodeImpl) newBuilder().setGroupId("default").setLocalEndpoint(members[i])
-                                                          .setInitialGroupMembers(asList(members)).setConfig(config)
-                                                          .setRuntime(runtime).setStateMachine(runtime).build();
-                }
-            } else {
-                RaftStore raftStore = raftStoreFactory.apply(members[i], config);
-                if (raftStateLoaderFactory != null) {
-                    try {
-                        Supplier<RestoredRaftState> loader = raftStateLoaderFactory.apply(members[i], config);
-                        RestoredRaftState state = loader.get();
-                        assertNotNull(state);
-                        nodes[i] = (RaftNodeImpl) newBuilder().setGroupId("default").setRestoredState(state).setConfig(config).setRuntime(runtime).setStateMachine(runtime).setStore(raftStore)
-                                                              .build();
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                } else {
-                    nodes[i] = (RaftNodeImpl) newBuilder().setGroupId("default").setLocalEndpoint(members[i]).setInitialGroupMembers(asList(members)).setConfig(config)
-                                                          .setRuntime(runtime).setStateMachine(runtime).setStore(raftStore).build();
-                }
+        for (int i = 0; i < size; i++) {
+            RaftEndpoint endpoint = initialMembers.get(i);
+            Firewall firewall = new Firewall();
+            LocalRaftNodeRuntime runtime = new LocalRaftNodeRuntime(endpoint, firewall);
+            SimpleStateMachine stateMachine = new SimpleStateMachine(newTermEntryEnabled);
+            RaftNode.RaftNodeBuilder nodeBuilder = RaftNode.newBuilder().setGroupId("default").setLocalEndpoint(endpoint)
+                                                           .setInitialGroupMembers(initialMembers).setConfig(config)
+                                                           .setRuntime(runtime).setStateMachine(stateMachine);
+            if (raftStoreFactory != null) {
+                nodeBuilder.setStore(raftStoreFactory.apply(endpoint, config));
             }
+
+            RaftNodeContext context = new RaftNodeContext(firewall, runtime, stateMachine, (RaftNodeImpl) nodeBuilder.build());
+            nodeContexts.put(endpoint, context);
         }
     }
 
-    private LocalRaftNodeRuntime createNewLocalRaftNodeRuntime() {
-        return createNewLocalRaftRuntime(endpointFactory.get());
-    }
-
-    private LocalRaftNodeRuntime createNewLocalRaftRuntime(LocalRaftEndpoint endpoint) {
-        return new LocalRaftNodeRuntime(endpoint, appendNopEntryOnLeaderElection);
-    }
-
+    /**
+     * Enables discovery between the created Raft nodes and starts them.
+     */
     public void start() {
-        startWithoutDiscovery();
         initDiscovery();
-    }
-
-    public void startWithoutDiscovery() {
-        for (RaftNodeImpl node : nodes) {
-            node.start();
-        }
+        startNodes();
     }
 
     private void initDiscovery() {
-        for (LocalRaftNodeRuntime runtime : runtimes) {
-            for (int i = 0; i < size(); i++) {
-                if (runtimes[i].isShutdown()) {
-                    continue;
-                }
-                RaftNodeImpl node = nodes[i];
-                if (!node.getLocalEndpoint().equals(runtime.getLocalMember())) {
-                    runtime.discoverNode(node);
+        for (RaftNodeContext ctx1 : nodeContexts.values()) {
+            for (RaftNodeContext ctx2 : nodeContexts.values()) {
+                if (ctx2.isRuntimeRunning() && !ctx1.getLocalEndpoint().equals(ctx2.getLocalEndpoint())) {
+                    ctx1.runtime.discoverNode(ctx2.node);
                 }
             }
         }
     }
 
-    public int size() {
-        return members.length;
+    private void startNodes() {
+        for (RaftNodeContext ctx : nodeContexts.values()) {
+            ctx.node.start();
+        }
     }
 
+    /**
+     * Creates a new Raft node and makes the other Raft nodes discover it.
+     *
+     * @return the created Raft node.
+     */
     public RaftNodeImpl createNewRaftNode() {
-        int oldSize = this.runtimes.length;
-        int newSize = oldSize + 1;
-        RaftEndpoint[] endpoints = new RaftEndpoint[newSize];
-        LocalRaftNodeRuntime[] runtimes = new LocalRaftNodeRuntime[newSize];
-        RaftNodeImpl[] nodes = new RaftNodeImpl[newSize];
-        arraycopy(this.members, 0, endpoints, 0, oldSize);
-        arraycopy(this.runtimes, 0, runtimes, 0, oldSize);
-        arraycopy(this.nodes, 0, nodes, 0, oldSize);
-        LocalRaftNodeRuntime runtime = createNewLocalRaftNodeRuntime();
-        createdNodeCount++;
-        runtimes[oldSize] = runtime;
-        RaftEndpoint endpoint = runtime.getLocalMember();
-        endpoints[oldSize] = endpoint;
+        RaftEndpoint endpoint = LocalRaftEndpoint.newEndpoint();
+        Firewall firewall = new Firewall();
+        LocalRaftNodeRuntime runtime = new LocalRaftNodeRuntime(endpoint, firewall);
+        SimpleStateMachine stateMachine = new SimpleStateMachine(newTermEntryEnabled);
         RaftStore raftStore = raftStoreFactory != null ? raftStoreFactory.apply(endpoint, config) : NopRaftStore.INSTANCE;
-        RaftNodeImpl node = (RaftNodeImpl) newBuilder().setGroupId("default").setLocalEndpoint(endpoint)
-                                                       .setInitialGroupMembers(asList(initialMembers)).setConfig(config)
-                                                       .setRuntime(runtime).setStateMachine(runtime).setStore(raftStore).build();
-        nodes[oldSize] = node;
-        this.members = endpoints;
-        this.runtimes = runtimes;
-        this.nodes = nodes;
+        RaftNodeImpl node = (RaftNodeImpl) RaftNode.newBuilder().setGroupId("default").setLocalEndpoint(endpoint)
+                                                   .setInitialGroupMembers(initialMembers).setConfig(config).setRuntime(runtime)
+                                                   .setStateMachine(stateMachine).setStore(raftStore).build();
+
+        nodeContexts.put(endpoint, new RaftNodeContext(firewall, runtime, stateMachine, node));
 
         node.start();
         initDiscovery();
@@ -204,29 +189,41 @@ public class LocalRaftGroup {
         return node;
     }
 
-    public RaftNodeImpl createNewRaftNode(RestoredRaftState restoredRaftState, RaftStore store) {
-        requireNonNull(restoredRaftState);
-        int oldSize = this.runtimes.length;
-        int newSize = oldSize + 1;
-        RaftEndpoint[] endpoints = new RaftEndpoint[newSize];
-        LocalRaftNodeRuntime[] runtimes = new LocalRaftNodeRuntime[newSize];
-        RaftNodeImpl[] nodes = new RaftNodeImpl[newSize];
-        System.arraycopy(this.members, 0, endpoints, 0, oldSize);
-        System.arraycopy(this.runtimes, 0, runtimes, 0, oldSize);
-        System.arraycopy(this.nodes, 0, nodes, 0, oldSize);
-        LocalRaftNodeRuntime runtime = createNewLocalRaftRuntime((LocalRaftEndpoint) restoredRaftState.getLocalEndpoint());
-        createdNodeCount++;
-        runtimes[oldSize] = runtime;
-        RaftEndpoint endpoint = runtime.getLocalMember();
-        // TODO [basri] check if any already running raft node exists with the same endpoint
-        endpoints[oldSize] = endpoint;
-        RaftNodeImpl node = (RaftNodeImpl) newBuilder().setGroupId("default").setRestoredState(restoredRaftState)
-                                                       .setConfig(config).setRuntime(runtime).setStateMachine(runtime)
-                                                       .setStore(store).build();
-        nodes[oldSize] = node;
-        this.members = endpoints;
-        this.runtimes = runtimes;
-        this.nodes = nodes;
+    /**
+     * Restores a Raft node with the given {@link RestoredRaftState} object.
+     * The Raft node to be restored must be created in this local Raft group.
+     * <p>
+     * If there exists a running Raft node with the same endpoint, this method
+     * fails with {@link IllegalStateException}.
+     *
+     * @param restoredState
+     *         the restored Raft state object to start the Raft node
+     * @param store
+     *         the Raft store object to start the Raft node
+     *
+     * @return the restored Raft node
+     *
+     * @throws IllegalStateException
+     *         if there exists a running Raft node with the same endpoint
+     */
+    public RaftNodeImpl restoreRaftNode(RestoredRaftState restoredState, RaftStore store) {
+        boolean exists = nodeContexts.values().stream()
+                                     .filter(ctx -> ctx.getLocalEndpoint().equals(restoredState.getLocalEndpoint()))
+                                     .anyMatch(RaftNodeContext::isRuntimeRunning);
+
+        if (exists) {
+            throw new IllegalStateException(restoredState.getLocalEndpoint() + " is already running!");
+        }
+
+        requireNonNull(restoredState);
+
+        Firewall firewall = new Firewall();
+        LocalRaftNodeRuntime runtime = new LocalRaftNodeRuntime(restoredState.getLocalEndpoint(), firewall);
+        SimpleStateMachine stateMachine = new SimpleStateMachine(newTermEntryEnabled);
+        RaftNodeImpl node = (RaftNodeImpl) RaftNode.newBuilder().setGroupId("default").setRestoredState(restoredState)
+                                                   .setConfig(config).setRuntime(runtime).setStateMachine(stateMachine)
+                                                   .setStore(store).build();
+        nodeContexts.put(restoredState.getLocalEndpoint(), new RaftNodeContext(firewall, runtime, stateMachine, node));
 
         node.start();
         initDiscovery();
@@ -234,87 +231,109 @@ public class LocalRaftGroup {
         return node;
     }
 
-    public RaftNodeImpl[] getNodes() {
+    /**
+     * Returns all Raft nodes currently running in this local Raft group.
+     *
+     * @return all Raft nodes currently running in this local Raft group
+     */
+    public List<RaftNodeImpl> getNodes() {
+        return nodeContexts.values().stream().map(ctx -> ctx.node).collect(toList());
+    }
+
+    /**
+     * Returns all Raft nodes currently running in this local Raft group except
+     * the given Raft endpoint.
+     *
+     * @param endpoint
+     *         the Raft endpoint to excluded in the returned Raft node list
+     *
+     * @return all Raft nodes currently running in this local Raft group except
+     *         the given Raft endpoint
+     */
+    public List<RaftNodeImpl> getNodesExcept(RaftEndpoint endpoint) {
+        requireNonNull(endpoint);
+
+        List<RaftNodeImpl> nodes = nodeContexts.values().stream().map(ctx -> ctx.node)
+                                               .filter(node -> !node.getLocalEndpoint().equals(endpoint)).collect(toList());
+
+        if (nodes.size() != nodeContexts.size() - 1) {
+            throw new IllegalArgumentException("Unknown endpoint: " + endpoint);
+        }
+
         return nodes;
     }
 
-    public RaftNodeImpl[] getNodesExcept(RaftEndpoint endpoint) {
-        RaftNodeImpl[] n = new RaftNodeImpl[nodes.length - 1];
-        int i = 0;
-        for (RaftNodeImpl node : nodes) {
-            if (!node.getLocalEndpoint().equals(endpoint)) {
-                n[i++] = node;
-            }
-        }
-
-        if (i != n.length) {
-            throw new IllegalArgumentException();
-        }
-
-        return n;
-    }
-
+    /**
+     * Returns the currently running Raft node of the given Raft endpoint.
+     *
+     * @param endpoint
+     *         the Raft endpoint to return its Raft node
+     *
+     * @return the currently running Raft node of the given Raft endpoint
+     */
     public RaftNodeImpl getNode(RaftEndpoint endpoint) {
-        return nodes[getIndexOfRunning(endpoint)];
+        requireNonNull(endpoint);
+        return nodeContexts.get(endpoint).node;
     }
 
-    public int getIndexOfRunning(RaftEndpoint endpoint) {
-        assertNotNull(endpoint);
-        for (int i = 0; i < members.length; i++) {
-            if (!runtimes[i].isShutdown() && endpoint.equals(members[i])) {
-                return i;
-            }
-        }
-
-        throw new IllegalArgumentException("Unknown endpoint: " + endpoint);
-    }
-
-    public RaftEndpoint[] getFollowerEndpoints() {
-        RaftEndpoint leaderEndpoint = getLeaderEndpoint();
-        RaftEndpoint[] n = new RaftEndpoint[members.length - 1];
-        int i = 0;
-        for (RaftEndpoint member : members) {
-            if (!member.equals(leaderEndpoint)) {
-                n[i++] = member;
-            }
-        }
-
-        if (i != n.length) {
-            throw new IllegalArgumentException();
-        }
-
-        return n;
-    }
-
+    /**
+     * Returns the current leader Raft endpoint of the Raft group, or null
+     * if there is no elected leader.
+     * <p>
+     * If different Raft nodes see different leaders, this method fails with
+     * {@link AssertionError}.
+     *
+     * @return the current leader Raft endpoint of the Raft group, or null
+     *         if there is no elected leader
+     *
+     * @throws AssertionError
+     *         if different Raft nodes see different leaders
+     */
     public RaftEndpoint getLeaderEndpoint() {
         RaftEndpoint leader = null;
-        for (int i = 0; i < size(); i++) {
-            if (runtimes[i].isShutdown()) {
+
+        for (RaftNodeContext nodeContext : nodeContexts.values()) {
+            if (nodeContext.isRuntimeShutdown()) {
                 continue;
             }
-            RaftNodeImpl node = nodes[i];
-            RaftEndpoint endpoint = node.getLeaderEndpoint();
+
+            RaftEndpoint endpoint = nodeContext.getLeaderEndpoint();
             if (leader == null) {
                 leader = endpoint;
             } else if (!leader.equals(endpoint)) {
                 throw new AssertionError("Group doesn't have a single leader endpoint yet!");
             }
         }
+
         return leader;
     }
 
-    public RaftEndpoint getEndpoint(int index) {
-        return members[index];
+    /**
+     * Returns the state machine object for the given Raft endpoint.
+     *
+     * @param endpoint
+     *         the Raft endpoint to get the state machine object
+     *
+     * @return the state machine object for the given Raft endpoint
+     */
+    public SimpleStateMachine getStateMachine(RaftEndpoint endpoint) {
+        requireNonNull(endpoint);
+        return nodeContexts.get(endpoint).stateMachine;
     }
 
-    public LocalRaftNodeRuntime getRuntime(RaftEndpoint endpoint) {
-        return getRuntime(getIndexOfRunning(endpoint));
+    private Firewall getFirewall(RaftEndpoint endpoint) {
+        requireNonNull(endpoint);
+        return nodeContexts.get(endpoint).firewall;
     }
 
-    public LocalRaftNodeRuntime getRuntime(int index) {
-        return runtimes[index];
-    }
-
+    /**
+     * Waits until a leader is elected in this Raft group.
+     * <p>
+     * Fails with {@link AssertionError} if no leader is elected during
+     * {@link AssertionUtils#EVENTUAL_ASSERTION_TIMEOUT_SECS}.
+     *
+     * @return the leader Raft node
+     */
     public RaftNodeImpl waitUntilLeaderElected() {
         RaftNodeImpl[] leaderRef = new RaftNodeImpl[1];
         eventually(() -> {
@@ -323,14 +342,14 @@ public class LocalRaftGroup {
 
             int leaderTerm = getTerm(leaderNode);
 
-            for (RaftNodeImpl raftNode : nodes) {
-                if (runtimes[getIndexOf(raftNode.getLocalEndpoint())].isShutdown()) {
+            for (RaftNodeContext ctx : nodeContexts.values()) {
+                if (ctx.isRuntimeShutdown()) {
                     continue;
                 }
 
-                RaftEndpoint leader = raftNode.getLeaderEndpoint();
+                RaftEndpoint leader = ctx.getLeaderEndpoint();
                 assertThat(leader).isEqualTo(leaderNode.getLocalEndpoint());
-                assertThat(getTerm(raftNode)).isEqualTo(leaderTerm);
+                assertThat(getTerm(ctx.node)).isEqualTo(leaderTerm);
             }
 
             leaderRef[0] = leaderNode;
@@ -339,253 +358,459 @@ public class LocalRaftGroup {
         return leaderRef[0];
     }
 
+    /**
+     * Returns the current leader Raft node of the Raft group, or null
+     * if there is no elected leader.
+     * <p>
+     * If different Raft nodes see different leaders or the Raft node
+     * of the leader Raft endpoint is not found, this method fails with
+     * {@link AssertionError}.
+     *
+     * @return the current leader Raft endpoint of the Raft group, or null
+     *         if there is no elected leader
+     *
+     * @throws AssertionError
+     *         if different Raft nodes see different leaders or the Raft node
+     *         of the leader Raft endpoint is not found
+     */
     public RaftNodeImpl getLeaderNode() {
         RaftEndpoint leaderEndpoint = getLeaderEndpoint();
         if (leaderEndpoint == null) {
             return null;
         }
-        for (int i = 0; i < size(); i++) {
-            if (runtimes[i].isShutdown()) {
+
+        for (RaftNodeContext nodeContext : nodeContexts.values()) {
+            if (nodeContext.isRuntimeShutdown()) {
                 continue;
             }
-            RaftNodeImpl node = nodes[i];
-            if (leaderEndpoint.equals(node.getLocalEndpoint())) {
-                return node;
+
+            if (leaderEndpoint.equals(nodeContext.getLocalEndpoint())) {
+                return nodeContext.node;
             }
         }
+
         throw new AssertionError("Leader endpoint is " + leaderEndpoint + ", but leader node could not be found!");
     }
 
-    public int getIndexOf(RaftEndpoint endpoint) {
-        assertThat(endpoint).isNotNull();
-        for (int i = 0; i < members.length; i++) {
-            if (endpoint.equals(members[i])) {
-                return i;
+    /**
+     * Returns a random Raft node other than the given Raft endpoint.
+     * <p>
+     * If no running Raft node is found for given Raft endpoint, then this
+     * method fails with {@link NullPointerException}.
+     *
+     * @param endpoint
+     *         the endpoint to not to choose for the returned Raft node
+     *
+     * @return a random Raft node other than the given Raft endpoint
+     *
+     * @throws NullPointerException
+     *         if no running Raft node is found for given Raft endpoint
+     */
+    public RaftNodeImpl getAnyNodeExcept(RaftEndpoint endpoint) {
+        requireNonNull(endpoint);
+        requireNonNull(nodeContexts.get(endpoint));
+
+        for (Entry<RaftEndpoint, RaftNodeContext> e : nodeContexts.entrySet()) {
+            if (!e.getKey().equals(endpoint)) {
+                return e.getValue().node;
             }
         }
+
         throw new IllegalArgumentException("Unknown endpoint: " + endpoint);
     }
 
-    public RaftNodeImpl getAnyFollowerNode() {
+    /**
+     * Returns a random follower Raft node.
+     * <p>
+     * If no leader is found, then this method fails with
+     * {@link AssertionError}.
+     *
+     * @return a random follower Raft node
+     *
+     * @throws AssertionError
+     *         if no leader is found
+     */
+    public RaftNodeImpl getAnyFollower() {
         RaftEndpoint leaderEndpoint = getLeaderEndpoint();
         if (leaderEndpoint == null) {
             throw new AssertionError("Group doesn't have a leader yet!");
         }
-        for (int i = 0; i < size(); i++) {
-            if (runtimes[i].isShutdown()) {
-                continue;
-            }
-            RaftNodeImpl node = nodes[i];
-            if (!leaderEndpoint.equals(node.getLocalEndpoint())) {
-                return node;
-            }
-        }
-        throw new AssertionError("There's no follower node available!");
-    }
 
-    public void destroy() {
-        for (int i = 0; i < nodes.length; i++) {
-            if (!runtimes[i].isShutdown()) {
-                nodes[i].terminate();
-            }
-        }
-
-        for (LocalRaftNodeRuntime runtime : runtimes) {
-            runtime.shutdown();
-        }
+        return getAnyNodeExcept(leaderEndpoint);
     }
 
     /**
-     * Split nodes having these members from rest of the cluster.
+     * Stops all Raft nodes running in the Raft group.
+     */
+    public void destroy() {
+        for (RaftNodeContext ctx : nodeContexts.values()) {
+            ctx.node.terminate();
+        }
+
+        for (RaftNodeContext ctx : nodeContexts.values()) {
+            ctx.runtime.terminate();
+        }
+
+        nodeContexts.clear();
+    }
+
+    /**
+     * Split the given Raft endpoints from the rest of the Raft group.
+     * It means that the communication between the given endpoints and
+     * the other Raft nodes will be blocked completely.
+     * <p>
+     * This method fails with {@link NullPointerException} if no Raft node
+     * is found for any of the given endpoints list.
+     *
+     * @param endpoints
+     *         the list of Raft endpoints to split from the rest of the Raft
+     *         group
+     *
+     * @throws NullPointerException
+     *         if no Raft node is found for any of the given endpoints list
      */
     public void splitMembers(RaftEndpoint... endpoints) {
-        int[] indexes = new int[endpoints.length];
-        for (int i = 0; i < indexes.length; i++) {
-            indexes[i] = getIndexOfRunning(endpoints[i]);
-        }
-        split(indexes);
+        splitMembers(Arrays.asList(endpoints));
     }
 
     /**
-     * Split nodes with these indexes from rest of the cluster.
+     * Split the given Raft endpoints from the rest of the Raft group.
+     * It means that the communication between the given endpoints and
+     * the other Raft nodes will be blocked completely.
+     * <p>
+     * This method fails with {@link NullPointerException} if no Raft node
+     * is found for any of the given endpoints list.
+     *
+     * @param endpoints
+     *         the list of Raft endpoints to split from the rest of the Raft
+     *         group
+     *
+     * @throws NullPointerException
+     *         if no Raft node is found for any of the given endpoints list
      */
-    public void split(int... indexes) {
-        assertThat(indexes).hasSizeBetween(1, size() - 1);
-
-        int[] firstSplit = new int[size() - indexes.length];
-        int[] secondSplit = indexes;
-
-        int ix = 0;
-        for (int i = 0; i < size(); i++) {
-            if (Arrays.binarySearch(indexes, i) < 0) {
-                firstSplit[ix++] = i;
-            }
+    public void splitMembers(List<RaftEndpoint> endpoints) {
+        for (RaftEndpoint endpoint : endpoints) {
+            requireNonNull(nodeContexts.get(endpoint));
         }
 
-        split(secondSplit, firstSplit);
-        split(firstSplit, secondSplit);
+        List<RaftNodeContext> side1 = endpoints.stream().map(nodeContexts::get).collect(toList());
+        List<RaftNodeContext> side2 = new ArrayList<>(nodeContexts.values());
+        side2.removeAll(side1);
 
-    }
-
-    private void split(int[] firstSplit, int[] secondSplit) {
-        for (int i : firstSplit) {
-            for (int j : secondSplit) {
-                runtimes[i].removeNode(nodes[j]);
+        for (RaftNodeContext ctx1 : side1) {
+            for (RaftNodeContext ctx2 : side2) {
+                ctx1.runtime.undiscoverNode(ctx2.node);
+                ctx2.runtime.undiscoverNode(ctx1.node);
             }
         }
     }
 
-    public int[] createMinoritySplitIndexes(boolean includingLeader) {
-        return createSplitIndexes(includingLeader, minority(size()));
-    }
+    /**
+     * Returns a random set of Raft nodes.
+     *
+     * @param nodeCount
+     *         the number of Raft nodes to return
+     * @param includeLeader
+     *         denotes whether if the leader Raft node can be
+     *         returned or not
+     *
+     * @return the randomly selected Raft node set
+     */
+    public List<RaftEndpoint> getRandomNodes(int nodeCount, boolean includeLeader) {
+        RaftEndpoint leaderEndpoint = getLeaderEndpoint();
 
-    public int[] createSplitIndexes(boolean includingLeader, int splitSize) {
-        int leader = getLeaderIndex();
-
-        int[] indexes = new int[splitSize];
-        int ix = 0;
-
-        if (includingLeader) {
-            indexes[0] = leader;
-            ix = 1;
+        List<RaftEndpoint> split = new ArrayList<>();
+        if (includeLeader) {
+            split.add(leaderEndpoint);
         }
 
-        for (int i = 0; i < size(); i++) {
-            if (i == leader) {
+        List<RaftNodeContext> contexts = new ArrayList<>(nodeContexts.values());
+        Collections.shuffle(contexts);
+
+        for (RaftNodeContext ctx : contexts) {
+            if (leaderEndpoint.equals(ctx.getLocalEndpoint())) {
                 continue;
             }
-            if (ix == indexes.length) {
+
+            split.add(ctx.getLocalEndpoint());
+            if (split.size() == nodeCount) {
                 break;
             }
-            indexes[ix++] = i;
         }
-        return indexes;
+
+        return split;
     }
 
-    public int getLeaderIndex() {
-        RaftEndpoint leaderEndpoint = getLeaderEndpoint();
-        if (leaderEndpoint == null) {
-            return -1;
-        }
-        for (int i = 0; i < members.length; i++) {
-            if (leaderEndpoint.equals(members[i])) {
-                return i;
-            }
-        }
-        throw new AssertionError("Leader endpoint is " + leaderEndpoint + ", but this endpoint is unknown to group!");
-    }
-
-    public int[] createMajoritySplitIndexes(boolean includingLeader) {
-        return createSplitIndexes(includingLeader, majority(size()));
-    }
-
+    /**
+     * Cancels all network partitions and enables the Raft nodes to reach to
+     * each other again.
+     */
     public void merge() {
         initDiscovery();
     }
 
     /**
-     * Drops specific message type one-way between from -> to.
+     * Adds a one-way drop-message rule for the given source and target Raft
+     * endpoints and the Raft message type.
+     * <p>
+     * After this call, Raft messages of the given type sent from the given
+     * source Raft endpoint to the given target Raft endpoint are silently
+     * dropped.
+     *
+     * @param source
+     *         the source Raft endpoint to drop Raft messages of the given type
+     * @param target
+     *         the target Raft endpoint to drop Raft messages of the given type
+     * @param messageType
+     *         the type of the Raft messages to be dropped
      */
-    public <T extends RaftMessage> void dropMessagesToMember(RaftEndpoint from, RaftEndpoint to, Class<T> messageType) {
-        getRuntime(getIndexOfRunning(from)).dropMessagesToEndpoint(to, messageType);
+    public <T extends RaftMessage> void dropMessagesTo(RaftEndpoint source, RaftEndpoint target, Class<T> messageType) {
+        getFirewall(source).dropMessagesTo(target, messageType);
     }
 
     /**
-     * Allows specific message type one-way between from -> to.
+     * Deletes the one-way drop-message rule for the given source and target
+     * Raft endpoints and the Raft message type.
+     *
+     * @param source
+     *         the source Raft endpoint to remove the drop-message rule
+     * @param target
+     *         the target Raft endpoint to remove the drop-message rule
+     * @param messageType
+     *         the type of the Raft messages
      */
-    public <T extends RaftMessage> void allowMessagesToMember(RaftEndpoint from, RaftEndpoint to, Class<T> messageType) {
-        LocalRaftNodeRuntime runtime = getRuntime(getIndexOfRunning(from));
-        if (!runtime.isReachable(to)) {
-            throw new IllegalStateException(
-                    "Cannot allow " + messageType + " from " + from + " -> " + to + ", since all messages are dropped"
-                            + " between.");
-        }
-        runtime.allowMessagesToEndpoint(to, messageType);
+    public <T extends RaftMessage> void allowMessagesTo(RaftEndpoint source, RaftEndpoint target, Class<T> messageType) {
+        getFirewall(source).allowMessagesTo(target, messageType);
     }
 
     /**
-     * Drops all kind of messages one-way between from -> to.
+     * Adds a one-way drop-all-messages rule for the given source and target
+     * Raft endpoints.
+     * <p>
+     * After this call, all Raft messages sent from the source Raft endpoint to
+     * the target Raft endpoint are silently dropped.
+     * <p>
+     * If there were drop-message rules from the source Raft endpoint to
+     * the target Raft endpoint, they are replaced with a drop-all-messages
+     * rule.
+     *
+     * @param source
+     *         the source Raft endpoint to drop all Raft messages
+     * @param target
+     *         the target Raft endpoint to drop all Raft messages
      */
-    public void dropAllMessagesToMember(RaftEndpoint from, RaftEndpoint to) {
-        getRuntime(getIndexOfRunning(from)).removeNode(getNode(getIndexOfRunning(to)));
-    }
-
-    public RaftNodeImpl getNode(int index) {
-        return nodes[index];
+    public void dropAllMessagesTo(RaftEndpoint source, RaftEndpoint target) {
+        getFirewall(source).dropAllMessagesTo(target);
     }
 
     /**
-     * Allows all kind of messages one-way between from -> to.
+     * Deletes all one-way drop-message and drop-all-messages rules created
+     * for the source Raft endpoint and the target Raft endpoint.
+     *
+     * @param source
+     *         the source Raft endpoint
+     * @param target
+     *         the target Raft endpoint
      */
-    public void allowAllMessagesToMember(RaftEndpoint from, RaftEndpoint to) {
-        LocalRaftNodeRuntime runtime = getRuntime(getIndexOfRunning(from));
-        runtime.allowAllMessagesToEndpoint(to);
-        runtime.discoverNode(getNode(getIndexOfRunning(to)));
+    public void allowAllMessagesTo(RaftEndpoint source, RaftEndpoint target) {
+        getFirewall(source).allowAllMessagesTo(target);
     }
 
     /**
-     * Drops specific message type one-way from -> to all nodes.
+     * Adds a one-way drop-message rule for the given Raft message type
+     * from the source Raft endpoint to all other Raft endpoints.
+     *
+     * @param messageType
+     *         the type of the Raft messages to be dropped
      */
-    public <T extends RaftMessage> void dropMessagesToAll(RaftEndpoint from, Class<T> messageType) {
-        getRuntime(getIndexOfRunning(from)).dropMessagesToAll(messageType);
+    public <T extends RaftMessage> void dropMessagesToAll(RaftEndpoint source, Class<T> messageType) {
+        getFirewall(source).dropMessagesToAll(messageType);
     }
 
     /**
-     * Allows specific message type one-way from -> to all nodes.
+     * Deletes the one-way drop-all-messages rule for the given Raft message
+     * type from the source Raft endpoint to any other Raft endpoint.
+     *
+     * @param messageType
+     *         the type of the Raft message to delete the rule
      */
-    public <T extends RaftMessage> void allowMessagesToAll(RaftEndpoint from, Class<T> messageType) {
-        LocalRaftNodeRuntime runtime = getRuntime(getIndexOfRunning(from));
-        for (RaftEndpoint endpoint : members) {
-            if (!runtime.isReachable(endpoint)) {
-                throw new IllegalStateException("Cannot allow " + messageType + " from " + from + " -> " + endpoint
-                                                        + ", since all messages are dropped between.");
-            }
-        }
-        runtime.allowMessagesToAll(messageType);
+    public <T extends RaftMessage> void allowMessagesToAll(RaftEndpoint source, Class<T> messageType) {
+        getFirewall(source).allowMessagesToAll(messageType);
     }
 
     /**
-     * Resets all rules from endpoint.
+     * Resets all drop rules from the source Raft endpoint.
      */
-    public void resetAllRulesFrom(RaftEndpoint endpoint) {
-        getRuntime(getIndexOfRunning(endpoint)).resetAllRules();
+    public void resetAllRulesFrom(RaftEndpoint source) {
+        getFirewall(source).resetAllRules();
     }
 
-    public void alterMessagesToMember(RaftEndpoint from, RaftEndpoint to, Function<RaftMessage, RaftMessage> function) {
-        getRuntime(getIndexOfRunning(from)).alterMessagesToEndpoint(to, function);
+    /**
+     * Applies the given function an all Raft messages sent from the source
+     * Raft endpoint to the target Raft endpoint.
+     * <p>
+     * If the given function is not altering a given Raft message, it should
+     * return it as it is, instead of returning null.
+     * <p>
+     * Only a single alter rule can be created in the source Raft endpoint for
+     * a given target Raft endpoint and a new alter rule overwrites
+     * the previous one.
+     *
+     * @param source
+     *         the source Raft endpoint to apply the alter function
+     * @param target
+     *         the target Raft endpoint to apply the alter function
+     * @param function
+     *         the alter function to apply to Raft messages
+     */
+    public void alterMessagesTo(RaftEndpoint source, RaftEndpoint target, Function<RaftMessage, RaftMessage> function) {
+        getFirewall(source).alterMessagesTo(target, function);
     }
 
-    void removeAlterMessageRuleToMember(RaftEndpoint from, RaftEndpoint to) {
-        getRuntime(getIndexOfRunning(from)).removeAlterMessageRuleToEndpoint(to);
+    /**
+     * Deletes the alter-message rule from the source Raft endpoint to
+     * the target Raft endpoint.
+     *
+     * @param source
+     *         the source Raft endpoint to delete the alter function
+     * @param target
+     *         the target Raft endpoint to delete the alter function
+     */
+    void removeAlterMessageRuleTo(RaftEndpoint source, RaftEndpoint target) {
+        getFirewall(source).removeAlterMessageFunctionTo(target);
     }
 
-    public void terminateNode(int index) {
-        // TODO [basri] do we need to split() here...
-        split(index);
-        getRuntime(index).shutdown();
-    }
-
+    /**
+     * Terminates the Raft node with the given Raft endpoint and removes it
+     * from the discovery state of the other Raft nodes. It means that
+     * the other Raft nodes will see the terminated Raft node as unreachable.
+     * <p>
+     * This method fails with {@link NullPointerException} if there is no
+     * running Raft node with the given endpoint.
+     *
+     * @param endpoint
+     *         the Raft endpoint to terminate its Raft node
+     *
+     * @throws NullPointerException
+     *         if there is no running Raft node with the given endpoint
+     */
     public void terminateNode(RaftEndpoint endpoint) {
-        assertNotNull(endpoint);
+        requireNonNull(endpoint);
 
-        for (int i = 0; i < members.length; i++) {
-            if (endpoint.equals(members[i])) {
-                split(i);
-                runtimes[i].shutdown();
+        RaftNodeContext ctx = nodeContexts.get(endpoint);
+        requireNonNull(endpoint);
+        splitMembers(ctx.getLocalEndpoint());
+        ctx.runtime.terminate();
+        nodeContexts.remove(endpoint);
+    }
+
+    /**
+     * Builder for creating and starting Raft groups
+     */
+    public static class LocalRaftGroupBuilder {
+
+        private int groupSize;
+        private RaftConfig config = DEFAULT_RAFT_CONFIG;
+        private boolean newTermOperationEnabled;
+        private BiFunction<RaftEndpoint, RaftConfig, RaftStore> raftStoreFactory;
+
+        private LocalRaftGroupBuilder(int groupSize) {
+            if (groupSize < 2) {
+                throw new IllegalArgumentException("Raft groups must have at least 2 Raft nodes!");
             }
+            this.groupSize = groupSize;
+        }
+
+        /**
+         * Sets the RaftConfig object to create Raft nodes.
+         *
+         * @param config
+         *         the RaftConfig object to create Raft nodes
+         *
+         * @return the builder object for fluent calls
+         */
+        public LocalRaftGroupBuilder setConfig(RaftConfig config) {
+            requireNonNull(config);
+            this.config = config;
+            return this;
+        }
+
+        /**
+         * @return the builder object for fluent calls
+         *
+         * @see StateMachine#getNewTermOperation()
+         */
+        public LocalRaftGroupBuilder enableNewTermOperation() {
+            this.newTermOperationEnabled = true;
+            return this;
+        }
+
+        /**
+         * Sets the factory object for creating Raft state stores.
+         *
+         * @param raftStoreFactory
+         *         the factory object for creating Raft state
+         *         stores
+         *
+         * @return the builder object for fluent calls
+         */
+        public LocalRaftGroupBuilder setRaftStoreFactory(BiFunction<RaftEndpoint, RaftConfig, RaftStore> raftStoreFactory) {
+            requireNonNull(raftStoreFactory);
+            this.raftStoreFactory = raftStoreFactory;
+            return this;
+        }
+
+        /**
+         * Builds the local Raft group with the configured settings.
+         * Please note that the returned Raft group is not started yet.
+         *
+         * @return the created local Raft group
+         */
+        public LocalRaftGroup build() {
+            return new LocalRaftGroup(groupSize, config, newTermOperationEnabled, raftStoreFactory);
+        }
+
+        /**
+         * Builds and starts the local Raft group with the configured settings.
+         *
+         * @return the created and started local Raft group
+         */
+        public LocalRaftGroup start() {
+            LocalRaftGroup group = new LocalRaftGroup(groupSize, config, newTermOperationEnabled, raftStoreFactory);
+            group.start();
+
+            return group;
         }
     }
 
-    public boolean isRunning(RaftEndpoint endpoint) {
-        assertNotNull(endpoint);
-        for (int i = 0; i < members.length; i++) {
-            if (!endpoint.equals(members[i])) {
-                continue;
-            }
-            return !runtimes[i].isShutdown();
+    private static class RaftNodeContext {
+        final Firewall firewall;
+        final LocalRaftNodeRuntime runtime;
+        final SimpleStateMachine stateMachine;
+        final RaftNodeImpl node;
+
+        RaftNodeContext(Firewall firewall, LocalRaftNodeRuntime runtime, SimpleStateMachine stateMachine, RaftNodeImpl node) {
+            this.firewall = firewall;
+            this.runtime = runtime;
+            this.stateMachine = stateMachine;
+            this.node = node;
         }
 
-        throw new IllegalArgumentException("Unknown endpoint: " + endpoint);
+        RaftEndpoint getLocalEndpoint() {
+            return node.getLocalEndpoint();
+        }
+
+        RaftEndpoint getLeaderEndpoint() {
+            return node.getLeaderEndpoint();
+        }
+
+        boolean isRuntimeRunning() {
+            return !runtime.isShutdown();
+        }
+
+        boolean isRuntimeShutdown() {
+            return runtime.isShutdown();
+        }
     }
 
 }

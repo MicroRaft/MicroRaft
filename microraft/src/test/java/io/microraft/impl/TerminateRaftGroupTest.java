@@ -26,6 +26,7 @@ import io.microraft.model.message.AppendEntriesRequest;
 import org.junit.After;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static io.microraft.RaftNodeStatus.ACTIVE;
@@ -33,6 +34,7 @@ import static io.microraft.RaftNodeStatus.TERMINATED;
 import static io.microraft.RaftNodeStatus.TERMINATING_RAFT_GROUP;
 import static io.microraft.impl.local.SimpleStateMachine.apply;
 import static io.microraft.impl.util.AssertionUtils.eventually;
+import static io.microraft.impl.util.RaftTestUtils.TEST_RAFT_CONFIG;
 import static io.microraft.impl.util.RaftTestUtils.getStatus;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -56,13 +58,12 @@ public class TerminateRaftGroupTest
     @Test(timeout = 300_000)
     public void when_terminateOpIsAppendedButNotCommitted_then_cannotAppendNewEntry()
             throws Exception {
-        group = new LocalRaftGroup(2);
-        group.start();
+        group = LocalRaftGroup.start(2);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
-        RaftNodeImpl follower = group.getAnyFollowerNode();
+        RaftNodeImpl follower = group.getAnyFollower();
 
-        group.dropAllMessagesToMember(leader.getLocalEndpoint(), follower.getLocalEndpoint());
+        group.dropAllMessagesTo(leader.getLocalEndpoint(), follower.getLocalEndpoint());
 
         leader.terminateGroup();
 
@@ -76,13 +77,12 @@ public class TerminateRaftGroupTest
 
     @Test(timeout = 300_000)
     public void when_terminateOpIsAppended_then_statusIsTerminating() {
-        group = new LocalRaftGroup(2);
-        group.start();
+        group = LocalRaftGroup.start(2);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
-        RaftNodeImpl follower = group.getAnyFollowerNode();
+        RaftNodeImpl follower = group.getAnyFollower();
 
-        group.dropAllMessagesToMember(follower.getLocalEndpoint(), leader.getLocalEndpoint());
+        group.dropAllMessagesTo(follower.getLocalEndpoint(), leader.getLocalEndpoint());
 
         leader.terminateGroup();
 
@@ -95,11 +95,10 @@ public class TerminateRaftGroupTest
     @Test(timeout = 300_000)
     public void when_terminateOpIsCommitted_then_raftNodeIsTerminated()
             throws Exception {
-        group = new LocalRaftGroup(2);
-        group.start();
+        group = LocalRaftGroup.start(2);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
-        RaftNodeImpl follower = group.getAnyFollowerNode();
+        RaftNodeImpl follower = group.getAnyFollower();
 
         long commitIndex = leader.replicate(apply("val")).get().getCommitIndex();
 
@@ -130,11 +129,10 @@ public class TerminateRaftGroupTest
     @Test(timeout = 300_000)
     public void when_terminateOpIsTruncated_then_statusIsActive()
             throws Exception {
-        group = new LocalRaftGroup(3);
-        group.start();
+        group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
-        RaftNodeImpl[] followers = group.getNodesExcept(leader.getLocalEndpoint());
+        List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
 
         group.dropMessagesToAll(leader.getLocalEndpoint(), AppendEntriesRequest.class);
 
@@ -143,13 +141,13 @@ public class TerminateRaftGroupTest
         group.splitMembers(leader.getLocalEndpoint());
 
         eventually(() -> {
-            for (RaftNodeImpl raftNode : followers) {
-                RaftEndpoint leaderEndpoint = raftNode.getLeaderEndpoint();
+            for (RaftNodeImpl node : followers) {
+                RaftEndpoint leaderEndpoint = node.getLeaderEndpoint();
                 assertThat(leaderEndpoint).isNotNull().isNotEqualTo(leader.getLocalEndpoint());
             }
         });
 
-        RaftNodeImpl newLeader = group.getNode(followers[0].getLeaderEndpoint());
+        RaftNodeImpl newLeader = group.getNode(followers.get(0).getLeaderEndpoint());
 
         for (int i = 0; i < 10; i++) {
             newLeader.replicate(apply("val" + i)).get();
@@ -158,8 +156,8 @@ public class TerminateRaftGroupTest
         group.merge();
 
         eventually(() -> {
-            for (RaftNodeImpl raftNode : group.getNodes()) {
-                assertThat(getStatus(raftNode)).isEqualTo(ACTIVE);
+            for (RaftNodeImpl node : group.getNodes()) {
+                assertThat(getStatus(node)).isEqualTo(ACTIVE);
             }
         });
     }

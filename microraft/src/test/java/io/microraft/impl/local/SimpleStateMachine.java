@@ -37,7 +37,7 @@ import java.util.function.Consumer;
  * with their commit indices, and those values can be used for assertions
  * in tests.
  * <p>
- * This method is thread safe. Committed values can be queried from test
+ * This class is thread safe. Committed values can be queried from test
  * threads while they are being updated in Raft node threads.
  *
  * @author mdogan
@@ -48,6 +48,11 @@ public class SimpleStateMachine
 
     private final Map<Long, Object> map = createMap();
     private final boolean newTermOpEnabled;
+    private Object lastValue;
+
+    public SimpleStateMachine() {
+        this(true);
+    }
 
     public SimpleStateMachine(boolean newTermOpEnabled) {
         this.newTermOpEnabled = newTermOpEnabled;
@@ -66,14 +71,25 @@ public class SimpleStateMachine
     }
 
     /**
-     * Returns an operation that will query the value committed at the commit
-     * index of the query.
+     * Returns an operation that will query the last value applied
+     * to the state machine.
      *
-     * @return the operation that will query the value committed at the commit
-     *         index of the query
+     * @return the operation that will query the last value applied
+     *         to the state machine
      */
-    public static Object query() {
-        return new Query();
+    public static Object queryLast() {
+        return new QueryLast();
+    }
+
+    /**
+     * Returns an operation that will query all of the values applied
+     * to the state machine.
+     *
+     * @return the operation that will query all of the values applied
+     *         to the state machine
+     */
+    public static Object queryAll() {
+        return new QueryAll();
     }
 
     /**
@@ -122,9 +138,12 @@ public class SimpleStateMachine
             assert !map.containsKey(commitIndex) : "Cannot apply " + apply.val + "since commitIndex: " + commitIndex
                     + " already contains: " + map.get(commitIndex);
             map.put(commitIndex, apply.val);
+            lastValue = apply.val;
             return apply.val;
-        } else if (operation instanceof Query) {
-            return map.get(commitIndex);
+        } else if (operation instanceof QueryLast) {
+            return lastValue;
+        } else if (operation instanceof QueryAll) {
+            return valueList();
         } else if (operation instanceof NewTermOp) {
             return null;
         }
@@ -156,7 +175,10 @@ public class SimpleStateMachine
     public synchronized void installSnapshot(long commitIndex, List<Object> chunks) {
         map.clear();
         for (Object chunk : chunks) {
-            map.putAll((Map<Long, Object>) chunk);
+            for (Entry<Long, Object> e : ((Map<Long, Object>) chunk).entrySet()) {
+                map.put(e.getKey(), e.getValue());
+                lastValue = e.getValue();
+            }
         }
     }
 
@@ -183,10 +205,17 @@ public class SimpleStateMachine
         }
     }
 
-    private static class Query {
+    private static class QueryLast {
         @Override
         public String toString() {
             return "Query{}";
+        }
+    }
+
+    private static class QueryAll {
+        @Override
+        public String toString() {
+            return "QueryAll{}";
         }
     }
 

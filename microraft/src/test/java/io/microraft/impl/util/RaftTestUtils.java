@@ -19,6 +19,7 @@ package io.microraft.impl.util;
 
 import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
+import io.microraft.RaftNode;
 import io.microraft.RaftNodeStatus;
 import io.microraft.RaftRole;
 import io.microraft.impl.RaftNodeImpl;
@@ -146,18 +147,18 @@ public final class RaftTestUtils {
         return readRaftState(node, task);
     }
 
-    public static <T extends RaftStore> T getRaftStore(RaftNodeImpl node) {
-        Callable<RaftStore> task = () -> node.state().store();
-        return (T) readRaftState(node, task);
+    public static <T extends RaftStore> T getRaftStore(RaftNode node) {
+        Callable<RaftStore> task = () -> ((RaftNodeImpl) node).state().store();
+        return (T) readRaftState((RaftNodeImpl) node, task);
     }
 
-    public static RestoredRaftState getRestoredState(RaftNodeImpl node) {
+    public static RestoredRaftState getRestoredState(RaftNode node) {
         Callable<RestoredRaftState> task = () -> {
-            InMemoryRaftStore store = (InMemoryRaftStore) node.state().store();
+            InMemoryRaftStore store = (InMemoryRaftStore) ((RaftNodeImpl) node).state().store();
             return store.toRestoredRaftState();
         };
 
-        return readRaftState(node, task);
+        return readRaftState((RaftNodeImpl) node, task);
     }
 
     public static int minority(int count) {

@@ -21,15 +21,15 @@ nav:
       - Main Abstractions: 'user-guide/main-abstractions.md'
       - Configuration: 'user-guide/configuration.md'
       - How to Use MicroRaft: 'user-guide/how-to-use-microraft.md'
-      - Fault Tolerance: 'user-guide/fault-tolerance.md'
+      - Resiliency and Fault Tolerance: 'user-guide/resiliency-and-fault-tolerance.md'
       - Release Notes: 'user-guide/release-notes.md'
+      - Roadmap: 'user-guide/roadmap.md'
   - 'Documentation':
       - Architecture: 'documentation/architecture.md'
       - Leader Election: 'documentation/leader-election.md'
       - Log Replication: 'documentation/log-replication.md'
       - Snapshotting: 'documentation/snapshotting.md'
       - Persistence: 'documentation/persistence.md'
-      - Roadmap: 'documentation/roadmap.md'
   - 'Javadoc':
       - '1.0': 'javadoc/1.0/index.html'
   - Github: 'https://github.com/metanet/microraft'

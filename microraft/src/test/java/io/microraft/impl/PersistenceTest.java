@@ -272,7 +272,7 @@ public class PersistenceTest
 
         group.terminateNode(terminatedEndpoint);
         RaftNodeImpl newLeader = group.waitUntilLeaderElected();
-        RaftNodeImpl restartedNode = group.restoreRaftNode(terminatedState, stateStore);
+        RaftNodeImpl restartedNode = group.restoreNode(terminatedState, stateStore);
 
         assertEquals(new ArrayList<>(getCommittedGroupMembers(newLeader).getMembers()),
                      new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
@@ -317,7 +317,7 @@ public class PersistenceTest
         blockVotingBetweenFollowers();
 
         group.terminateNode(terminatedEndpoint);
-        RaftNodeImpl restartedNode = group.restoreRaftNode(terminatedState, stateStore);
+        RaftNodeImpl restartedNode = group.restoreNode(terminatedState, stateStore);
 
         RaftNodeImpl newLeader = group.waitUntilLeaderElected();
         assertSame(newLeader, restartedNode);
@@ -336,7 +336,7 @@ public class PersistenceTest
     }
 
     private void blockVotingBetweenFollowers() {
-        for (RaftNodeImpl follower : group.getNodesExcept(group.getLeaderEndpoint())) {
+        for (RaftNodeImpl follower : group.<RaftNodeImpl>getNodesExcept(group.getLeaderEndpoint())) {
             group.dropMessagesToAll(follower.getLocalEndpoint(), PreVoteRequest.class);
         }
     }
@@ -362,7 +362,7 @@ public class PersistenceTest
         group.terminateNode(terminatedEndpoint);
         leader.replicate(apply("val" + count)).get();
 
-        RaftNodeImpl restartedNode = group.restoreRaftNode(terminatedState, stateStore);
+        RaftNodeImpl restartedNode = group.restoreNode(terminatedState, stateStore);
 
         assertEquals(new ArrayList<>(getCommittedGroupMembers(leader).getMembers()),
                      new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
@@ -408,7 +408,7 @@ public class PersistenceTest
 
         group.terminateNode(terminatedEndpoint);
         RaftNodeImpl newLeader = group.waitUntilLeaderElected();
-        RaftNodeImpl restartedNode = group.restoreRaftNode(terminatedState, stateStore);
+        RaftNodeImpl restartedNode = group.restoreNode(terminatedState, stateStore);
 
         assertEquals(new ArrayList<>(getCommittedGroupMembers(newLeader).getMembers()),
                      new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
@@ -459,7 +459,7 @@ public class PersistenceTest
 
         leader.replicate(apply("val" + (commitCountToTakeSnapshot + 1))).get();
 
-        RaftNodeImpl restartedNode = group.restoreRaftNode(terminatedState, stateStore);
+        RaftNodeImpl restartedNode = group.restoreNode(terminatedState, stateStore);
 
         assertEquals(new ArrayList<>(getCommittedGroupMembers(leader).getMembers()),
                      new ArrayList<>(getCommittedGroupMembers(restartedNode).getMembers()));
@@ -508,7 +508,7 @@ public class PersistenceTest
         blockVotingBetweenFollowers();
 
         group.terminateNode(terminatedEndpoint);
-        RaftNodeImpl restartedNode = group.restoreRaftNode(terminatedState, stateStore);
+        RaftNodeImpl restartedNode = group.restoreNode(terminatedState, stateStore);
 
         RaftNodeImpl newLeader = group.waitUntilLeaderElected();
         assertSame(restartedNode, newLeader);
@@ -549,7 +549,7 @@ public class PersistenceTest
         blockVotingBetweenFollowers();
 
         group.terminateNode(terminatedEndpoint);
-        RaftNodeImpl restartedNode = group.restoreRaftNode(terminatedState, stateStore);
+        RaftNodeImpl restartedNode = group.restoreNode(terminatedState, stateStore);
 
         RaftNodeImpl newLeader = group.waitUntilLeaderElected();
         assertSame(restartedNode, newLeader);
@@ -584,7 +584,7 @@ public class PersistenceTest
         RestoredRaftState terminatedState = stateStore.toRestoredRaftState();
 
         group.terminateNode(terminatedEndpoint);
-        RaftNodeImpl restartedNode = group.restoreRaftNode(terminatedState, stateStore);
+        RaftNodeImpl restartedNode = group.restoreNode(terminatedState, stateStore);
 
         eventually(() -> {
             assertEquals(getCommitIndex(leader), getCommitIndex(restartedNode));
@@ -626,7 +626,7 @@ public class PersistenceTest
         blockVotingBetweenFollowers();
 
         group.terminateNode(terminatedEndpoint);
-        RaftNodeImpl restartedNode = group.restoreRaftNode(terminatedState, stateStore);
+        RaftNodeImpl restartedNode = group.restoreNode(terminatedState, stateStore);
 
         RaftNodeImpl newLeader = group.waitUntilLeaderElected();
         assertSame(restartedNode, newLeader);
@@ -667,7 +667,7 @@ public class PersistenceTest
         RestoredRaftState terminatedState = stateStore.toRestoredRaftState();
 
         group.terminateNode(terminatedEndpoint);
-        RaftNodeImpl restartedNode = group.restoreRaftNode(terminatedState, stateStore);
+        RaftNodeImpl restartedNode = group.restoreNode(terminatedState, stateStore);
 
         eventually(() -> {
             assertEquals(getCommitIndex(leader), getCommitIndex(restartedNode));

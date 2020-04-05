@@ -44,6 +44,15 @@ enhancements:
 
 ## Getting Started
 
+The following commands start a 3-node local consensus cluster on your machine
+and commit an operation. Just try them on your terminal for a sneak peek on
+MicroRaft.
+
+~~~~{.bash}
+$ git clone git@github.com:metanet/MicroRaft.git
+$ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.examples.OperationCommitTest -DfailIfNoTests=false -Pcode-sample
+~~~~
+
 If you want to learn more about how to use MicroRaft for building a CP 
 distributed system, you can check out 
 [the Getting Started guide](user-guide/getting-started.md).

@@ -113,7 +113,7 @@ group.
 `RaftConfig` objects can be populated from HOCON files easily if you add the
 `microraft-hocon` dependency to your classpath. 
 
-~~~~
+~~~~{.xml}
 <dependency>
 	<groupId>io.microraft</groupId>
 	<artifactId>microraft-hocon</artifactId>
@@ -123,7 +123,7 @@ group.
 
 You can see a HOCON config string below:
 
-~~~~
+~~~~{.hocon}
 raft {
   leader-election-timeout-millis: 1000
   leader-heartbeat-timeout-secs: 10
@@ -154,7 +154,7 @@ for details.
 Similarly, `RaftConfig` objects can be populated from YAML files easily if you 
 add the `microraft-yaml` dependency to your classpath.
 
-~~~~
+~~~~{.xml}
 <dependency>
 	<groupId>io.microraft</groupId>
 	<artifactId>microraft-yaml</artifactId>
@@ -164,7 +164,7 @@ add the `microraft-yaml` dependency to your classpath.
 
 You can see a YAML config string below:
 
-~~~~
+~~~~{.yaml}
 raft:
  leader-election-timeout-millis: 1000
  leader-heartbeat-timeout-secs: 10

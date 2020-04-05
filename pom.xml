@@ -63,6 +63,8 @@
         <vmHeapSettings>-Xms1G -Xmx2G</vmHeapSettings>
         <extraVmSettings/>
 
+        <redirect.test.output.to.file>true</redirect.test.output.to.file>
+
         <slf4j.api.version>1.7.30</slf4j.api.version>
         <log4j.version>2.13.0</log4j.version>
         <junit.version>4.12</junit.version>
@@ -174,7 +176,7 @@
                         ${extraVmSettings}
                         -ea
                     </argLine>
-                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                    <redirectTestOutputToFile>${redirect.test.output.to.file}</redirectTestOutputToFile>
                 </configuration>
             </plugin>
 
@@ -295,7 +297,7 @@
                                 ${extraVmSettings}
                                 -ea
                             </argLine>
-                            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                            <redirectTestOutputToFile>${redirect.test.output.to.file}</redirectTestOutputToFile>
                         </configuration>
                     </plugin>
                     <plugin>
@@ -326,6 +328,13 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+
+        <profile>
+            <id>code-sample</id>
+            <properties>
+                <redirect.test.output.to.file>false</redirect.test.output.to.file>
+            </properties>
         </profile>
     </profiles>
 

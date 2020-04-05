@@ -419,7 +419,7 @@ public final class RaftState {
      * Returns majority number of the last applied group members.
      */
     public int majority() {
-        return effectiveGroupMembers.majority();
+        return effectiveGroupMembers.getMajority();
     }
 
     /**

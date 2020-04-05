@@ -82,9 +82,10 @@ public final class RaftGroupMembersState
     }
 
     /**
-     * Returns the majority number of the Raft group.
+     * Returns the majority number of the Raft group member list.
      */
-    public int majority() {
+    @Override
+    public int getMajority() {
         return members.size() / 2 + 1;
     }
 

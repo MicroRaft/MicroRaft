@@ -4,7 +4,7 @@ MicroRaft JARs is available in the standard Maven repositories. If you are
 using Maven, just add the following lines to the `dependencies` section in 
 your `pom.xml`:
 
-~~~~{.java}
+~~~~{.xml}
 <dependency>
     <groupId>io.microraft</groupId>
     <artifactId>microraft</artifactId>
@@ -16,7 +16,7 @@ If you are using HOCON or YAML files for configuration, the following
 dependencies provide parsers to configure MicroRaft configuration from HOCON 
 and YAML files:
 
-~~~~
+~~~~{.xml}
 <dependency>
 	<groupId>io.microraft</groupId>
 	<artifactId>microraft-hocon</artifactId>
@@ -24,7 +24,7 @@ and YAML files:
 </dependency>
 ~~~~
 
-~~~~
+~~~~{.xml}
 <dependency>
 	<groupId>io.microraft</groupId>
 	<artifactId>microraft-yaml</artifactId>
@@ -34,7 +34,7 @@ and YAML files:
 
 If you don't have Maven but want to build the project on your machine, `mvnw` 
 is available in the MicroRaft repository. Just clone with  
-`git clone https://github.com/metanet/MicroRaft.git` and hit 
+`git clone git@github.com:metanet/MicroRaft.git` and hit 
 `cd MicroRaft && ./mvnw clean package`. Then you can get the jars from 
 `microraft/target`, `microraft-hocon/target`, and `microraft-yaml/target` 
 directories. 

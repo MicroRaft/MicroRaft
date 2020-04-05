@@ -46,4 +46,11 @@ public interface RaftGroupMembers {
     @Nonnull
     Collection<RaftEndpoint> getMembers();
 
+    /**
+     * Returns the majority number of the Raft group member list.
+     *
+     * @return the majority number of the Raft group member list
+     */
+    int getMajority();
+
 }

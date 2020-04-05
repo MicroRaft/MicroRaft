@@ -476,7 +476,8 @@ public class RaftTest
 
         eventually(() -> {
             for (RaftEndpoint endpoint : minoritySplitMembers) {
-                assertThat(group.getNode(endpoint).getLeaderEndpoint()).isNull();
+                RaftNodeImpl node = group.getNode(endpoint);
+                assertThat(node.getLeaderEndpoint()).isNull();
             }
         });
 
@@ -495,7 +496,8 @@ public class RaftTest
 
         eventually(() -> {
             for (RaftEndpoint endpoint : majoritySplitMembers) {
-                assertThat(group.getNode(endpoint).getLeaderEndpoint()).isNotNull().isNotEqualTo(leaderEndpoint);
+                RaftNodeImpl node = group.getNode(endpoint);
+                assertThat(node.getLeaderEndpoint()).isNotNull().isNotEqualTo(leaderEndpoint);
             }
         });
 

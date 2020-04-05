@@ -342,7 +342,7 @@ public class SnapshotTest
         group.resetAllRulesFrom(leader.getLocalEndpoint());
 
         eventually(() -> {
-            for (RaftNodeImpl node : group.getNodesExcept(slowFollower.getLocalEndpoint())) {
+            for (RaftNodeImpl node : group.<RaftNodeImpl>getNodesExcept(slowFollower.getLocalEndpoint())) {
                 assertThat(getCommitIndex(node)).isEqualTo(entryCount + 1);
                 SimpleStateMachine stateMachine = group.getStateMachine(node.getLocalEndpoint());
                 assertThat(stateMachine.size()).isEqualTo(entryCount + 1);
@@ -479,7 +479,7 @@ public class SnapshotTest
         }
 
         eventually(() -> {
-            for (RaftNodeImpl follower : group.getNodesExcept(leader.getLocalEndpoint())) {
+            for (RaftNodeImpl follower : group.<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint())) {
                 assertThat(getMatchIndex(leader, follower.getLocalEndpoint())).isEqualTo(entryCount - 1);
             }
         });
@@ -525,7 +525,7 @@ public class SnapshotTest
         }
 
         eventually(() -> {
-            for (RaftNodeImpl follower : group.getNodesExcept(leader.getLocalEndpoint())) {
+            for (RaftNodeImpl follower : group.<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint())) {
                 assertThat(getMatchIndex(leader, follower.getLocalEndpoint()))
                         .isEqualTo(entryCount - missingEntryCountOnSlowFollower);
             }
@@ -657,7 +657,7 @@ public class SnapshotTest
             }
         }
 
-        RaftNodeImpl newRaftNode1 = group.createNewRaftNode();
+        RaftNodeImpl newRaftNode1 = group.createNewNode();
         CompletableFuture<Ordered<RaftGroupMembers>> f1 = leader.changeMembership(newRaftNode1.getLocalEndpoint(), ADD, 0);
 
         eventually(() -> {
@@ -738,7 +738,7 @@ public class SnapshotTest
         // INDEX: 99
         // There are only 2 empty indices in the log.
 
-        RaftNodeImpl newRaftNode = group.createNewRaftNode();
+        RaftNodeImpl newRaftNode = group.createNewNode();
 
         Function<RaftMessage, RaftMessage> alterFunc = message -> {
             if (message instanceof AppendEntriesRequest) {

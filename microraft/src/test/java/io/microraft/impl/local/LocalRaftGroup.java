@@ -171,8 +171,8 @@ public class LocalRaftGroup {
      *
      * @return the created Raft node.
      */
-    public RaftNodeImpl createNewRaftNode() {
-        RaftEndpoint endpoint = LocalRaftEndpoint.newEndpoint();
+    public RaftNodeImpl createNewNode() {
+        LocalRaftEndpoint endpoint = LocalRaftEndpoint.newEndpoint();
         Firewall firewall = new Firewall();
         LocalRaftNodeRuntime runtime = new LocalRaftNodeRuntime(endpoint, firewall);
         SimpleStateMachine stateMachine = new SimpleStateMachine(newTermEntryEnabled);
@@ -206,7 +206,7 @@ public class LocalRaftGroup {
      * @throws IllegalStateException
      *         if there exists a running Raft node with the same endpoint
      */
-    public RaftNodeImpl restoreRaftNode(RestoredRaftState restoredState, RaftStore store) {
+    public RaftNodeImpl restoreNode(RestoredRaftState restoredState, RaftStore store) {
         boolean exists = nodeContexts.values().stream()
                                      .filter(ctx -> ctx.getLocalEndpoint().equals(restoredState.getLocalEndpoint()))
                                      .anyMatch(RaftNodeContext::isRuntimeRunning);
@@ -250,7 +250,7 @@ public class LocalRaftGroup {
      * @return all Raft nodes currently running in this local Raft group except
      *         the given Raft endpoint
      */
-    public List<RaftNodeImpl> getNodesExcept(RaftEndpoint endpoint) {
+    public <T extends RaftNode> List<T> getNodesExcept(RaftEndpoint endpoint) {
         requireNonNull(endpoint);
 
         List<RaftNodeImpl> nodes = nodeContexts.values().stream().map(ctx -> ctx.node)
@@ -260,7 +260,7 @@ public class LocalRaftGroup {
             throw new IllegalArgumentException("Unknown endpoint: " + endpoint);
         }
 
-        return nodes;
+        return (List<T>) nodes;
     }
 
     /**
@@ -271,9 +271,9 @@ public class LocalRaftGroup {
      *
      * @return the currently running Raft node of the given Raft endpoint
      */
-    public RaftNodeImpl getNode(RaftEndpoint endpoint) {
+    public <T extends RaftNode> T getNode(RaftEndpoint endpoint) {
         requireNonNull(endpoint);
-        return nodeContexts.get(endpoint).node;
+        return (T) nodeContexts.get(endpoint).node;
     }
 
     /**
@@ -334,7 +334,7 @@ public class LocalRaftGroup {
      *
      * @return the leader Raft node
      */
-    public RaftNodeImpl waitUntilLeaderElected() {
+    public <T extends RaftNode> T waitUntilLeaderElected() {
         RaftNodeImpl[] leaderRef = new RaftNodeImpl[1];
         eventually(() -> {
             RaftNodeImpl leaderNode = getLeaderNode();
@@ -355,7 +355,7 @@ public class LocalRaftGroup {
             leaderRef[0] = leaderNode;
         });
 
-        return leaderRef[0];
+        return (T) leaderRef[0];
     }
 
     /**
@@ -373,7 +373,7 @@ public class LocalRaftGroup {
      *         if different Raft nodes see different leaders or the Raft node
      *         of the leader Raft endpoint is not found
      */
-    public RaftNodeImpl getLeaderNode() {
+    public <T extends RaftNode> T getLeaderNode() {
         RaftEndpoint leaderEndpoint = getLeaderEndpoint();
         if (leaderEndpoint == null) {
             return null;
@@ -385,7 +385,7 @@ public class LocalRaftGroup {
             }
 
             if (leaderEndpoint.equals(nodeContext.getLocalEndpoint())) {
-                return nodeContext.node;
+                return (T) nodeContext.node;
             }
         }
 
@@ -406,13 +406,13 @@ public class LocalRaftGroup {
      * @throws NullPointerException
      *         if no running Raft node is found for given Raft endpoint
      */
-    public RaftNodeImpl getAnyNodeExcept(RaftEndpoint endpoint) {
+    public <T extends RaftNode> T getAnyNodeExcept(RaftEndpoint endpoint) {
         requireNonNull(endpoint);
         requireNonNull(nodeContexts.get(endpoint));
 
         for (Entry<RaftEndpoint, RaftNodeContext> e : nodeContexts.entrySet()) {
             if (!e.getKey().equals(endpoint)) {
-                return e.getValue().node;
+                return (T) e.getValue().node;
             }
         }
 
@@ -430,7 +430,7 @@ public class LocalRaftGroup {
      * @throws AssertionError
      *         if no leader is found
      */
-    public RaftNodeImpl getAnyFollower() {
+    public <T extends RaftNode> T getAnyFollower() {
         RaftEndpoint leaderEndpoint = getLeaderEndpoint();
         if (leaderEndpoint == null) {
             throw new AssertionError("Group doesn't have a leader yet!");
@@ -452,6 +452,19 @@ public class LocalRaftGroup {
         }
 
         nodeContexts.clear();
+    }
+
+    /**
+     * Creates an artificial load on the given Raft node by sleeping its thread
+     * for the given duration.
+     *
+     * @param endpoint
+     *         the endpoint of the Raft node to slow down
+     * @param seconds
+     *         the sleep duration in seconds
+     */
+    public void slowDownNode(RaftEndpoint endpoint, int seconds) {
+        nodeContexts.get(endpoint).runtime.slowDown(seconds);
     }
 
     /**

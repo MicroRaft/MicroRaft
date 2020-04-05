@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 
 import static io.microraft.RaftNodeStatus.TERMINATED;
 import static io.microraft.RaftNodeStatus.isTerminal;
+import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 
 /**
@@ -57,7 +58,13 @@ public final class LocalRaftNodeRuntime
     private final ScheduledExecutorService executor = newSingleThreadScheduledExecutor();
     private final ConcurrentMap<RaftEndpoint, RaftNode> nodes = new ConcurrentHashMap<>();
 
+    public LocalRaftNodeRuntime(RaftEndpoint localEndpoint) {
+        this(localEndpoint, new Firewall());
+    }
+
     public LocalRaftNodeRuntime(RaftEndpoint localEndpoint, Firewall firewall) {
+        requireNonNull(localEndpoint);
+        requireNonNull(firewall);
         this.localEndpoint = localEndpoint;
         this.firewall = firewall;
     }
@@ -101,10 +108,28 @@ public final class LocalRaftNodeRuntime
     public void undiscoverNode(RaftNodeImpl node) {
         RaftEndpoint endpoint = node.getLocalEndpoint();
         if (localEndpoint.equals(endpoint)) {
-            throw new IllegalArgumentException(localEndpoint + " cannot discover itself!");
+            throw new IllegalArgumentException(localEndpoint + " cannot undiscover itself!");
         }
 
         nodes.remove(node.getLocalEndpoint(), node);
+    }
+
+    /**
+     * Creates an artificial load on the Raft node by sleeping in the Raft node
+     * thread for the given duration.
+     *
+     * @param seconds
+     *         the sleep duration in seconds
+     */
+    public void slowDown(int seconds) {
+        executor.submit(() -> {
+            try {
+                LOGGER.info(localEndpoint.getId() + " is under high load for " + seconds + " seconds.");
+                Thread.sleep(TimeUnit.SECONDS.toMillis(seconds));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
     }
 
     @Override

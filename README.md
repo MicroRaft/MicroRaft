@@ -12,6 +12,8 @@ at minimum. It can be used for building fault tolerant and strongly-consistent
 use-cases are building distributed file systems, distributed lock services, 
 key-value stores, etc.
 
+## Features
+
 MicroRaft implements the leader election, log replication, log compaction 
 (snapshotting), and cluster membership changes components of the Raft consensus
 algorithm. Additionally, it offers a rich set of optimizations and 

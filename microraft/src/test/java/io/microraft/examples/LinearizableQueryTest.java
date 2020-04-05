@@ -31,8 +31,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
    TO RUN THIS CODE SAMPLE ON YOUR MACHINE:
 
- $ git clone git@github.com:metanet/MicroRaft.git
- $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.examples.LinearizableQueryTest -DfailIfNoTests=false -Pcode-sample
+   $ git clone https://github.com/metanet/MicroRaft.git
+   $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.examples.LinearizableQueryTest -DfailIfNoTests=false -Pcode-sample
+
+   YOU CAN SEE THIS CLASS AT:
+
+   https://github.com/metanet/MicroRaft/blob/master/microraft/src/test/java/io/microraft/examples/LinearizableQueryTest.java
 
  */
 public class LinearizableQueryTest

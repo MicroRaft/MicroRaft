@@ -37,8 +37,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
    TO RUN THIS CODE SAMPLE ON YOUR MACHINE:
 
- $ git clone git@github.com:metanet/MicroRaft.git
- $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.examples.RaftLeaderFailureTest -DfailIfNoTests=false -Pcode-sample
+   $ git clone https://github.com/metanet/MicroRaft.git
+   $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.examples.RaftLeaderFailureTest -DfailIfNoTests=false -Pcode-sample
+
+   YOU CAN SEE THIS CLASS AT:
+
+   https://github.com/metanet/MicroRaft/blob/master/microraft/src/test/java/io/microraft/examples/RaftLeaderFailureTest.java
 
  */
 public class RaftLeaderFailureTest
@@ -56,7 +60,7 @@ public class RaftLeaderFailureTest
     @Test
     public void testRaftLeaderFailure() {
         RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatTimeoutSecs(1).setLeaderHeartbeatTimeoutSecs(5).build();
-        group = LocalRaftGroup.newBuilder(3).setConfig(config).enableNewTermOperation().start();
+        group = LocalRaftGroup.newBuilder(3).setConfig(config).start();
         RaftNode leader = group.waitUntilLeaderElected();
 
         // the leader can replicate log entries to the followers, but it won't
@@ -75,6 +79,7 @@ public class RaftLeaderFailureTest
         eventually(() -> {
             RaftNodeReport leaderReport = leader.getReport().join().getResult();
             long leaderLastLogIndex = leaderReport.getLog().getLastLogOrSnapshotIndex();
+            assertThat(leaderLastLogIndex).isGreaterThan(0);
             for (RaftNode follower : group.getNodesExcept(leader.getLocalEndpoint())) {
                 RaftNodeReport followerReport = follower.getReport().join().getResult();
                 long followerLastLogIndex = followerReport.getLog().getLastLogOrSnapshotIndex();

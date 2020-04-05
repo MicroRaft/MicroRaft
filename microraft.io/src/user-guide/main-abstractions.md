@@ -30,11 +30,11 @@ committed operations on a user-specified state machine.
 `RaftEndpoint` represents an endpoint that participates to at least one Raft
 group and executes the Raft consensus algorithm with a `RaftNode`.
  
-`RaftNode` differentiates members of a Raft group with a unique id. Hence, 
-MicroRaft users need to provide a unique id for each `RaftEndpoint`. Other than
-this information, `RaftEndpoint` implementations can contain custom fields,
-such as network addresses, tags, etc, and those information pieces can be
-utilized by `RaftNodeRuntime` implementations.
+`RaftNode` differentiates members of a Raft group with a unique id. MicroRaft
+users need to provide a unique id for each `RaftEndpoint`. Other than this 
+information, `RaftEndpoint` implementations can contain custom fields, such as
+network addresses, tags, etc, and those information pieces can be utilized by
+`RaftNodeRuntime` implementations.
 
 
 ## RaftRole and RaftNodeStatus 
@@ -71,7 +71,7 @@ implementation. It is the `StateMachine` implementation's responsibility to
 ensure deterministic execution of committed operations.
  
 The operations committed in a `RaftNode` are executed in the same thread that 
-runs the tasks submitted by that `RaftNode`. Since `RaftNodeRuntime` ensures 
+runs the Raft consensus algorithm. Since `RaftNodeRuntime` ensures 
 the thread-safe execution of `RaftNode` tasks, `StateMachine` implementations 
 do not need to be thread-safe.
 
@@ -82,10 +82,10 @@ do not need to be thread-safe.
 algorithm. Implementations must provide the durability guarantees defined
 in the methods of the interface. 
 
-If a `RaftNode` crashes, its state could be read back from persistent storage
-and the `RaftNode` could be restored back with `RestoredRaftState`. 
-`RestoredRaftState` contains all the necessary information to recover a 
-`RaftNode` from a failure.
+If a `RaftNode` crashes, its persisted state could be read back stable storage
+into `RestoredRaftState` and the `RaftNode` could be restored back. 
+`RestoredRaftState` contains all the necessary information to recover 
+`RaftNode` instances from crashes.
 
 ![](/img/info.png){: style="height:25px;width:25px"} `RaftStore` does not 
 persist internal state of `StateMachine` implementations. Upon recovery, 
@@ -113,7 +113,11 @@ behind the `RaftNodeRuntime` and `RaftStore` interfaces.
 ## Architectural overview of a Raft group
 
 The following figure depicts an architectural overview of a Raft group based on
-the abstractions explained above.
+the abstractions explained above. Clients talks to the consensus module of 
+MicroRaft. The consensus module talks to `RaftNodeRuntime` to communicate with 
+the other Raft nodes and execute the Raft consensus algorithm, and `RaftStore`
+to persisted Raft log entries to stable storage. Once it commits a log entry,
+it passes the operation in the log entry to `StateMachine` for execution.
 
 ![Integration](/img/architectural_overview.png)
 

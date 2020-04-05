@@ -2,7 +2,7 @@ site_name: MicroRaft
 site_description: 'MicroRaft: Java implementation of the Raft consensus algorithm'
 site_url: https://microraft.io
 site_author: 'Ensar Basri Kahveci'
-copyright: 'MicroRaft, 2020. Ensar Basri Kahveci'
+copyright: 'MicroRaft, 2020. Open-sourced by <a href="https://twitter.com/metanet" target="_blank">Ensar Basri Kahveci</a>'
 docs_dir: src
 use_directory_urls: true
 theme: bootstrap4
@@ -34,3 +34,4 @@ nav:
       - '1.0': 'javadoc/1.0/index.html'
   - Github: 'https://github.com/metanet/microraft'
   - Slack: 'https://join.slack.com/t/microraft/shared_invite/zt-dc6utpfk-84P0VbK7EcrD3lIme2IaaQ'
+  - '@MicroRaft': 'https://twitter.com/MicroRaft'

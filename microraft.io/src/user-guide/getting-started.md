@@ -13,8 +13,7 @@ your `pom.xml`:
 ~~~~
 
 If you are using HOCON or YAML files for configuration, the following 
-dependencies provide parsers to configure MicroRaft configuration from HOCON 
-and YAML files:
+dependencies provide parsers to configure MicroRaft from HOCON and YAML files:
 
 ~~~~{.xml}
 <dependency>
@@ -50,7 +49,7 @@ the `DEBUG` level a shot, but I assure you it will be a bumpy ride.
 
 ## What is Next?
 
-OK. You have the MicroRaft JAR and logging also looks good. Now you are ready
-to build your CP distributed system! Why don't you start with
-[checking out the main abstractions](main-abstractions.md) defined in 
-MicroRaft?   
+OK. You have the MicroRaft JAR in your classpath and the logging also looks
+good. Now you are ready to build your CP distributed system! Then why don't
+you start with [checking out the main abstractions](main-abstractions.md) 
+defined in MicroRaft?   

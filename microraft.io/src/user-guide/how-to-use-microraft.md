@@ -22,8 +22,8 @@ disables crash-recovery. If persistence is not implemented, crashed Raft nodes
 cannot be restarted and need to be removed from the Raft group to not to damage
 availability. Note that the lack of persistence limits the overall fault 
 tolerance capabilities of your Raft group. Please refer to the 
-[Fault Tolerance](/fault-tolerance) section to learn more about 
-MicroRaft's fault tolerance capabilities. 
+[Resiliency and Fault Tolerance](resiliency-and-fault-tolerance.md) section to
+learn more about MicroRaft's fault tolerance capabilities. 
 
 * ![](/img/info.png){: style="height:25px;width:25px"} build a discovery and 
 RPC mechanism to replicate and commit your operations on a Raft group. This is 
@@ -31,32 +31,34 @@ required because simplicity is the primary concern for MicroRaft's design
 philosophy. MicroRaft offers a minimum API set to cover the fundamental
 functionality and enables its users to implement higher-level abstractions, 
 such as an RPC system with request routing, retries, deduplication, etc. For 
-instance, MicroRaft does not broadcast the Raft group members to any external 
-discovery system, or it does not integrate with any observability tool, but it
-exposes all necessary information, such as the current Raft group members, 
-the leader endpoint, term, commit index, etc. via `RaftNode.getReport()`. You 
-can use that information to feed your discovery services and monitoring tools. 
-Similarly, the public APIs on `RaftNode` do not employ request routing or retry
-mechanisms. For instance, if a client tries to replicate an operation via a 
-follower or a candidate `RaftNode`, the returned `CompletableFuture` object is 
-simply notified with `NotLeaderException`, instead of internally forwarding 
-the operation to the leader `RaftNode`. `NotLeaderException` also contains
-`RaftEndpoint` of the current leader so that the client can send its request to 
-the leader `RaftNode`. 
+instance, MicroRaft neither broadcasts the Raft group members to any external 
+discovery system, nor integrates with any observability tool, but it exposes
+all necessary information, such as the current Raft group members, the leader
+endpoint, term, commit index, etc. via `RaftNode.getReport()`. You can use that
+information to feed your discovery services and monitoring tools. Similarly, 
+the public APIs on `RaftNode` do not employ request routing or retry 
+mechanisms. For instance, if a client tries to replicate an operation via a
+follower or a candidate `RaftNode`, `RaftNode` responds back with a
+`NotLeaderException`, instead of internally forwarding the operation to 
+the leader `RaftNode`. `NotLeaderException` also contains `RaftEndpoint` of 
+the current leader so that the client can send its request to the leader 
+`RaftNode`. 
 
 ## Code Samples
 
 In this part, we will walk through several code samples to see MicroRaft in 
-action. All of the code samples here are compiling and available in the Github
-repo. You can just clone the repository and run the code samples on your 
-machine to witness the magic!
+action. All of the code samples here are compiling and available in the 
+[Github repo](https://github.com/metanet/MicroRaft/tree/master/microraft/src/test/java/io/microraft/examples). 
+You can just clone the repository and run the code samples on your machine to
+witness the magic! 
 
-MicroRaft offers a set of utilities to enable local testing and we will use
-them here. These utilities are mainly used for testing MicroRaft to a great 
-extend without a distributed setting. Here, we will use them to run our Raft
-group in a single JVM process. Each Raft node will run on its own thread and
-send send Raft messages to each other via multi-threaded queues. 
-Ok, let's rock n roll!  
+MicroRaft offers a set of utilities to enable local testing. These utilities 
+are mainly used for testing MicroRaft to a great extend without a distributed
+setting. Here, we will use them to run our Raft group in a single JVM process.
+Each Raft node will run on its own thread and send send Raft messages to each
+other via multi-threaded queues. 
+
+Let's crank up the engine!  
 
 ## Bootstrapping a Raft Group
 
@@ -67,9 +69,11 @@ The following code shows how to create a 3-member Raft group in a single JVM.
 To run this code sample on your machine, try the following:
 
 ~~~~{.bash}
- $ git clone git@github.com:metanet/MicroRaft.git
+ $ git clone https://github.com/metanet/MicroRaft.git
  $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.examples.RaftGroupBootstrapTest -DfailIfNoTests=false -Pcode-sample
 ~~~~
+
+You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft/src/test/java/io/microraft/examples/RaftGroupBootstrapTest.java).
 
 Ok. That is a big piece of code, but no worries. We will swallow it one piece
 at a time. 
@@ -88,10 +92,11 @@ we don't really need to do it if we are happy with the default configuration.
 
 In the for loop, we create and start our Raft node instances. First, we create
 our `RaftRuntime` object, which is a `LocalRaftNodeRuntime`. This class 
-internally uses a single-threaded scheduled executor to run the Raft algorithm,
-and handle requests coming from clients and Raft messages coming from the other
-Raft node instances. We also create a `SimpleStateMachine` object as our 
-`StateMachine` implementation about which we will talk in the next part. 
+internally uses a single-threaded scheduled executor to run the Raft consensus
+algorithm, and handle requests coming from clients and Raft messages coming 
+from the other Raft node instances. We also create a `SimpleStateMachine` 
+object as our `StateMachine` implementation about which we will talk 
+in the next part. 
 
 Once we create a Raft node via `RaftNodeBuilder`, its initial status is 
 `RaftNodeStatus.INITIAL` and it does not execute the Raft consensus algorithm
@@ -196,9 +201,11 @@ completed, and then get our leader `RaftNode` instance.
 To run this code sample on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone git@github.com:metanet/MicroRaft.git
+$ git clone https://github.com/metanet/MicroRaft.git
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.examples.OperationCommitTest -DfailIfNoTests=false -Pcode-sample
 ~~~~
+
+You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft/src/test/java/io/microraft/examples/OperationCommitTest.java).
  
 Ok, now let's talk about `SimpleStateMachine`. `SimpleStateMachine` just 
 collects all committed values along with their commit indices. We call 
@@ -243,51 +250,53 @@ linearizability without growing the internal Raft log. We need to hit
 the leader `RaftNode` to execute a linearizable query.
 
 * `QueryPolicy.LEADER_LOCAL`: We can run a query locally on the leader Raft
-node without making the leader talk to the quorum. If the called Raft node 
-is not the leader, the returned `CompletableFuture<Ordered>` object 
-is notified with with `NotLeaderException`. 
+node without making the leader talk to the majority. If the called Raft node is 
+not the leader, the returned `CompletableFuture<Ordered>` object is notified 
+with `NotLeaderException`. 
 
 * `QueryPolicy.ANY_LOCAL`: We can use this policy to run a query locally on
 any Raft node independent of its current role. This policy provides the weakest
 consistency guarantee but it can help us to distribute our read-workload by
-utilizing follower Raft nodes.
+utilizing followers.
 
 MicroRaft also employs leader stickiness and auto-demotion of leaders on loss 
 of majority heartbeats. Leader stickiness means that a follower does not vote 
 for another Raft node before the __leader heartbeat timeout__ elapses after 
 the last received __AppendEntries__ or __InstallSnapshot__ RPC. Dually, 
-a leader Raft node automatically demotes itself to the follower role if it has
-not received `AppendEntriesRPC` responses from the majority during the __leader
+a leader Raft node automatically demotes itself to the follower role if it does
+not receive `AppendEntriesRPC` responses from the majority during the __leader
 heartbeat timeout__ duration. Along with these techniques, 
 `QueryPolicy.LEADER_LOCAL` can be used for performing linearizable queries 
 without talking to the majority if the clock drifts and network delays are 
 bounded. However, bounding clock drifts and network delays is not an easy task.
-Hence, `LEADER_LOCAL` may cause reading stale data if a Raft node still 
-considers itself as the leader because of a clock drift even though the other 
-Raft nodes have elected a new leader and committed new operations. Moreover, 
-`LEADER_LOCAL` and `LINEARIZABLE` policies have the same processing cost since
-only the leader Raft node runs a given query for both policies. `LINEARIZABLE`
-policy guarantees linearizability with an 1 extra RTT latency overhead compared
-to the `LEADER_LOCAL` policy. For these reasons, `LINEARIZABLE` is 
-the recommended policy for linearizable queries and `LEADER_LOCAL` should be 
-used carefully.
+Hence, `QueryPolicy.LEADER_LOCAL` may cause reading stale data if a Raft node
+still considers itself as the leader because of a clock drift even though 
+the other Raft nodes have elected a new leader and committed new operations.
+Moreover, `QueryPolicy.LEADER_LOCAL` and `QueryPolicy.LINEARIZABLE` have 
+the same processing cost since only the leader Raft node runs a given query for
+both policies. `QueryPolicy.LINEARIZABLE` guarantees linearizability with 
+an extra RTT latency overhead compared to`QueryPolicy.LEADER_LOCAL`. For these
+reasons, `QueryPolicy.LINEARIZABLE` is the recommended policy for linearizable
+queries and `QueryPolicy.LEADER_LOCAL` should be used carefully.
 
 Ok. Let's see some code samples for querying. We will first perform a query 
 with linearizability. In the code sample below, we first replicate 
-an operation and keep its commit index. Then, we create a query operation
-and pass it to `RaftNode.query()` along with `QueryPolicy.LINEARIZABLE`. Just
-ignore the third parameter, we will talk about it in a minute.   
+an operation. Then, we create a query operation and pass it to 
+`RaftNode.query()` along with `QueryPolicy.LINEARIZABLE`. Just ignore 
+the third parameter for now. We will talk about it in a minute.   
 
 <script src="https://gist.github.com/metanet/4c3536653a2bd152899a41aa654b3f2d.js"></script>
 
 To run this code sample on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone git@github.com:metanet/MicroRaft.git
+$ git clone https://github.com/metanet/MicroRaft.git
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.examples.LinearizableQueryTest -DfailIfNoTests=false -Pcode-sample
 ~~~~
 
-If we run this log, we see that our `sysout` lines print the following:
+You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft/src/test/java/io/microraft/examples/LinearizableQueryTest.java).
+
+If we run this code sample, we see that our `sysout` lines print the following:
 
 ~~~~{.text}
 operation result: value, commit index: 1
@@ -295,14 +304,15 @@ query result: value, commit index: 1
 ~~~~
 
 As I mentioned earlier, MicroRaft handles linearizable queries without growing
-the Raft log. That is we we are seeing both commit indices as `1` here.
+the Raft log. So the query is executed at the last committed log index, which 
+is `1`. That is why both commit indices are `1` in the log lines.
 
-`LEADER_LOCAL` and `ANY_LOCAL` policies can be easily used if monotonicity is
-sufficient for the query results returned to the clients. A client can track 
-the commit indices observed via the returned `Ordered` objects and use 
-the highest observed commit index to preserve monotonicity while performing 
-a local query on a Raft node. If the local commit index of a Raft node is 
-smaller than the commit index passed to the `RaftNode.query()` call, 
+`QueryPolicy.LEADER_LOCAL` and `QueryPolicy.ANY_LOCAL` can be easily used if
+monotonicity is sufficient for the query results returned to the clients. 
+A client can track the commit indices it observed via the returned `Ordered`
+objects and use the greatest observed commit index to preserve monotonicity
+while issuing a local query to a Raft node. If the local commit index of a Raft
+node is smaller than the commit index passed to the `RaftNode.query()` call, 
 the returned `CompletableFuture` object fails with 
 `LaggingCommitIndexException`. In this case, the client can retry its query on
 another Raft node. Please refer to 
@@ -315,22 +325,25 @@ In this code sample, we first replicate a value via the Raft leader and block
 the communication between the leader and a follower afterwards. Then we
 replicate a second value. Since we blocked the communication between the leader
 and a follower, our follower will not have this second value. After the second
-value is also committed, we issue a `QueryPolicy.ANY_LOCAL` query. We are 
-tracking the commit indices we observe. If you look carefully, you will see 
-that we pass the last commit index we observed to our query. Now, we switch to
-our `disconnectedFollower` and issue a new query by passing the last observed
-commit index again. Since the `disconnectedFollower` does not have the second
-commit yet, it cannot satisfy the monotonicity we require, hence it fails by
-throwing `LaggingCommitIndexException`.
+value is committed on the leader, we issue a `QueryPolicy.ANY_LOCAL` query to 
+our lagging follower. We are tracking the commit indices we observe. If you 
+look carefully, you will see that we pass the last commit index we observed to
+our query. Now, we switch to our `disconnectedFollower` and issue a new query
+by passing the last observed commit index again. Since 
+the `disconnectedFollower` does not have the second commit yet, it cannot 
+satisfy the monotonicity we require, hence our query fails by throwing 
+`LaggingCommitIndexException`.
  
 <script src="https://gist.github.com/metanet/020956b893d68f13aced8dfb911f2e81.js"></script>
 
 To run this code sample on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone git@github.com:metanet/MicroRaft.git
+$ git clone https://github.com/metanet/MicroRaft.git
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.examples.MonotonicLocalQueryTest -DfailIfNoTests=false -Pcode-sample
 ~~~~
+
+You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft/src/test/java/io/microraft/examples/MonotonicLocalQueryTest.java).
 
 Our `sysout` lines print the following logs for this code sample:
 
@@ -345,7 +358,8 @@ Disconnected follower could not preserve monotonicity for local query at commit 
 ## Changing the Member List of the Raft Group
 
 MicroRaft supports membership changes in Raft groups via 
-the `RaftNode.changeMembership()` method.
+the `RaftNode.changeMembership()` method. Let's first see the rules to realize
+membership changes in our Raft groups.
 
 ![](/img/info.png){: style="height:25px;width:25px"} Raft group membership
 changes are appended to the internal Raft log as regular log entries and 
@@ -363,21 +377,24 @@ Raft group membership change at a time and more complex changes must be applied
 as a series of single changes. 
 
 Since we know the rules for member list changes now, let's see some code.
-Suppose we have a 3-member Raft group and we want to improve its degree of fault 
-tolerance by adding 2 new members (majority of 3 = 2 -> majority of 5 = 3). 
+In this code, we have a 3-member Raft group and we want to improve its degree 
+of fault tolerance by adding 2 new members (majority of 3 = 2 -> majority of 
+5 = 3). 
  
 <script src="https://gist.github.com/metanet/4f0ab94b78b369a1cc9ac58ef0e6f011.js"></script>
 
 To run this code sample on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone git@github.com:metanet/MicroRaft.git
-$ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.examples.ChangeMemberListOfRaftGroupTest -DfailIfNoTests=false -Pcode-sample
+$ git clone https://github.com/metanet/MicroRaft.git
+$ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.examples.ChangeRaftGroupMemberListTest -DfailIfNoTests=false -Pcode-sample
 ~~~~
 
+You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft/src/test/java/io/microraft/examples/ChangeRaftGroupMemberListTest.java).
+
 We start by creating a 3-node Raft group in the `init()` method and wait until
-a leader is elected. Then, we create a new Raft endpoint `endpoint4` and add it
-to the Raft group with the following line:
+a leader is elected. Then, we create a new Raft endpoint, `endpoint4`, and add
+it to the Raft group in the following lines:
 
 ~~~~{.java}
 RaftGroupMembers newMemberList1 = leader.changeMembership(endpoint4, MembershipChangeMode.ADD, 0).join().getResult();
@@ -388,7 +405,7 @@ RaftNode raftNode4 = createRaftNode(endpoint4);
 raftNode4.start();
 ~~~~   
 
-Please notice that we pass `0` for the third argument, because before this line
+Please notice that we pass `0` for the third argument, because before this part
 our Raft group operates with the initial member list. After this part, 
 `endpoint4` is part of the Raft group, so we start its Raft node as well. 
 
@@ -400,11 +417,11 @@ New member list: [LocalRaftEndpoint{id=node1}, LocalRaftEndpoint{id=node2}, Loca
 
 As you see, our Raft group now has 4 members, whose majority is 3. Actually, 
 running a 4-node Raft group has no advantage over running a 3-node Raft group 
-in terms of the degree of fault tolerance because both of them have the same
-majority value. Since we want to improve our degree of fault tolerance, we will
-add one more Raft node to our Raft group. 
+in terms of the degree of fault tolerance because both of them can handle 
+failure of only 1 Raft node. Since we want to improve our degree of fault
+tolerance, we will add one more Raft node to our Raft group. 
 
-So we create a new Raft endpoint, `endpoint5`, add it to the Raft group, and
+So we create another Raft endpoint, `endpoint5`, add it to the Raft group, and
 start its Raft node. But this time, as the __group members commit index__ 
 parameter, we pass `newMemberList1.getLogIndex()` which is the log index 
 `endpoint4` is added to the Raft group. Our second `sysout` line prints 
@@ -414,9 +431,9 @@ the following:
 New member list: [LocalRaftEndpoint{id=node1}, LocalRaftEndpoint{id=node2}, LocalRaftEndpoint{id=node3}, LocalRaftEndpoint{id=node4}, LocalRaftEndpoint{id=node5}], majority: 3, commit index: 5
 ~~~~
 
-Now we have 4 nodes in our Raft group and the majority is 2. It means that now
-our Raft group can tolerate failure of 2 Raft nodes and still remain operational. 
-Voila! 
+Now we have 5 nodes in our Raft group and the majority is still 3. It means
+that now our Raft group can tolerate failure of 2 Raft nodes and still 
+remain operational. Voila! 
 
 
 ## Monitoring the Raft Group
@@ -443,6 +460,5 @@ an exercise to the reader.
 
 ## What's Next?
 
-In the next part, we will see how MicroRaft deals with failures. Just 
-[keep calm and carry on](resiliency-and-fault-tolerance.md) if you are still 
-interested!
+In the next section, we will see how MicroRaft deals with failures. Just 
+[keep calm and carry on](resiliency-and-fault-tolerance.md)!

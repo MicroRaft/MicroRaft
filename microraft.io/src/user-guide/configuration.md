@@ -6,14 +6,13 @@ users to fine-tune its behaviour. In this section, we elaborate
 the configuration parameters available in MicroRaft. 
 
 `RaftConfig` is an immutable configuration class that contains a few key 
-parameters to tune behaviour of your Raft nodes. You can populate a RaftConfig
-object via a `RaftConfigBuilder`, which is returned from 
-`RaftConfig.newBuilder()`. Your software in which MicroRaft is embedded could be 
+parameters to tune behaviour of your Raft nodes. You can populate it via
+`RaftConfigBuilder`. Your software in which MicroRaft is embedded could be 
 already working with HOCON or YAML configuration files. MicroRaft also offers 
 HOCON and YAML parsers to populate `RaftConfig` objects for such cases. Once 
 you create a `RaftConfig` object either programmatically, or by parsing a 
-HOCON or YAML file, you can provide your configuration to `RaftNodeBuilder` 
-while building your `RaftNode` instances.
+HOCON or YAML file, you can provide it to `RaftNodeBuilder` while building 
+`RaftNode` instances.
 
 You can see MicroRaft's configuration parameters below:
 
@@ -32,20 +31,20 @@ and start a new leader election round. If this duration is too small, a leader
 could be considered as failed unnecessarily in case of a small hiccup. If it is
 too large, it takes longer to detect an actual failure.
 
-The Raft paper uses a single parameter, __election timeout__, to both detect 
+The Raft paper uses a single parameter, _election timeout_, to both detect 
 failure of the leader and perform a leader election round. A follower decides 
-the current leader to be crashed if the __election timeout__ elapses after 
+the current leader to be crashed if the _election timeout_ elapses after 
 the last received `AppendEntriesRPC`. Moreover, a candidate starts a new leader 
-election round if the __election timeout__ elapses before it acquires 
+election round if the _election timeout_ elapses before it acquires 
 the majority votes or another candidate announces the leadership. The Raft 
-paper discusses the __election timeout__ to be configured around 500
+paper discusses the _election timeout_ to be configured around 500 
 milliseconds. Even though such a low timeout value works just fine for leader
 elections, we have experienced that it causes false positives for failure 
 detection of the leader when there is a hiccup in the system. When a leader 
 slows down temporarily for any reason, its followers may start a new leader 
 election round very quickly. To prevent such problems and allow users to tune
 availability of the system with more granularity, MicroRaft uses another 
-parameter, __leader heartbeat timeout__, to detect failure of the leader. 
+parameter, _leader heartbeat timeout_, to detect failure of the leader. 
 
 Please note that having 2 timeout parameters does not make any difference in 
 terms of the safety property. If both values are configured the same, 
@@ -65,11 +64,10 @@ that follower recently.
 Maximum number of uncommitted log entries in the leader's Raft log before
 temporarily rejecting new requests of clients. This configuration enables 
 a back pressure mechanism to prevent OOME when a Raft leader cannot keep up
-with the requests sent by the clients. When the "uncommitted log entries 
-buffer" whose capacity is specified with this configuration field is filled, 
-new requests fail with `CannotReplicateException` to slow down the clients. 
-You can configure this field by considering the degree of concurrency of your
-clients.
+with the requests sent by the clients. When the _uncommitted log entries 
+buffer_ whose capacity is specified with this configuration field is filled, 
+new requests fail with `CannotReplicateException` to slow down clients. You can 
+configure this field by considering the degree of concurrency of your clients.
 
 * __Append entries request batch size:__
 
@@ -95,15 +93,14 @@ snapshot.
 
 MicroRaft's Raft log design ensures that every Raft node takes a snapshot at
 exactly the same log index. This behaviour enables an optimization. When 
-a slowed down Raft follower falls far behind the Raft leader and needs to 
-install a snapshot, it transfers the snapshot chunks from both the Raft leader
-and other followers in parallel. By this way, we utilize the bandwidth of
-the followers to reduce the burden on the leader and speed up the snapshot
-transfer process.
+a follower falls far behind the Raft leader and needs to install a snapshot, it
+transfers the snapshot chunks from both the Raft leader and other followers 
+in parallel. By this way, we utilize the bandwidth of the followers to reduce
+the load on the leader and speed up the snapshot transfer process.
 
 * __Raft node report publish period seconds:__
 
-Denotes how frequently a Raft node publishes a report of its internal Raft 
+It denotes how frequently a Raft node publishes a report of its internal Raft 
 state. `RaftNodeReport` objects can be used for monitoring a running Raft 
 group.
 

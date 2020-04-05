@@ -35,8 +35,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
    TO RUN THIS CODE SAMPLE ON YOUR MACHINE:
 
- $ git clone git@github.com:metanet/MicroRaft.git
- $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.examples.HighLoadTest -DfailIfNoTests=false -Pcode-sample
+   $ git clone https://github.com/metanet/MicroRaft.git
+   $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.examples.HighLoadTest -DfailIfNoTests=false -Pcode-sample
+
+   YOU CAN SEE THIS CLASS AT:
+
+   https://github.com/metanet/MicroRaft/blob/master/microraft/src/test/java/io/microraft/examples/HighLoadTest.java
 
  */
 public class HighLoadTest
@@ -58,7 +62,8 @@ public class HighLoadTest
         group = LocalRaftGroup.newBuilder(3).setConfig(config).start();
         RaftNode leader = group.waitUntilLeaderElected();
 
-        // we are slowing down the followers by making them sleep for 3 seconds
+        // we are slowing down the followers
+        // by making their Raft thread sleep for 3 seconds
         for (RaftNode follower : group.getNodesExcept(leader.getLocalEndpoint())) {
             group.slowDownNode(follower.getLocalEndpoint(), 3);
         }

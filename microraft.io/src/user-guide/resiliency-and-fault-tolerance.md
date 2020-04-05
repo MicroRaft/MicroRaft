@@ -7,8 +7,10 @@ the system. In MicroRaft, restarting a Raft node that has no persistence layer
 with the same identity or restarting it with a corrupted persistence state are
 examples of the Byzantine failure.
 
+In this section, we will walk through different types of failure scenarios and
+discuss how MicroRaft handles each one of them. 
 
-## Handling High Load 
+## 1. Handling High Load 
 
 The availability of a Raft group mainly depends on if the majority (i.e., more
 than half) of the Raft nodes are alive or not. For instance, a 3-member Raft
@@ -47,7 +49,7 @@ $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.examples.HighLoadTest -D
 You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft/src/test/java/io/microraft/examples/HighLoadTest.java).
 
 
-## Minority Failure
+## 2. Minority Failure
 
 Failure of the minority (i.e, less than half) of the Raft nodes may cause 
 the Raft group to lose availability temporarily, but eventually the Raft group
@@ -120,7 +122,7 @@ triggers those side-effects again. Please refer to the
 for more details.
 
 
-## Majority Failure
+## 3. Majority Failure
 
 Failure of the majority causes the Raft group to lose its availability and stop
 handling new requests. The only recovery option is to recover some of 
@@ -133,7 +135,7 @@ need to have a persistence-layer (i.e., `RaftStore` implementation) to make
 this recovery option work. 
 
 
-## Raft Leader Failure
+## 4. Raft Leader Failure
 
 When a leader Raft node fails, its Raft group temporarily loses availability 
 until the other Raft nodes notice the failure and elect a new leader. Delay of
@@ -193,7 +195,7 @@ not make any harm, however it is not easy to make every type of operation
 idempotent.
 
 
-## Network Partitions
+## 5. Network Partitions
 
 Behaviour of a Raft group during a network partition depends on how Raft nodes
 are divided to different sides of the network partition and with which Raft 
@@ -249,7 +251,7 @@ $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.examples.NetworkPartitio
 
 You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft/src/test/java/io/microraft/examples/NetworkPartitionTest.java).
 
-## Corruption or Loss of Persisted Raft State
+## 6. Corruption or Loss of Persisted Raft State
 
 If a `RestoredRaftState` object is created with corrupted or partially-lost
 Raft state, the safety guarantees of the Raft consensus algorithm no longer 

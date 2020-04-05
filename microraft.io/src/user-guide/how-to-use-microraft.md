@@ -60,7 +60,7 @@ other via multi-threaded queues.
 
 Let's crank up the engine!  
 
-## Bootstrapping a Raft Group
+## 1. Bootstrapping a Raft Group
 
 The following code shows how to create a 3-member Raft group in a single JVM.
 
@@ -187,7 +187,9 @@ group. In the following parts, we will use another utility class:
 the heavy lifting for us, such as enabling discovery, waiting until a leader is
 elected, etc.   
 
-## Committing an Operation on the Raft Group
+## 2. Sending Requests to a Raft Group
+
+### Committing an Operation on the Raft Group
 
 Let's see how to replicate and commit an operation via the Raft group leader.
 Just we discussed earlier, we will continue with `LocalRaftGroup` to simplify
@@ -235,7 +237,7 @@ round or the Raft node we contacted does not know the leader yet. In this case,
 our RPC layer could retry the operation on each Raft node in a round robin 
 fashion until it discovers the new leader. 
 
-## Performing a Query
+### Performing a Query
 
 MicroRaft offers a separate API: `RaftNode.query()` to handle queries (i.e., 
 read-only operations). MicroRaft differentiates updates and queries to employ
@@ -354,8 +356,9 @@ query1 result: value2, commit index: 2
 Disconnected follower could not preserve monotonicity for local query at commit index: 2
 ~~~~
 
+## 3. Operating the Raft Group
 
-## Changing the Member List of the Raft Group
+### Changing the Member List of the Raft Group
 
 MicroRaft supports membership changes in Raft groups via 
 the `RaftNode.changeMembership()` method. Let's first see the rules to realize
@@ -436,7 +439,7 @@ that now our Raft group can tolerate failure of 2 Raft nodes and still
 remain operational. Voila! 
 
 
-## Monitoring the Raft Group
+### Monitoring the Raft Group
 
 `RaftNodeReport` class contains detailed information about internal state of
 a `RaftNode`, such as its Raft role, term, leader, last log index, commit 

@@ -17,7 +17,7 @@
 package io.microraft.model.log;
 
 import io.microraft.RaftEndpoint;
-import io.microraft.integration.StateMachine;
+import io.microraft.statemachine.StateMachine;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;

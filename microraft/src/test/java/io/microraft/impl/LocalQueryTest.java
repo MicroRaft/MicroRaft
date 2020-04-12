@@ -22,8 +22,8 @@ import io.microraft.RaftEndpoint;
 import io.microraft.exception.LaggingCommitIndexException;
 import io.microraft.exception.NotLeaderException;
 import io.microraft.impl.local.LocalRaftGroup;
-import io.microraft.impl.util.BaseTest;
 import io.microraft.model.message.AppendEntriesRequest;
+import io.microraft.test.util.BaseTest;
 import org.junit.After;
 import org.junit.Test;
 
@@ -33,9 +33,9 @@ import static io.microraft.QueryPolicy.ANY_LOCAL;
 import static io.microraft.QueryPolicy.LEADER_LOCAL;
 import static io.microraft.impl.local.SimpleStateMachine.apply;
 import static io.microraft.impl.local.SimpleStateMachine.queryLast;
-import static io.microraft.impl.util.AssertionUtils.eventually;
-import static io.microraft.impl.util.RaftTestUtils.TEST_RAFT_CONFIG;
-import static io.microraft.impl.util.RaftTestUtils.getCommitIndex;
+import static io.microraft.test.util.AssertionUtils.eventually;
+import static io.microraft.test.util.RaftTestUtils.TEST_RAFT_CONFIG;
+import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 

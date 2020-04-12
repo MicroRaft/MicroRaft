@@ -20,7 +20,7 @@ import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.RaftNodeStatus;
 import io.microraft.RaftRole;
-import io.microraft.integration.StateMachine;
+import io.microraft.statemachine.StateMachine;
 
 import javax.annotation.Nonnull;
 

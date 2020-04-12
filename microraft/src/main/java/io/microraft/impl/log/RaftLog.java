@@ -18,8 +18,8 @@
 package io.microraft.impl.log;
 
 import io.microraft.exception.RaftException;
-import io.microraft.impl.model.log.DefaultSnapshotEntry.DefaultSnapshotEntryBuilder;
 import io.microraft.impl.util.ArrayRingbuffer;
+import io.microraft.model.impl.log.DefaultSnapshotEntry.DefaultSnapshotEntryBuilder;
 import io.microraft.model.log.BaseLogEntry;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.SnapshotEntry;
@@ -78,9 +78,8 @@ public final class RaftLog {
     private boolean dirty;
 
     private RaftLog(int capacity, RaftStore store) {
-        requireNonNull(store);
         this.log = new ArrayRingbuffer<>(capacity);
-        this.store = store;
+        this.store = requireNonNull(store);
     }
 
     private RaftLog(int capacity, SnapshotEntry snapshot, List<LogEntry> entries, RaftStore store) {

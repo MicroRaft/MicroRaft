@@ -22,11 +22,6 @@
         <property name="file" value="${basedir}/tools/checkstyle-suppressions.xml"/>
     </module>
 
-    <!-- Enable suppression of file contents using //CHECKSTYLE:[ON|OFF] comments -->
-    <!--
-    <module name="SuppressionCommentFilter"/>
-    -->
-
     <!-- Enable the suppression annotation @SuppressWarnings("checkstyle:lowercasecheckname"} -->
     <module name="SuppressWarningsFilter"/>
 
@@ -72,6 +67,7 @@
 
     <module name="LineLength">
         <property name="max" value="130"/>
+        <property name="ignorePattern" value="^ *\* *[^ ]+$"/>
     </module>
 
     <module name="TreeWalker">

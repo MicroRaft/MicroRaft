@@ -2,26 +2,25 @@
 ![](img/logo.png){: style="height:64px;width:348px"}
 
 MicroRaft is a future-complete, stable and production-grade open-source 
-implementation of the Raft consensus algorithm in Java. It requires Java 8 
-at minimum. It can be used for building fault tolerant and strongly-consistent
-(CP) data, metadata and coordination services. A few examples of possible 
-use-cases are building distributed file systems, key-value stores, distributed 
-lock services, etc.
+implementation of the Raft consensus algorithm in Java. It can be used for
+building fault tolerant and strongly-consistent (CP) data, metadata and
+coordination services. A few examples of possible use-cases are building
+distributed file systems, key-value stores, distributed lock services, etc.
 
 MicroRaft works on top of a minimalistic and modular design. __It is a single 
-lightweight JAR file with a few hundred KBs of size and only SLF4J dependency.__  It contains an isolated 
-implementation of the Raft consensus algorithm and a set of accompanying 
-abstractions to run the algorithm in a multi-threaded and distributed 
-environment. These abstractions are defined to isolate the core algorithm from
-the concerns of persistence, thread-safety, serialization, networking, and 
-actual state machine logic. Users are required to provide their own 
-implementations of these abstractions to build their custom CP distributed 
+lightweight JAR with a few hundred KBs of size and only logging dependency.__
+It contains an isolated implementation of the Raft consensus algorithm, and 
+a set of accompanying abstractions to run the algorithm in a multi-threaded and 
+distributed environment. These abstractions are defined to isolate the core 
+algorithm from the concerns of persistence, thread-safety, serialization, 
+networking, and actual state machine logic. Users are required to provide their 
+own implementations of these abstractions to build their custom CP distributed
 systems with MicroRaft.
 
 __Please note that MicroRaft is not a high-level solution like a distributed 
-key-value store or a distributed lock service. It is a core library that
-offers a set of abstractions and functionalities to help you build such 
-high-level systems.__ 
+key-value store or a distributed lock service. It is a core library that offers
+a set of abstractions and functionalities to help you build such high-level 
+systems.__ 
 
 ## Features
 
@@ -44,18 +43,21 @@ enhancements:
 
 ## Getting Started
 
-The following commands start a 3-node local consensus cluster on your machine
-and commit an operation. Just try them on your terminal for a sneak peek at
-MicroRaft.
+The following commands start a 3-node local Raft cluster on your machine and
+commits a number of operations. Just try them on your terminal for a sneak peek
+at MicroRaft.
 
 ~~~~{.bash}
-$ git clone git@github.com:metanet/MicroRaft.git
-$ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.examples.OperationCommitTest -DfailIfNoTests=false -Pcode-sample
+$ git clone https://github.com/metanet/MicroRaft.git
+$ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.OperationCommitTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
 If you want to learn more about how to use MicroRaft for building a CP 
-distributed system, you can check out 
-[the Getting Started guide](user-guide/getting-started.md).
+distributed system, you can check out the 
+[APIs and Main Abstractions](user-guide/apis-and-main-abstractions.md) section
+first, then read the 
+[tutorial](user-guide/tutorial-building-an-atomic-register.md) to build 
+an atomic register on top of MicroRaft.
 
 
 ## Getting Involved
@@ -72,10 +74,10 @@ on Twitter for announcements.
 
 ## Who uses MicroRaft?
 
-I am currently working on a proof-of-concept distributed KV store to 
-demonstrate how to implement MicroRaft's abstractions. It internally uses gRPC 
-to transfer Raft messages between Raft nodes running on different machines. I 
-am hoping to release this project soon. 
+I am currently working on a POC project to demonstrate how to implement 
+a distributed KV store on top of MicroRaft's abstractions. It internally uses
+gRPC to transfer Raft messages between Raft nodes running on different 
+machines. I am hoping to release this project soon. 
 
 
 ## What is Consensus?

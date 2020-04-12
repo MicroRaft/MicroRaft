@@ -16,7 +16,7 @@
 
 package io.microraft;
 
-import io.microraft.impl.util.BaseTest;
+import io.microraft.test.util.BaseTest;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -33,13 +33,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class YamlRaftConfigParserTest
         extends BaseTest {
 
+    @Rule
+    public final TemporaryFolder folder = new TemporaryFolder();
+
     private final String yamlString = "raft:\n" + " leader-election-timeout-millis: 750\n" + " leader-heartbeat-period-secs: 15\n"
             + " leader-heartbeat-timeout-secs: 45\n" + " append-entries-request-batch-size: 750\n"
             + " commit-count-to-take-snapshot: 7500\n" + " max-uncommitted-log-entry-count: 1500\n"
             + " transfer-snapshots-from-followers-enabled: false\n" + " raft-node-report-publish-period-secs: 20";
-
-    @Rule
-    public final TemporaryFolder folder = new TemporaryFolder();
 
     @Test
     public void test_parseValidYamlString() {

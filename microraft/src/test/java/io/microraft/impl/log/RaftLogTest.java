@@ -17,9 +17,9 @@
 
 package io.microraft.impl.log;
 
-import io.microraft.impl.model.log.DefaultLogEntryOrBuilder;
-import io.microraft.impl.model.log.DefaultSnapshotChunkOrBuilder;
-import io.microraft.impl.model.log.DefaultSnapshotEntry.DefaultSnapshotEntryBuilder;
+import io.microraft.model.impl.log.DefaultLogEntryOrBuilder;
+import io.microraft.model.impl.log.DefaultSnapshotChunkOrBuilder;
+import io.microraft.model.impl.log.DefaultSnapshotEntry.DefaultSnapshotEntryBuilder;
 import io.microraft.model.log.BaseLogEntry;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.SnapshotChunk;

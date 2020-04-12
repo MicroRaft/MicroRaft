@@ -19,9 +19,9 @@ package io.microraft.persistence;
 
 import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
-import io.microraft.integration.StateMachine;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.SnapshotChunk;
+import io.microraft.statemachine.StateMachine;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

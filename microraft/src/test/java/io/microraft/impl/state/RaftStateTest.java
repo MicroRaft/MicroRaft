@@ -20,8 +20,8 @@ package io.microraft.impl.state;
 import io.microraft.RaftEndpoint;
 import io.microraft.impl.local.LocalRaftEndpoint;
 import io.microraft.impl.log.RaftLog;
-import io.microraft.impl.model.log.DefaultLogEntryOrBuilder;
-import io.microraft.impl.util.RaftTestUtils;
+import io.microraft.model.impl.log.DefaultLogEntryOrBuilder;
+import io.microraft.test.util.RaftTestUtils;
 import org.junit.Before;
 import org.junit.Test;
 

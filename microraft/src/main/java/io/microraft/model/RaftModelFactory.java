@@ -17,8 +17,6 @@
 package io.microraft.model;
 
 import io.microraft.RaftNode;
-import io.microraft.integration.RaftNodeRuntime;
-import io.microraft.integration.StateMachine;
 import io.microraft.model.groupop.TerminateRaftGroupOp.TerminateRaftGroupOpBuilder;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp.UpdateRaftGroupMembersOpBuilder;
 import io.microraft.model.log.LogEntry.LogEntryBuilder;
@@ -35,6 +33,8 @@ import io.microraft.model.message.TriggerLeaderElectionRequest.TriggerLeaderElec
 import io.microraft.model.message.VoteRequest.VoteRequestBuilder;
 import io.microraft.model.message.VoteResponse.VoteResponseBuilder;
 import io.microraft.persistence.RaftStore;
+import io.microraft.runtime.RaftNodeRuntime;
+import io.microraft.statemachine.StateMachine;
 
 import javax.annotation.Nonnull;
 

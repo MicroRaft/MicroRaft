@@ -146,22 +146,20 @@ public final class RaftState {
 
     private RaftState(Object groupId, RaftEndpoint localEndpoint, Collection<RaftEndpoint> endpoints, int logCapacity,
                       RaftStore store) {
-        this.groupId = groupId;
-        this.localEndpoint = localEndpoint;
+        this.groupId = requireNonNull(groupId);
+        this.localEndpoint = requireNonNull(localEndpoint);
         RaftGroupMembersState groupMembers = new RaftGroupMembersState(0, endpoints, localEndpoint);
         this.initialMembers = groupMembers;
         this.committedGroupMembers = groupMembers;
         this.effectiveGroupMembers = groupMembers;
         this.termState = RaftGroupTermState.INITIAL;
-        this.store = store;
+        this.store = requireNonNull(store);
         this.log = RaftLog.create(logCapacity, store);
     }
 
     private RaftState(Object groupId, RestoredRaftState restoredState, int logCapacity, RaftStore store) {
-        requireNonNull(groupId);
         requireNonNull(restoredState);
-        requireNonNull(store);
-        this.groupId = groupId;
+        this.groupId = requireNonNull(groupId);
         this.localEndpoint = restoredState.getLocalEndpoint();
         this.initialMembers = new RaftGroupMembersState(0, restoredState.getInitialMembers(), this.localEndpoint);
         this.committedGroupMembers = this.initialMembers;
@@ -179,7 +177,7 @@ public final class RaftState {
         }
 
         this.log = RaftLog.restore(logCapacity, snapshot, restoredState.getLogEntries(), store);
-        this.store = store;
+        this.store = requireNonNull(store);
     }
 
     public static RaftState create(Object groupId, RaftEndpoint localEndpoint, Collection<RaftEndpoint> endpoints,

@@ -17,10 +17,10 @@ markdown_extensions:
 
 nav:
   - 'User Guide':
-      - Getting Started: 'user-guide/getting-started.md'
-      - Main Abstractions: 'user-guide/main-abstractions.md'
+      - Setup: 'user-guide/setup.md'
+      - APIs and Main Abstractions: 'user-guide/apis-and-main-abstractions.md'
       - Configuration: 'user-guide/configuration.md'
-      - How to Use MicroRaft: 'user-guide/how-to-use-microraft.md'
+      - 'Tutorial: Building an Atomic Register': 'user-guide/tutorial-building-an-atomic-register.md'
       - Resiliency and Fault Tolerance: 'user-guide/resiliency-and-fault-tolerance.md'
       - Release Notes: 'user-guide/release-notes.md'
       - Roadmap: 'user-guide/roadmap.md'

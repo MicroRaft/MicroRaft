@@ -11,6 +11,11 @@
 
     <!-- Exclude implementation classes from JavaDoc checks -->
     <suppress checks="Javadoc(Package|Method|Type|Variable)" files="io[\\/]microraft[\\/]impl[\\/]"/>
+    <suppress checks="Javadoc(Package|Method|Type|Variable)" files="io[\\/]microraft[\\/]tutorial[\\/]"/>
+    <suppress checks="Javadoc(Package|Method|Type|Variable)" files="io[\\/]microraft[\\/]faulttolerance[\\/]"/>
+
+    <suppress checks="LineLength" files="io[\\/]microraft[\\/]tutorial[\\/]"/>
+    <suppress checks="LineLength" files="io[\\/]microraft[\\/]faulttolerance[\\/]"/>
 
     <suppress checks="FileLength|MethodCount|ClassFanOutComplexity|ClassDataAbstractionCoupling"
               files="io[\\/]microraft[\\/]impl[\\/]RaftNodeImpl"/>

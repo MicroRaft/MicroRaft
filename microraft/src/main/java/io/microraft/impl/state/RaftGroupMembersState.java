@@ -26,6 +26,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import static java.util.Collections.unmodifiableSet;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Contains member list of a Raft group.
@@ -41,6 +42,8 @@ public final class RaftGroupMembersState
     private Collection<RaftEndpoint> remoteMembers;
 
     public RaftGroupMembersState(long index, Collection<RaftEndpoint> members, RaftEndpoint localMember) {
+        requireNonNull(members);
+        requireNonNull(localMember);
         this.index = index;
         this.members = unmodifiableSet(new LinkedHashSet<>(members));
         Set<RaftEndpoint> remoteMembers = new LinkedHashSet<>(members);

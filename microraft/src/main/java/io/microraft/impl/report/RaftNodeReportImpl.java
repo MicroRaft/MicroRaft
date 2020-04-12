@@ -49,26 +49,16 @@ public final class RaftNodeReportImpl
                               RaftGroupMembers initialMembers, RaftGroupMembers committedMembers,
                               RaftGroupMembers effectiveMembers, RaftRole role, RaftNodeStatus status, RaftGroupTerm term,
                               RaftLogStats log) {
-        requireNonNull(reason);
-        requireNonNull(groupId);
-        requireNonNull(localEndpoint);
-        requireNonNull(initialMembers);
-        requireNonNull(committedMembers);
-        requireNonNull(effectiveMembers);
-        requireNonNull(role);
-        requireNonNull(status);
-        requireNonNull(term);
-        requireNonNull(log);
-        this.reason = reason;
-        this.groupId = groupId;
-        this.localEndpoint = localEndpoint;
-        this.initialMembers = initialMembers;
-        this.committedMembers = committedMembers;
-        this.effectiveMembers = effectiveMembers;
-        this.role = role;
-        this.status = status;
-        this.term = term;
-        this.log = log;
+        this.reason = requireNonNull(reason);
+        this.groupId = requireNonNull(groupId);
+        this.localEndpoint = requireNonNull(localEndpoint);
+        this.initialMembers = requireNonNull(initialMembers);
+        this.committedMembers = requireNonNull(committedMembers);
+        this.effectiveMembers = requireNonNull(effectiveMembers);
+        this.role = requireNonNull(role);
+        this.status = requireNonNull(status);
+        this.term = requireNonNull(term);
+        this.log = requireNonNull(log);
     }
 
     @Nonnull

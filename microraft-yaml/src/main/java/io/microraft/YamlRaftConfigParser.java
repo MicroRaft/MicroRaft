@@ -20,10 +20,12 @@ import io.microraft.RaftConfig.RaftConfigBuilder;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static io.microraft.YamlRaftConfigFields.APPEND_ENTRIES_REQUEST_BATCH_SIZE_FIELD_NAME;
@@ -152,7 +154,7 @@ public final class YamlRaftConfigParser {
         requireNonNull(yaml, "No yaml object!");
         requireNonNull(file, "No file!");
 
-        try (FileReader reader = new FileReader(file)) {
+        try (Reader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
             return parseReader(yaml, reader);
         }
     }

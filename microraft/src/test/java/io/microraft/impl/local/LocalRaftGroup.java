@@ -21,12 +21,13 @@ import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.impl.RaftNodeImpl;
-import io.microraft.impl.util.AssertionUtils;
-import io.microraft.integration.StateMachine;
+import io.microraft.impl.state.RaftGroupTermState;
 import io.microraft.model.message.RaftMessage;
 import io.microraft.persistence.NopRaftStore;
 import io.microraft.persistence.RaftStore;
 import io.microraft.persistence.RestoredRaftState;
+import io.microraft.statemachine.StateMachine;
+import io.microraft.test.util.AssertionUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,8 +40,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static io.microraft.RaftConfig.DEFAULT_RAFT_CONFIG;
-import static io.microraft.impl.util.AssertionUtils.eventually;
-import static io.microraft.impl.util.RaftTestUtils.getTerm;
+import static io.microraft.test.util.AssertionUtils.eventually;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,11 +54,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author mdogan
  * @author metanet
  * @see LocalRaftEndpoint
- * @see LocalRaftNodeRuntime
+ * @see FaultInjectableLocalRaftNodeRuntime
  * @see SimpleStateMachine
  * @see Firewall
  */
-public class LocalRaftGroup {
+public final class LocalRaftGroup {
 
     private final RaftConfig config;
     private final boolean newTermEntryEnabled;
@@ -128,7 +128,7 @@ public class LocalRaftGroup {
         for (int i = 0; i < size; i++) {
             RaftEndpoint endpoint = initialMembers.get(i);
             Firewall firewall = new Firewall();
-            LocalRaftNodeRuntime runtime = new LocalRaftNodeRuntime(endpoint, firewall);
+            FaultInjectableLocalRaftNodeRuntime runtime = new FaultInjectableLocalRaftNodeRuntime(endpoint, firewall);
             SimpleStateMachine stateMachine = new SimpleStateMachine(newTermEntryEnabled);
             RaftNode.RaftNodeBuilder nodeBuilder = RaftNode.newBuilder().setGroupId("default").setLocalEndpoint(endpoint)
                                                            .setInitialGroupMembers(initialMembers).setConfig(config)
@@ -174,7 +174,7 @@ public class LocalRaftGroup {
     public RaftNodeImpl createNewNode() {
         LocalRaftEndpoint endpoint = LocalRaftEndpoint.newEndpoint();
         Firewall firewall = new Firewall();
-        LocalRaftNodeRuntime runtime = new LocalRaftNodeRuntime(endpoint, firewall);
+        FaultInjectableLocalRaftNodeRuntime runtime = new FaultInjectableLocalRaftNodeRuntime(endpoint, firewall);
         SimpleStateMachine stateMachine = new SimpleStateMachine(newTermEntryEnabled);
         RaftStore raftStore = raftStoreFactory != null ? raftStoreFactory.apply(endpoint, config) : NopRaftStore.INSTANCE;
         RaftNodeImpl node = (RaftNodeImpl) RaftNode.newBuilder().setGroupId("default").setLocalEndpoint(endpoint)
@@ -218,7 +218,8 @@ public class LocalRaftGroup {
         requireNonNull(restoredState);
 
         Firewall firewall = new Firewall();
-        LocalRaftNodeRuntime runtime = new LocalRaftNodeRuntime(restoredState.getLocalEndpoint(), firewall);
+        FaultInjectableLocalRaftNodeRuntime runtime = new FaultInjectableLocalRaftNodeRuntime(restoredState.getLocalEndpoint(),
+                                                                                              firewall);
         SimpleStateMachine stateMachine = new SimpleStateMachine(newTermEntryEnabled);
         RaftNodeImpl node = (RaftNodeImpl) RaftNode.newBuilder().setGroupId("default").setRestoredState(restoredState)
                                                    .setConfig(config).setRuntime(runtime).setStateMachine(stateMachine)
@@ -290,22 +291,28 @@ public class LocalRaftGroup {
      *         if different Raft nodes see different leaders
      */
     public RaftEndpoint getLeaderEndpoint() {
-        RaftEndpoint leader = null;
-
+        RaftEndpoint leaderEndpoint = null;
+        int leaderTerm = 0;
         for (RaftNodeContext nodeContext : nodeContexts.values()) {
             if (nodeContext.isRuntimeShutdown()) {
                 continue;
             }
 
-            RaftEndpoint endpoint = nodeContext.getLeaderEndpoint();
-            if (leader == null) {
-                leader = endpoint;
-            } else if (!leader.equals(endpoint)) {
+            RaftGroupTermState term = nodeContext.node.getTerm();
+            if (term.getLeaderEndpoint() != null) {
+                if (leaderEndpoint == null) {
+                    leaderEndpoint = term.getLeaderEndpoint();
+                    leaderTerm = term.getTerm();
+                } else if (!(leaderEndpoint.equals(term.getLeaderEndpoint()) && leaderTerm == term.getTerm())) {
+                    leaderEndpoint = null;
+                    leaderTerm = 0;
+                }
+            } else {
                 throw new AssertionError("Group doesn't have a single leader endpoint yet!");
             }
         }
 
-        return leader;
+        return leaderEndpoint;
     }
 
     /**
@@ -339,19 +346,6 @@ public class LocalRaftGroup {
         eventually(() -> {
             RaftNodeImpl leaderNode = getLeaderNode();
             assertThat(leaderNode).isNotNull();
-
-            int leaderTerm = getTerm(leaderNode);
-
-            for (RaftNodeContext ctx : nodeContexts.values()) {
-                if (ctx.isRuntimeShutdown()) {
-                    continue;
-                }
-
-                RaftEndpoint leader = ctx.getLeaderEndpoint();
-                assertThat(leader).isEqualTo(leaderNode.getLocalEndpoint());
-                assertThat(getTerm(ctx.node)).isEqualTo(leaderTerm);
-            }
-
             leaderRef[0] = leaderNode;
         });
 
@@ -379,17 +373,12 @@ public class LocalRaftGroup {
             return null;
         }
 
-        for (RaftNodeContext nodeContext : nodeContexts.values()) {
-            if (nodeContext.isRuntimeShutdown()) {
-                continue;
-            }
-
-            if (leaderEndpoint.equals(nodeContext.getLocalEndpoint())) {
-                return (T) nodeContext.node;
-            }
+        RaftNodeContext leaderCtx = nodeContexts.get(leaderEndpoint);
+        if (leaderCtx == null || leaderCtx.isRuntimeShutdown()) {
+            throw new AssertionError("Leader endpoint is " + leaderEndpoint + ", but leader node could not be found!");
         }
 
-        throw new AssertionError("Leader endpoint is " + leaderEndpoint + ", but leader node could not be found!");
+        return (T) leaderCtx.node;
     }
 
     /**
@@ -720,7 +709,7 @@ public class LocalRaftGroup {
     /**
      * Builder for creating and starting Raft groups
      */
-    public static class LocalRaftGroupBuilder {
+    public static final class LocalRaftGroupBuilder {
 
         private int groupSize;
         private RaftConfig config = DEFAULT_RAFT_CONFIG;
@@ -798,11 +787,12 @@ public class LocalRaftGroup {
 
     private static class RaftNodeContext {
         final Firewall firewall;
-        final LocalRaftNodeRuntime runtime;
+        final FaultInjectableLocalRaftNodeRuntime runtime;
         final SimpleStateMachine stateMachine;
         final RaftNodeImpl node;
 
-        RaftNodeContext(Firewall firewall, LocalRaftNodeRuntime runtime, SimpleStateMachine stateMachine, RaftNodeImpl node) {
+        RaftNodeContext(Firewall firewall, FaultInjectableLocalRaftNodeRuntime runtime, SimpleStateMachine stateMachine,
+                        RaftNodeImpl node) {
             this.firewall = firewall;
             this.runtime = runtime;
             this.stateMachine = stateMachine;

@@ -1,5 +1,5 @@
 
-## Configuration Parameters
+## Configuration
 
 MicroRaft is a lightweight library with a minimal feature set, yet it allows 
 users to fine-tune its behaviour. In this section, we elaborate 

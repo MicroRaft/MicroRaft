@@ -17,7 +17,7 @@
 
 package io.microraft.impl.local;
 
-import io.microraft.integration.StateMachine;
+import io.microraft.statemachine.StateMachine;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

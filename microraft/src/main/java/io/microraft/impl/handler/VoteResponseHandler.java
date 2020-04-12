@@ -21,9 +21,9 @@ import io.microraft.RaftRole;
 import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.state.CandidateState;
 import io.microraft.impl.state.RaftState;
-import io.microraft.integration.StateMachine;
 import io.microraft.model.message.VoteRequest;
 import io.microraft.model.message.VoteResponse;
+import io.microraft.statemachine.StateMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

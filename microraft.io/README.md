@@ -1,4 +1,4 @@
-# MicroRafts Docs
+# microraft.io Sources
 
 This directory contains the source files of the MicroRaft website which is
 built with MKDOCS 1.1.

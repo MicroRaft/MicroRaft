@@ -159,7 +159,7 @@ public class Firewall {
      * @return true if the given Raft message sent to the given Raft endpoint
      *         should be dropped
      */
-    boolean shouldDrop(RaftEndpoint target, RaftMessage message) {
+    boolean shouldDropMessage(RaftEndpoint target, RaftMessage message) {
         return dropRules.stream().anyMatch(rule -> rule.shouldDrop(target, message));
     }
 

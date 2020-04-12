@@ -25,8 +25,8 @@ import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.state.QueryState;
 import io.microraft.impl.state.RaftState;
 import io.microraft.impl.util.OrderedFuture;
-import io.microraft.integration.StateMachine;
 import io.microraft.model.groupop.RaftGroupOp;
+import io.microraft.statemachine.StateMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

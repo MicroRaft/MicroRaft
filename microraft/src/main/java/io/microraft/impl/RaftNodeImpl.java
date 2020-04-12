@@ -40,7 +40,6 @@ import io.microraft.impl.handler.TriggerLeaderElectionHandler;
 import io.microraft.impl.handler.VoteRequestHandler;
 import io.microraft.impl.handler.VoteResponseHandler;
 import io.microraft.impl.log.RaftLog;
-import io.microraft.impl.model.DefaultRaftModelFactory;
 import io.microraft.impl.report.RaftLogStatsImpl;
 import io.microraft.impl.report.RaftNodeReportImpl;
 import io.microraft.impl.state.FollowerState;
@@ -59,12 +58,11 @@ import io.microraft.impl.task.RaftNodeStatusAwareTask;
 import io.microraft.impl.task.ReplicateTask;
 import io.microraft.impl.util.Long2ObjectHashMap;
 import io.microraft.impl.util.OrderedFuture;
-import io.microraft.integration.RaftNodeRuntime;
-import io.microraft.integration.StateMachine;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.model.groupop.RaftGroupOp;
 import io.microraft.model.groupop.TerminateRaftGroupOp;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp;
+import io.microraft.model.impl.DefaultRaftModelFactory;
 import io.microraft.model.log.BaseLogEntry;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.SnapshotChunk;
@@ -87,6 +85,8 @@ import io.microraft.persistence.RestoredRaftState;
 import io.microraft.report.RaftGroupMembers;
 import io.microraft.report.RaftNodeReport;
 import io.microraft.report.RaftNodeReport.RaftNodeReportReason;
+import io.microraft.runtime.RaftNodeRuntime;
+import io.microraft.statemachine.StateMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -173,19 +173,12 @@ public final class RaftNodeImpl
     public RaftNodeImpl(Object groupId, RaftEndpoint localEndpoint, Collection<RaftEndpoint> initialGroupMembers,
                         RaftConfig config, RaftNodeRuntime runtime, StateMachine stateMachine, RaftModelFactory modelFactory,
                         RaftStore store) {
-        requireNonNull(groupId);
         requireNonNull(localEndpoint);
-        requireNonNull(initialGroupMembers);
-        requireNonNull(store);
-        requireNonNull(config);
-        requireNonNull(runtime);
-        requireNonNull(stateMachine);
-        requireNonNull(modelFactory);
-        this.groupId = groupId;
-        this.runtime = runtime;
-        this.stateMachine = stateMachine;
-        this.modelFactory = modelFactory;
-        this.config = config;
+        this.groupId = requireNonNull(groupId);
+        this.runtime = requireNonNull(runtime);
+        this.stateMachine = requireNonNull(stateMachine);
+        this.modelFactory = requireNonNull(modelFactory);
+        this.config = requireNonNull(config);
         this.localEndpointStr = localEndpoint.getId() + "<" + groupId + ">";
         this.leaderHeartbeatTimeoutMillis = SECONDS.toMillis(config.getLeaderHeartbeatTimeoutSecs());
         this.commitCountToTakeSnapshot = config.getCommitCountToTakeSnapshot();
@@ -206,17 +199,12 @@ public final class RaftNodeImpl
     @SuppressWarnings("checkstyle:executablestatementcount")
     public RaftNodeImpl(Object groupId, RestoredRaftState restoredState, RaftConfig config, RaftNodeRuntime runtime,
                         StateMachine stateMachine, RaftModelFactory modelFactory, RaftStore store) {
-        requireNonNull(groupId);
         requireNonNull(store);
-        requireNonNull(config);
-        requireNonNull(runtime);
-        requireNonNull(stateMachine);
-        requireNonNull(modelFactory);
-        this.groupId = groupId;
-        this.runtime = runtime;
-        this.stateMachine = stateMachine;
-        this.modelFactory = modelFactory;
-        this.config = config;
+        this.groupId = requireNonNull(groupId);
+        this.runtime = requireNonNull(runtime);
+        this.stateMachine = requireNonNull(stateMachine);
+        this.modelFactory = requireNonNull(modelFactory);
+        this.config = requireNonNull(config);
         this.localEndpointStr = restoredState.getLocalEndpoint().getId() + "<" + groupId + ">";
         this.leaderHeartbeatTimeoutMillis = SECONDS.toMillis(config.getLeaderHeartbeatTimeoutSecs());
         this.commitCountToTakeSnapshot = config.getCommitCountToTakeSnapshot();
@@ -1020,7 +1008,7 @@ public final class RaftNodeImpl
             RaftGroupMembers committedMembers = report.getCommittedMembers();
             StringBuilder sb = new StringBuilder(localEndpointStr).append(" Raft Group Members {").append("groupId: ")
                                                                   .append(groupId).append(", size: ")
-                                                                  .append(committedMembers.getMembers().size()).append(", term:")
+                                                                  .append(committedMembers.getMembers().size()).append(", term: ")
                                                                   .append(report.getTerm().getTerm()).append(", logIndex: ")
                                                                   .append(committedMembers.getLogIndex()).append("} [");
 
@@ -1721,79 +1709,69 @@ public final class RaftNodeImpl
         @Nonnull
         @Override
         public RaftNodeBuilder setLocalEndpoint(@Nonnull RaftEndpoint localEndpoint) {
-            requireNonNull(localEndpoint);
             if (this.restoredState != null) {
                 throw new IllegalStateException("Local member cannot be set when restored Raft state is provided!");
             }
 
-            this.localMember = localEndpoint;
+            this.localMember = requireNonNull(localEndpoint);
             return this;
         }
 
         @Nonnull
         @Override
         public RaftNodeBuilder setInitialGroupMembers(@Nonnull Collection<RaftEndpoint> initialGroupMembers) {
-            requireNonNull(initialGroupMembers);
-
             if (this.restoredState != null) {
                 throw new IllegalStateException("Initial group members cannot be set when restored Raft state is " + "provided!");
             }
 
-            this.initialGroupMembers = initialGroupMembers;
+            this.initialGroupMembers = requireNonNull(initialGroupMembers);
             return this;
         }
 
         @Nonnull
         @Override
         public RaftNodeBuilder setRestoredState(@Nonnull RestoredRaftState restoredState) {
-            requireNonNull(restoredState);
-
             if (this.localMember != null || this.initialGroupMembers != null) {
                 throw new IllegalStateException(
-                        "Restored state cannot be set when either local member or initial " + "group members is provided!");
+                        "Restored state cannot be set when either local member or initial group members is provided!");
             }
 
-            this.restoredState = restoredState;
+            this.restoredState = requireNonNull(restoredState);
             return this;
         }
 
         @Nonnull
         @Override
         public RaftNodeBuilder setConfig(@Nonnull RaftConfig config) {
-            requireNonNull(config);
-            this.config = config;
+            this.config = requireNonNull(config);
             return this;
         }
 
         @Nonnull
         @Override
         public RaftNodeBuilder setRuntime(@Nonnull RaftNodeRuntime runtime) {
-            requireNonNull(runtime);
-            this.runtime = runtime;
+            this.runtime = requireNonNull(runtime);
             return this;
         }
 
         @Nonnull
         @Override
         public RaftNodeBuilder setStateMachine(@Nonnull StateMachine stateMachine) {
-            requireNonNull(stateMachine);
-            this.stateMachine = stateMachine;
+            this.stateMachine = requireNonNull(stateMachine);
             return this;
         }
 
         @Nonnull
         @Override
         public RaftNodeBuilder setStore(@Nonnull RaftStore store) {
-            requireNonNull(store);
-            this.store = store;
+            this.store = requireNonNull(store);
             return this;
         }
 
         @Nonnull
         @Override
         public RaftNodeBuilder setModelFactory(@Nonnull RaftModelFactory modelFactory) {
-            requireNonNull(modelFactory);
-            this.modelFactory = modelFactory;
+            this.modelFactory = requireNonNull(modelFactory);
             return this;
         }
 

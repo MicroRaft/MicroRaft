@@ -17,7 +17,7 @@
 package io.microraft;
 
 import com.typesafe.config.ConfigFactory;
-import io.microraft.impl.util.BaseTest;
+import io.microraft.test.util.BaseTest;
 import org.junit.Test;
 
 import static io.microraft.HoconRaftConfigParser.parseConfig;

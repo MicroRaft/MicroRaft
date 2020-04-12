@@ -13,6 +13,7 @@
         <module>microraft</module>
         <module>microraft-hocon</module>
         <module>microraft-yaml</module>
+        <module>microraft-tutorial</module>
     </modules>
 
     <developers>
@@ -80,6 +81,7 @@
         <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
         <maven.javadoc.plugin.version>3.2.0</maven.javadoc.plugin.version>
         <maven.jacoco.plugin.version>0.8.5</maven.jacoco.plugin.version>
+        <maven.checkstyle.plugin.version>3.1.1</maven.checkstyle.plugin.version>
     </properties>
 
     <dependencies>
@@ -254,7 +256,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-checkstyle-plugin</artifactId>
-                        <version>3.1.1</version>
+                        <version>${maven.checkstyle.plugin.version}</version>
                         <executions>
                             <execution>
                                 <id>validate</id>
@@ -331,7 +333,7 @@
         </profile>
 
         <profile>
-            <id>code-sample</id>
+            <id>tutorial</id>
             <properties>
                 <redirect.test.output.to.file>false</redirect.test.output.to.file>
             </properties>

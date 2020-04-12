@@ -25,8 +25,8 @@ import io.microraft.exception.NotLeaderException;
 import io.microraft.exception.RaftException;
 import io.microraft.impl.local.LocalRaftEndpoint;
 import io.microraft.impl.local.LocalRaftGroup;
-import io.microraft.impl.util.BaseTest;
 import io.microraft.model.message.AppendEntriesRequest;
+import io.microraft.test.util.BaseTest;
 import org.junit.After;
 import org.junit.Test;
 
@@ -38,8 +38,8 @@ import java.util.concurrent.TimeoutException;
 import static io.microraft.MembershipChangeMode.REMOVE;
 import static io.microraft.RaftRole.FOLLOWER;
 import static io.microraft.impl.local.SimpleStateMachine.apply;
-import static io.microraft.impl.util.RaftTestUtils.getRole;
-import static io.microraft.impl.util.RaftTestUtils.getTerm;
+import static io.microraft.test.util.RaftTestUtils.getRole;
+import static io.microraft.test.util.RaftTestUtils.getTerm;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**

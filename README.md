@@ -4,7 +4,7 @@
 
 ![](microraft.io/src/img/logo.png)
 
-MicroRaft is a future-complete, stable and production-grade open-source 
+MicroRaft is a feature-complete, stable and production-grade open-source 
 implementation of the Raft consensus algorithm in Java. __It is a single 
 lightweight JAR file of a few hundred KBs of size.__ It requires Java 8 
 at minimum. It can be used for building fault tolerant and strongly-consistent 

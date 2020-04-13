@@ -1,7 +1,7 @@
 
 ![](img/logo.png){: style="height:64px;width:348px"}
 
-MicroRaft is a future-complete, stable and production-grade open-source 
+MicroRaft is a feature-complete, stable and production-grade open-source 
 implementation of the Raft consensus algorithm in Java. It can be used for
 building fault tolerant and strongly-consistent (CP) data, metadata and
 coordination services. A few examples of possible use-cases are building

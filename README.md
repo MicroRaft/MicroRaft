@@ -6,11 +6,25 @@
 
 MicroRaft is a feature-complete, stable and production-grade open-source 
 implementation of the Raft consensus algorithm in Java. __It is a single 
-lightweight JAR file of a few hundred KBs of size.__ It requires Java 8 
-at minimum. It can be used for building fault tolerant and strongly-consistent 
-(CP) data, metadata and coordination services. A few examples of possible 
-use-cases are building distributed file systems, distributed lock services, 
-key-value stores, etc.
+lightweight JAR file of a few hundred KBs of size.__ It can be used for 
+building fault tolerant and strongly-consistent (CP) data, metadata and 
+coordination services. A few examples of possible use-cases are building
+distributed file systems, key-value stores, distributed lock services, etc.
+
+MicroRaft works on top of a minimalistic and modular design. __It is a single
+lightweight JAR with a few hundred KBs of size and only logging dependency.__
+It contains an isolated implementation of the Raft consensus algorithm, and 
+a set of accompanying abstractions to run the algorithm in a multi-threaded and 
+distributed environment. These abstractions are defined to isolate the core 
+algorithm from the concerns of persistence, thread-safety, serialization, 
+networking, and actual state machine logic. Users are required to provide their 
+own implementations of these abstractions to build their custom CP distributed
+systems with MicroRaft.
+
+__Please note that MicroRaft is not a high-level solution like a distributed 
+key-value store or a distributed lock service. It is a core library that offers
+a set of abstractions and functionalities to help you build such high-level 
+systems.__ 
 
 ## Features
 

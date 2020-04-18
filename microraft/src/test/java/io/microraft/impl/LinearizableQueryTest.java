@@ -20,7 +20,7 @@ package io.microraft.impl;
 import io.microraft.MembershipChangeMode;
 import io.microraft.Ordered;
 import io.microraft.RaftConfig;
-import io.microraft.RaftEndpoint;
+import io.microraft.RaftRole;
 import io.microraft.exception.CannotReplicateException;
 import io.microraft.exception.LaggingCommitIndexException;
 import io.microraft.exception.NotLeaderException;
@@ -45,8 +45,8 @@ import static io.microraft.test.util.AssertionUtils.eventually;
 import static io.microraft.test.util.RaftTestUtils.TEST_RAFT_CONFIG;
 import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
 import static io.microraft.test.util.RaftTestUtils.getLeaderQuerySeqNo;
+import static io.microraft.test.util.RaftTestUtils.getRole;
 import static io.microraft.test.util.RaftTestUtils.getSnapshotEntry;
-import static io.microraft.test.util.RaftTestUtils.majority;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
@@ -268,31 +268,19 @@ public class LinearizableQueryTest
     @Test(timeout = 300_000)
     public void when_leaderDemotesToFollowerWhileThereIsOngoingQuery_then_queryFails()
             throws Exception {
-        startGroup(5, TEST_RAFT_CONFIG);
+        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(5).build();
+        startGroup(3, config);
 
-        RaftNodeImpl oldLeader = group.waitUntilLeaderElected();
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
 
-        List<RaftEndpoint> majoritySplitMembers = group.getRandomNodes(majority(5), false);
-        group.splitMembers(majoritySplitMembers);
+        group.splitMembers(leader.getLocalEndpoint());
 
-        Future<Ordered<Object>> queryFuture = oldLeader.query(queryLast(), LINEARIZABLE, 0);
+        Future<Ordered<Object>> queryFuture = leader.query(queryLast(), LINEARIZABLE, 0);
 
         eventually(() -> {
-            for (RaftEndpoint endpoint : majoritySplitMembers) {
-                RaftNodeImpl node = group.getNode(endpoint);
-                RaftEndpoint newLeader = node.getLeaderEndpoint();
-                assertThat(newLeader).isNotNull().isNotEqualTo(oldLeader.getLocalEndpoint());
-            }
+            assertThat(getRole(leader)).isEqualTo(RaftRole.FOLLOWER);
         });
 
-        RaftNodeImpl newLeader = group.getNode(group.<RaftNodeImpl>getNode(majoritySplitMembers.get(0)).getLeaderEndpoint());
-        newLeader.replicate(apply("value1")).get();
-
-        group.merge();
-        group.waitUntilLeaderElected();
-
-        Object newLeaderEndpoint = newLeader.getLocalEndpoint();
-        assertThat(newLeaderEndpoint).isEqualTo(oldLeader.getLeaderEndpoint());
         try {
             queryFuture.get();
             fail();

@@ -88,8 +88,8 @@ public final class RaftConfig
     /**
      * Duration in seconds for a follower to decide on failure of the current
      * leader and start a new leader election round. If this duration is too
-     * small, a leader could be considered as failed unnecessarily in case of
-     * a small hiccup. If it is too large, it takes longer to detect an actual
+     * short, a leader could be considered as failed unnecessarily in case of
+     * a small hiccup. If it is too long, it takes longer to detect an actual
      * failure.
      * <p>
      * Even though there is a single "election timeout" parameter in the Raft

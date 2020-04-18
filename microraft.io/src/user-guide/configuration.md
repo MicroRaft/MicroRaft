@@ -27,9 +27,9 @@ leader elections work in Raft.
 * __Leader heartbeat timeout seconds:__ 
 
 Duration in seconds for a follower to decide on failure of the current leader
-and start a new leader election round. If this duration is too small, a leader
+and start a new leader election round. If this duration is too short, a leader
 could be considered as failed unnecessarily in case of a small hiccup. If it is
-too large, it takes longer to detect an actual failure.
+too long, it takes longer to detect an actual failure.
 
 The Raft paper uses a single parameter, _election timeout_, to both detect 
 failure of the leader and perform a leader election round. A follower decides 

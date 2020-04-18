@@ -137,7 +137,7 @@ its initial status is
 and it does not execute the Raft consensus algorithm in this status. When 
 `RaftNode.start()` is called, its status becomes 
 [`RaftNodeStatus.ACTIVE`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNodeStatus.java) 
-and the Raft node internally submit a task via `LocalRaftNodeRuntime` to check 
+and the Raft node internally submits a task via `LocalRaftNodeRuntime` to check 
 if there is a leader. Since we are starting a new Raft group in this test, 
 obviously there is no leader yet so our Raft nodes will start a new leader
 election round.  
@@ -217,7 +217,7 @@ the leader election logs and look at the final status.
 As you see, we managed to elect our leader in the 2nd term. It means that we
 had a split-vote situation in the 1st term. This is quite normal because in our
 test code we start our Raft nodes at the same time and each Raft node just
-votes for itself during the first term. Please keep in mind that in your run 
+votes for itself during the first term. Please keep in mind that in your run, 
 another Raft node could become the leader.
 
 
@@ -600,7 +600,7 @@ operational. Voila!
 
 [`RaftNodeReport`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/report/RaftNodeReport.java) 
 class contains detailed information about internal state of a `RaftNode`, such 
-as its Raft role, term, leader, last log index, commit index, etc. MicroRaft 
+as its Raft role, term, leader, last log index, and commit index. MicroRaft 
 provides multiple mechanisms to monitor internal state of Raft nodes:
 
 1. We can build a simple pull-based system to query `RaftNodeReport` objects 

@@ -37,7 +37,7 @@ executes the Raft consensus algorithm with a `RaftNode`.
 `RaftNode` differentiates members of a Raft group with a unique id. MicroRaft
 users need to provide a unique id for each `RaftEndpoint`. Other than this 
 information, `RaftEndpoint` implementations can contain custom fields, such as
-network addresses, tags, etc, to be utilized by `RaftNodeRuntime` 
+network addresses and tags, to be utilized by `RaftNodeRuntime` 
 implementations.
 
 
@@ -57,7 +57,7 @@ denotes the statuses of a `RaftNode` during its own and its Raft group's
 lifecycle. A `RaftNode` is in the `INITIAL` status when it is created, and
 moves to the `ACTIVE` status when it is started with a `RaftNode.start()` call. 
 It stays in this status until either a membership change is triggered 
-in the Raft group, or either the Raft group or the Raft node is terminated. 
+in the Raft group, or either the Raft group or Raft node is terminated. 
 
 
 ### `RaftNodeRuntime`
@@ -98,10 +98,10 @@ do not need to be thread-safe.
 [`RaftStore`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/persistence/RaftStore.java) 
 is used for persisting the internal state of the Raft consensus algorithm. Its 
 implementations must provide the durability guarantees defined 
-in the interface. 
+in the interface.
 
-If a `RaftNode` crashes, its persisted state could be read back stable storage
-into a 
+If a `RaftNode` crashes, its persisted state could be read back from stable 
+storage into a 
 [`RestoredRaftState`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/persistence/RestoredRaftState.java) 
 object and the `RaftNode` could be restored back. `RestoredRaftState` contains 
 all the necessary information to recover `RaftNode` instances from crashes.
@@ -133,13 +133,13 @@ available under the
 [`io.microraft.model.impl`](https://github.com/metanet/MicroRaft/tree/master/microraft/src/main/java/io/microraft/model/impl) 
 package.
 
+
 ### `RaftException`
 
 [`RaftException`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/exception/RaftException.java)
 is the base class for Raft-related exceptions. MicroRaft defines a number of 
 [custom exceptions]((https://github.com/metanet/MicroRaft/tree/master/microraft/src/main/java/io/microraft/exception)) 
 to report some certain failure scenarios to clients. 
-
 
 
 ## How to Run a Raft Group 
@@ -177,11 +177,11 @@ RPC mechanism to replicate and commit our operations on a Raft group. This is
 required because simplicity is the primary concern for MicroRaft's design
 philosophy. MicroRaft offers a minimum API set to cover the fundamental
 functionality and enables its users to implement higher-level abstractions, 
-such as an RPC system with request routing, retries, deduplication, etc. For 
+such as an RPC system with request routing, retries, and deduplication. For 
 instance, MicroRaft neither broadcasts the Raft group members to any external 
 discovery system, nor integrates with any observability tool, but it exposes
 all necessary information, such as the current Raft group members, the leader
-endpoint, term, commit index, etc. via `RaftNode.getReport()`. We can use that
+endpoint, term, commit index. via `RaftNode.getReport()`. We can use that
 information to feed our discovery services and monitoring tools. Similarly, 
 the public APIs on `RaftNode` do not employ request routing or retry 
 mechanisms. For instance, if a client tries to replicate an operation via a
@@ -199,9 +199,9 @@ demonstrate how to implement and use MicroRaft's main abstractions.
 The following figure depicts an architectural overview of a Raft group based on
 the abstractions explained above. Clients talk to the consensus module of 
 MicroRaft. The consensus module talks to `RaftNodeRuntime` to communicate with 
-the other Raft nodes and execute the Raft consensus algorithm, and `RaftStore`
-to persisted Raft log entries to stable storage. Once it commits a log entry,
-it passes the operation in the log entry to `StateMachine` for execution.
+the other Raft nodes and execute the Raft consensus algorithm. It also uses 
+`RaftStore`to persist Raft log entries to stable storage. Last, once a log 
+entry is committed, its operation is passed to `StateMachine` for execution.
 
 ![Integration](/img/architectural_overview.png)
 

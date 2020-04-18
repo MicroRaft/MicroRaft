@@ -62,7 +62,7 @@ an atomic register on top of MicroRaft.
 
 ## Getting Involved
 
-MicroRaft is a new open-source library and there is tons of work to do! So 
+MicroRaft is a new open-source library and there are tons of work to do! So 
 any kind of feedback and contribution is welcome! You can improve the source
 code, add new tests, create issues or feature requests, or just ask questions!
 

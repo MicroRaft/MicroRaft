@@ -1,7 +1,7 @@
 
 ## Setup
 
-MicroRaft JARs is available in the standard Maven repositories. If you are 
+MicroRaft JARs are available in the standard Maven repositories. If you are 
 using Maven, just add the following lines to the `dependencies` section in 
 your `pom.xml`:
 
@@ -35,7 +35,7 @@ dependencies provide parsers to configure MicroRaft from HOCON and YAML files:
 If you don't have Maven but want to build the project on your machine, `mvnw` 
 is available in the MicroRaft repository. Just clone with  
 `git clone git@github.com:metanet/MicroRaft.git` and hit 
-`cd MicroRaft && ./mvnw clean package`. Then you can get the jars from 
+`cd MicroRaft && ./mvnw clean package`. Then you can get the JARs from 
 `microraft/target`, `microraft-hocon/target`, and `microraft-yaml/target` 
 directories. 
 
@@ -44,8 +44,8 @@ directories.
 
 MicroRaft depends on the SLF4J library for logging. Actually it is the only
 dependency of MicroRaft. Make sure you enable the `INFO` logging level for the 
-the `io.microraft` package. If you are going hard, you can also give 
-the `DEBUG` level a shot, but I assure you it will be a bumpy ride.
+`io.microraft` package. If you are going hard, you can also give the `DEBUG` 
+level a shot, but I assure you it will be a bumpy ride.
 
 
 ## What is Next?

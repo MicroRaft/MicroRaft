@@ -2,25 +2,19 @@
 ![](img/logo.png){: style="height:64px;width:348px"}
 
 MicroRaft is a feature-complete, stable and production-grade open-source 
-implementation of the Raft consensus algorithm in Java. It can be used for
-building fault tolerant and strongly-consistent (CP) data, metadata and
-coordination services. A few examples of possible use-cases are building
-distributed file systems, key-value stores, distributed lock services, etc.
+implementation of the Raft consensus algorithm in Java. 
 
 MicroRaft works on top of a minimalistic and modular design. __It is a single 
-lightweight JAR with a few hundred KBs of size and only logging dependency.__
-It contains an isolated implementation of the Raft consensus algorithm, and 
-a set of accompanying abstractions to run the algorithm in a multi-threaded and 
+lightweight JAR with a few hundred KBs of size and only logging dependency.__ 
+It contains an isolated implementation of the Raft consensus algorithm, and a 
+set of accompanying abstractions to run the algorithm in a multi-threaded and
 distributed environment. These abstractions are defined to isolate the core 
 algorithm from the concerns of persistence, thread-safety, serialization, 
 networking, and actual state machine logic. Users are required to provide their 
-own implementations of these abstractions to build their custom CP distributed
+own implementations of these abstractions to build their custom *CP* distributed 
 systems with MicroRaft.
 
-__Please note that MicroRaft is not a high-level solution like a distributed 
-key-value store or a distributed lock service. It is a core library that offers
-a set of abstractions and functionalities to help you build such high-level 
-systems.__ 
+
 
 ## Features
 
@@ -39,6 +33,26 @@ enhancements:
 * Monotonic local queries on Raft followers [(Section 6.4.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
 * Parallel disk writes on Raft leader and followers [(Section 10.2.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
 * Leadership transfer [(Section 3.10 of the Raft dissertation)](https://github.com/ongardie/dissertation).
+
+
+## Use Cases
+
+MicroRaft can be used for building highly available and strongly-consistent data, 
+metadata and coordination services. 
+
+An example of data service is a distributed key-value store. You can build a 
+distributed key-value store where each partition / shard is maintained by a 
+separate Raft cluster (*Raft group* in MicroRaft terms).   
+ 
+MicroRaft can be also used for building a control plane or a coordination
+cluster. It can store the metadata of your large-scale data services. 
+High-level APIs, such as leader election, distributed locking, resource broker,
+or distributed scheduler can be built on top of MicroRaft as well.
+ 
+__Please note that MicroRaft is not a high-level solution like a distributed 
+key-value store, or a distributed lock service. It is a core library that offers
+a set of abstractions and functionalities to help you build such high-level 
+systems.__ 
 
 
 ## Getting Started

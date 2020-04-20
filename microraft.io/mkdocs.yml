@@ -24,7 +24,7 @@ nav:
       - Resiliency and Fault Tolerance: 'user-guide/resiliency-and-fault-tolerance.md'
       - Release Notes: 'user-guide/release-notes.md'
       - Roadmap: 'user-guide/roadmap.md'
-  - 'Documentation':
+  - 'Deep Dive':
       - Architecture: 'documentation/architecture.md'
       - Leader Election: 'documentation/leader-election.md'
       - Log Replication: 'documentation/log-replication.md'

@@ -57,16 +57,15 @@ systems.__
 
 ## Getting Started
 
-The following commands start a 3-node local Raft cluster on your machine and
-commits a number of operations. Just try them on your terminal for a sneak peek
+The following command starts a 3-node local Raft cluster on your machine and
+commits a number of operations. Just try it on your terminal for a sneak peek
 at MicroRaft.
 
 ~~~~{.bash}
-$ git clone https://github.com/metanet/MicroRaft.git
-$ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.OperationCommitTest -DfailIfNoTests=false -Ptutorial
+$ git clone https://github.com/metanet/MicroRaft.git && cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.OperationCommitTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
-If you want to learn more about how to use MicroRaft for building a CP 
+If you want to learn more about how to use MicroRaft for building a *CP* 
 distributed system, you can check out the 
 [APIs and Main Abstractions](user-guide/apis-and-main-abstractions.md) section
 first, then read the 

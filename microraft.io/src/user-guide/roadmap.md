@@ -1,5 +1,6 @@
 I am planning to work on the following tasks in the future, but have no strict
-plans. If you have ideas, just [chime in](https://join.slack.com/t/microraft/shared_invite/zt-dc6utpfk-84P0VbK7EcrD3lIme2IaaQ)! 
+plans about their timeline. If you have ideas, just 
+[chime in](https://join.slack.com/t/microraft/shared_invite/zt-dc6utpfk-84P0VbK7EcrD3lIme2IaaQ)! 
 
 - Learner nodes. When a new Raft node is added to a running Raft group, it can
 start with the "learner" role. In this role, the new Raft node is excluded in 
@@ -20,18 +21,18 @@ a witness replica can be promoted to the follower role to increase the number
 of `StateMachine` replicas. 
 
 - Offload more work from leader to followers. One candidate is transfer of 
-committed log entries. Just like installing snapshot chunks from followers, 
-a slow follower can get committed log entries from followers.  
+committed log entries. Just like parallel snapshot chunk transfer from 
+followers, a slow follower can get committed log entries from followers.  
 
 - Improve the pipelining design. The current pipeline design is quite solid but 
 there is still room for improvement. One idea is, once a follower installs a 
-snapshot, the leader can increase the batch size for that follower, so that the
-slow follower catches up with the majority faster. Another thing to try is, 
-currently when a leader sends an *Append Entries RPC* to a follower, it does 
-not send another RPC to that follower either until the follower sends a 
+snapshot, the leader can boost that follower by increasing its *Append Entries 
+RPC* batch size, so that it catches up with the majority faster. Another thing 
+to try is, currently when a leader sends an *Append Entries RPC* to a follower, 
+it does not send another RPC to that follower either until the follower sends a 
 response, or the *Append Entries RPC backoff* timeout elapses. During this 
-duration, the leader might append new log entries in its local log. When the
-leader enables the backoff for a follower, if more log entries are appended to
-the leader's local Raft log, a few of these log entries can be also sent to the
-follower.
+duration, the leader might append new log entries in its local log. During the
+*Append Entries RPC backoff* is enabled for a follower, if more log entries are 
+appended to the leader's log, a few of these log entries can be also sent to 
+the follower.
  

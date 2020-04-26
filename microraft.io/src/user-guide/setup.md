@@ -48,7 +48,7 @@ dependency of MicroRaft. Make sure you enable the `INFO` logging level for the
 level a shot, but I assure you it will be a bumpy ride.
 
 
-## What is Next?
+## What is next?
 
 OK. You have the MicroRaft JAR in your classpath and the logging also looks
 good. Now you are ready to build your CP distributed system! Then why don't

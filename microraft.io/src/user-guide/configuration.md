@@ -105,7 +105,7 @@ state. `RaftNodeReport` objects can be used for monitoring a running Raft
 group.
 
 
-## HOCON Files
+## HOCON Configuration
 
 `RaftConfig` objects can be populated from HOCON files easily if you add the
 `microraft-hocon` dependency to your classpath. 
@@ -146,7 +146,7 @@ Please refer to
 for details.
 
 
-## YAML Files
+## YAML Configuration
 
 Similarly, `RaftConfig` objects can be populated from YAML files easily if you 
 add the `microraft-yaml` dependency to your classpath.

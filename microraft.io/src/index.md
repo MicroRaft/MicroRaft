@@ -4,24 +4,25 @@
 MicroRaft is a feature-complete, stable and production-grade open-source 
 implementation of the Raft consensus algorithm in Java. 
 
-MicroRaft works on top of a minimalistic and modular design. __It is a single 
-lightweight JAR with a few hundred KBs of size and only logging dependency.__ 
-It contains an isolated implementation of the Raft consensus algorithm, and a 
-set of accompanying abstractions to run the algorithm in a multi-threaded and
-distributed environment. These abstractions are defined to isolate the core 
-algorithm from the concerns of persistence, thread-safety, serialization, 
-networking, and actual state machine logic. Users are required to provide their 
-own implementations of these abstractions to build their custom *CP* distributed 
-systems with MicroRaft.
-
+MicroRaft works on top of a minimalistic and modular design. __It is a single
+lightweight JAR with a few hundred KBs of size and only logging dependency__. 
+It contains an isolated implementation of the Raft consensus algorithm, and a
+set of accompanying interfaces to run the algorithm in a multi-threaded and 
+distributed environment. These interfaces surround the Raft consensus 
+algorithm, and abstract away the concerns of persistence, thread-safety, 
+serialization, networking and actual state machine logic. Developers are 
+required to implement these interfaces to build *CP* distributed systems on 
+top of MicroRaft. 
 
 
 ## Features
 
-MicroRaft implements the leader election, log replication, log compaction 
-(snapshotting), and cluster membership changes components of the Raft consensus
-algorithm. Additionally, it offers a rich set of optimizations and 
-enhancements:
+MicroRaft is a complete implementation of the Raft consensus algorithm. It
+implements the leader election, log replication, log compaction (snapshotting),
+and cluster membership changes components. Additionally, it realizes a rich set
+of optimizations and enhancements, as listed below, to allow developers to run 
+Raft clusters in a reliable and performant manner, and tune its behaviour based 
+on their needs.
 
 * Pipelining and batching during log replication,
 * Back pressure to prevent OOMEs on Raft leader and followers,
@@ -35,31 +36,32 @@ enhancements:
 * Leadership transfer [(Section 3.10 of the Raft dissertation)](https://github.com/ongardie/dissertation).
 
 
-## Use Cases
+## Use cases
 
-MicroRaft can be used for building highly available and strongly-consistent data, 
+MicroRaft can be used for building highly available and strongly consistent data, 
 metadata and coordination services. 
 
 An example of data service is a distributed key-value store. You can build a 
 distributed key-value store where each partition / shard is maintained by a 
-separate Raft cluster (*Raft group* in MicroRaft terms).   
+separate Raft cluster (*Raft group* in MicroRaft terms).
  
-MicroRaft can be also used for building a control plane or a coordination
+MicroRaft can be also used for building a control plane or coordination
 cluster. It can store the metadata of your large-scale data services. 
-High-level APIs, such as leader election, distributed locking, resource broker,
-or distributed scheduler can be built on top of MicroRaft as well.
+High-level APIs, such as leader election mechanisms, group membership 
+management systems, distributed locks, distributed transaction managers, or 
+distributed resource schedulers can be also built on top of MicroRaft.
  
 __Please note that MicroRaft is not a high-level solution like a distributed 
-key-value store, or a distributed lock service. It is a core library that offers
+key-value store, or a distributed lock service. It is a library that offers
 a set of abstractions and functionalities to help you build such high-level 
-systems.__ 
+systems without intertwining your system with Raft code.__ 
 
 
-## Getting Started
+## Getting started
 
-The following command starts a 3-node local Raft cluster on your machine and
-commits a number of operations. Just try it on your terminal for a sneak peek
-at MicroRaft.
+Just run the following command on your terminal for a sneak peek at MicroRaft.
+It starts a 3-node local Raft group, elects a leader, and commits a number of 
+operations.
 
 ~~~~{.bash}
 $ git clone https://github.com/metanet/MicroRaft.git && cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.OperationCommitTest -DfailIfNoTests=false -Ptutorial
@@ -68,44 +70,61 @@ $ git clone https://github.com/metanet/MicroRaft.git && cd MicroRaft && ./mvnw c
 If you want to learn more about how to use MicroRaft for building a *CP* 
 distributed system, you can check out the 
 [APIs and Main Abstractions](user-guide/apis-and-main-abstractions.md) section
-first, then read the 
+first, and then read the 
 [tutorial](user-guide/tutorial-building-an-atomic-register.md) to build 
 an atomic register on top of MicroRaft.
 
 
-## Getting Involved
+## Getting involved
 
-MicroRaft is a new open-source library and there are tons of work to do! So 
-any kind of feedback and contribution is welcome! You can improve the source
+MicroRaft is a new open-source library and there are a lot of work to do! So
+any kind of contribution and feedback is welcome! You can improve the source
 code, add new tests, create issues or feature requests, or just ask questions!
 
 The development happens on [Github](https://github.com/metanet/microraft). 
 There is also a [Slack group](https://join.slack.com/t/microraft/shared_invite/zt-dc6utpfk-84P0VbK7EcrD3lIme2IaaQ) 
-for discussions and questions. Last, you can follow [@MicroRaft](https://twitter.com/microraft) 
-on Twitter for announcements. 
+for discussions and questions. Last, you can follow 
+[@MicroRaft](https://twitter.com/microraft) on Twitter for announcements.
 
 
-## Who uses MicroRaft?
-
-I am currently working on a POC project to demonstrate how to implement 
-a distributed KV store on top of MicroRaft's abstractions. It internally uses
-gRPC to transfer Raft messages between Raft nodes running on different 
-machines. I am hoping to release this project soon. 
-
-
-## What is Consensus?
+## What is consensus?
 
 Consensus is one of the fundamental problems in distributed systems. It 
-involves multiple servers agree on values. Once a value is decided, 
-the decision is final. Majority-based consensus algorithms, such as Raft, make
-progress when the majority (i.e., more than half) of the servers are up and 
-running, and never return incorrect responses.
+involves multiple servers agree on a value. Once a value is decided, the
+decision is final. Consensus algorithms are very useful in a plethora of 
+distributed systems that require high availability and strong consistency. 
+Paxos, first introduced by Leslie Lamport, is probably the most widely known
+consensus algorithm. However, it has been also known as difficult to reason
+about and lacking details for building practical implementations. Raft was 
+introduced in 2013 as a new consensus algorithm with the main goal of 
+understandability. Ever since its introduction, Raft has received widespread 
+adoption by emerging distributed databases. 
 
-Raft uses a replicated log to order requests sent by clients and apply them on
-a set of state machine replicas in a coordinated, deterministic and fault 
-tolerant manner (i.e., replicated state machines). For more details, please see 
+Raft approaches the consensus problem in the context of replicated state 
+machines, where a group of servers applies the same set of operations and 
+computes identical copies of the same state. Raft's primary enabler of 
+understandability is the problem decomposition technique. It divides the 
+consensus problem into 3 pieces: leader election, log replication and safety, 
+and solves each piece relatively independently. Raft starts by electing a 
+leader. There is a single functional leader managing the servers, and upon
+its failure a new leader is elected. Each server keeps a local log. Clients 
+send their requests to the leader. The leader appends incoming requests into
+its log and replicates them to the other servers. Each server appends the 
+requests sent by the leader into its log. Once a request is appended to the 
+local logs of sufficient number (i.e., more than half) of servers, the leader 
+considers the request committed, hence executes it on its local state machine, 
+also notifies other servers to do the same. Raft orders requests by the indices 
+they are appended to the replicated log. In addition, Raft's leader election 
+and log replication rules ensure that once a request is committed and executed 
+at a given log index on one server, no other server can execute another request 
+for the same log index, even in the presence of non-Byzantine failures. This is 
+basically Raft's safety property. Thanks to this property, each server executes
+the same sequence of requests. Once these requests are deterministic, servers 
+compute identical copies of the same state and produce the same output values. 
+
+For more details about Raft, please see the 
 [In Search of an Understandable Consensus Algorithm](https://raft.github.io/raft.pdf) 
-by Diego Ongaro and John Ousterhout. 
+paper by Diego Ongaro and John Ousterhout.  
 
 
 ## Acknowledgements

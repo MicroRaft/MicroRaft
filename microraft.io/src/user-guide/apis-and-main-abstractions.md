@@ -1,5 +1,5 @@
 
-## APIs and Main Abstractions
+## APIs and main abstractions
 
 MicroRaft's APIs and main abstractions are listed below. 
 
@@ -142,7 +142,7 @@ is the base class for Raft-related exceptions. MicroRaft defines a number of
 to report some certain failure scenarios to clients. 
 
 
-## How to Run a Raft Group 
+## How to run a raft group 
 
 In order to run a Raft group (i.e., Raft cluster) using MicroRaft, we need to:
 
@@ -194,19 +194,25 @@ In the next section, we will build an atomic register on top of MicroRaft to
 demonstrate how to implement and use MicroRaft's main abstractions.
 
  
-## Architectural Overview of a Raft Group
+## Architectural overview of a Raft group
 
 The following figure depicts an architectural overview of a Raft group based on
-the abstractions explained above. Clients talk to the consensus module of 
-MicroRaft. The consensus module talks to `RaftNodeRuntime` to communicate with 
-the other Raft nodes and execute the Raft consensus algorithm. It also uses 
-`RaftStore`to persist Raft log entries to stable storage. Last, once a log 
-entry is committed, its operation is passed to `StateMachine` for execution.
+the main abstractions explained above. Clients talk to the leader `RaftNode` 
+for replicating operations. They can talk to both the leader and follower 
+`RaftNode`s for running queries with different consistency guarantees. 
+`RaftNode` uses `RaftModelFactory` to create Raft log entries, snapshot 
+entries, and Raft RPC request and response objects. Each `RaftNode` talks to
+its `RaftNodeRuntime` to communicate with the other `RaftNode`s and execute the 
+Raft consensus algorithm. It also uses `RaftStore` to persist Raft log entries
+to stable storage. Last, once a log entry is committed, i.e, it is successfully
+replicated to the majority of the Raft group, its operation is passed to 
+`StateMachine` for execution, and output of the execution is returned to the 
+client by the leader `RaftNode`.
 
-![Integration](/img/architectural_overview.png)
+![Integration](/img/architectural_overview.png){: style="height:592px;width:800px"}
 
 
-## What is Next?
+## What is next?
 
 In the [next section](tutorial-building-an-atomic-register.md), we will build an atomic
 register on top of MicroRaft.

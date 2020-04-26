@@ -16,7 +16,7 @@ will use them to run a Raft group in a single JVM process and inject different
 types of failures into the system.
 
 
-## 1. Handling High Load 
+## 1. Handling high system load 
 
 The availability of a Raft group mainly depends on if the majority (i.e., more
 than half) of the Raft nodes are alive and able to communicate with each other.
@@ -55,7 +55,7 @@ $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.faulttolerance.HighLoadT
 You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft/src/test/java/io/microraft/faulttolerance/HighLoadTest.java).
 
 
-## 2. Minority Failure
+## 2. Minority failure
 
 Failure of the minority (i.e, less than half) may cause the Raft group to lose 
 availability temporarily, but eventually the Raft group continues to accept and 
@@ -126,7 +126,7 @@ Please refer to the
 for more details.
 
 
-## 3. Majority Failure
+## 3. Majority failure
 
 Failure of the majority causes the Raft group to lose its availability and stop
 handling new requests. The only recovery option is to recover some failed Raft 
@@ -139,7 +139,7 @@ need to have a persistence-layer (i.e., `RaftStore` implementation) to make
 this recovery option work. 
 
 
-## 4. Raft Leader Failure
+## 4. Raft leader failure
 
 When a leader Raft node fails, its Raft group temporarily loses availability 
 until the other Raft nodes notice the failure and elect a new leader. Delay of
@@ -197,7 +197,7 @@ failures, because duplicate commits do not make any harm for idempotent
 operations, however it is not easy to make every type of operation idempotent.
 
 
-## 5. Network Partitions
+## 5. Network partitions
 
 Behaviour of a Raft group during a network partition depends on how Raft nodes
 are divided to different sides of the network partition and with which Raft 
@@ -254,7 +254,7 @@ $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.faulttolerance.NetworkPa
 
 You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft/src/test/java/io/microraft/faulttolerance/NetworkPartitionTest.java).
 
-## 6. Corruption or Loss of Persisted Raft State
+## 6. Corruption or loss of persistent Raft state
 
 If a `RestoredRaftState` object is created with corrupted or partially-restored
 Raft state, the safety guarantees of the Raft consensus algorithm no longer 

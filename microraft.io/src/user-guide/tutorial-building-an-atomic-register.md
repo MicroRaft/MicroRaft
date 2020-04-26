@@ -98,7 +98,7 @@ Our `LocalRaftNodeRuntime` class is shown below.
 You can also see this class in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/LocalRaftNodeRuntime.java).
 
 
-## 2. Bootstrapping the Raft Group
+## 2. Bootstrapping the Raft group
 
 Now we have all the required functionality to start our Raft group and elect
 a leader. Let's write our first test.
@@ -221,7 +221,7 @@ votes for itself during the first term. Please keep in mind that in your run,
 another Raft node could become the leader.
 
 
-## 3. Sending Requests to the Raft Group
+## 3. Sending requests
 
 Now it is time to implement the `set`, `compare-and-set`, and `get` operations
 we talked before for our atomic register state machine. We must ensure that 
@@ -253,7 +253,7 @@ tutorial.
 You can also see this class in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/atomicregister/OperableAtomicRegister.java).
 
 
-### Committing Operations
+### Committing operations
 
 In the next test we will use the new state machine to start our Raft nodes. We 
 will commit a number of operations on the Raft group and verify their results.
@@ -314,7 +314,7 @@ operation on each Raft node in a round robin fashion until it discovers the new
 leader. 
 
 
-### Performing Queries
+### Performing queries
 
 The last operation we committed in our previous test is `get`, which is 
 actually a query (i.e, read only) operation. Even though it does not mutate the 
@@ -367,7 +367,7 @@ guarantees linearizability with an extra RTT latency overhead compared to
 the recommended policy for linearizable queries, and `QueryPolicy.LEADER_LOCAL` 
 should be used carefully.
 
-#### Linearizable Queries
+#### Linearizable queries
 
 Ok. Let's write another test to use the query API for `get`. We will first set
 a value to the atomic register and then get the value back with a linearizable
@@ -396,7 +396,7 @@ As we discussed above, MicroRaft handles linearizable queries without appending
 a new entry to the Raft log. So our query is executed at the last committed log 
 index. That is why both commit indices are the same in the output.
 
-#### Monotonic Local Queries
+#### Monotonic local queries
 
 `QueryPolicy.LEADER_LOCAL` and `QueryPolicy.ANY_LOCAL` can be easily used if
 monotonicity is sufficient for query results. This is where 
@@ -505,13 +505,13 @@ $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.SnapshotInstall
 You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft-tutorial/src/test/java/io/microraft/tutorial/SnapshotInstallationTest.java).
 
 
-## 5. Operating the Raft Group
+## 5. Operating the Raft group
 
 Ok. We covered a lot of topics up until this part. There are only a few things
 left to discuss. In this part, we will see how we can perform changes in Raft 
 group member lists and monitor our Raft groups. 
 
-### Changing Raft Group Member List
+### Changing the Raft group member list
 
 MicroRaft supports membership changes in Raft groups via 
 `RaftNode.changeMembership()`. Let's first see the rules to realize membership 
@@ -618,7 +618,7 @@ We have seen a lot of code samples until here. I am just leaving this part as
 an exercise to the reader.
 
 
-## What's Next?
+## What's next?
 
 In the next section, we will see how MicroRaft deals with failures. Just 
 [keep calm and carry on](resiliency-and-fault-tolerance.md)!

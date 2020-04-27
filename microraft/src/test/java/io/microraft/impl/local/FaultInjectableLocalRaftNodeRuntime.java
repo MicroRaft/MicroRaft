@@ -161,7 +161,7 @@ public final class FaultInjectableLocalRaftNodeRuntime
         try {
             executor.schedule(task, delay, timeUnit);
         } catch (RejectedExecutionException e) {
-            LOGGER.error(localEndpoint + " failed", e);
+            LOGGER.debug(localEndpoint + " failed", e);
         }
     }
 

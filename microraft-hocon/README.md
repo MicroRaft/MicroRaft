@@ -21,7 +21,7 @@ Other than reading your config from a file, you can create your HOCON `Config`
 object in any other way and then parse it via 
 `HoconRaftConfigParser.parseConfig()`.
 
-[microraft-default](https://github.com/metanet/MicroRaft/blob/master/microraft-hocon/microraft-default.conf) 
+[microraft-default.conf](https://github.com/MicroRaft/MicroRaft/blob/master/microraft-hocon/microraft-default.conf) 
 is the default MicroRaft HOCON configuration file. 
 
 Please refer to 

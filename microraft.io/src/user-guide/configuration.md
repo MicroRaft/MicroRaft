@@ -142,7 +142,7 @@ RaftConfig raftConfig = HoconRaftConfigParser.parseConfig(hoconConfig);
 ~~~~ 
 
 Please refer to
-[MicroRaft HOCON project](https://github.com/metanet/MicroRaft/tree/master/microraft-hocon) 
+[MicroRaft HOCON project](https://github.com/MicroRaft/MicroRaft/tree/master/microraft-hocon) 
 for details.
 
 
@@ -181,5 +181,5 @@ RaftConfig raftConfig = YamlRaftConfigParser.parseFile(new Yaml(), configFilePat
 ~~~~
 
 Please refer to
-[MicroRaft YAML project](https://github.com/metanet/MicroRaft/tree/master/microraft-yaml) 
+[MicroRaft YAML project](https://github.com/MicroRaft/MicroRaft/tree/master/microraft-yaml) 
 for details.

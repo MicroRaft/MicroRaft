@@ -1,5 +1,5 @@
 
-![Java CI](https://github.com/metanet/MicroRaft/workflows/Java%20CI/badge.svg) [![Integration](license-apache-2.svg)](https://github.com/metanet/MicroRaft/blob/master/LICENSE)
+![Java CI](https://github.com/MicroRaft/MicroRaft/workflows/Java%20CI/badge.svg) [![Integration](license-apache-2.svg)](https://github.com/MicroRaft/MicroRaft/blob/master/LICENSE)
 
 
 ![](microraft.io/src/img/logo.png)
@@ -76,5 +76,5 @@ MicroRaft is a new open source project with tons of work to do! You can see
 
 ## License
 
-MicroRaft is available under [the Apache 2 License](https://github.com/metanet/MicroRaft/blob/master/LICENSE). 
+MicroRaft is available under [the Apache 2 License](https://github.com/MicroRaft/MicroRaft/blob/master/LICENSE). 
 

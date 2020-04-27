@@ -267,10 +267,11 @@ public class PersistenceTest
         }
 
         RaftEndpoint terminatedEndpoint = leader.getLocalEndpoint();
+        group.terminateNode(terminatedEndpoint);
+
         InMemoryRaftStore stateStore = getRaftStore(leader);
         RestoredRaftState terminatedState = stateStore.toRestoredRaftState();
 
-        group.terminateNode(terminatedEndpoint);
         RaftNodeImpl newLeader = group.waitUntilLeaderElected();
         RaftNodeImpl restartedNode = group.restoreNode(terminatedState, stateStore);
 
@@ -356,10 +357,11 @@ public class PersistenceTest
         eventually(() -> assertEquals(getCommitIndex(leader), getCommitIndex(terminatedFollower)));
 
         RaftEndpoint terminatedEndpoint = terminatedFollower.getLocalEndpoint();
+        group.terminateNode(terminatedEndpoint);
+
         InMemoryRaftStore stateStore = getRaftStore(terminatedFollower);
         RestoredRaftState terminatedState = stateStore.toRestoredRaftState();
 
-        group.terminateNode(terminatedEndpoint);
         leader.replicate(apply("val" + count)).get();
 
         RaftNodeImpl restartedNode = group.restoreNode(terminatedState, stateStore);
@@ -403,10 +405,11 @@ public class PersistenceTest
         assertTrue(getSnapshotEntry(leader).getIndex() > 0);
 
         RaftEndpoint terminatedEndpoint = leader.getLocalEndpoint();
+        group.terminateNode(terminatedEndpoint);
+
         InMemoryRaftStore stateStore = getRaftStore(leader);
         RestoredRaftState terminatedState = stateStore.toRestoredRaftState();
 
-        group.terminateNode(terminatedEndpoint);
         RaftNodeImpl newLeader = group.waitUntilLeaderElected();
         RaftNodeImpl restartedNode = group.restoreNode(terminatedState, stateStore);
 
@@ -452,10 +455,10 @@ public class PersistenceTest
 
         RaftNodeImpl terminatedFollower = group.getAnyFollower();
         RaftEndpoint terminatedEndpoint = terminatedFollower.getLocalEndpoint();
+        group.terminateNode(terminatedEndpoint);
+
         InMemoryRaftStore stateStore = getRaftStore(terminatedFollower);
         RestoredRaftState terminatedState = stateStore.toRestoredRaftState();
-
-        group.terminateNode(terminatedEndpoint);
 
         leader.replicate(apply("val" + (commitCountToTakeSnapshot + 1))).get();
 
@@ -580,10 +583,11 @@ public class PersistenceTest
         leader.changeMembership(removedFollower.getLocalEndpoint(), REMOVE, 0).get();
 
         RaftEndpoint terminatedEndpoint = terminatedFollower.getLocalEndpoint();
+        group.terminateNode(terminatedEndpoint);
+
         InMemoryRaftStore stateStore = getRaftStore(terminatedFollower);
         RestoredRaftState terminatedState = stateStore.toRestoredRaftState();
 
-        group.terminateNode(terminatedEndpoint);
         RaftNodeImpl restartedNode = group.restoreNode(terminatedState, stateStore);
 
         eventually(() -> {
@@ -663,10 +667,11 @@ public class PersistenceTest
         }
 
         RaftEndpoint terminatedEndpoint = terminatedFollower.getLocalEndpoint();
+        group.terminateNode(terminatedEndpoint);
+
         InMemoryRaftStore stateStore = getRaftStore(terminatedFollower);
         RestoredRaftState terminatedState = stateStore.toRestoredRaftState();
 
-        group.terminateNode(terminatedEndpoint);
         RaftNodeImpl restartedNode = group.restoreNode(terminatedState, stateStore);
 
         eventually(() -> {

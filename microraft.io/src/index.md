@@ -27,13 +27,13 @@ on their needs.
 * Pipelining and batching during log replication,
 * Back pressure to prevent OOMEs on Raft leader and followers,
 * Parallel snapshot transfer from Raft leader and followers,
-* Pre-voting and leader stickiness [(4 Modifications for Raft Consensus)](https://openlife.cc/system/files/4-modifications-for-Raft-consensus.pdf),
+* Pre-voting and leader stickiness <a href="https://openlife.cc/system/files/4-modifications-for-Raft-consensus.pdf" target="_blank">(4 Modifications for Raft Consensus)</a>,
 * Auto-demotion of Raft leader on loss of quorum heartbeats,
-* Linearizable quorum reads without appending log entries [(Section 6.4 of the Raft dissertation)](https://github.com/ongardie/dissertation),
-* Lease-based local queries on Raft leader [(Section 6.4.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
-* Monotonic local queries on Raft followers [(Section 6.4.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
-* Parallel disk writes on Raft leader and followers [(Section 10.2.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
-* Leadership transfer [(Section 3.10 of the Raft dissertation)](https://github.com/ongardie/dissertation).
+* Linearizable quorum reads without appending log entries <a href="https://github.com/ongardie/dissertation" target="_blank">(Section 6.4 of the Raft dissertation)</a>,
+* Lease-based local queries on Raft leader <a href="https://github.com/ongardie/dissertation" target="_blank">(Section 6.4.1 of the Raft dissertation)</a>,
+* Monotonic local queries on Raft followers <a href="https://github.com/ongardie/dissertation" target="_blank">(Section 6.4.1 of the Raft dissertation)</a>,
+* Parallel disk writes on Raft leader and followers <a href="https://github.com/ongardie/dissertation" target="_blank">(Section 10.2.1 of the Raft dissertation)</a>,
+* Leadership transfer <a href="https://github.com/ongardie/dissertation" target="_blank">(Section 3.10 of the Raft dissertation)</a>.
 
 
 ## Use cases
@@ -64,7 +64,7 @@ It starts a 3-node local Raft group, elects a leader, and commits a number of
 operations.
 
 ~~~~{.bash}
-$ git clone https://github.com/metanet/MicroRaft.git && cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.OperationCommitTest -DfailIfNoTests=false -Ptutorial
+$ git clone https://github.com/MicroRaft/MicroRaft.git && cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.OperationCommitTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
 If you want to learn more about how to use MicroRaft for building a *CP* 
@@ -81,10 +81,13 @@ MicroRaft is a new open-source library and there are a lot of work to do! So
 any kind of contribution and feedback is welcome! You can improve the source
 code, add new tests, create issues or feature requests, or just ask questions!
 
-The development happens on [Github](https://github.com/metanet/microraft). 
-There is also a [Slack group](https://join.slack.com/t/microraft/shared_invite/zt-dc6utpfk-84P0VbK7EcrD3lIme2IaaQ) 
+The development happens on 
+<a href="https://github.com/MicroRaft/MicroRaft" target="_blank">Github</a>. 
+There is also a 
+<a href="https://join.slack.com/t/microraft/shared_invite/zt-dc6utpfk-84P0VbK7EcrD3lIme2IaaQ" target="_blank">Slack group</a> 
 for discussions and questions. Last, you can follow 
-[@MicroRaft](https://twitter.com/microraft) on Twitter for announcements.
+<a href="https://twitter.com/microraft" target="_blank">@MicroRaft</a> on Twitter 
+for announcements.
 
 
 ## What is consensus?

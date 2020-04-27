@@ -32,6 +32,6 @@ nav:
       - Persistence: 'documentation/persistence.md'
   - 'Javadoc':
       - '1.0': 'javadoc/1.0/index.html'
-  - Github: 'https://github.com/metanet/microraft'
+  - Github: 'https://github.com/MicroRaft/MicroRaft'
   - Slack: 'https://join.slack.com/t/microraft/shared_invite/zt-dc6utpfk-84P0VbK7EcrD3lIme2IaaQ'
   - '@MicroRaft': 'https://twitter.com/MicroRaft'

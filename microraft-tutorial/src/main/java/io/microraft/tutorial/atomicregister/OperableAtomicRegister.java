@@ -31,7 +31,7 @@ import java.util.function.Consumer;
  * <p>
  * YOU CAN SEE THIS CLASS AT:
  * <p>
- * https://github.com/metanet/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/atomicregister/OperableAtomicRegister.java
+ * https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/atomicregister/OperableAtomicRegister.java
  */
 public class OperableAtomicRegister
         extends AtomicRegister

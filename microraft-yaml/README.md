@@ -19,7 +19,7 @@ RaftConfig raftConfig = YamlRaftConfigParser.parseFile(new Yaml(), configFilePat
 Other than reading your config from a file, `YamlRaftConfigParser` also offers 
 a few other parsing methods.  
 
-[microraft-default](https://github.com/metanet/MicroRaft/blob/master/microraft-yaml/microraft-default.yaml) 
+[microraft-default.yaml](https://github.com/MicroRaft/MicroRaft/blob/master/microraft-yaml/microraft-default.yaml) 
 is the default MicroRaft YAML configuration file. 
 
 Please refer to 

@@ -23,6 +23,7 @@ import io.microraft.RaftNode;
 import io.microraft.RaftNodeStatus;
 import io.microraft.RaftRole;
 import io.microraft.impl.RaftNodeImpl;
+import io.microraft.impl.local.FaultInjectableLocalRaftNodeRuntime;
 import io.microraft.impl.local.InMemoryRaftStore;
 import io.microraft.impl.log.SnapshotChunkCollector;
 import io.microraft.impl.state.LeaderState;
@@ -71,16 +72,29 @@ public final class RaftTestUtils {
     }
 
     public static <T> T readRaftState(RaftNodeImpl node, Callable<T> task) {
-        FutureTask<T> futureTask = new FutureTask<>(task);
         try {
-            Field field = RaftNodeImpl.class.getDeclaredField("runtime");
-            field.setAccessible(true);
-            RaftNodeRuntime runtime = (RaftNodeRuntime) field.get(node);
+            RaftNodeRuntime runtime = getRaftNodeRuntime(node);
+            if (runtime instanceof FaultInjectableLocalRaftNodeRuntime) {
+                FaultInjectableLocalRaftNodeRuntime r = (FaultInjectableLocalRaftNodeRuntime) runtime;
+                if (r.isShutdown()) {
+                    return task.call();
+                }
+            }
+
+            FutureTask<T> futureTask = new FutureTask<>(task);
             runtime.execute(futureTask);
+
             return futureTask.get();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static RaftNodeRuntime getRaftNodeRuntime(RaftNodeImpl node)
+            throws NoSuchFieldException, IllegalAccessException {
+        Field field = RaftNodeImpl.class.getDeclaredField("runtime");
+        field.setAccessible(true);
+        return (RaftNodeRuntime) field.get(node);
     }
 
     public static SnapshotEntry getSnapshotEntry(RaftNodeImpl node) {

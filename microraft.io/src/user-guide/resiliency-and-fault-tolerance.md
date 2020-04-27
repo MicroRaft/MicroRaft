@@ -9,7 +9,7 @@ the Byzantine failure.
 
 In this section, we will walk through different types of failure scenarios and
 discuss how MicroRaft handles each one of them. We will use MicroRaft's 
-[local testing utilities](https://github.com/metanet/MicroRaft/tree/master/microraft/src/test/java/io/microraft/impl/local) 
+<a href="https://github.com/MicroRaft/MicroRaft/tree/master/microraft/src/test/java/io/microraft/impl/local" target="_blank">local testing utilities</a> 
 to demonstrate those failure scenarios. These utilities are mainly used for
 testing MicroRaft to a great extent without a distributed setting. Here, we 
 will use them to run a Raft group in a single JVM process and inject different
@@ -28,10 +28,9 @@ Even if the majority of a Raft group is alive, we may encounter unavailability
 issues if the Raft group is under high load and cannot keep up with the request
 rate. In this case, the leader temporarily stops accepting new requests and 
 notifies the futures returned from the `RaftNode` methods with 
-`CannotReplicateException`. Clients should apply some backoff and retry their
-requests afterwards. Please refer to `CannotReplicateException` 
-[JAVADOC](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/exception/CannotReplicateException.java)
-for details.  
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/exception/CannotReplicateException.java" target="_blank">`CannotReplicateException`</a>. 
+Clients should apply some backoff and retry their
+requests afterwards. 
 
 We will demonstrate this scenario in a test below with a 3-node Raft group. In 
 MicroRaft, a leader does not replicate log entries one by one. Instead, it 
@@ -48,11 +47,12 @@ sending requests to the leader. After some time, our requests fail with
 To run this test on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone https://github.com/metanet/MicroRaft.git
+$ git clone https://github.com/MicroRaft/MicroRaft.git
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.faulttolerance.HighLoadTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
-You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft/src/test/java/io/microraft/faulttolerance/HighLoadTest.java).
+You can also see it in the 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/test/java/io/microraft/faulttolerance/HighLoadTest.java" target="_blank">MicroRaft Github repository</a>.
 
 
 ## 2. Minority failure
@@ -91,11 +91,12 @@ testing. In the following code sample, we use this utility, i.e.,
 To run this test on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone https://github.com/metanet/MicroRaft.git
+$ git clone https://github.com/MicroRaft/MicroRaft.git
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.faulttolerance.RestoreCrashedRaftNodeTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
-You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft/src/test/java/io/microraft/faulttolerance/RestoreCrashedRaftNodeTest.java).
+You can also see it in the 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/test/java/io/microraft/faulttolerance/RestoreCrashedRaftNodeTest.java" target="_blank">MicroRaft Github repository</a>.
 
 This time we provide a factory object to enable `LocalRaftGroup` to create 
 `InMemoryRaftStore` objects while configuring our Raft nodes. After we 
@@ -122,7 +123,7 @@ group and replays the Raft log, i.e., automatically applies all the log entries
 up to the commit index. We should be careful about operations that have side 
 effects because the Raft log replay process triggers those side effects again. 
 Please refer to the 
-[State Machine Javadoc](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/integration/StateMachine.java#L64)
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/statemachine/StateMachine.java" target="_blank">State Machine Javadoc</a>
 for more details.
 
 
@@ -185,11 +186,12 @@ see that there are 2 values added to the state machine.
 To run this test on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone https://github.com/metanet/MicroRaft.git
+$ git clone https://github.com/MicroRaft/MicroRaft.git
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.faulttolerance.RaftLeaderFailureTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
-You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft/src/test/java/io/microraft/faulttolerance/RaftLeaderFailureTest.java).
+You can also see it in the 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/test/java/io/microraft/faulttolerance/RaftLeaderFailureTest.java" target="_blank">MicroRaft Github repository</a>.
 
 ![](/img/info.png){: style="height:25px;width:25px"} Another trick could be 
 designing our operations in an idempotent way and retry automatically on leader
@@ -212,7 +214,7 @@ is unavailable from the perspective of the clients.
 If the leader falls into a minority side of the network partition, it demotes
 itself to the follower role after _the leader heartbeat timeout_, and fails 
 all pending operations with 
-[`IndeterminateStateException`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/exception/IndeterminateStateException.java).
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/exception/IndeterminateStateException.java" target="_blank">`IndeterminateStateException`</a>.
 This exception means that the demoted leader cannot decide if those operations 
 have been committed or not.
 
@@ -248,11 +250,12 @@ the new committed operation. Phew!
 To run this test on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone https://github.com/metanet/MicroRaft.git
+$ git clone https://github.com/MicroRaft/MicroRaft.git
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.faulttolerance.NetworkPartitionTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
-You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft/src/test/java/io/microraft/faulttolerance/NetworkPartitionTest.java).
+You can also see it in the 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/test/java/io/microraft/faulttolerance/NetworkPartitionTest.java" target="_blank">MicroRaft Github repository</a>.
 
 ## 6. Corruption or loss of persistent Raft state
 

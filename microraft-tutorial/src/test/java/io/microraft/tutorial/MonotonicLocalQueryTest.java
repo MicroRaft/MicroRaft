@@ -33,12 +33,12 @@ import static org.assertj.core.api.Assertions.fail;
 
    TO RUN THIS TEST ON YOUR MACHINE:
 
-   $ git clone https://github.com/metanet/MicroRaft.git
+   $ git clone https://github.com/MicroRaft/MicroRaft.git
    $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.examples.MonotonicLocalQueryTest -DfailIfNoTests=false -Pcode-sample
 
    YOU CAN SEE THIS CLASS AT:
 
-   https://github.com/metanet/MicroRaft/blob/master/microraft/src/test/java/io/microraft/examples/MonotonicLocalQueryTest.java
+   https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/test/java/io/microraft/examples/MonotonicLocalQueryTest.java
 
  */
 public class MonotonicLocalQueryTest

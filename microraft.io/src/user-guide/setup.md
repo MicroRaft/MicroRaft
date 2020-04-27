@@ -33,24 +33,28 @@ dependencies provide parsers to configure MicroRaft from HOCON and YAML files:
 ~~~~
 
 If you don't have Maven but want to build the project on your machine, `mvnw` 
-is available in the MicroRaft repository. Just clone with  
-`git clone git@github.com:metanet/MicroRaft.git` and hit 
-`cd MicroRaft && ./mvnw clean package`. Then you can get the JARs from 
-`microraft/target`, `microraft-hocon/target`, and `microraft-yaml/target` 
-directories. 
+is available in the MicroRaft repository. Just hit the following command on
+your terminal. 
+```
+git clone git@github.com:MicroRaft/MicroRaft.git && cd MicroRaft && ./mvnw clean package
+``` 
+Then you can get the JARs from `microraft/target`, `microraft-hocon/target`, 
+and `microraft-yaml/target` directories. 
 
 
 ## Logging
 
-MicroRaft depends on the SLF4J library for logging. Actually it is the only
-dependency of MicroRaft. Make sure you enable the `INFO` logging level for the 
-`io.microraft` package. If you are going hard, you can also give the `DEBUG` 
-level a shot, but I assure you it will be a bumpy ride.
+MicroRaft depends on the 
+<a href="http://www.slf4j.org/" target="_blank">SLF4J library</a> for logging. 
+Actually it is the only dependency of MicroRaft. Make sure you enable the 
+`INFO` logging level for the `io.microraft` package. If you are going hard, you 
+can also give the `DEBUG` level a shot, but I assure you it will be a bumpy 
+ride.
 
 
 ## What is next?
 
-OK. You have the MicroRaft JAR in your classpath and the logging also looks
+OK. You have the MicroRaft JAR in your classpath, and the logging also looks
 good. Now you are ready to build your CP distributed system! Then why don't
 you start with [checking out the main abstractions](apis-and-main-abstractions.md) 
 defined in MicroRaft?   

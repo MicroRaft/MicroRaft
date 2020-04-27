@@ -5,7 +5,7 @@ MicroRaft's APIs and main abstractions are listed below.
 
 ### `RaftConfig`
 
-[`RaftConfig`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftConfig.java) 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftConfig.java" target="_blank">`RaftConfig`</a> 
 contains configuration options related to the Raft consensus algorithm and 
 MicroRaft's implementation. Please check the 
 [Configuration section](../../user-guide/configuration/) for details.
@@ -13,7 +13,7 @@ MicroRaft's implementation. Please check the
 
 ### `RaftNode`
 
-[`RaftNode`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNode.java) 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNode.java" target="_blank">`RaftNode`</a> 
 runs the Raft consensus algorithm as a member of a Raft group. A Raft group is
 a cluster of `RaftNode` instances that runs the Raft consensus algorithm. 
 `RaftNode` interface contains APIs for replicating operations, performing 
@@ -30,7 +30,7 @@ committed operations on a user-specified state machine.
 
 ### `RaftEndpoint`
 
-[`RaftEndpoint`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftEndpoint.java) 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftEndpoint.java" target="_blank">`RaftEndpoint`</a> 
 represents an endpoint that participates to at least one Raft group and 
 executes the Raft consensus algorithm with a `RaftNode`.
  
@@ -43,7 +43,7 @@ implementations.
 
 ### `RaftRole`
 
-[`RaftRole`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftRole.java) 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftRole.java" target="_blank">`RaftRole`</a> 
 denotes the roles of `RaftNode`s as specified in the Raft consensus algorithm. 
 Currently, MicroRaft implements the main roles defined in the paper: `LEADER`, 
 `CANDIDATE`, and `FOLLOWER`. The popular extension roles, such as `LEARNER` and 
@@ -52,7 +52,7 @@ Currently, MicroRaft implements the main roles defined in the paper: `LEADER`,
 
 ### `RaftNodeStatus`
 
-[`RaftNodeStatus`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNodeStatus.java) 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNodeStatus.java" target="_blank">`RaftNodeStatus`</a> 
 denotes the statuses of a `RaftNode` during its own and its Raft group's 
 lifecycle. A `RaftNode` is in the `INITIAL` status when it is created, and
 moves to the `ACTIVE` status when it is started with a `RaftNode.start()` call. 
@@ -62,7 +62,7 @@ in the Raft group, or either the Raft group or Raft node is terminated.
 
 ### `RaftNodeRuntime`
 
-[`RaftNodeRuntime`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/runtime/RaftNodeRuntime.java) 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/runtime/RaftNodeRuntime.java" target="_blank">`RaftNodeRuntime`</a> 
 enables execution of the Raft consensus algorithm by providing capabilities for 
 task scheduling & execution, serialization & deserialization of Raft messages, 
 and networking.
@@ -70,13 +70,13 @@ and networking.
 A `RaftNode` runs in a single-threaded manner. Even if a `RaftNodeRuntime` 
 implementation makes use of multiple threads internally, it must ensure 
 the serial execution and 
-[happens-before relationship](https://docs.oracle.com/javase/specs/jls/se8/html/jls-17.html)
+<a href="https://docs.oracle.com/javase/specs/jls/se8/html/jls-17.html" target="_blank">happens-before relationship</a>
 for the tasks submitted by a single `RaftNode`.
 
 
 ### `StateMachine`
 
-[`StateMachine`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/statemachine/StateMachine.java) 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/statemachine/StateMachine.java" target="_blank">`StateMachine`</a> 
 enables users to implement arbitrary services, such as an atomic register or 
 a key-value store, and execute operations on them. 
 
@@ -95,14 +95,14 @@ do not need to be thread-safe.
 
 ### `RaftStore` and `RestoredRaftState`
 
-[`RaftStore`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/persistence/RaftStore.java) 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/persistence/RaftStore.java" target="_blank">`RaftStore`</a> 
 is used for persisting the internal state of the Raft consensus algorithm. Its 
 implementations must provide the durability guarantees defined 
 in the interface.
 
 If a `RaftNode` crashes, its persisted state could be read back from stable 
 storage into a 
-[`RestoredRaftState`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/persistence/RestoredRaftState.java) 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/persistence/RestoredRaftState.java" target="_blank">`RestoredRaftState`</a> 
 object and the `RaftNode` could be restored back. `RestoredRaftState` contains 
 all the necessary information to recover `RaftNode` instances from crashes.
 
@@ -115,30 +115,30 @@ to the commit index to re-populate the state machine.
 
 ### `RaftModel` and `RaftModelFactory`
 
-[`RaftModel`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/RaftModel.java)
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/RaftModel.java" target="_blank">`RaftModel`</a>
 is the base interface for the objects that hit network and persistent storage. 
 There are 2 other interfaces extending this interface:
-[`BaseLogEntry`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/log/BaseLogEntry.java) 
-and [`RaftMessage`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/RaftMessage.java). 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/log/BaseLogEntry.java" target="_blank">`BaseLogEntry`</a> 
+and <a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/RaftMessage.java" target="_blank">`RaftMessage`</a>. 
 `BaseLogEntry` is used for representing log and snapshot entries stored in 
 the Raft log. `RaftMessage` is used for Raft RPCs and their responses. Please 
 see the interfaces inside 
-[`io.microraft.model`](https://github.com/metanet/MicroRaft/tree/master/microraft/src/main/java/io/microraft/model) 
+<a href="https://github.com/MicroRaft/MicroRaft/tree/master/microraft/src/main/java/io/microraft/model" target="_blank">`io.microraft.model`</a> 
 for more details. In addition, there is a 
-[`RaftModelFactory`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/RaftModelFactory.java) 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/RaftModelFactory.java" target="_blank">`RaftModelFactory`</a> 
 interface for creating `RaftModel` objects. 
 
 MicroRaft comes with a default POJO-style implementation of these interfaces 
 available under the 
-[`io.microraft.model.impl`](https://github.com/metanet/MicroRaft/tree/master/microraft/src/main/java/io/microraft/model/impl) 
+<a href="https://github.com/MicroRaft/MicroRaft/tree/master/microraft/src/main/java/io/microraft/model/impl" target="_blank">`io.microraft.model.impl`</a> 
 package.
 
 
 ### `RaftException`
 
-[`RaftException`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/exception/RaftException.java)
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/exception/RaftException.java" target="_blank">`RaftException`</a>
 is the base class for Raft-related exceptions. MicroRaft defines a number of 
-[custom exceptions]((https://github.com/metanet/MicroRaft/tree/master/microraft/src/main/java/io/microraft/exception)) 
+<a href="https://github.com/MicroRaft/MicroRaft/tree/master/microraft/src/main/java/io/microraft/exception" target="_blank">custom exceptions</a> 
 to report some certain failure scenarios to clients. 
 
 

@@ -45,7 +45,7 @@ import static java.util.Objects.requireNonNull;
  * <p>
  * YOU CAN SEE THIS CLASS AT:
  * <p>
- * https://github.com/metanet/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/LocalRaftNodeRuntime.java
+ * https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/LocalRaftNodeRuntime.java
  *
  * @author mdogan
  * @author metanet

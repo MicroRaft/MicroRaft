@@ -35,7 +35,7 @@ import java.util.function.Consumer;
  * <p>
  * YOU CAN SEE THIS CLASS AT:
  * <p>
- * https://github.com/metanet/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/atomicregister/AtomicRegister.java
+ * https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/atomicregister/AtomicRegister.java
  */
 public class AtomicRegister
         implements StateMachine {

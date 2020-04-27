@@ -11,7 +11,7 @@ If you haven't read the [APIs and Main Abstractions](apis-and-main-abstractions.
 section yet, I highly recommend you to read that section before this tutorial.
 
 All the code shown here are compiling and available in the 
-[MicroRaft Github repository](https://github.com/metanet/MicroRaft/tree/master/microraft-tutorial). 
+<a href="https://github.com/MicroRaft/MicroRaft/tree/master/microraft-tutorial" target="_blank">MicroRaft Github repository</a>. 
 You can clone the repository and run the code samples on your machine to try 
 each part yourself. I intentionally duplicated a lot of code in the test 
 classes below to put all pieces together so that you can see what is going on
@@ -22,15 +22,15 @@ Let's crank up the engine!
 ## 1. Implementing the Main Abstractions
 
 We will start with writing our 
-[`RaftEndpoint`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftEndpoint.java), 
-[`StateMachine`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/statemachine/StateMachine.java) 
-and [`RaftNodeRuntime`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/runtime/RaftNodeRuntime.java) 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftEndpoint.java" target="_blank">`RaftEndpoint`</a>, 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/statemachine/StateMachine.java" target="_blank">`StateMachine`</a> 
+and <a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/runtime/RaftNodeRuntime.java" target="_blank">`RaftNodeRuntime`</a> 
 classes. We also need implementations of 
-[`RaftModel`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/RaftModel.java) 
-and [`RaftModelFactory`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/RaftModelFactory.java)
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/RaftModel.java" target="_blank">`RaftModel`</a> 
+and <a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/RaftModelFactory.java" target="_blank">`RaftModelFactory`</a>
 The good news is, MicroRaft comes with a default POJO-style implementation of 
 these 2 abstractions under the 
-[`io.microraft.model.impl`](https://github.com/metanet/MicroRaft/tree/master/microraft/src/main/java/io/microraft/model/impl) 
+<a href="https://github.com/MicroRaft/MicroRaft/tree/master/microraft/src/main/java/io/microraft/model/impl" target="_blank">`io.microraft.model.impl`</a> 
 package. We will use the default implementation in this tutorial. Since all of
 our Raft nodes will run in the same JVM process, we also don't need any
 serialization logic. Last, we will also skip persistence. Our Raft nodes will 
@@ -43,7 +43,7 @@ nodes. Since we don't distribute our Raft nodes to multiple servers in this
 tutorial, we don't really need IP addresses. We can simply identify our Raft 
 nodes with strings IDs and keep a mapping of unique IDs to Raft nodes so that
 we can deliver 
-[`RaftMessage`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/RaftMessage.java) 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/RaftMessage.java" target="_blank">`RaftMessage`</a> 
 objects to target Raft nodes. 
 
 Let's write a `LocalRaftEndpoint` class as below. We will generate unique Raft
@@ -51,7 +51,8 @@ endpoints via its static `LocalRaftEndpoint.newEndpoint()` method.
 
 <script src="https://gist.github.com/metanet/8d33a46f3c927bfd3af38fcde35d8161.js"></script>
   
-You can also see this class in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/LocalRaftEndpoint.java).  
+You can also see this class in the 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/LocalRaftEndpoint.java" target="_blank">MicroRaft Github repository</a>.  
   
 
 ### `StateMachine` 
@@ -63,11 +64,11 @@ is shown below, does not have any execution and snapshotting logic for our
 atomic register. 
 
 We implement 
-[`StateMachine.getNewTermOperation()`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/statemachine/StateMachine.java#L142) 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/statemachine/StateMachine.java" target="_blank">`StateMachine.getNewTermOperation()`</a> 
 in our first version of state machine. This method returns an operation which 
 will be committed every time a new leader is elected. This is actually related
 to the 
-[single-server membership change bug](https://groups.google.com/forum/#!msg/raft-dev/t4xj6dJTP6E/d2D9LrWRza8J)
+<a href="https://groups.google.com/forum/#!msg/raft-dev/t4xj6dJTP6E/d2D9LrWRza8J" target="_blank">single-server membership change bug</a>
 in the Raft consensus algorithm rather than our atomic register logic. 
 
 Once we see that we are able to form a Raft group and elect a leader, we will
@@ -75,14 +76,15 @@ extend this class to implement the missing functionality.
 
 <script src="https://gist.github.com/metanet/0acbb6426640f02fc88ad078fa8f59f2.js"></script>
 
-You can also see this class in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/atomicregister/AtomicRegister.java).
+You can also see this class in the 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/atomicregister/AtomicRegister.java" target="_blank">MicroRaft Github repository</a>.
 
 
 ### `RaftNodeRuntime`
 
 We are almost there to run our first test for bootstrapping a Raft group and
 electing a leader. The only missing piece is 
-[`RaftNodeRuntime`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/runtime/RaftNodeRuntime.java). 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/runtime/RaftNodeRuntime.java" target="_blank">`RaftNodeRuntime`</a>. 
 Recall that `RaftNodeRuntime` is responsible for executing the tasks submitted 
 by Raft nodes, and sending Raft messages to other Raft nodes (serialization and
 networking). Since our Raft nodes will run in a single JVM process in this
@@ -95,7 +97,8 @@ Our `LocalRaftNodeRuntime` class is shown below.
 
 <script src="https://gist.github.com/metanet/efac8da9b92529391729221625b1ea75.js"></script>
 
-You can also see this class in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/LocalRaftNodeRuntime.java).
+You can also see this class in the 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/LocalRaftNodeRuntime.java" target="_blank">MicroRaft Github repository</a>.
 
 
 ## 2. Bootstrapping the Raft group
@@ -108,11 +111,12 @@ a leader. Let's write our first test.
 To run this test on your machine, try the following:
 
 ~~~~{.bash}
- $ git clone https://github.com/metanet/MicroRaft.git
+ $ git clone https://github.com/MicroRaft/MicroRaft.git
  $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.LeaderElectionTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
-You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft-tutorial/src/test/java/io/microraft/tutorial/LeaderElectionTest.java).
+You can also see it in the 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/test/java/io/microraft/tutorial/LeaderElectionTest.java" target="_blank">MicroRaft Github repository</a>.
 
 Ok. That is a big piece of code, but no worries. We will swallow it one piece
 at a time. 
@@ -131,12 +135,12 @@ method just adds a given Raft node to the *discovery maps* of the
 `LocalRaftNodeRuntime` objects that belong to another Raft nodes.
  
 Once we create a Raft node via 
-[`RaftNodeBuilder`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNode.java#L405), 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNode.java" target="_blank">`RaftNodeBuilder`</a>, 
 its initial status is 
-[`RaftNodeStatus.INITIAL`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNodeStatus.java) 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNodeStatus.java" target="_blank">`RaftNodeStatus.INITIAL`</a> 
 and it does not execute the Raft consensus algorithm in this status. When 
 `RaftNode.start()` is called, its status becomes 
-[`RaftNodeStatus.ACTIVE`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNodeStatus.java) 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNodeStatus.java" target="_blank">`RaftNodeStatus.ACTIVE`</a> 
 and the Raft node internally submits a task via `LocalRaftNodeRuntime` to check 
 if there is a leader. Since we are starting a new Raft group in this test, 
 obviously there is no leader yet so our Raft nodes will start a new leader
@@ -250,7 +254,8 @@ tutorial.
  
 <script src="https://gist.github.com/metanet/bda7eee359766b0a046b70dd262e2618.js"></script>
 
-You can also see this class in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/atomicregister/OperableAtomicRegister.java).
+You can also see this class in the 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/atomicregister/OperableAtomicRegister.java" target="_blank">MicroRaft Github repository</a>.
 
 
 ### Committing operations
@@ -264,16 +269,17 @@ greater than the commit index of the previous operation.
 <script src="https://gist.github.com/metanet/96fc904c59da940b7e6b92a6b9e20778.js"></script>
 
 ~~~~{.bash}
-$ git clone https://github.com/metanet/MicroRaft.git
+$ git clone https://github.com/MicroRaft/MicroRaft.git
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.OperationCommitTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
-You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft-tutorial/src/test/java/io/microraft/tutorial/OperationCommitTest.java).
+You can also see it in the 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/test/java/io/microraft/tutorial/OperationCommitTest.java" target="_blank">MicroRaft Github repository</a>.
 
 We use `RaftNode.replicate()` to replicate and commit operations on the Raft
 group. Most of the Raft node APIs, including `RaftNode.replicate()`, return 
 `CompletableFuture<Ordered>` objects. For `RaftNode.replicate()`, 
-[`Ordered`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/Ordered.java) 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/Ordered.java" target="_blank">`Ordered`</a> 
 provides return value of the executed operation and on which Raft log index 
 the operation has been committed.
 
@@ -302,7 +308,7 @@ The last operation is a `get` to read the current value of the atomic register.
 
 If we call `RaftNode.replicate()` on a follower or candidate Raft node, the 
 returned `CompletableFuture<Ordered>` object is simply notified with
-[`NotLeaderException`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/exception/NotLeaderException.java), 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/exception/NotLeaderException.java" target="_blank">`NotLeaderException`</a>, 
 which also provides Raft endpoint of the leader Raft node. I am not going to 
 build an advanced RPC system in front of MicroRaft here, but when we use 
 MicroRaft in a distributed setting, we can build a retry mechanism in the RPC 
@@ -326,15 +332,15 @@ Actually, this is a sub-optimal approach.
 
 MicroRaft offers a separate API, `RaftNode.query()`, to handle queries more 
 efficiently. There are 
-[3 policies for queries](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/QueryPolicy.java), 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/QueryPolicy.java" target="_blank">3 policies for queries</a>, 
 each with a different consistency guarantee:
 
 * `QueryPolicy.LINEARIZABLE`: We can perform a linearizable query with this
 policy. MicroRaft employs the optimization described in *Section: 6.4 
 Processing read-only queries more efficiently* of 
-[the Raft dissertation](https://github.com/ongardie/dissertation) to preserve
-linearizability without growing the internal Raft log. We need to hit the 
-leader Raft node to execute a linearizable query.
+<a href="https://github.com/ongardie/dissertation" target="_blank">the Raft dissertation</a>
+to preserve linearizability without growing the internal Raft log. We need to 
+hit the leader Raft node to execute a linearizable query.
 
 * `QueryPolicy.LEADER_LOCAL`: We can run a query locally on the leader Raft
 node without talking to the majority. If the called Raft node is not the 
@@ -379,11 +385,12 @@ for now. We will talk about it in a minute.
 To run this test on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone https://github.com/metanet/MicroRaft.git
+$ git clone https://github.com/MicroRaft/MicroRaft.git
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.LinearizableQueryTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
-You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft-tutorial/src/test/java/io/microraft/tutorial/LinearizableQueryTest.java).
+You can also see it in the 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/test/java/io/microraft/tutorial/LinearizableQueryTest.java" target="_blank">MicroRaft Github repository</a>.
 
 The output of the `sysout` lines are below:
 
@@ -400,17 +407,17 @@ index. That is why both commit indices are the same in the output.
 
 `QueryPolicy.LEADER_LOCAL` and `QueryPolicy.ANY_LOCAL` can be easily used if
 monotonicity is sufficient for query results. This is where 
-[`Ordered`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/Ordered.java) 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/Ordered.java" target="_blank">`Ordered`</a> 
 comes in handy. A client can track commit indices observed via returned 
 `Ordered` objects and use the greatest observed commit index to preserve 
 monotonicity while issuing a local query to a Raft node. If the local commit 
 index of a Raft node is smaller than the commit index passed to the 
 `RaftNode.query()` call, the returned `CompletableFuture` object fails with 
-[`LaggingCommitIndexException`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/exception/LaggingCommitIndexException.java). 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/exception/LaggingCommitIndexException.java" target="_blank">`LaggingCommitIndexException`</a>. 
 This exception means that the state observed by the client is more up-to-date
 than the contacted Raft node's state. In this case, the client can retry its 
 query on another Raft node. Please refer to 
-[Section 6.4.1 of the Raft dissertation](https://github.com/ongardie/dissertation)
+<a href="https://github.com/ongardie/dissertation" target="_blank">Section 6.4.1 of the Raft dissertation</a>
 for more details.
 
 We will make a little trick to demonstrate how to maintain the monotonicity of 
@@ -447,11 +454,12 @@ monotonicity we demand, hence our query fails with
 To run this test on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone https://github.com/metanet/MicroRaft.git
+$ git clone https://github.com/MicroRaft/MicroRaft.git
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.MonotonicLocalQueryTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
-You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft-tutorial/src/test/java/io/microraft/tutorial/MonotonicLocalQueryTest.java).
+You can also see it in the 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/test/java/io/microraft/tutorial/MonotonicLocalQueryTest.java" target="_blank">MicroRaft Github repository</a>.
 
 
 ## 4. Snapshotting 
@@ -467,7 +475,7 @@ machine at current commit index and discarding all log entries up to it.
 MicroRaft implements snapshotting by putting an upper bound on the number of 
 log entries kept in Raft log. It takes a snapshot of the state machine at every 
 `N` commits and shrinks the log. `N` is configurable via 
-[`RaftConfig.setCommitCountToTakeSnapshot()`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftConfig.java). 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftConfig.java" target="_blank">`RaftConfig.setCommitCountToTakeSnapshot()`</a>. 
 A snapshot is represented as a list of chunks, where a chunk can be any object 
 provided by the state machine. 
 
@@ -483,7 +491,8 @@ index observed by the state machine.
 
 <script src="https://gist.github.com/metanet/337f5bb9a8e82b637f9c66c46f6476be.js"></script>
 
-You can also see this class in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/atomicregister/SnapshotableAtomicRegister.java).
+You can also see this class in the 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/atomicregister/SnapshotableAtomicRegister.java" target="_blank">MicroRaft Github repository</a>.
 
 We have the following test to demonstrate how snapshotting works in MicroRaft.
 In `createRaftNode()`, we configure our Raft nodes to take a new snapshot at 
@@ -498,11 +507,12 @@ snapshot.
 To run this test on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone https://github.com/metanet/MicroRaft.git
+$ git clone https://github.com/MicroRaft/MicroRaft.git
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.SnapshotInstallationTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
-You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft-tutorial/src/test/java/io/microraft/tutorial/SnapshotInstallationTest.java).
+You can also see it in the 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/test/java/io/microraft/tutorial/SnapshotInstallationTest.java" target="_blank">MicroRaft Github repository</a>.
 
 
 ## 5. Operating the Raft group
@@ -541,11 +551,12 @@ tolerance by adding 2 new members (majority of 3 = 2 -> majority of 5 = 3).
 To run this test on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone https://github.com/metanet/MicroRaft.git
+$ git clone https://github.com/MicroRaft/MicroRaft.git
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.ChangeRaftGroupMemberListTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
-You can also see it in the [MicroRaft Github repository](https://github.com/metanet/MicroRaft/blob/master/microraft-tutorial/src/test/java/io/microraft/tutorial/ChangeRaftGroupMemberListTest.java).
+You can also see it in the 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/test/java/io/microraft/tutorial/ChangeRaftGroupMemberListTest.java" target="_blank">MicroRaft Github repository</a>.
 
 In this test, we create a new Raft endpoint, `endpoint4`, and add it to the
 Raft group in the following lines:
@@ -598,7 +609,7 @@ operational. Voila!
 
 ### Monitoring
 
-[`RaftNodeReport`](https://github.com/metanet/MicroRaft/blob/master/microraft/src/main/java/io/microraft/report/RaftNodeReport.java) 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/report/RaftNodeReport.java" target="_blank">`RaftNodeReport`</a> 
 class contains detailed information about internal state of a `RaftNode`, such 
 as its Raft role, term, leader, last log index, and commit index. MicroRaft 
 provides multiple mechanisms to monitor internal state of Raft nodes:

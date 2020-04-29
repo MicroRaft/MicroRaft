@@ -20,6 +20,7 @@ package io.microraft.impl;
 import io.microraft.Ordered;
 import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
+import io.microraft.RaftNode;
 import io.microraft.RaftRole;
 import io.microraft.exception.CannotReplicateException;
 import io.microraft.exception.IndeterminateStateException;
@@ -37,6 +38,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
@@ -817,6 +820,30 @@ public class RaftTest
         eventually(() -> assertThat(getRole(leader)).isEqualTo(RaftRole.FOLLOWER));
 
         assertThat(getVotedEndpoint(leader)).isEqualTo(leader.getLocalEndpoint());
+    }
+
+    @Test(timeout = 300_000)
+    public void when_leaderTerminates_then_itFailsPendingFuturesWithIndeterminateStateException() {
+        group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        for (RaftNode follower : group.getNodesExcept(leader.getLeaderEndpoint())) {
+            group.dropMessagesTo(leader.getLocalEndpoint(), follower.getLocalEndpoint(), AppendEntriesRequest.class);
+        }
+
+        CompletableFuture<Ordered<Object>> f = leader.replicate(apply("val"));
+
+        eventually(() -> assertThat(getLastLogOrSnapshotEntry(leader).getIndex()).isGreaterThan(0));
+
+        leader.terminate().join();
+
+        assertThat(f.isCompletedExceptionally());
+        try {
+            f.join();
+            fail();
+        } catch (CompletionException e) {
+            assertThat(e).hasCauseInstanceOf(IndeterminateStateException.class);
+        }
     }
 
 }

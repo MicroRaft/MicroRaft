@@ -36,4 +36,9 @@ public class NotLeaderException
         super(local + " is not LEADER. Known leader is: " + (leader != null ? leader : "N/A"), leader);
     }
 
+    @Override
+    public String toString() {
+        return "NotLeaderException{leader=" + getLeader() + "}";
+    }
+
 }

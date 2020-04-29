@@ -48,4 +48,9 @@ public class IndeterminateStateException
         super(leader);
     }
 
+    @Override
+    public String toString() {
+        return "IndeterminateStateException{leader=" + getLeader() + "}";
+    }
+
 }

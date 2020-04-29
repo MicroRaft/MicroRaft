@@ -62,4 +62,9 @@ public class RaftException
         return leader;
     }
 
+    @Override
+    public String toString() {
+        return "RaftException{leader=" + getLeader() + "}";
+    }
+
 }

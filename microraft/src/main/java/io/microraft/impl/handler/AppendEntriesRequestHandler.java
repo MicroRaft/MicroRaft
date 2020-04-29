@@ -106,9 +106,9 @@ public class AppendEntriesRequestHandler
         node.leaderHeartbeatReceived();
 
         if (!verifyLastLogEntry(request, log)) {
-            node.send(
-                    createAppendEntriesFailureResponse(request.getTerm(), request.getQuerySeqNo(), request.getFlowControlSeqNo()),
-                    leader);
+            RaftMessage response = createAppendEntriesFailureResponse(request.getTerm(), request.getQuerySeqNo(),
+                                                                      request.getFlowControlSeqNo());
+            node.send(response, leader);
             return;
         }
 
@@ -212,7 +212,7 @@ public class AppendEntriesRequestHandler
                                     requestEntry.getIndex());
                     }
 
-                    node.invalidateFuturesFrom(requestEntry.getIndex());
+                    node.invalidateFuturesFrom(requestEntry.getIndex(), node.newNotLeaderException());
                     revertPreparedGroupOp(truncatedEntries);
                     newLogEntries = request.getLogEntries().subList(i, requestEntryCount);
                     log.flush();

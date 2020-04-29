@@ -54,4 +54,10 @@ public class MismatchingRaftGroupMembersCommitIndexException
         return members;
     }
 
+    @Override
+    public String toString() {
+        return "MismatchingRaftGroupMembersCommitIndexException{leader=" + getLeader() + ", commitIndex=" + commitIndex
+                + ", members=" + members + "}";
+    }
+
 }

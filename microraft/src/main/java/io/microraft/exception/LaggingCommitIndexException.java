@@ -37,4 +37,9 @@ public class LaggingCommitIndexException
         super("Commit index: " + commitIndex + " is smaller than min commit index: " + expectedCommitIndex, leader);
     }
 
+    @Override
+    public String toString() {
+        return "LaggingCommitIndexException{leader=" + getLeader() + "}";
+    }
+
 }

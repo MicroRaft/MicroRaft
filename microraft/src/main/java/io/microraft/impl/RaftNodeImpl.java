@@ -533,7 +533,7 @@ public final class RaftNodeImpl
             Throwable failure = null;
             try {
                 if (status != INITIAL) {
-                    invalidateFuturesFrom(state.commitIndex() + 1);
+                    invalidateFuturesFrom(state.commitIndex() + 1, newIndeterminateStateException(null));
 
                     LeaderState leaderState = state.leaderState();
                     if (leaderState != null) {
@@ -840,26 +840,24 @@ public final class RaftNodeImpl
     }
 
     /**
-     * Completes futures with {@link NotLeaderException} for
-     * indices greater than or equal to the given index.
-     * Note that {@code entryIndex} is inclusive.
+     * Completes futures with the given exception for indices greater than or
+     * equal to the given index. Note that {@code entryIndex} is inclusive.
      */
-    public void invalidateFuturesFrom(long entryIndex) {
-        Throwable t = newNotLeaderException();
+    public void invalidateFuturesFrom(long entryIndex, RaftException e) {
         int count = 0;
         Iterator<Entry<Long, OrderedFuture>> iterator = futures.entrySet().iterator();
         while (iterator.hasNext()) {
             Entry<Long, OrderedFuture> entry = iterator.next();
             long index = entry.getKey();
             if (index >= entryIndex) {
-                entry.getValue().fail(t);
+                entry.getValue().fail(e);
                 iterator.remove();
                 count++;
             }
         }
 
         if (count > 0) {
-            LOGGER.warn("{} Invalidated {} futures from log index: {}", localEndpointStr, count, entryIndex);
+            LOGGER.warn("{} Invalidated {} futures from log index: {} with: {}", localEndpointStr, count, entryIndex, e);
         }
     }
 
@@ -1640,24 +1638,24 @@ public final class RaftNodeImpl
     }
 
     /**
-     * Completes futures with the given exception for indices smaller than
-     * or equal to the given index. Note that {@code entryIndex} is inclusive.
+     * Completes futures with the given exception for indices smaller than or
+     * equal to the given index. Note that {@code entryIndex} is inclusive.
      */
-    private void invalidateFuturesUntil(long entryIndex, RaftException ex) {
+    private void invalidateFuturesUntil(long entryIndex, RaftException e) {
         int count = 0;
         Iterator<Entry<Long, OrderedFuture>> iterator = futures.entrySet().iterator();
         while (iterator.hasNext()) {
             Entry<Long, OrderedFuture> entry = iterator.next();
             long index = entry.getKey();
             if (index <= entryIndex) {
-                entry.getValue().fail(ex);
+                entry.getValue().fail(e);
                 iterator.remove();
                 count++;
             }
         }
 
         if (count > 0) {
-            LOGGER.warn("{} Completed {} futures until log index: {} with {}", localEndpointStr, count, entryIndex, ex);
+            LOGGER.warn("{} Completed {} futures until log index: {} with {}", localEndpointStr, count, entryIndex, e);
         }
     }
 

@@ -45,4 +45,9 @@ public class CannotReplicateException
         super("Cannot replicate new operations for now", leader);
     }
 
+    @Override
+    public String toString() {
+        return "CannotReplicateException{leader=" + getLeader() + "}";
+    }
+
 }

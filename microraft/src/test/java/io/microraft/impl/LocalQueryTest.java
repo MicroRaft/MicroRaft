@@ -31,8 +31,8 @@ import java.util.concurrent.ExecutionException;
 
 import static io.microraft.QueryPolicy.ANY_LOCAL;
 import static io.microraft.QueryPolicy.LEADER_LOCAL;
-import static io.microraft.impl.local.SimpleStateMachine.apply;
-import static io.microraft.impl.local.SimpleStateMachine.queryLast;
+import static io.microraft.impl.local.SimpleStateMachine.applyValue;
+import static io.microraft.impl.local.SimpleStateMachine.queryLastValue;
 import static io.microraft.test.util.AssertionUtils.eventually;
 import static io.microraft.test.util.RaftTestUtils.TEST_RAFT_CONFIG;
 import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
@@ -62,7 +62,7 @@ public class LocalQueryTest
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
-        Ordered<Object> o = leader.query(queryLast(), LEADER_LOCAL, 0).get();
+        Ordered<Object> o = leader.query(queryLastValue(), LEADER_LOCAL, 0).get();
         assertThat(o.getResult()).isNull();
         assertThat(o.getCommitIndex()).isEqualTo(0);
     }
@@ -75,7 +75,7 @@ public class LocalQueryTest
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
         try {
-            leader.query(queryLast(), LEADER_LOCAL, getCommitIndex(leader) + 1).get();
+            leader.query(queryLastValue(), LEADER_LOCAL, getCommitIndex(leader) + 1).get();
             fail();
         } catch (ExecutionException e) {
             assertThat(e).hasCauseInstanceOf(LaggingCommitIndexException.class);
@@ -90,7 +90,7 @@ public class LocalQueryTest
         group.waitUntilLeaderElected();
         RaftNodeImpl follower = group.getAnyFollower();
 
-        Ordered<Object> o = follower.query(queryLast(), ANY_LOCAL, 0).get();
+        Ordered<Object> o = follower.query(queryLastValue(), ANY_LOCAL, 0).get();
         assertThat(o.getResult()).isNull();
         assertThat(o.getCommitIndex()).isEqualTo(0);
     }
@@ -104,7 +104,7 @@ public class LocalQueryTest
         RaftNodeImpl follower = group.getAnyFollower();
 
         try {
-            follower.query(queryLast(), ANY_LOCAL, getCommitIndex(follower) + 1).get();
+            follower.query(queryLastValue(), ANY_LOCAL, getCommitIndex(follower) + 1).get();
             fail();
         } catch (ExecutionException e) {
             assertThat(e).hasCauseInstanceOf(LaggingCommitIndexException.class);
@@ -120,11 +120,11 @@ public class LocalQueryTest
 
         int count = 3;
         for (int i = 1; i <= count; i++) {
-            leader.replicate(apply("value" + i)).get();
+            leader.replicate(applyValue("value" + i)).get();
         }
 
         long commitIndex = getCommitIndex(leader);
-        Ordered<Object> result = leader.query(queryLast(), LEADER_LOCAL, 0).get();
+        Ordered<Object> result = leader.query(queryLastValue(), LEADER_LOCAL, 0).get();
         assertThat(result.getResult()).isEqualTo("value" + count);
         assertThat(result.getCommitIndex()).isEqualTo(commitIndex);
     }
@@ -138,11 +138,11 @@ public class LocalQueryTest
 
         int count = 3;
         for (int i = 1; i <= count; i++) {
-            leader.replicate(apply("value" + i)).get();
+            leader.replicate(applyValue("value" + i)).get();
         }
 
         long commitIndex = getCommitIndex(leader);
-        Ordered<Object> result = leader.query(queryLast(), LEADER_LOCAL, commitIndex).get();
+        Ordered<Object> result = leader.query(queryLastValue(), LEADER_LOCAL, commitIndex).get();
         assertThat(result.getResult()).isEqualTo("value" + count);
         assertThat(result.getCommitIndex()).isEqualTo(commitIndex);
     }
@@ -156,12 +156,12 @@ public class LocalQueryTest
 
         int count = 3;
         for (int i = 1; i <= count; i++) {
-            leader.replicate(apply("value" + i)).get();
+            leader.replicate(applyValue("value" + i)).get();
         }
 
         long commitIndex = getCommitIndex(leader);
         try {
-            leader.query(queryLast(), LEADER_LOCAL, commitIndex + 1).get();
+            leader.query(queryLastValue(), LEADER_LOCAL, commitIndex + 1).get();
         } catch (ExecutionException e) {
             assertThat(e).hasCauseInstanceOf(LaggingCommitIndexException.class);
         }
@@ -173,10 +173,10 @@ public class LocalQueryTest
         group = LocalRaftGroup.start(3);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
-        leader.replicate(apply("value")).get();
+        leader.replicate(applyValue("value")).get();
 
         try {
-            group.getAnyFollower().query(queryLast(), LEADER_LOCAL, 0).get();
+            group.getAnyFollower().query(queryLastValue(), LEADER_LOCAL, 0).get();
         } catch (ExecutionException e) {
             assertThat(e).hasCauseInstanceOf(NotLeaderException.class);
         }
@@ -191,7 +191,7 @@ public class LocalQueryTest
 
         int count = 3;
         for (int i = 1; i <= count; i++) {
-            leader.replicate(apply("value" + i)).get();
+            leader.replicate(applyValue("value" + i)).get();
         }
 
         String latestValue = "value" + count;
@@ -200,7 +200,7 @@ public class LocalQueryTest
             long commitIndex = getCommitIndex(leader);
             for (RaftNodeImpl follower : group.<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint())) {
                 assertThat(getCommitIndex(follower)).isEqualTo(commitIndex);
-                Ordered<Object> result = follower.query(queryLast(), ANY_LOCAL, 0).get();
+                Ordered<Object> result = follower.query(queryLastValue(), ANY_LOCAL, 0).get();
                 assertThat(result.getResult()).isEqualTo(latestValue);
                 assertThat(result.getCommitIndex()).isEqualTo(commitIndex);
             }
@@ -216,7 +216,7 @@ public class LocalQueryTest
 
         int count = 3;
         for (int i = 1; i <= count; i++) {
-            leader.replicate(apply("value" + i)).get();
+            leader.replicate(applyValue("value" + i)).get();
         }
 
         String latestValue = "value" + count;
@@ -225,7 +225,7 @@ public class LocalQueryTest
             long commitIndex = getCommitIndex(leader);
             for (RaftNodeImpl follower : group.<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint())) {
                 assertThat(getCommitIndex(follower)).isEqualTo(commitIndex);
-                Ordered<Object> result = follower.query(queryLast(), ANY_LOCAL, commitIndex).get();
+                Ordered<Object> result = follower.query(queryLastValue(), ANY_LOCAL, commitIndex).get();
                 assertThat(result.getResult()).isEqualTo(latestValue);
                 assertThat(result.getCommitIndex()).isEqualTo(commitIndex);
             }
@@ -241,16 +241,16 @@ public class LocalQueryTest
         RaftNodeImpl slowFollower = group.getAnyFollower();
 
         Object firstValue = "value1";
-        leader.replicate(apply(firstValue)).get();
+        leader.replicate(applyValue(firstValue)).get();
         long leaderCommitIndex = getCommitIndex(leader);
 
         eventually(() -> assertThat(getCommitIndex(slowFollower)).isEqualTo(leaderCommitIndex));
 
         group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), AppendEntriesRequest.class);
 
-        leader.replicate(apply("value2")).get();
+        leader.replicate(applyValue("value2")).get();
 
-        Ordered<Object> result = slowFollower.query(queryLast(), ANY_LOCAL, 0).get();
+        Ordered<Object> result = slowFollower.query(queryLastValue(), ANY_LOCAL, 0).get();
         assertThat(result.getResult()).isEqualTo(firstValue);
         assertThat(result.getCommitIndex()).isEqualTo(leaderCommitIndex);
     }
@@ -261,19 +261,19 @@ public class LocalQueryTest
         group = LocalRaftGroup.start(3);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
-        leader.replicate(apply("value1")).get();
+        leader.replicate(applyValue("value1")).get();
 
         RaftNodeImpl slowFollower = group.getAnyFollower();
         group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), AppendEntriesRequest.class);
 
         Object lastValue = "value2";
-        leader.replicate(apply(lastValue)).get();
+        leader.replicate(applyValue(lastValue)).get();
 
         group.allowAllMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint());
 
         eventually(() -> {
             long commitIndex = getCommitIndex(leader);
-            Ordered<Object> result = slowFollower.query(queryLast(), ANY_LOCAL, 0).get();
+            Ordered<Object> result = slowFollower.query(queryLastValue(), ANY_LOCAL, 0).get();
             assertThat(result.getResult()).isEqualTo(lastValue);
             assertThat(result.getCommitIndex()).isEqualTo(commitIndex);
         });
@@ -287,7 +287,7 @@ public class LocalQueryTest
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
         Object firstValue = "value1";
-        leader.replicate(apply(firstValue)).get();
+        leader.replicate(applyValue(firstValue)).get();
         long firstCommitIndex = getCommitIndex(leader);
 
         eventually(() -> {
@@ -306,14 +306,14 @@ public class LocalQueryTest
 
         RaftNodeImpl newLeader = group.getNode(followerNode.getLeaderEndpoint());
         Object lastValue = "value2";
-        newLeader.replicate(apply(lastValue)).get();
+        newLeader.replicate(applyValue(lastValue)).get();
         long lastCommitIndex = getCommitIndex(newLeader);
 
-        Ordered<Object> result1 = newLeader.query(queryLast(), ANY_LOCAL, 0).get();
+        Ordered<Object> result1 = newLeader.query(queryLastValue(), ANY_LOCAL, 0).get();
         assertThat(result1.getResult()).isEqualTo(lastValue);
         assertThat(result1.getCommitIndex()).isEqualTo(lastCommitIndex);
 
-        Ordered<Object> result2 = leader.query(queryLast(), ANY_LOCAL, 0).get();
+        Ordered<Object> result2 = leader.query(queryLastValue(), ANY_LOCAL, 0).get();
         assertThat(result2.getResult()).isEqualTo(firstValue);
         assertThat(result2.getCommitIndex()).isEqualTo(firstCommitIndex);
     }
@@ -326,7 +326,7 @@ public class LocalQueryTest
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
         Object firstValue = "value1";
-        leader.replicate(apply(firstValue)).get();
+        leader.replicate(applyValue(firstValue)).get();
         long firstCommitIndex = getCommitIndex(leader);
 
         eventually(() -> {
@@ -339,7 +339,7 @@ public class LocalQueryTest
 
         eventually(() -> {
             try {
-                leader.query(queryLast(), LEADER_LOCAL, 0).get();
+                leader.query(queryLastValue(), LEADER_LOCAL, 0).get();
                 fail();
             } catch (ExecutionException e) {
                 assertThat(e).hasCauseInstanceOf(NotLeaderException.class);
@@ -355,7 +355,7 @@ public class LocalQueryTest
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
         Object firstValue = "value1";
-        leader.replicate(apply(firstValue)).get();
+        leader.replicate(applyValue(firstValue)).get();
         long leaderCommitIndex = getCommitIndex(leader);
 
         eventually(() -> {
@@ -374,13 +374,13 @@ public class LocalQueryTest
 
         RaftNodeImpl newLeader = group.getNode(followerNode.getLeaderEndpoint());
         Object lastValue = "value2";
-        newLeader.replicate(apply(lastValue)).get();
+        newLeader.replicate(applyValue(lastValue)).get();
         long lastCommitIndex = getCommitIndex(newLeader);
 
         group.merge();
 
         eventually(() -> {
-            Ordered<Object> result = leader.query(queryLast(), ANY_LOCAL, 0).get();
+            Ordered<Object> result = leader.query(queryLastValue(), ANY_LOCAL, 0).get();
             assertThat(result.getResult()).isEqualTo(lastValue);
             assertThat(result.getCommitIndex()).isEqualTo(lastCommitIndex);
         });

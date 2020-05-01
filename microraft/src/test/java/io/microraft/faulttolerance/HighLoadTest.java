@@ -56,7 +56,7 @@ public class HighLoadTest {
     @Test
     public void testHighLoad()
             throws InterruptedException {
-        RaftConfig config = RaftConfig.newBuilder().setMaxUncommittedLogEntryCount(10).build();
+        RaftConfig config = RaftConfig.newBuilder().setMaxPendingLogEntryCount(10).build();
         group = LocalRaftGroup.newBuilder(3).setConfig(config).start();
         RaftNode leader = group.waitUntilLeaderElected();
 
@@ -71,7 +71,7 @@ public class HighLoadTest {
             // since the followers are slowed down, the leader won't be able to
             // keep up with the incoming request rate and after some time it
             // will start to fail new requests with CannotReplicateException
-            CompletableFuture<Ordered<Object>> future = leader.replicate(SimpleStateMachine.apply("val"));
+            CompletableFuture<Ordered<Object>> future = leader.replicate(SimpleStateMachine.applyValue("val"));
             Thread.sleep(10);
 
             if (future.isCompletedExceptionally()) {

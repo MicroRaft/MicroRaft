@@ -79,7 +79,7 @@ public class NetworkPartitionTest
         String value1 = "value1";
         try {
             // we cannot commit an operation via the initial leader because it lost its leadership now.
-            firstLeader.replicate(SimpleStateMachine.apply(value1)).join();
+            firstLeader.replicate(SimpleStateMachine.applyValue(value1)).join();
             fail(firstLeader.getLocalEndpoint().getId() + " cannot replicate a new operation after losing leadership");
         } catch (CompletionException e) {
             assertThat(e).hasCauseInstanceOf(NotLeaderException.class);
@@ -96,7 +96,7 @@ public class NetworkPartitionTest
         // we can commit an operation via the new leader.
         String value2 = "value2";
         RaftNode secondLeader = group.getNode(followers.get(0).getTerm().getLeaderEndpoint());
-        secondLeader.replicate(SimpleStateMachine.apply(value2)).join();
+        secondLeader.replicate(SimpleStateMachine.applyValue(value2)).join();
 
         // let's resolve the network partition
         group.merge();
@@ -105,7 +105,8 @@ public class NetworkPartitionTest
         eventually(() -> {
             assertThat(firstLeader.getTerm().getLeaderEndpoint()).isEqualTo(secondLeader.getLocalEndpoint());
 
-            String value = firstLeader.<String>query(SimpleStateMachine.queryLast(), QueryPolicy.ANY_LOCAL, 0).join().getResult();
+            String value = firstLeader.<String>query(SimpleStateMachine.queryLastValue(), QueryPolicy.ANY_LOCAL, 0).join()
+                                                                                                                   .getResult();
             assertThat(value).isEqualTo(value2);
         });
     }

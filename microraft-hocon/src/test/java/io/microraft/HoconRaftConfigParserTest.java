@@ -30,7 +30,7 @@ public class HoconRaftConfigParserTest
     public void test_parseValidHoconString() {
         String configString = "raft {\n" + "  leader-election-timeout-millis: 750\n" + "  leader-heartbeat-period-secs: 15\n"
                 + "  leader-heartbeat-timeout-secs: 45\n" + "  append-entries-request-batch-size: 750\n"
-                + "  commit-count-to-take-snapshot: 7500\n" + "  max-uncommitted-log-entry-count: 1500\n"
+                + "  commit-count-to-take-snapshot: 7500\n" + "  max-pending-log-entry-count: 1500\n"
                 + "  transfer-snapshots-from-followers-enabled: false\n" + "  raft-node-report-publish-period-secs: 20\n" + "}\n";
 
         RaftConfig config = parseConfig(ConfigFactory.parseString(configString));
@@ -40,7 +40,7 @@ public class HoconRaftConfigParserTest
         assertThat(config.getLeaderHeartbeatTimeoutSecs()).isEqualTo(45L);
         assertThat(config.getAppendEntriesRequestBatchSize()).isEqualTo(750);
         assertThat(config.getCommitCountToTakeSnapshot()).isEqualTo(7500);
-        assertThat(config.getMaxUncommittedLogEntryCount()).isEqualTo(1500);
+        assertThat(config.getMaxPendingLogEntryCount()).isEqualTo(1500);
         assertThat(config.isTransferSnapshotsFromFollowersEnabled()).isFalse();
         assertThat(config.getRaftNodeReportPublishPeriodSecs()).isEqualTo(20);
     }

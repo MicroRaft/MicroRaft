@@ -40,15 +40,15 @@ raft:
   # request has been sent to that follower recently.
   leader-heartbeat-period-secs: 2
 
-  # Maximum number of uncommitted log entries in the leader's Raft log before
+  # Maximum number of pending log entries in the leader's Raft log before
   # temporarily rejecting new requests of clients. This configuration enables
   # a back pressure mechanism to prevent OOME when a Raft leader cannot keep up
-  # with the requests sent by the clients. When the "uncommitted log entries
+  # with the requests sent by the clients. When the "pending log entries
   # buffer" whose capacity is specified with this configuration field is filled,
   # new requests fail with `CannotReplicateException` to slow down the clients.
   # You can configure this field by considering the degree of concurrency of
   # your clients.
-  max-uncommitted-log-entry-count: 5000
+  max-pending-log-entry-count: 5000
 
   # In MicroRaft, a leader Raft node sends log entries to its followers in
   # batches to improve the throughput. This configuration parameter specifies

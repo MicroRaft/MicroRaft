@@ -72,7 +72,7 @@ public class RaftLeaderFailureTest
         }
 
         String value = "value";
-        leader.replicate(SimpleStateMachine.apply(value));
+        leader.replicate(SimpleStateMachine.applyValue(value));
 
         // wait until the followers get the log entry by checking their log
         // indices repeatedly
@@ -95,10 +95,10 @@ public class RaftLeaderFailureTest
         RaftNode newLeader = group.waitUntilLeaderElected();
 
         // we replicate our operation again
-        newLeader.replicate(SimpleStateMachine.apply(value)).join();
+        newLeader.replicate(SimpleStateMachine.applyValue(value)).join();
 
-        Ordered<List<String>> queryResult = newLeader.<List<String>>query(SimpleStateMachine.queryAll(), QueryPolicy.LEADER_LOCAL,
-                                                                          0).join();
+        Ordered<List<String>> queryResult = newLeader.<List<String>>query(SimpleStateMachine.queryAllValues(),
+                                                                          QueryPolicy.LEADER_LOCAL, 0).join();
 
         // it turns out that our operation is committed twice
         assertThat(queryResult.getResult()).hasSize(2);

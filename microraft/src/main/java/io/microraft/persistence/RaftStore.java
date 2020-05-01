@@ -147,7 +147,7 @@ public interface RaftStore
      * The snapshot index can lag behind the index of the highest log entry
      * that was already persisted and flushed, but there is an upper bound to
      * this difference, controlled by
-     * {@link RaftConfig#getMaxUncommittedLogEntryCount()}. For instance, if it
+     * {@link RaftConfig#getMaxPendingLogEntryCount()}. For instance, if it
      * is 10, and a {@code persistSnapshot()} call is made with
      * <em>snapshotIndex=100</em>, the index of the preceding
      * {@code persistLogEntry()} call can be at most 110.
@@ -178,7 +178,7 @@ public interface RaftStore
      * <p>
      * There is an upper-bound on the number of persisted log entries that can
      * be truncated afterwards, which is specified by
-     * {@link RaftConfig#getMaxUncommittedLogEntryCount()} + 1. Say that it is
+     * {@link RaftConfig#getMaxPendingLogEntryCount()} + 1. Say that it is
      * 5 and the highest persisted log entry index is 20. Then, at most 5
      * highest entries can be truncated, hence truncation can start at index=16
      * or higher.

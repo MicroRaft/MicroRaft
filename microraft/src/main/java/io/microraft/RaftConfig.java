@@ -50,9 +50,9 @@ public final class RaftConfig
     public static final long DEFAULT_LEADER_HEARTBEAT_PERIOD_SECS = 2;
 
     /**
-     * The default value for {@link #maxUncommittedLogEntryCount}.
+     * The default value for {@link #maxPendingLogEntryCount}.
      */
-    public static final int DEFAULT_MAX_UNCOMMITTED_LOG_ENTRY_COUNT = 5000;
+    public static final int DEFAULT_MAX_PENDING_LOG_ENTRY_COUNT = 5000;
 
     /**
      * The default value for {@link #appendEntriesRequestBatchSize}.
@@ -110,17 +110,17 @@ public final class RaftConfig
      */
     private final long leaderHeartbeatPeriodSecs;
     /**
-     * Maximum number of uncommitted log entries in the leader's Raft log
-     * before temporarily rejecting new requests of clients. This configuration
+     * Maximum number of pending log entries in the leader's Raft log before
+     * temporarily rejecting new requests of clients. This configuration
      * enables a back pressure mechanism to prevent OOME when a Raft leader
      * cannot keep up with the requests sent by the clients. When
-     * the "uncommitted log entries buffer" whose capacity is specified with
+     * the "pending log entries buffer" whose capacity is specified with
      * this configuration field is filled, new requests fail with
      * {@link CannotReplicateException} to slow down the clients. You can
      * configure this field by considering the degree of concurrency of your
      * clients.
      */
-    private final int maxUncommittedLogEntryCount;
+    private final int maxPendingLogEntryCount;
 
     /**
      * In MicroRaft, a leader Raft node sends log entries to its followers in
@@ -160,14 +160,14 @@ public final class RaftConfig
     private final int raftNodeReportPublishPeriodSecs;
 
     public RaftConfig(long leaderElectionTimeoutMillis, long leaderHeartbeatPeriodSecs, long leaderHeartbeatTimeoutSecs,
-                      int appendEntriesRequestBatchSize, int commitCountToTakeSnapshot, int maxUncommittedLogEntryCount,
+                      int appendEntriesRequestBatchSize, int commitCountToTakeSnapshot, int maxPendingLogEntryCount,
                       boolean transferSnapshotsFromFollowersEnabled, int raftNodeReportPublishPeriodSecs) {
         this.leaderElectionTimeoutMillis = leaderElectionTimeoutMillis;
         this.leaderHeartbeatPeriodSecs = leaderHeartbeatPeriodSecs;
         this.leaderHeartbeatTimeoutSecs = leaderHeartbeatTimeoutSecs;
         this.appendEntriesRequestBatchSize = appendEntriesRequestBatchSize;
         this.commitCountToTakeSnapshot = commitCountToTakeSnapshot;
-        this.maxUncommittedLogEntryCount = maxUncommittedLogEntryCount;
+        this.maxPendingLogEntryCount = maxPendingLogEntryCount;
         this.transferSnapshotsFromFollowersEnabled = transferSnapshotsFromFollowersEnabled;
         this.raftNodeReportPublishPeriodSecs = raftNodeReportPublishPeriodSecs;
     }
@@ -215,12 +215,12 @@ public final class RaftConfig
     }
 
     /**
-     * @return the max uncommitted log entry count
+     * @return the max pending log entry count
      *
-     * @see #maxUncommittedLogEntryCount
+     * @see #maxPendingLogEntryCount
      */
-    public int getMaxUncommittedLogEntryCount() {
-        return maxUncommittedLogEntryCount;
+    public int getMaxPendingLogEntryCount() {
+        return maxPendingLogEntryCount;
     }
 
     /**
@@ -269,7 +269,7 @@ public final class RaftConfig
         private long leaderHeartbeatTimeoutSecs = DEFAULT_LEADER_HEARTBEAT_TIMEOUT_SECS;
         private int appendEntriesRequestBatchSize = DEFAULT_APPEND_ENTRIES_REQUEST_BATCH_SIZE;
         private int commitCountToTakeSnapshot = DEFAULT_COMMIT_COUNT_TO_TAKE_SNAPSHOT;
-        private int maxUncommittedLogEntryCount = DEFAULT_MAX_UNCOMMITTED_LOG_ENTRY_COUNT;
+        private int maxPendingLogEntryCount = DEFAULT_MAX_PENDING_LOG_ENTRY_COUNT;
         private boolean transferSnapshotsFromFollowersEnabled = DEFAULT_TRANSFER_SNAPSHOTS_FROM_FOLLOWERS_ENABLED;
         private int raftNodeReportPublishPeriodSecs = DEFAULT_RAFT_NODE_REPORT_PUBLISH_PERIOD_SECS;
 
@@ -352,17 +352,16 @@ public final class RaftConfig
         }
 
         /**
-         * @param maxUncommittedLogEntryCount
-         *         the max uncommitted log entry
-         *         count value to set
+         * @param maxPendingLogEntryCount
+         *         the max pending log entry count value to set
          *
          * @return the builder object for fluent calls
          *
-         * @see RaftConfig#maxUncommittedLogEntryCount
+         * @see RaftConfig#maxPendingLogEntryCount
          */
-        public RaftConfigBuilder setMaxUncommittedLogEntryCount(int maxUncommittedLogEntryCount) {
-            checkPositive(maxUncommittedLogEntryCount, "max uncommitted entry count to reject new appends must be positive!");
-            this.maxUncommittedLogEntryCount = maxUncommittedLogEntryCount;
+        public RaftConfigBuilder setMaxPendingLogEntryCount(int maxPendingLogEntryCount) {
+            checkPositive(maxPendingLogEntryCount, "max pending entry count to reject new appends must be positive!");
+            this.maxPendingLogEntryCount = maxPendingLogEntryCount;
             return this;
         }
 
@@ -409,7 +408,7 @@ public final class RaftConfig
             }
 
             return new RaftConfig(leaderElectionTimeoutMillis, leaderHeartbeatPeriodSecs, leaderHeartbeatTimeoutSecs,
-                                  appendEntriesRequestBatchSize, commitCountToTakeSnapshot, maxUncommittedLogEntryCount,
+                                  appendEntriesRequestBatchSize, commitCountToTakeSnapshot, maxPendingLogEntryCount,
                                   transferSnapshotsFromFollowersEnabled, raftNodeReportPublishPeriodSecs);
         }
 

@@ -40,6 +40,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static io.microraft.RaftConfig.DEFAULT_RAFT_CONFIG;
+import static io.microraft.impl.log.RaftLog.getLogCapacity;
 import static io.microraft.test.util.AssertionUtils.eventually;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
@@ -60,11 +61,18 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public final class LocalRaftGroup {
 
+    public static final BiFunction<RaftEndpoint, RaftConfig, RaftStore> IN_MEMORY_RAFT_STATE_STORE_FACTORY
+            = (endpoint, config) -> {
+        int commitCountToTakeSnapshot = config.getCommitCountToTakeSnapshot();
+        int maxPendingLogEntryCount = config.getMaxPendingLogEntryCount();
+        return new InMemoryRaftStore(getLogCapacity(commitCountToTakeSnapshot, maxPendingLogEntryCount));
+    };
+
     private final RaftConfig config;
     private final boolean newTermEntryEnabled;
     private final List<RaftEndpoint> initialMembers = new ArrayList<>();
-    private Map<RaftEndpoint, RaftNodeContext> nodeContexts = new HashMap<>();
-    private BiFunction<RaftEndpoint, RaftConfig, RaftStore> raftStoreFactory;
+    private final Map<RaftEndpoint, RaftNodeContext> nodeContexts = new HashMap<>();
+    private final BiFunction<RaftEndpoint, RaftConfig, RaftStore> raftStoreFactory;
 
     private LocalRaftGroup(int size, RaftConfig config, boolean newTermEntryEnabled,
                            BiFunction<RaftEndpoint, RaftConfig, RaftStore> raftStoreFactory) {

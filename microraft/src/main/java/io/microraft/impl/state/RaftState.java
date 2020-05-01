@@ -476,8 +476,8 @@ public final class RaftState {
      * Initializes the last applied group members with the given members
      * and the log Index.
      * <p>
-     * This method expects that there's no uncommitted membership changes
-     * and the committed members are the same as the last applied members.
+     * This method expects that there's no pending membership changes and
+     * the committed members are the same as the last applied members.
      * <p>
      * The leader state is also updated for the members which don't exist
      * in the committed members and the committed members that don't exist

@@ -18,24 +18,18 @@ package io.microraft.faulttolerance;
 
 import io.microraft.Ordered;
 import io.microraft.QueryPolicy;
-import io.microraft.RaftConfig;
-import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.impl.RaftNodeImpl;
-import io.microraft.impl.local.InMemoryRaftStore;
 import io.microraft.impl.local.LocalRaftGroup;
 import io.microraft.impl.local.SimpleStateMachine;
-import io.microraft.impl.log.RaftLog;
 import io.microraft.persistence.RaftStore;
 import io.microraft.persistence.RestoredRaftState;
 import io.microraft.test.util.RaftTestUtils;
 import org.junit.After;
 import org.junit.Test;
 
-import java.util.function.BiFunction;
-
+import static io.microraft.impl.local.LocalRaftGroup.IN_MEMORY_RAFT_STATE_STORE_FACTORY;
 import static io.microraft.test.util.AssertionUtils.eventually;
-import static io.microraft.test.util.RaftTestUtils.getRestoredState;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /*
@@ -63,37 +57,31 @@ public class RestoreCrashedRaftNodeTest {
 
     @Test
     public void testRestoreCrashedRaftNode() {
-        BiFunction<RaftEndpoint, RaftConfig, RaftStore> raftStoreFactory = (endpoint, config) -> {
-            int commitCountToTakeSnapshot = config.getCommitCountToTakeSnapshot();
-            int maxUncommittedLogEntryCount = config.getMaxUncommittedLogEntryCount();
-            return new InMemoryRaftStore(RaftLog.getLogCapacity(commitCountToTakeSnapshot, maxUncommittedLogEntryCount));
-        };
-
-        group = LocalRaftGroup.newBuilder(3).setRaftStoreFactory(raftStoreFactory).start();
+        group = LocalRaftGroup.newBuilder(3).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
         RaftNode leader = group.waitUntilLeaderElected();
-        RaftNode troubledFollower = group.getAnyFollower();
+        RaftNode crashedFollower = group.getAnyFollower();
 
         String value = "value";
-        Ordered<Object> replicateResult = leader.replicate(SimpleStateMachine.apply(value)).join();
+        Ordered<Object> replicateResult = leader.replicate(SimpleStateMachine.applyValue(value)).join();
         System.out.println(
                 "replicate result: " + replicateResult.getResult() + ", commit index: " + replicateResult.getCommitIndex());
 
         eventually(() -> {
-            Object queryOperation = SimpleStateMachine.queryLast();
-            Ordered<String> queryResult = troubledFollower.<String>query(queryOperation, QueryPolicy.ANY_LOCAL, 0).join();
+            Object queryOperation = SimpleStateMachine.queryLastValue();
+            Ordered<String> queryResult = crashedFollower.<String>query(queryOperation, QueryPolicy.ANY_LOCAL, 0).join();
             assertThat(queryResult.getResult()).isEqualTo(value);
             System.out.println(
                     "monotonic local query successful on follower. query result: " + queryResult.getResult() + ", commit index: "
                             + queryResult.getCommitIndex());
         });
 
-        RestoredRaftState restoredState = getRestoredState(troubledFollower);
-        RaftStore raftStore = RaftTestUtils.getRaftStore(troubledFollower);
-        group.terminateNode(troubledFollower.getLocalEndpoint());
+        RestoredRaftState restoredState = RaftTestUtils.getRestoredState(crashedFollower);
+        RaftStore raftStore = RaftTestUtils.getRaftStore(crashedFollower);
+        group.terminateNode(crashedFollower.getLocalEndpoint());
         RaftNodeImpl restoredFollower = group.restoreNode(restoredState, raftStore);
 
         eventually(() -> {
-            Object queryOperation = SimpleStateMachine.queryLast();
+            Object queryOperation = SimpleStateMachine.queryLastValue();
             Ordered<String> queryResult = restoredFollower.<String>query(queryOperation, QueryPolicy.ANY_LOCAL, 0).join();
             assertThat(queryResult.getResult()).isEqualTo(value);
             System.out.println("monotonic local query successful on restarted follower. query result: " + queryResult.getResult()

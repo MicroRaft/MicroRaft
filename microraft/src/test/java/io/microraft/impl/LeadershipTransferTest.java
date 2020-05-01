@@ -37,7 +37,7 @@ import java.util.concurrent.TimeoutException;
 
 import static io.microraft.MembershipChangeMode.REMOVE;
 import static io.microraft.RaftRole.FOLLOWER;
-import static io.microraft.impl.local.SimpleStateMachine.apply;
+import static io.microraft.impl.local.SimpleStateMachine.applyValue;
 import static io.microraft.test.util.RaftTestUtils.getRole;
 import static io.microraft.test.util.RaftTestUtils.getTerm;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -115,7 +115,7 @@ public class LeadershipTransferTest
         group = LocalRaftGroup.start(3, config);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
-        leader.replicate(apply("val")).get();
+        leader.replicate(applyValue("val")).get();
 
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
         group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(0).getLocalEndpoint(), AppendEntriesRequest.class);
@@ -155,7 +155,7 @@ public class LeadershipTransferTest
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         int term1 = getTerm(leader);
 
-        leader.replicate(apply("val")).get();
+        leader.replicate(applyValue("val")).get();
 
         RaftNodeImpl follower = group.getAnyFollower();
         leader.transferLeadership(follower.getLocalEndpoint()).get();
@@ -176,7 +176,7 @@ public class LeadershipTransferTest
         RaftNodeImpl follower = group.getAnyFollower();
         group.dropMessagesTo(leader.getLocalEndpoint(), follower.getLocalEndpoint(), AppendEntriesRequest.class);
 
-        leader.replicate(apply("val")).get();
+        leader.replicate(applyValue("val")).get();
 
         try {
             leader.transferLeadership(follower.getLocalEndpoint()).get();
@@ -193,7 +193,7 @@ public class LeadershipTransferTest
         RaftNodeImpl follower = group.getAnyFollower();
         group.dropMessagesTo(leader.getLocalEndpoint(), follower.getLocalEndpoint(), AppendEntriesRequest.class);
 
-        leader.replicate(apply("val")).get();
+        leader.replicate(applyValue("val")).get();
 
         Future<Ordered<Object>> f1 = leader.transferLeadership(follower.getLocalEndpoint());
         Future<Ordered<Object>> f2 = leader.transferLeadership(follower.getLocalEndpoint());
@@ -215,7 +215,7 @@ public class LeadershipTransferTest
         RaftNodeImpl follower2 = followers.get(1);
         group.dropMessagesTo(leader.getLocalEndpoint(), follower1.getLocalEndpoint(), AppendEntriesRequest.class);
 
-        leader.replicate(apply("val")).get();
+        leader.replicate(applyValue("val")).get();
 
         leader.transferLeadership(follower1.getLocalEndpoint());
 
@@ -234,11 +234,11 @@ public class LeadershipTransferTest
         RaftNodeImpl follower = group.getAnyFollower();
         group.dropMessagesTo(leader.getLocalEndpoint(), follower.getLocalEndpoint(), AppendEntriesRequest.class);
 
-        leader.replicate(apply("val")).get();
+        leader.replicate(applyValue("val")).get();
         leader.transferLeadership(follower.getLocalEndpoint());
 
         try {
-            leader.replicate(apply("val")).get();
+            leader.replicate(applyValue("val")).get();
         } catch (ExecutionException e) {
             assertThat(e).hasCauseInstanceOf(CannotReplicateException.class);
         }
@@ -257,7 +257,7 @@ public class LeadershipTransferTest
         assertThat(newLeader).isNotSameAs(leader);
 
         try {
-            leader.replicate(apply("val")).get();
+            leader.replicate(applyValue("val")).get();
         } catch (ExecutionException e) {
             assertThat(e).hasCauseInstanceOf(NotLeaderException.class);
         }
@@ -275,7 +275,7 @@ public class LeadershipTransferTest
         RaftNodeImpl newLeader = group.waitUntilLeaderElected();
         assertThat(newLeader).isNotSameAs(leader);
 
-        newLeader.replicate(apply("val")).get();
+        newLeader.replicate(applyValue("val")).get();
     }
 
     @Test(timeout = 300_000)
@@ -289,7 +289,7 @@ public class LeadershipTransferTest
         group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(0).getLocalEndpoint(), AppendEntriesRequest.class);
         group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint(), AppendEntriesRequest.class);
 
-        Future<Ordered<Object>> f1 = leader.replicate(apply("val"));
+        Future<Ordered<Object>> f1 = leader.replicate(applyValue("val"));
         Future<Ordered<Object>> f2 = leader.transferLeadership(followers.get(0).getLocalEndpoint());
         group.allowAllMessagesTo(leader.getLocalEndpoint(), followers.get(0).getLocalEndpoint());
         group.allowAllMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint());

@@ -44,7 +44,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
-import static io.microraft.impl.local.SimpleStateMachine.apply;
+import static io.microraft.impl.local.SimpleStateMachine.applyValue;
 import static io.microraft.test.util.AssertionUtils.allTheTime;
 import static io.microraft.test.util.AssertionUtils.eventually;
 import static io.microraft.test.util.RaftTestUtils.TEST_RAFT_CONFIG;
@@ -115,7 +115,7 @@ public class RaftTest
         group.waitUntilLeaderElected();
 
         Object val = "val";
-        Ordered<Object> result = group.getLeaderNode().replicate(apply(val)).get();
+        Ordered<Object> result = group.getLeaderNode().replicate(applyValue(val)).get();
         assertThat(result.getResult()).isEqualTo(val);
         assertThat(result.getCommitIndex()).isEqualTo(1);
 
@@ -144,7 +144,7 @@ public class RaftTest
         RaftNodeImpl follower = group.getAnyFollower();
 
         try {
-            follower.replicate(apply("val")).get();
+            follower.replicate(applyValue("val")).get();
         } catch (ExecutionException e) {
             assertThat(e).hasCauseInstanceOf(NotLeaderException.class);
         }
@@ -169,7 +169,7 @@ public class RaftTest
         group.dropMessagesToAll(leader.getLocalEndpoint(), AppendEntriesRequest.class);
 
         try {
-            leader.replicate(apply("val")).get(5, SECONDS);
+            leader.replicate(applyValue("val")).get(5, SECONDS);
             fail();
         } catch (TimeoutException ignored) {
         }
@@ -198,7 +198,7 @@ public class RaftTest
             group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(i).getLocalEndpoint(), AppendEntriesRequest.class);
         }
 
-        Future<Ordered<Object>> f = leader.replicate(apply("val"));
+        Future<Ordered<Object>> f = leader.replicate(applyValue("val"));
 
         eventually(() -> {
             assertThat(getLastLogOrSnapshotEntry(leader).getIndex()).isEqualTo(1);
@@ -233,7 +233,7 @@ public class RaftTest
 
         for (int i = 0; i < entryCount; i++) {
             Object val = "val" + i;
-            Future<Ordered<Object>> future = leader.replicate(apply(val));
+            Future<Ordered<Object>> future = leader.replicate(applyValue(val));
             Ordered<Object> result = future.get();
             assertThat(result.getCommitIndex()).isEqualTo(i + 1);
         }
@@ -274,7 +274,7 @@ public class RaftTest
         List<Future<Ordered<Object>>> futures = new ArrayList<>(entryCount);
         for (int i = 0; i < entryCount; i++) {
             Object val = "val" + i;
-            futures.add(leader.replicate(apply(val)));
+            futures.add(leader.replicate(applyValue(val)));
         }
 
         Set<Long> commitIndices = new HashSet<>();
@@ -323,7 +323,7 @@ public class RaftTest
             threads[i] = new Thread(() -> {
                 List<Future<Ordered<Object>>> futures = new ArrayList<>();
                 for (int j = start; j < start + opsPerThread; j++) {
-                    futures.add(leader.replicate(apply(j)));
+                    futures.add(leader.replicate(applyValue(j)));
                 }
 
                 for (Future<Ordered<Object>> f : futures) {
@@ -378,7 +378,7 @@ public class RaftTest
 
         for (int i = 0; i < entryCount; i++) {
             Object val = "val" + i;
-            leader.replicate(apply(val)).get();
+            leader.replicate(applyValue(val)).get();
         }
 
         assertThat(getCommitIndex(slowFollower)).isEqualTo(0);
@@ -411,7 +411,7 @@ public class RaftTest
         RaftEndpoint disruptiveEndpoint = disruptiveFollower.getLocalEndpoint();
         group.dropMessagesTo(leader.getLocalEndpoint(), disruptiveEndpoint, AppendEntriesRequest.class);
 
-        leader.replicate(apply("val")).get();
+        leader.replicate(applyValue("val")).get();
 
         group.splitMembers(disruptiveEndpoint);
 
@@ -440,7 +440,7 @@ public class RaftTest
         group.terminateNode(group.getAnyFollower().getLocalEndpoint());
 
         String value = "value";
-        Future<Ordered<Object>> future = leaderNode.replicate(apply(value));
+        Future<Ordered<Object>> future = leaderNode.replicate(applyValue(value));
         assertThat(future.get().getResult()).isEqualTo(value);
     }
 
@@ -465,7 +465,7 @@ public class RaftTest
         assertThat(getTerm(newLeader)).isGreaterThan(leaderTerm);
 
         String value = "value";
-        Future<Ordered<Object>> future = newLeader.replicate(apply(value));
+        Future<Ordered<Object>> future = newLeader.replicate(applyValue(value));
         assertThat(future.get().getResult()).isEqualTo(value);
     }
 
@@ -523,7 +523,7 @@ public class RaftTest
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
-        leader.replicate(apply("val1")).get();
+        leader.replicate(applyValue("val1")).get();
 
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
         RaftNodeImpl nextLeader = followers.get(0);
@@ -539,7 +539,7 @@ public class RaftTest
             group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(i).getLocalEndpoint(), AppendEntriesRequest.class);
         }
 
-        leader.replicate(apply("val2"));
+        leader.replicate(applyValue("val2"));
 
         eventually(() -> assertThat(getLastLogOrSnapshotEntry(nextLeader).getIndex()).isGreaterThan(commitIndex));
 
@@ -576,7 +576,7 @@ public class RaftTest
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
-        leader.replicate(apply("val1")).get();
+        leader.replicate(applyValue("val1")).get();
 
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
         RaftNodeImpl nextLeader = followers.get(0);
@@ -591,7 +591,7 @@ public class RaftTest
         group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint(), AppendEntriesRequest.class);
         group.dropMessagesTo(nextLeader.getLocalEndpoint(), leader.getLocalEndpoint(), AppendEntriesSuccessResponse.class);
 
-        leader.replicate(apply("val2"));
+        leader.replicate(applyValue("val2"));
 
         eventually(() -> assertThat(getLastLogOrSnapshotEntry(nextLeader).getIndex()).isGreaterThan(commitIndex));
 
@@ -609,7 +609,7 @@ public class RaftTest
             }
         });
 
-        nextLeader.replicate(apply("val3"));
+        nextLeader.replicate(applyValue("val3"));
 
         eventually(() -> {
             for (RaftNodeImpl node : followers) {
@@ -631,7 +631,7 @@ public class RaftTest
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
-        leader.replicate(apply("val1")).get();
+        leader.replicate(applyValue("val1")).get();
 
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
         RaftNodeImpl followerWithLongestLog = followers.get(0);
@@ -647,7 +647,7 @@ public class RaftTest
             group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(i).getLocalEndpoint(), AppendEntriesRequest.class);
         }
 
-        leader.replicate(apply("val2"));
+        leader.replicate(applyValue("val2"));
 
         eventually(() -> assertThat(getLastLogOrSnapshotEntry(followerWithLongestLog).getIndex()).isGreaterThan(commitIndex));
 
@@ -684,7 +684,7 @@ public class RaftTest
         // followerWithLongestLog does not truncate its extra log entry until the new leader appends a new entry
         assertThat(getLastLogOrSnapshotEntry(followerWithLongestLog).getIndex()).isGreaterThan(commitIndex);
 
-        newLeader.replicate(apply("val3")).get();
+        newLeader.replicate(applyValue("val3")).get();
 
         eventually(() -> {
             for (RaftNodeImpl follower : followers) {
@@ -707,7 +707,7 @@ public class RaftTest
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
-        leader.replicate(apply("val1")).get();
+        leader.replicate(applyValue("val1")).get();
 
         eventually(() -> {
             for (RaftNodeImpl node : group.getNodes()) {
@@ -726,12 +726,12 @@ public class RaftTest
 
         List<Future<Ordered<Object>>> isolatedFutures = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            isolatedFutures.add(leader.replicate(apply("isolated" + i)));
+            isolatedFutures.add(leader.replicate(applyValue("isolated" + i)));
         }
 
         RaftNodeImpl newLeader = group.getNode(followers.get(0).getLeaderEndpoint());
         for (int i = 0; i < 10; i++) {
-            newLeader.replicate(apply("valNew" + i)).get();
+            newLeader.replicate(applyValue("valNew" + i)).get();
         }
 
         eventually(() -> {
@@ -769,20 +769,20 @@ public class RaftTest
     @Test(timeout = 300_000)
     public void when_thereAreTooManyInflightAppendedEntries_then_newAppendsAreRejected()
             throws Exception {
-        int uncommittedEntryCount = 10;
-        RaftConfig config = RaftConfig.newBuilder().setMaxUncommittedLogEntryCount(uncommittedEntryCount).build();
+        int pendingEntryCount = 10;
+        RaftConfig config = RaftConfig.newBuilder().setMaxPendingLogEntryCount(pendingEntryCount).build();
         group = LocalRaftGroup.start(2, config);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         RaftNodeImpl follower = group.getAnyFollower();
         group.terminateNode(follower.getLocalEndpoint());
 
-        for (int i = 0; i < uncommittedEntryCount; i++) {
-            leader.replicate(apply("val" + i));
+        for (int i = 0; i < pendingEntryCount; i++) {
+            leader.replicate(applyValue("val" + i));
         }
 
         try {
-            leader.replicate(apply("valFinal")).get();
+            leader.replicate(applyValue("valFinal")).get();
             fail();
         } catch (ExecutionException e) {
             assertThat(e).hasCauseInstanceOf(CannotReplicateException.class);
@@ -797,7 +797,7 @@ public class RaftTest
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
         group.splitMembers(leader.getLocalEndpoint());
-        Future<Ordered<Object>> f = leader.replicate(apply("val"));
+        Future<Ordered<Object>> f = leader.replicate(applyValue("val"));
 
         try {
             f.get();
@@ -831,7 +831,7 @@ public class RaftTest
             group.dropMessagesTo(leader.getLocalEndpoint(), follower.getLocalEndpoint(), AppendEntriesRequest.class);
         }
 
-        CompletableFuture<Ordered<Object>> f = leader.replicate(apply("val"));
+        CompletableFuture<Ordered<Object>> f = leader.replicate(applyValue("val"));
 
         eventually(() -> assertThat(getLastLogOrSnapshotEntry(leader).getIndex()).isGreaterThan(0));
 

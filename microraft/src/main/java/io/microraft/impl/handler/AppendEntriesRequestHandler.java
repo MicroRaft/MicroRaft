@@ -242,7 +242,7 @@ public class AppendEntriesRequestHandler
         }
 
         // I cannot use log.lastLogOrSnapshotIndex() for lastLogIndex because my log may contain
-        // some uncommitted entries from the previous leader and those entries will be truncated soon
+        // some pending entries from the previous leader and those entries will be truncated soon
         // I can only send a response based on how many entries I have appended from this append request
         long lastLogIndex = request.getPreviousLogIndex() + request.getLogEntries().size() - truncatedRequestEntryCount;
 

@@ -32,7 +32,7 @@ import java.util.concurrent.ExecutionException;
 import static io.microraft.RaftNodeStatus.ACTIVE;
 import static io.microraft.RaftNodeStatus.TERMINATED;
 import static io.microraft.RaftNodeStatus.TERMINATING_RAFT_GROUP;
-import static io.microraft.impl.local.SimpleStateMachine.apply;
+import static io.microraft.impl.local.SimpleStateMachine.applyValue;
 import static io.microraft.test.util.AssertionUtils.eventually;
 import static io.microraft.test.util.RaftTestUtils.TEST_RAFT_CONFIG;
 import static io.microraft.test.util.RaftTestUtils.getStatus;
@@ -68,7 +68,7 @@ public class TerminateRaftGroupTest
         leader.terminateGroup();
 
         try {
-            leader.replicate(apply("val")).get();
+            leader.replicate(applyValue("val")).get();
             fail();
         } catch (ExecutionException e) {
             assertThat(e).hasCauseInstanceOf(CannotReplicateException.class);
@@ -100,7 +100,7 @@ public class TerminateRaftGroupTest
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         RaftNodeImpl follower = group.getAnyFollower();
 
-        long commitIndex = leader.replicate(apply("val")).get().getCommitIndex();
+        long commitIndex = leader.replicate(applyValue("val")).get().getCommitIndex();
 
         long terminationCommitIndex = leader.terminateGroup().get().getCommitIndex();
         assertThat(terminationCommitIndex).isEqualTo(commitIndex + 1);
@@ -112,14 +112,14 @@ public class TerminateRaftGroupTest
         });
 
         try {
-            leader.replicate(apply("val")).get();
+            leader.replicate(applyValue("val")).get();
             fail();
         } catch (ExecutionException e) {
             assertThat(e).hasCauseInstanceOf(NotLeaderException.class);
         }
 
         try {
-            follower.replicate(apply("val")).get();
+            follower.replicate(applyValue("val")).get();
             fail();
         } catch (ExecutionException e) {
             assertThat(e).hasCauseInstanceOf(NotLeaderException.class);
@@ -150,7 +150,7 @@ public class TerminateRaftGroupTest
         RaftNodeImpl newLeader = group.getNode(followers.get(0).getLeaderEndpoint());
 
         for (int i = 0; i < 10; i++) {
-            newLeader.replicate(apply("val" + i)).get();
+            newLeader.replicate(applyValue("val" + i)).get();
         }
 
         group.merge();

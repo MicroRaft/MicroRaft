@@ -26,7 +26,6 @@ import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.SnapshotEntry;
 import io.microraft.model.message.AppendEntriesRequest;
 import io.microraft.model.message.PreVoteRequest;
-import io.microraft.persistence.RaftStore;
 import io.microraft.persistence.RestoredRaftState;
 import io.microraft.test.util.BaseTest;
 import org.junit.After;
@@ -37,11 +36,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiFunction;
 
 import static io.microraft.MembershipChangeMode.REMOVE;
-import static io.microraft.impl.local.SimpleStateMachine.apply;
-import static io.microraft.impl.log.RaftLog.getLogCapacity;
+import static io.microraft.impl.local.LocalRaftGroup.IN_MEMORY_RAFT_STATE_STORE_FACTORY;
+import static io.microraft.impl.local.SimpleStateMachine.applyValue;
 import static io.microraft.test.util.AssertionUtils.eventually;
 import static io.microraft.test.util.RaftTestUtils.TEST_RAFT_CONFIG;
 import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
@@ -61,12 +59,6 @@ import static org.junit.Assert.assertTrue;
 public class PersistenceTest
         extends BaseTest {
 
-    private static final BiFunction<RaftEndpoint, RaftConfig, RaftStore> RAFT_STATE_STORE_FACTORY = (endpoint, config) -> {
-        int commitCountToTakeSnapshot = config.getCommitCountToTakeSnapshot();
-        int maxUncommittedEntryCount = config.getMaxUncommittedLogEntryCount();
-        return new InMemoryRaftStore(getLogCapacity(commitCountToTakeSnapshot, maxUncommittedEntryCount));
-    };
-
     private LocalRaftGroup group;
 
     @After
@@ -78,7 +70,8 @@ public class PersistenceTest
 
     @Test(timeout = 300_000)
     public void testTermAndVoteArePersisted() {
-        group = LocalRaftGroup.newBuilder(3).setConfig(TEST_RAFT_CONFIG).setRaftStoreFactory(RAFT_STATE_STORE_FACTORY).start();
+        group = LocalRaftGroup.newBuilder(3).setConfig(TEST_RAFT_CONFIG).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY)
+                              .start();
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
@@ -122,12 +115,12 @@ public class PersistenceTest
     @Test(timeout = 300_000)
     public void testCommittedEntriesArePersisted()
             throws Exception {
-        group = LocalRaftGroup.newBuilder(3).setRaftStoreFactory(RAFT_STATE_STORE_FACTORY).start();
+        group = LocalRaftGroup.newBuilder(3).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         int count = 10;
         for (int i = 0; i < count; i++) {
-            leader.replicate(apply("val" + i)).get();
+            leader.replicate(applyValue("val" + i)).get();
         }
 
         eventually(() -> {
@@ -144,7 +137,7 @@ public class PersistenceTest
 
     @Test(timeout = 300_000)
     public void testUncommittedEntriesArePersisted() {
-        group = LocalRaftGroup.newBuilder(3).setRaftStoreFactory(RAFT_STATE_STORE_FACTORY).start();
+        group = LocalRaftGroup.newBuilder(3).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
@@ -156,7 +149,7 @@ public class PersistenceTest
 
         int count = 10;
         for (int i = 0; i < count; i++) {
-            leader.replicate(apply("val" + i));
+            leader.replicate(applyValue("val" + i));
         }
 
         eventually(() -> {
@@ -176,11 +169,11 @@ public class PersistenceTest
             throws Exception {
         int commitCountToTakeSnapshot = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(commitCountToTakeSnapshot).build();
-        group = LocalRaftGroup.newBuilder(3).setConfig(config).setRaftStoreFactory(RAFT_STATE_STORE_FACTORY).start();
+        group = LocalRaftGroup.newBuilder(3).setConfig(config).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         for (int i = 0; i < commitCountToTakeSnapshot; i++) {
-            leader.replicate(apply("val" + i)).get();
+            leader.replicate(applyValue("val" + i)).get();
         }
 
         eventually(() -> {
@@ -199,11 +192,12 @@ public class PersistenceTest
     @Test(timeout = 300_000)
     public void when_leaderAppendEntriesInMinoritySplit_then_itTruncatesEntriesOnStore()
             throws Exception {
-        group = LocalRaftGroup.newBuilder(3).setConfig(TEST_RAFT_CONFIG).setRaftStoreFactory(RAFT_STATE_STORE_FACTORY).start();
+        group = LocalRaftGroup.newBuilder(3).setConfig(TEST_RAFT_CONFIG).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY)
+                              .start();
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
-        leader.replicate(apply("val1")).get();
+        leader.replicate(applyValue("val1")).get();
 
         eventually(() -> {
             for (RaftNodeImpl node : group.getNodes()) {
@@ -215,7 +209,7 @@ public class PersistenceTest
         group.splitMembers(leader.getLocalEndpoint());
 
         for (int i = 0; i < 10; i++) {
-            leader.replicate(apply("isolated" + i));
+            leader.replicate(applyValue("isolated" + i));
         }
 
         eventually(() -> {
@@ -233,7 +227,7 @@ public class PersistenceTest
 
         RaftNodeImpl newLeader = group.getNode(followers.get(0).getLeaderEndpoint());
         for (int i = 0; i < 10; i++) {
-            newLeader.replicate(apply("valNew" + i)).get();
+            newLeader.replicate(applyValue("valNew" + i)).get();
         }
 
         eventually(() -> {
@@ -258,12 +252,12 @@ public class PersistenceTest
     public void when_leaderIsRestarted_then_itBecomesFollowerAndRestoresItsRaftState()
             throws Exception {
         group = LocalRaftGroup.newBuilder(3).setConfig(TEST_RAFT_CONFIG).enableNewTermOperation()
-                              .setRaftStoreFactory(RAFT_STATE_STORE_FACTORY).start();
+                              .setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         int count = 10;
         for (int i = 0; i < count; i++) {
-            leader.replicate(apply("val" + i)).get();
+            leader.replicate(applyValue("val" + i)).get();
         }
 
         RaftEndpoint terminatedEndpoint = leader.getLocalEndpoint();
@@ -298,12 +292,13 @@ public class PersistenceTest
     @Test(timeout = 300_000)
     public void when_leaderIsRestarted_then_itRestoresItsRaftStateAndBecomesLeader()
             throws Exception {
-        group = LocalRaftGroup.newBuilder(3).enableNewTermOperation().setRaftStoreFactory(RAFT_STATE_STORE_FACTORY).start();
+        group = LocalRaftGroup.newBuilder(3).enableNewTermOperation().setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY)
+                              .start();
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         int count = 10;
         for (int i = 0; i < count; i++) {
-            leader.replicate(apply("val" + i)).get();
+            leader.replicate(applyValue("val" + i)).get();
         }
 
         int term = getTerm(leader);
@@ -345,13 +340,13 @@ public class PersistenceTest
     @Test(timeout = 300_000)
     public void when_followerIsRestarted_then_itRestoresItsRaftState()
             throws Exception {
-        group = LocalRaftGroup.newBuilder(3).setRaftStoreFactory(RAFT_STATE_STORE_FACTORY).start();
+        group = LocalRaftGroup.newBuilder(3).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         RaftNodeImpl terminatedFollower = group.getAnyFollower();
         int count = 10;
         for (int i = 0; i < count; i++) {
-            leader.replicate(apply("val" + i)).get();
+            leader.replicate(applyValue("val" + i)).get();
         }
 
         eventually(() -> assertEquals(getCommitIndex(leader), getCommitIndex(terminatedFollower)));
@@ -362,7 +357,7 @@ public class PersistenceTest
         InMemoryRaftStore stateStore = getRaftStore(terminatedFollower);
         RestoredRaftState terminatedState = stateStore.toRestoredRaftState();
 
-        leader.replicate(apply("val" + count)).get();
+        leader.replicate(applyValue("val" + count)).get();
 
         RaftNodeImpl restartedNode = group.restoreNode(terminatedState, stateStore);
 
@@ -394,12 +389,12 @@ public class PersistenceTest
                                       .setLeaderHeartbeatTimeoutSecs(5).setCommitCountToTakeSnapshot(commitCountToTakeSnapshot)
                                       .build();
         group = LocalRaftGroup.newBuilder(3).setConfig(config).enableNewTermOperation()
-                              .setRaftStoreFactory(RAFT_STATE_STORE_FACTORY).start();
+                              .setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
         for (int i = 0; i <= commitCountToTakeSnapshot; i++) {
-            leader.replicate(apply("val" + i)).get();
+            leader.replicate(applyValue("val" + i)).get();
         }
 
         assertTrue(getSnapshotEntry(leader).getIndex() > 0);
@@ -439,12 +434,12 @@ public class PersistenceTest
         int commitCountToTakeSnapshot = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(commitCountToTakeSnapshot).build();
         group = LocalRaftGroup.newBuilder(3).setConfig(config).enableNewTermOperation()
-                              .setRaftStoreFactory(RAFT_STATE_STORE_FACTORY).start();
+                              .setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
         for (int i = 0; i <= commitCountToTakeSnapshot; i++) {
-            leader.replicate(apply("val" + i)).get();
+            leader.replicate(applyValue("val" + i)).get();
         }
 
         eventually(() -> {
@@ -460,7 +455,7 @@ public class PersistenceTest
         InMemoryRaftStore stateStore = getRaftStore(terminatedFollower);
         RestoredRaftState terminatedState = stateStore.toRestoredRaftState();
 
-        leader.replicate(apply("val" + (commitCountToTakeSnapshot + 1))).get();
+        leader.replicate(applyValue("val" + (commitCountToTakeSnapshot + 1))).get();
 
         RaftNodeImpl restartedNode = group.restoreNode(terminatedState, stateStore);
 
@@ -490,12 +485,12 @@ public class PersistenceTest
         int commitCountToTakeSnapshot = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(commitCountToTakeSnapshot).build();
         group = LocalRaftGroup.newBuilder(3).setConfig(config).enableNewTermOperation()
-                              .setRaftStoreFactory(RAFT_STATE_STORE_FACTORY).start();
+                              .setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
         for (int i = 0; i <= commitCountToTakeSnapshot; i++) {
-            leader.replicate(apply("val" + i)).get();
+            leader.replicate(applyValue("val" + i)).get();
         }
 
         assertTrue(getSnapshotEntry(leader).getIndex() > 0);
@@ -532,7 +527,8 @@ public class PersistenceTest
     @Test(timeout = 300_000)
     public void when_leaderIsRestarted_then_itBecomesLeaderAndAppliesPreviouslyCommittedMemberList()
             throws Exception {
-        group = LocalRaftGroup.newBuilder(3).enableNewTermOperation().setRaftStoreFactory(RAFT_STATE_STORE_FACTORY).start();
+        group = LocalRaftGroup.newBuilder(3).enableNewTermOperation().setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY)
+                              .start();
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
@@ -540,7 +536,7 @@ public class PersistenceTest
         RaftNodeImpl runningFollower = followers.get(1);
 
         group.terminateNode(removedFollower.getLocalEndpoint());
-        leader.replicate(apply("val")).get();
+        leader.replicate(applyValue("val")).get();
         leader.changeMembership(removedFollower.getLocalEndpoint(), REMOVE, 0).get();
 
         RaftEndpoint terminatedEndpoint = leader.getLocalEndpoint();
@@ -571,7 +567,7 @@ public class PersistenceTest
             throws Exception {
         RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(30).build();
         group = LocalRaftGroup.newBuilder(3).setConfig(config).enableNewTermOperation()
-                              .setRaftStoreFactory(RAFT_STATE_STORE_FACTORY).start();
+                              .setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
@@ -579,7 +575,7 @@ public class PersistenceTest
         RaftNodeImpl terminatedFollower = followers.get(1);
 
         group.terminateNode(removedFollower.getLocalEndpoint());
-        leader.replicate(apply("val")).get();
+        leader.replicate(applyValue("val")).get();
         leader.changeMembership(removedFollower.getLocalEndpoint(), REMOVE, 0).get();
 
         RaftEndpoint terminatedEndpoint = terminatedFollower.getLocalEndpoint();
@@ -606,7 +602,7 @@ public class PersistenceTest
         int commitCountToTakeSnapshot = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(commitCountToTakeSnapshot).build();
         group = LocalRaftGroup.newBuilder(3).setConfig(config).enableNewTermOperation()
-                              .setRaftStoreFactory(RAFT_STATE_STORE_FACTORY).start();
+                              .setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
@@ -614,11 +610,11 @@ public class PersistenceTest
         RaftNodeImpl runningFollower = followers.get(1);
 
         group.terminateNode(removedFollower.getLocalEndpoint());
-        leader.replicate(apply("val")).get();
+        leader.replicate(applyValue("val")).get();
         leader.changeMembership(removedFollower.getLocalEndpoint(), REMOVE, 0).get();
 
         while (getSnapshotEntry(leader).getIndex() == 0) {
-            leader.replicate(apply("val")).get();
+            leader.replicate(applyValue("val")).get();
         }
 
         RaftEndpoint terminatedEndpoint = leader.getLocalEndpoint();
@@ -651,7 +647,7 @@ public class PersistenceTest
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(commitCountToTakeSnapshot)
                                       .setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(30).build();
         group = LocalRaftGroup.newBuilder(3).setConfig(config).enableNewTermOperation()
-                              .setRaftStoreFactory(RAFT_STATE_STORE_FACTORY).start();
+                              .setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
@@ -659,11 +655,11 @@ public class PersistenceTest
         RaftNodeImpl terminatedFollower = followers.get(1);
 
         group.terminateNode(removedFollower.getLocalEndpoint());
-        leader.replicate(apply("val")).get();
+        leader.replicate(applyValue("val")).get();
         leader.changeMembership(removedFollower.getLocalEndpoint(), REMOVE, 0).get();
 
         while (getSnapshotEntry(terminatedFollower).getIndex() == 0) {
-            leader.replicate(apply("val")).get();
+            leader.replicate(applyValue("val")).get();
         }
 
         RaftEndpoint terminatedEndpoint = terminatedFollower.getLocalEndpoint();

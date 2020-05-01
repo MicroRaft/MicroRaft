@@ -66,7 +66,7 @@ public class SimpleStateMachine
      *
      * @return the operation that will add the given value to the state machine
      */
-    public static Object apply(Object val) {
+    public static Object applyValue(Object val) {
         return new Apply(val);
     }
 
@@ -77,7 +77,7 @@ public class SimpleStateMachine
      * @return the operation that will query the last value applied
      *         to the state machine
      */
-    public static Object queryLast() {
+    public static Object queryLastValue() {
         return new QueryLast();
     }
 
@@ -88,7 +88,7 @@ public class SimpleStateMachine
      * @return the operation that will query all of the values applied
      *         to the state machine
      */
-    public static Object queryAll() {
+    public static Object queryAllValues() {
         return new QueryAll();
     }
 

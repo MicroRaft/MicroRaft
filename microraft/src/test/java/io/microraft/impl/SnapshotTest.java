@@ -47,7 +47,7 @@ import java.util.function.Function;
 
 import static io.microraft.MembershipChangeMode.ADD;
 import static io.microraft.RaftNodeStatus.ACTIVE;
-import static io.microraft.impl.local.SimpleStateMachine.apply;
+import static io.microraft.impl.local.SimpleStateMachine.applyValue;
 import static io.microraft.test.util.AssertionUtils.eventually;
 import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
 import static io.microraft.test.util.RaftTestUtils.getCommittedGroupMembers;
@@ -85,7 +85,7 @@ public class SnapshotTest
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
         for (int i = 0; i < entryCount; i++) {
-            leader.replicate(apply("val" + i)).join();
+            leader.replicate(applyValue("val" + i)).join();
         }
 
         eventually(() -> {
@@ -111,7 +111,7 @@ public class SnapshotTest
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
         for (int i = 0; i < entryCount; i++) {
-            leader.replicate(apply("val" + i)).join();
+            leader.replicate(applyValue("val" + i)).join();
         }
 
         eventually(() -> {
@@ -121,7 +121,7 @@ public class SnapshotTest
             }
         });
 
-        leader.replicate(apply("valFinal")).join();
+        leader.replicate(applyValue("valFinal")).join();
 
         eventually(() -> {
             for (RaftNodeImpl node : group.getNodes()) {
@@ -161,12 +161,12 @@ public class SnapshotTest
         group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), InstallSnapshotRequest.class);
 
         for (int i = 0; i < entryCount; i++) {
-            leader.replicate(apply("val" + i)).join();
+            leader.replicate(applyValue("val" + i)).join();
         }
 
         eventually(() -> assertThat(getSnapshotEntry(leader).getIndex()).isEqualTo(entryCount));
 
-        leader.replicate(apply("valFinal")).join();
+        leader.replicate(applyValue("valFinal")).join();
 
         group.allowMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), AppendEntriesRequest.class);
         group.allowMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), InstallSnapshotRequest.class);
@@ -209,7 +209,7 @@ public class SnapshotTest
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
-        leader.replicate(apply("val0")).join();
+        leader.replicate(applyValue("val0")).join();
 
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
         eventually(() -> {
@@ -224,12 +224,12 @@ public class SnapshotTest
         group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), InstallSnapshotRequest.class);
 
         for (int i = 1; i < entryCount; i++) {
-            leader.replicate(apply("val" + i)).join();
+            leader.replicate(applyValue("val" + i)).join();
         }
 
         eventually(() -> assertThat(getSnapshotEntry(leader).getIndex()).isEqualTo(entryCount));
 
-        leader.replicate(apply("valFinal")).join();
+        leader.replicate(applyValue("valFinal")).join();
 
         group.allowMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), AppendEntriesRequest.class);
         group.allowMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), InstallSnapshotRequest.class);
@@ -280,7 +280,7 @@ public class SnapshotTest
         group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), InstallSnapshotRequest.class);
 
         while (getSnapshotEntry(leader).getIndex() == 0) {
-            leader.replicate(apply("val")).join();
+            leader.replicate(applyValue("val")).join();
         }
 
         eventually(() -> assertThat(getSnapshotEntry(leader).getIndex()).isGreaterThan(0));
@@ -332,12 +332,12 @@ public class SnapshotTest
         group.dropMessagesTo(slowFollower.getLocalEndpoint(), leader.getLocalEndpoint(), AppendEntriesSuccessResponse.class);
 
         for (int i = 0; i < entryCount; i++) {
-            leader.replicate(apply("val" + i)).join();
+            leader.replicate(applyValue("val" + i)).join();
         }
 
         eventually(() -> assertThat(getSnapshotEntry(leader).getIndex()).isEqualTo(entryCount));
 
-        leader.replicate(apply("valFinal")).join();
+        leader.replicate(applyValue("valFinal")).join();
 
         group.resetAllRulesFrom(leader.getLocalEndpoint());
 
@@ -379,7 +379,7 @@ public class SnapshotTest
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
-        leader.replicate(apply("val0")).join();
+        leader.replicate(applyValue("val0")).join();
 
         RaftNodeImpl slowFollower = group.getAnyFollower();
 
@@ -388,12 +388,12 @@ public class SnapshotTest
         group.dropMessagesTo(slowFollower.getLocalEndpoint(), leader.getLocalEndpoint(), InstallSnapshotResponse.class);
 
         for (int i = 1; i < entryCount; i++) {
-            leader.replicate(apply("val" + i)).join();
+            leader.replicate(applyValue("val" + i)).join();
         }
 
         eventually(() -> assertThat(getSnapshotEntry(leader).getIndex()).isEqualTo(entryCount));
 
-        leader.replicate(apply("valFinal")).join();
+        leader.replicate(applyValue("valFinal")).join();
 
         group.allowMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), InstallSnapshotRequest.class);
 
@@ -424,7 +424,7 @@ public class SnapshotTest
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
-        leader.replicate(apply("val0")).join();
+        leader.replicate(applyValue("val0")).join();
 
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
         RaftNodeImpl slowFollower = followers.get(0);
@@ -436,12 +436,12 @@ public class SnapshotTest
         group.dropMessagesTo(slowFollower.getLocalEndpoint(), followers.get(3).getLocalEndpoint(), InstallSnapshotResponse.class);
 
         for (int i = 1; i < entryCount; i++) {
-            leader.replicate(apply("val" + i)).join();
+            leader.replicate(applyValue("val" + i)).join();
         }
 
         eventually(() -> assertThat(getSnapshotEntry(leader).getIndex()).isEqualTo(entryCount));
 
-        leader.replicate(apply("valFinal")).join();
+        leader.replicate(applyValue("valFinal")).join();
 
         group.allowMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), InstallSnapshotRequest.class);
 
@@ -475,7 +475,7 @@ public class SnapshotTest
         RaftNodeImpl slowFollower = group.getAnyFollower();
 
         for (int i = 0; i < entryCount - 1; i++) {
-            leader.replicate(apply("val" + i)).join();
+            leader.replicate(applyValue("val" + i)).join();
         }
 
         eventually(() -> {
@@ -487,11 +487,11 @@ public class SnapshotTest
         group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), AppendEntriesRequest.class);
         group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), InstallSnapshotRequest.class);
 
-        leader.replicate(apply("val" + (entryCount - 1))).join();
+        leader.replicate(applyValue("val" + (entryCount - 1))).join();
 
         eventually(() -> assertThat(getSnapshotEntry(leader).getIndex()).isEqualTo(entryCount));
 
-        leader.replicate(apply("valFinal")).join();
+        leader.replicate(applyValue("valFinal")).join();
 
         group.allowMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), AppendEntriesRequest.class);
 
@@ -521,7 +521,7 @@ public class SnapshotTest
         RaftNodeImpl slowFollower = group.getAnyFollower();
 
         for (int i = 0; i < entryCount - missingEntryCountOnSlowFollower; i++) {
-            leader.replicate(apply("val" + i)).join();
+            leader.replicate(applyValue("val" + i)).join();
         }
 
         eventually(() -> {
@@ -535,12 +535,12 @@ public class SnapshotTest
         group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), InstallSnapshotRequest.class);
 
         for (int i = entryCount - missingEntryCountOnSlowFollower; i < entryCount; i++) {
-            leader.replicate(apply("val" + i)).join();
+            leader.replicate(applyValue("val" + i)).join();
         }
 
         eventually(() -> assertThat(getSnapshotEntry(leader).getIndex()).isEqualTo(entryCount));
 
-        leader.replicate(apply("valFinal")).join();
+        leader.replicate(applyValue("valFinal")).join();
 
         group.allowMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), AppendEntriesRequest.class);
 
@@ -569,7 +569,7 @@ public class SnapshotTest
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
 
         for (int i = 0; i < 40; i++) {
-            leader.replicate(apply("val" + i)).join();
+            leader.replicate(applyValue("val" + i)).join();
         }
 
         eventually(() -> {
@@ -582,7 +582,7 @@ public class SnapshotTest
 
         List<Future<Ordered<Object>>> futures = new ArrayList<>();
         for (int i = 40; i < 45; i++) {
-            Future<Ordered<Object>> f = leader.replicate(apply("isolated" + i));
+            Future<Ordered<Object>> f = leader.replicate(applyValue("isolated" + i));
             futures.add(f);
         }
 
@@ -595,7 +595,7 @@ public class SnapshotTest
         RaftNodeImpl newLeader = group.getNode(followers.get(0).getLeaderEndpoint());
 
         for (int i = 40; i < 51; i++) {
-            newLeader.replicate(apply("val" + i)).join();
+            newLeader.replicate(applyValue("val" + i)).join();
         }
 
         eventually(() -> {
@@ -638,7 +638,7 @@ public class SnapshotTest
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
 
-        leader.replicate(apply("val")).join();
+        leader.replicate(applyValue("val")).join();
 
         eventually(() -> {
             for (RaftNodeImpl follower : followers) {
@@ -678,7 +678,7 @@ public class SnapshotTest
         f1.join();
 
         for (int i = 0; i < entryCount; i++) {
-            leader.replicate(apply("val" + i)).join();
+            leader.replicate(applyValue("val" + i)).join();
         }
 
         eventually(() -> assertThat(getSnapshotEntry(leader).getIndex()).isGreaterThanOrEqualTo(entryCount));
@@ -698,10 +698,10 @@ public class SnapshotTest
     public void testMembershipChangeBlocksSnapshotBug() {
         // The comments below show how the code behaves before the mentioned bug is fixed.
 
-        int commitIndexAdvanceCount = 50;
-        int uncommittedEntryCount = 10;
-        RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(commitIndexAdvanceCount)
-                                      .setMaxUncommittedLogEntryCount(uncommittedEntryCount).build();
+        int commitCountToTakeSnapshot = 50;
+        int pendingEntryCount = 10;
+        RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(commitCountToTakeSnapshot)
+                                      .setMaxPendingLogEntryCount(pendingEntryCount).build();
         group = LocalRaftGroup.start(3, config);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -710,7 +710,7 @@ public class SnapshotTest
         group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(0).getLocalEndpoint(), AppendEntriesRequest.class);
 
         while (getSnapshotEntry(leader).getIndex() == 0) {
-            leader.replicate(apply("into_snapshot")).join();
+            leader.replicate(applyValue("into_snapshot")).join();
         }
 
         // now, the leader has taken a snapshot.
@@ -719,8 +719,8 @@ public class SnapshotTest
 
         long leaderCommitIndex = getCommitIndex(leader);
         do {
-            leader.replicate(apply("committed_after_snapshot")).join();
-        } while (getCommitIndex(leader) < leaderCommitIndex + commitIndexAdvanceCount - 1);
+            leader.replicate(applyValue("committed_after_snapshot")).join();
+        } while (getCommitIndex(leader) < leaderCommitIndex + commitCountToTakeSnapshot - 1);
 
         // committing new entries.
         // one more entry is needed to take the next snapshot.
@@ -728,8 +728,8 @@ public class SnapshotTest
 
         group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint(), AppendEntriesRequest.class);
 
-        for (int i = 0; i < uncommittedEntryCount - 1; i++) {
-            leader.replicate(apply("uncommitted_after_snapshot"));
+        for (int i = 0; i < pendingEntryCount - 1; i++) {
+            leader.replicate(applyValue("uncommitted_after_snapshot"));
         }
 
         // appended some more entries which will not be committed because the leader has no majority.
@@ -807,7 +807,7 @@ public class SnapshotTest
 
         long lastLogIndex2 = getLastLogOrSnapshotEntry(leader).getIndex();
 
-        leader.replicate(apply("after_membership_change_append"));
+        leader.replicate(applyValue("after_membership_change_append"));
 
         eventually(() -> assertThat(getLastLogOrSnapshotEntry(leader).getIndex()).isGreaterThan(lastLogIndex2));
 
@@ -817,7 +817,7 @@ public class SnapshotTest
 
         long lastLogIndex3 = getLastLogOrSnapshotEntry(leader).getIndex();
 
-        Future<Ordered<Object>> f = leader.replicate(apply("after_membership_change_append"));
+        Future<Ordered<Object>> f = leader.replicate(applyValue("after_membership_change_append"));
 
         eventually(() -> assertThat(getLastLogOrSnapshotEntry(leader).getIndex()).isGreaterThan(lastLogIndex3));
 
@@ -828,11 +828,11 @@ public class SnapshotTest
     public void when_slowFollowerReceivesAppendRequestThatDoesNotFitIntoItsRaftLog_then_itTruncatesAppendRequestEntries() {
         int appendEntriesRequestBatchSize = 100;
         int commitCountToTakeSnapshot = 100;
-        int uncommittedEntryCount = 10;
+        int pendingEntryCount = 10;
 
         RaftConfig config = RaftConfig.newBuilder().setAppendEntriesRequestBatchSize(appendEntriesRequestBatchSize)
                                       .setCommitCountToTakeSnapshot(commitCountToTakeSnapshot)
-                                      .setMaxUncommittedLogEntryCount(uncommittedEntryCount).build();
+                                      .setMaxPendingLogEntryCount(pendingEntryCount).build();
         group = LocalRaftGroup.start(5, config);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -842,7 +842,7 @@ public class SnapshotTest
 
         int count = 1;
         for (int i = 0; i < commitCountToTakeSnapshot; i++) {
-            leader.replicate(apply("val" + (count++))).join();
+            leader.replicate(applyValue("val" + (count++))).join();
         }
 
         eventually(() -> {
@@ -854,7 +854,7 @@ public class SnapshotTest
         group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower1.getLocalEndpoint(), AppendEntriesRequest.class);
 
         for (int i = 0; i < commitCountToTakeSnapshot - 1; i++) {
-            leader.replicate(apply("val" + (count++))).join();
+            leader.replicate(applyValue("val" + (count++))).join();
         }
 
         eventually(() -> assertThat(getCommitIndex(slowFollower2)).isEqualTo(getCommitIndex(leader)));
@@ -864,7 +864,7 @@ public class SnapshotTest
         group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower2.getLocalEndpoint(), AppendEntriesRequest.class);
 
         for (int i = 0; i < commitCountToTakeSnapshot / 2; i++) {
-            leader.replicate(apply("val" + (count++))).join();
+            leader.replicate(applyValue("val" + (count++))).join();
         }
 
         eventually(() -> assertThat(getSnapshotEntry(leader).getIndex()).isGreaterThan(commitCountToTakeSnapshot));
@@ -910,7 +910,7 @@ public class SnapshotTest
         group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), InstallSnapshotRequest.class);
 
         while (getSnapshotEntry(leader).getIndex() == 0) {
-            leader.replicate(apply("val")).join();
+            leader.replicate(applyValue("val")).join();
         }
 
         eventually(() -> assertThat(getSnapshotEntry(newLeader).getIndex()).isGreaterThan(0));
@@ -948,12 +948,12 @@ public class SnapshotTest
         group.dropMessagesTo(slowFollower.getLocalEndpoint(), leader.getLocalEndpoint(), InstallSnapshotResponse.class);
 
         for (int i = 0; i < entryCount; i++) {
-            leader.replicate(apply("val" + i)).join();
+            leader.replicate(applyValue("val" + i)).join();
         }
 
         eventually(() -> assertThat(getSnapshotEntry(leader).getIndex()).isEqualTo(entryCount));
 
-        leader.replicate(apply("valFinal")).join();
+        leader.replicate(applyValue("valFinal")).join();
 
         group.terminateNode(otherFollower.getLocalEndpoint());
 
@@ -996,7 +996,7 @@ public class SnapshotTest
         group.dropMessagesTo(slowFollower.getLocalEndpoint(), leader.getLocalEndpoint(), InstallSnapshotResponse.class);
 
         while (getSnapshotEntry(leader).getIndex() == 0) {
-            leader.replicate(apply("val")).join();
+            leader.replicate(applyValue("val")).join();
         }
 
         eventually(() -> assertThat(getSnapshotEntry(leader).getIndex()).isGreaterThan(0));
@@ -1016,7 +1016,7 @@ public class SnapshotTest
         }
 
         RaftNodeImpl newLeader = group.getLeaderNode();
-        newLeader.replicate(apply("newLeaderVal")).join();
+        newLeader.replicate(applyValue("newLeaderVal")).join();
 
         group.allowMessagesTo(newLeader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), InstallSnapshotRequest.class);
 

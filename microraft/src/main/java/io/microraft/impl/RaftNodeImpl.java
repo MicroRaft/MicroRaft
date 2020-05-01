@@ -156,7 +156,7 @@ public final class RaftNodeImpl
     private final long leaderHeartbeatTimeoutMillis;
     private final int commitCountToTakeSnapshot;
     private final int appendEntriesRequestBatchSize;
-    private final int maxUncommittedLogEntryCount;
+    private final int maxPendingLogEntryCount;
     private final int maxLogEntryCountToKeepAfterSnapshot;
     private final int maxBackoffRounds;
 
@@ -183,9 +183,9 @@ public final class RaftNodeImpl
         this.leaderHeartbeatTimeoutMillis = SECONDS.toMillis(config.getLeaderHeartbeatTimeoutSecs());
         this.commitCountToTakeSnapshot = config.getCommitCountToTakeSnapshot();
         this.appendEntriesRequestBatchSize = config.getAppendEntriesRequestBatchSize();
-        this.maxUncommittedLogEntryCount = config.getMaxUncommittedLogEntryCount();
+        this.maxPendingLogEntryCount = config.getMaxPendingLogEntryCount();
         this.maxLogEntryCountToKeepAfterSnapshot = getMaxLogEntryCountToKeepAfterSnapshot(commitCountToTakeSnapshot);
-        int logCapacity = getLogCapacity(commitCountToTakeSnapshot, maxUncommittedLogEntryCount);
+        int logCapacity = getLogCapacity(commitCountToTakeSnapshot, maxPendingLogEntryCount);
         this.state = RaftState.create(groupId, localEndpoint, initialGroupMembers, logCapacity, store);
         this.maxBackoffRounds = getMaxBackoffRounds(config);
         this.leaderBackoffResetTask = new LeaderBackoffResetTask();
@@ -209,9 +209,9 @@ public final class RaftNodeImpl
         this.leaderHeartbeatTimeoutMillis = SECONDS.toMillis(config.getLeaderHeartbeatTimeoutSecs());
         this.commitCountToTakeSnapshot = config.getCommitCountToTakeSnapshot();
         this.appendEntriesRequestBatchSize = config.getAppendEntriesRequestBatchSize();
-        this.maxUncommittedLogEntryCount = config.getMaxUncommittedLogEntryCount();
+        this.maxPendingLogEntryCount = config.getMaxPendingLogEntryCount();
         this.maxLogEntryCountToKeepAfterSnapshot = getMaxLogEntryCountToKeepAfterSnapshot(commitCountToTakeSnapshot);
-        int logCapacity = getLogCapacity(commitCountToTakeSnapshot, maxUncommittedLogEntryCount);
+        int logCapacity = getLogCapacity(commitCountToTakeSnapshot, maxPendingLogEntryCount);
         this.state = RaftState.restore(groupId, restoredState, logCapacity, store);
         this.maxBackoffRounds = getMaxBackoffRounds(config);
         this.leaderBackoffResetTask = new LeaderBackoffResetTask();
@@ -240,7 +240,7 @@ public final class RaftNodeImpl
      * Replication is not allowed, when;
      * <ul>
      * <li>The local Raft node is terminating, terminated or left the group.</li>
-     * <li>The local Raft log has no more empty slots for uncommitted entries.</li>
+     * <li>The local Raft log has no more empty slots for pending entries.</li>
      * <li>The given operation is a {@link RaftGroupOp} and there's an ongoing
      * membership change in group.</li>
      * <li>The operation is a membership change and there's no committed entry
@@ -249,7 +249,7 @@ public final class RaftNodeImpl
      *
      * @see RaftNodeStatus
      * @see RaftGroupOp
-     * @see RaftConfig#getMaxUncommittedLogEntryCount()
+     * @see RaftConfig#getMaxPendingLogEntryCount()
      * @see StateMachine#getNewTermOperation()
      */
     public boolean canReplicateNewOperation(Object operation) {
@@ -260,7 +260,7 @@ public final class RaftNodeImpl
         RaftLog log = state.log();
         long lastLogIndex = log.lastLogOrSnapshotIndex();
         long commitIndex = state.commitIndex();
-        if (lastLogIndex - commitIndex >= maxUncommittedLogEntryCount) {
+        if (lastLogIndex - commitIndex >= maxPendingLogEntryCount) {
             return false;
         }
 
@@ -299,7 +299,7 @@ public final class RaftNodeImpl
      * </ul>
      *
      * @see RaftNodeStatus
-     * @see RaftConfig#getMaxUncommittedLogEntryCount()
+     * @see RaftConfig#getMaxPendingLogEntryCount()
      */
     public boolean canQueryLinearizable() {
         if (isTerminal(status)) {
@@ -323,7 +323,7 @@ public final class RaftNodeImpl
         // and we use the maxUncommittedEntryCount configuration parameter to upper-bound
         // the number of queries that are collected until the heartbeat round is done.
         QueryState queryState = state.leaderState().queryState();
-        return queryState.queryCount() < maxUncommittedLogEntryCount;
+        return queryState.queryCount() < maxPendingLogEntryCount;
     }
 
     private void scheduleRaftStateSummaryPublishTask() {

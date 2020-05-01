@@ -34,7 +34,7 @@ import io.microraft.RaftEndpoint;
  *
  * @author mdogan
  * @author metanet
- * @see RaftConfig#getMaxUncommittedLogEntryCount()
+ * @see RaftConfig#getMaxPendingLogEntryCount()
  */
 public class CannotReplicateException
         extends RaftException {

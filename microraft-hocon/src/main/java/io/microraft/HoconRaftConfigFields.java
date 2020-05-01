@@ -52,9 +52,9 @@ public final class HoconRaftConfigFields {
     public static final String COMMIT_COUNT_TO_TAKE_SNAPSHOT_FIELD_NAME = "raft.commit-count-to-take-snapshot";
 
     /**
-     * Field name of {@link RaftConfig#getMaxUncommittedLogEntryCount()}
+     * Field name of {@link RaftConfig#getMaxPendingLogEntryCount()}
      */
-    public static final String MAX_UNCOMMITTED_LOG_ENTRY_COUNT_FIELD_NAME = "raft.max-uncommitted-log-entry-count";
+    public static final String MAX_PENDING_LOG_ENTRY_COUNT_FIELD_NAME = "raft.max-pending-log-entry-count";
 
     /**
      * Field name of {@link RaftConfig#isTransferSnapshotsFromFollowersEnabled()}

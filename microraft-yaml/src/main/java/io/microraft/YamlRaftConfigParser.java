@@ -33,7 +33,7 @@ import static io.microraft.YamlRaftConfigFields.COMMIT_COUNT_TO_TAKE_SNAPSHOT_FI
 import static io.microraft.YamlRaftConfigFields.LEADER_ELECTION_TIMEOUT_MILLIS_FIELD_NAME;
 import static io.microraft.YamlRaftConfigFields.LEADER_HEARTBEAT_PERIOD_SECS_FIELD_NAME;
 import static io.microraft.YamlRaftConfigFields.LEADER_HEARTBEAT_TIMEOUT_SECS_FIELD_NAME;
-import static io.microraft.YamlRaftConfigFields.MAX_UNCOMMITTED_LOG_ENTRY_COUNT_FIELD_NAME;
+import static io.microraft.YamlRaftConfigFields.MAX_PENDING_LOG_ENTRY_COUNT_FIELD_NAME;
 import static io.microraft.YamlRaftConfigFields.RAFT_CONFIG_CONTAINER_NAME;
 import static io.microraft.YamlRaftConfigFields.RAFT_NODE_REPORT_PUBLISH_PERIOD_SECS_FIELD_NAME;
 import static io.microraft.YamlRaftConfigFields.TRANSFER_SNAPSHOTS_FROM_FOLLOWERS_ENABLED_FIELD_NAME;
@@ -215,9 +215,9 @@ public final class YamlRaftConfigParser {
             builder.setCommitCountToTakeSnapshot(commitCountToTakeSnapshot);
         }
 
-        Integer maxUncommittedLogEntryCount = (Integer) params.get(MAX_UNCOMMITTED_LOG_ENTRY_COUNT_FIELD_NAME);
-        if (maxUncommittedLogEntryCount != null) {
-            builder.setMaxUncommittedLogEntryCount(maxUncommittedLogEntryCount);
+        Integer maxPendingLogEntryCount = (Integer) params.get(MAX_PENDING_LOG_ENTRY_COUNT_FIELD_NAME);
+        if (maxPendingLogEntryCount != null) {
+            builder.setMaxPendingLogEntryCount(maxPendingLogEntryCount);
         }
 
         Boolean transferSnapshotsFromFollowersEnabled = (Boolean) params

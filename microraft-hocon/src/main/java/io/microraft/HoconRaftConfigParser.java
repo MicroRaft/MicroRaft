@@ -27,7 +27,7 @@ import static io.microraft.HoconRaftConfigFields.COMMIT_COUNT_TO_TAKE_SNAPSHOT_F
 import static io.microraft.HoconRaftConfigFields.LEADER_ELECTION_TIMEOUT_MILLIS_FIELD_NAME;
 import static io.microraft.HoconRaftConfigFields.LEADER_HEARTBEAT_PERIOD_SECS_FIELD_NAME;
 import static io.microraft.HoconRaftConfigFields.LEADER_HEARTBEAT_TIMEOUT_SECS_FIELD_NAME;
-import static io.microraft.HoconRaftConfigFields.MAX_UNCOMMITTED_LOG_ENTRY_COUNT_FIELD_NAME;
+import static io.microraft.HoconRaftConfigFields.MAX_PENDING_LOG_ENTRY_COUNT_FIELD_NAME;
 import static io.microraft.HoconRaftConfigFields.RAFT_CONFIG_CONTAINER_NAME;
 import static io.microraft.HoconRaftConfigFields.RAFT_NODE_REPORT_PUBLISH_PERIOD_SECS_FIELD_NAME;
 import static io.microraft.HoconRaftConfigFields.TRANSFER_SNAPSHOTS_FROM_FOLLOWERS_ENABLED_FIELD_NAME;
@@ -99,8 +99,8 @@ public final class HoconRaftConfigParser {
             builder.setCommitCountToTakeSnapshot(config.getInt(COMMIT_COUNT_TO_TAKE_SNAPSHOT_FIELD_NAME));
         }
 
-        if (config.hasPath(MAX_UNCOMMITTED_LOG_ENTRY_COUNT_FIELD_NAME)) {
-            builder.setMaxUncommittedLogEntryCount(config.getInt(MAX_UNCOMMITTED_LOG_ENTRY_COUNT_FIELD_NAME));
+        if (config.hasPath(MAX_PENDING_LOG_ENTRY_COUNT_FIELD_NAME)) {
+            builder.setMaxPendingLogEntryCount(config.getInt(MAX_PENDING_LOG_ENTRY_COUNT_FIELD_NAME));
         }
 
         if (config.hasPath(TRANSFER_SNAPSHOTS_FROM_FOLLOWERS_ENABLED_FIELD_NAME)) {

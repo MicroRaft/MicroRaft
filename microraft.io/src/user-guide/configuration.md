@@ -5,14 +5,14 @@ MicroRaft is a lightweight library with a minimal feature set, yet it allows
 users to fine-tune its behaviour. In this section, we elaborate 
 the configuration parameters available in MicroRaft. 
 
-`RaftConfig` is an immutable configuration class that contains a few key 
+`RaftConfig` is an immutable configuration class containing a number of 
 parameters to tune behaviour of your Raft nodes. You can populate it via
 `RaftConfigBuilder`. Your software in which MicroRaft is embedded could be 
-already working with HOCON or YAML configuration files. MicroRaft also offers 
-HOCON and YAML parsers to populate `RaftConfig` objects for such cases. Once 
-you create a `RaftConfig` object either programmatically, or by parsing a 
-HOCON or YAML file, you can provide it to `RaftNodeBuilder` while building 
-`RaftNode` instances.
+already working with HOCON or YAML files. MicroRaft also offers HOCON and YAML 
+parsers to populate `RaftConfig` objects for such cases. Once you create a 
+`RaftConfig` object either programmatically, or by parsing a HOCON or YAML 
+file, you can provide it to `RaftNodeBuilder` while building `RaftNode` 
+instances.
 
 You can see MicroRaft's configuration parameters below:
 
@@ -59,12 +59,12 @@ are actually append entries requests and can contain log entries. A heartbeat
 request is not sent to a follower if an append entries request has been sent to
 that follower recently.
 
-* __Maximum uncommitted log entry count:__
+* __Maximum pending log entry count:__
 
-Maximum number of uncommitted log entries in the leader's Raft log before
+Maximum number of pending log entries in the leader's Raft log before
 temporarily rejecting new requests of clients. This configuration enables 
 a back pressure mechanism to prevent OOME when a Raft leader cannot keep up
-with the requests sent by the clients. When the _uncommitted log entries 
+with the requests sent by the clients. When the _pending log entries 
 buffer_ whose capacity is specified with this configuration field is filled, 
 new requests fail with `CannotReplicateException` to slow down clients. You can 
 configure this field by considering the degree of concurrency of your clients.
@@ -125,7 +125,7 @@ raft {
   leader-election-timeout-millis: 1000
   leader-heartbeat-timeout-secs: 10
   leader-heartbeat-period-secs: 2
-  max-uncommitted-log-entry-count: 5000
+  max-pending-log-entry-count: 5000
   append-entries-request-batch-size: 1000
   commit-count-to-take-snapshot: 50000
   transfer-snapshots-from-followers-enabled: true
@@ -166,7 +166,7 @@ raft:
  leader-election-timeout-millis: 1000
  leader-heartbeat-timeout-secs: 10
  leader-heartbeat-period-secs: 2
- max-uncommitted-log-entry-count: 5000
+ max-pending-log-entry-count: 5000
  append-entries-request-batch-size: 1000
  commit-count-to-take-snapshot: 50000
  transfer-snapshots-from-followers-enabled: true

@@ -17,7 +17,7 @@
 package io.microraft.impl.state;
 
 import io.microraft.RaftEndpoint;
-import io.microraft.report.RaftGroupTerm;
+import io.microraft.report.RaftTerm;
 
 import static java.util.Objects.requireNonNull;
 
@@ -26,10 +26,10 @@ import static java.util.Objects.requireNonNull;
  *
  * @author metanet
  */
-public final class RaftGroupTermState
-        implements RaftGroupTerm {
+public final class RaftTermState
+        implements RaftTerm {
 
-    public static final RaftGroupTermState INITIAL = new RaftGroupTermState(0, null, null);
+    public static final RaftTermState INITIAL = new RaftTermState(0, null, null);
     /**
      * Highest term this node has seen.
      * <p>
@@ -49,14 +49,14 @@ public final class RaftGroupTermState
      */
     private final RaftEndpoint votedEndpoint;
 
-    private RaftGroupTermState(int term, RaftEndpoint leaderEndpoint, RaftEndpoint votedEndpoint) {
+    private RaftTermState(int term, RaftEndpoint leaderEndpoint, RaftEndpoint votedEndpoint) {
         this.term = term;
         this.leaderEndpoint = leaderEndpoint;
         this.votedEndpoint = votedEndpoint;
     }
 
-    public static RaftGroupTermState restore(int term, RaftEndpoint votedEndpoint) {
-        return new RaftGroupTermState(term, null, votedEndpoint);
+    public static RaftTermState restore(int term, RaftEndpoint votedEndpoint) {
+        return new RaftTermState(term, null, votedEndpoint);
     }
 
     @Override
@@ -74,28 +74,28 @@ public final class RaftGroupTermState
         return votedEndpoint;
     }
 
-    public RaftGroupTermState switchTo(int newTerm) {
+    public RaftTermState switchTo(int newTerm) {
         assert newTerm >= term : "New term: " + newTerm + ", current term: " + term;
 
         RaftEndpoint votedEndpoint = newTerm > term ? null : this.votedEndpoint;
 
-        return new RaftGroupTermState(newTerm, null, votedEndpoint);
+        return new RaftTermState(newTerm, null, votedEndpoint);
     }
 
-    public RaftGroupTermState grantVote(int term, RaftEndpoint votedEndpoint) {
+    public RaftTermState grantVote(int term, RaftEndpoint votedEndpoint) {
         requireNonNull(votedEndpoint);
         assert this.term == term : "current term: " + this.term + " voted term: " + term + " voted for: " + votedEndpoint;
         assert this.votedEndpoint == null : "current term: " + this.term + " already voted for: " + this.votedEndpoint
                 + " new vote to: " + votedEndpoint;
 
-        return new RaftGroupTermState(this.term, this.leaderEndpoint, votedEndpoint);
+        return new RaftTermState(this.term, this.leaderEndpoint, votedEndpoint);
     }
 
-    public RaftGroupTermState withLeader(RaftEndpoint leaderEndpoint) {
+    public RaftTermState withLeader(RaftEndpoint leaderEndpoint) {
         assert this.leaderEndpoint == null || leaderEndpoint == null : "current term: " + this.term + " current " + "leader: "
                 + this.leaderEndpoint + " new " + "leader: " + leaderEndpoint;
 
-        return new RaftGroupTermState(this.term, leaderEndpoint, this.votedEndpoint);
+        return new RaftTermState(this.term, leaderEndpoint, this.votedEndpoint);
     }
 
     @Override

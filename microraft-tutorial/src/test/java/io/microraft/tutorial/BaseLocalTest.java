@@ -20,8 +20,7 @@ import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.RaftNodeStatus;
-import io.microraft.model.impl.DefaultRaftModelFactory;
-import io.microraft.report.RaftGroupTerm;
+import io.microraft.report.RaftTerm;
 import io.microraft.statemachine.StateMachine;
 import org.junit.After;
 import org.junit.Before;
@@ -39,7 +38,7 @@ public abstract class BaseLocalTest {
 
     protected List<RaftEndpoint> initialMembers = Arrays
             .asList(LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint());
-    protected List<LocalRaftNodeRuntime> runtimes = new ArrayList<>();
+    protected List<LocalTransport> transports = new ArrayList<>();
     protected List<RaftNode> raftNodes = new ArrayList<>();
 
     public static void eventually(AssertTask task) {
@@ -98,25 +97,25 @@ public abstract class BaseLocalTest {
 
     protected RaftNode createRaftNode(RaftEndpoint endpoint) {
         RaftConfig config = getConfig();
-        LocalRaftNodeRuntime runtime = new LocalRaftNodeRuntime(endpoint);
+        LocalTransport transport = new LocalTransport(endpoint);
         StateMachine stateMachine = createStateMachine();
         RaftNode raftNode = RaftNode.newBuilder().setGroupId("default").setLocalEndpoint(endpoint)
-                                    .setInitialGroupMembers(initialMembers).setConfig(config).setRuntime(runtime)
-                                    .setStateMachine(stateMachine).setModelFactory(DefaultRaftModelFactory.INSTANCE).build();
+                                    .setInitialGroupMembers(initialMembers).setConfig(config).setTransport(transport)
+                                    .setStateMachine(stateMachine).build();
 
         raftNodes.add(raftNode);
-        runtimes.add(runtime);
-        enableDiscovery(raftNode, runtime);
+        transports.add(transport);
+        enableDiscovery(raftNode, transport);
 
         return raftNode;
     }
 
-    protected final void enableDiscovery(RaftNode raftNode, LocalRaftNodeRuntime runtime) {
+    protected final void enableDiscovery(RaftNode raftNode, LocalTransport transport) {
         for (int i = 0; i < raftNodes.size(); i++) {
             RaftNode otherNode = raftNodes.get(i);
             if (otherNode != raftNode) {
-                runtimes.get(i).discoverNode(raftNode);
-                runtime.discoverNode(otherNode);
+                transports.get(i).discoverNode(raftNode);
+                transport.discoverNode(otherNode);
             }
         }
     }
@@ -130,7 +129,7 @@ public abstract class BaseLocalTest {
                                 .orElseThrow(IllegalStateException::new);
             }
 
-            sleepMillis(10);
+            sleepMillis(100);
         }
 
         throw new AssertionError("Could not elect a leader on time!");
@@ -144,7 +143,7 @@ public abstract class BaseLocalTest {
                 continue;
             }
 
-            RaftGroupTerm term = raftNode.getTerm();
+            RaftTerm term = raftNode.getTerm();
             if (term.getLeaderEndpoint() != null) {
                 if (leaderEndpoint == null) {
                     leaderEndpoint = term.getLeaderEndpoint();
@@ -173,16 +172,16 @@ public abstract class BaseLocalTest {
         requireNonNull(endpoint1);
         requireNonNull(endpoint2);
 
-        getRuntime(endpoint1).undiscoverNode(getNode(endpoint2));
-        getRuntime(endpoint2).undiscoverNode(getNode(endpoint1));
+        getTransport(endpoint1).undiscoverNode(getNode(endpoint2));
+        getTransport(endpoint2).undiscoverNode(getNode(endpoint1));
     }
 
     protected final void connect(RaftEndpoint endpoint1, RaftEndpoint endpoint2) {
         requireNonNull(endpoint1);
         requireNonNull(endpoint2);
 
-        getRuntime(endpoint1).discoverNode(getNode(endpoint2));
-        getRuntime(endpoint2).discoverNode(getNode(endpoint1));
+        getTransport(endpoint1).discoverNode(getNode(endpoint2));
+        getTransport(endpoint2).discoverNode(getNode(endpoint1));
     }
 
     private RaftNode getNode(RaftEndpoint endpoint) {
@@ -192,11 +191,11 @@ public abstract class BaseLocalTest {
                         .orElseThrow(IllegalArgumentException::new);
     }
 
-    private LocalRaftNodeRuntime getRuntime(RaftEndpoint endpoint) {
+    private LocalTransport getTransport(RaftEndpoint endpoint) {
         requireNonNull(endpoint);
 
-        return runtimes.stream().filter(runtime -> runtime.getLocalEndpoint().equals(endpoint)).findFirst()
-                       .orElseThrow(IllegalArgumentException::new);
+        return transports.stream().filter(transport -> transport.getLocalEndpoint().equals(endpoint)).findFirst()
+                         .orElseThrow(IllegalArgumentException::new);
     }
 
     @FunctionalInterface

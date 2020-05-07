@@ -64,6 +64,9 @@ and integration test suite.
 `microraft-hocon` and `microraft-yaml` modules are utility libraries for 
 parsing HOCON and YAML files to start Raft nodes. 
 
+`microraft-metrics` module contains the integration with the Micrometer library
+for publishing MicroRaft metrics to external systems.
+
 `microraft-io` contains the source files of 
 the [microraft.io](https://microraft.io) website.
 

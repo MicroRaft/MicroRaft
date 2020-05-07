@@ -19,6 +19,9 @@ package io.microraft.persistence;
 
 import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
+import io.microraft.RaftNode;
+import io.microraft.model.RaftModel;
+import io.microraft.model.RaftModelFactory;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.statemachine.StateMachine;
@@ -37,6 +40,9 @@ import java.util.Collection;
  * @author mdogan
  * @author metanet
  * @author mtopolnik
+ * @see RaftModel
+ * @see RaftModelFactory
+ * @see RaftNode
  */
 public interface RaftStore
         extends Closeable {

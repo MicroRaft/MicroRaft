@@ -91,7 +91,7 @@ public final class RaftState {
      * Latest term this Raft node has seen along with the
      * latest known Raft leader endpoint (or null if not known).
      */
-    private volatile RaftGroupTermState termState;
+    private volatile RaftTermState termState;
     /**
      * Index of highest log entry known to be committed.
      * (starts with 0 and increases monotonically)
@@ -152,7 +152,7 @@ public final class RaftState {
         this.initialMembers = groupMembers;
         this.committedGroupMembers = groupMembers;
         this.effectiveGroupMembers = groupMembers;
-        this.termState = RaftGroupTermState.INITIAL;
+        this.termState = RaftTermState.INITIAL;
         this.store = requireNonNull(store);
         this.log = RaftLog.create(logCapacity, store);
     }
@@ -164,7 +164,7 @@ public final class RaftState {
         this.initialMembers = new RaftGroupMembersState(0, restoredState.getInitialMembers(), this.localEndpoint);
         this.committedGroupMembers = this.initialMembers;
         this.effectiveGroupMembers = this.committedGroupMembers;
-        this.termState = RaftGroupTermState.restore(restoredState.getTerm(), restoredState.getVotedEndpoint());
+        this.termState = RaftTermState.restore(restoredState.getTerm(), restoredState.getVotedEndpoint());
 
         SnapshotEntry snapshot = restoredState.getSnapshotEntry();
         if (isNonInitial(snapshot)) {
@@ -264,7 +264,7 @@ public final class RaftState {
     /**
      * Returns the latest term information this Raft node has seen.
      */
-    public RaftGroupTermState termState() {
+    public RaftTermState termState() {
         return termState;
     }
 

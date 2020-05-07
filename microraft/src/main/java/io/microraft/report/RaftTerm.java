@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
  *
  * @author metanet
  */
-public interface RaftGroupTerm {
+public interface RaftTerm {
 
     /**
      * Returns the term this Raft node is currently at.

@@ -22,6 +22,7 @@ nav:
       - Configuration: 'user-guide/configuration.md'
       - 'Tutorial: Building an Atomic Register': 'user-guide/tutorial-building-an-atomic-register.md'
       - Resiliency and Fault Tolerance: 'user-guide/resiliency-and-fault-tolerance.md'
+      - Monitoring: 'user-guide/monitoring.md'
       - Release Notes: 'user-guide/release-notes.md'
       - Roadmap: 'user-guide/roadmap.md'
   - 'Deep Dive':

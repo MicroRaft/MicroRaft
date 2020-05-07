@@ -20,9 +20,9 @@ import io.microraft.RaftEndpoint;
 import io.microraft.RaftNodeStatus;
 import io.microraft.RaftRole;
 import io.microraft.report.RaftGroupMembers;
-import io.microraft.report.RaftGroupTerm;
 import io.microraft.report.RaftLogStats;
 import io.microraft.report.RaftNodeReport;
+import io.microraft.report.RaftTerm;
 
 import javax.annotation.Nonnull;
 
@@ -42,12 +42,12 @@ public final class RaftNodeReportImpl
     private final RaftGroupMembers effectiveMembers;
     private final RaftRole role;
     private final RaftNodeStatus status;
-    private final RaftGroupTerm term;
+    private final RaftTerm term;
     private final RaftLogStats log;
 
     public RaftNodeReportImpl(RaftNodeReportReason reason, Object groupId, RaftEndpoint localEndpoint,
                               RaftGroupMembers initialMembers, RaftGroupMembers committedMembers,
-                              RaftGroupMembers effectiveMembers, RaftRole role, RaftNodeStatus status, RaftGroupTerm term,
+                              RaftGroupMembers effectiveMembers, RaftRole role, RaftNodeStatus status, RaftTerm term,
                               RaftLogStats log) {
         this.reason = requireNonNull(reason);
         this.groupId = requireNonNull(groupId);
@@ -111,7 +111,7 @@ public final class RaftNodeReportImpl
 
     @Nonnull
     @Override
-    public RaftGroupTerm getTerm() {
+    public RaftTerm getTerm() {
         return term;
     }
 

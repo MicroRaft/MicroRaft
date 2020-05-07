@@ -275,8 +275,9 @@ public class InstallSnapshotRequestHandler
             node.send(response, target);
 
             if (node.getConfig().isTransferSnapshotsFromFollowersEnabled()) {
-                node.schedule(() -> handleUnresponsiveEndpoint(state.term(), target, request.getSnapshotIndex(), e.getValue()),
-                              SECONDS.toMillis(node.getConfig().getLeaderHeartbeatPeriodSecs()));
+                node.getExecutor()
+                    .schedule(() -> handleUnresponsiveEndpoint(state.term(), target, request.getSnapshotIndex(), e.getValue()),
+                              node.getConfig().getLeaderHeartbeatPeriodSecs(), SECONDS);
             }
         }
     }
@@ -319,8 +320,8 @@ public class InstallSnapshotRequestHandler
                                        .build();
 
             node.send(response, target);
-            node.schedule(() -> handleUnresponsiveEndpoint(term, target, snapshotIndex, e.getValue()),
-                          SECONDS.toMillis(node.getConfig().getLeaderHeartbeatPeriodSecs()));
+            node.getExecutor().schedule(() -> handleUnresponsiveEndpoint(term, target, snapshotIndex, e.getValue()),
+                                        node.getConfig().getLeaderHeartbeatPeriodSecs(), SECONDS);
         }
     }
 

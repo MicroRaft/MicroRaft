@@ -44,30 +44,16 @@ public enum RaftNodeStatus {
      * operation is appended to its Raft log and stays in this status until
      * the membership change is either committed or reverted. New operations
      * can be replicated while there is an ongoing membership change in
-     * the Raft group, but no other membership change, Raft group termination
-     * or leadership transfer can be triggered until the ongoing membership
-     * change process is completed.
+     * the Raft group, but no other membership change, or leadership transfer
+     * can be triggered until the ongoing membership change process is
+     * completed.
      */
     UPDATING_RAFT_GROUP_MEMBER_LIST,
 
     /**
-     * A Raft node moves to this status when a Raft group termination operation
-     * is appended to its Raft log and remains in this state until either
-     * the Raft group termination process is committed or reverted.
-     * If the termination process is committed, then the status becomes
-     * {@link #TERMINATED}. Otherwise, it goes back to {@link #ACTIVE}.
-     * No new operations can be appended, or no membership change or leadership
-     * transfer can be triggered until the ongoing Raft group termination
-     * process is completed. A terminated Raft group eternally stops executing
-     * the Raft consensus algorithm.
-     */
-    TERMINATING_RAFT_GROUP,
-
-    /**
-     * A Raft node moves to this status either when its Raft group is
-     * terminated, it is removed from the Raft group member list, or it is
-     * being terminated on its own, for instance, because its JVM is shutting
-     * down.
+     * A Raft node moves to this status either when it is removed from the Raft
+     * group member list, or it is being terminated on its own, for instance,
+     * because its JVM is shutting down.
      * <p>
      * A Raft node stops running the Raft consensus algorithm in this status.
      */

@@ -15,17 +15,31 @@ MicroRaft's implementation. Please check the
 
 <a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNode.java" target="_blank">`RaftNode`</a> 
 runs the Raft consensus algorithm as a member of a Raft group. A Raft group is
-a cluster of `RaftNode` instances that runs the Raft consensus algorithm. 
-`RaftNode` interface contains APIs for replicating operations, performing 
-queries, applying membership changes in the Raft group, handling Raft RPCs and 
+a cluster of `RaftNode` instances that behave as _replicated state machines_. 
+`RaftNode` contains APIs for replicating operations, performing queries, 
+applying membership changes in the Raft group, handling Raft RPCs and 
 responses, etc.
 
-A single JVM instance can run multiple `RaftNode`s that belong to different 
-Raft groups or even the same Raft group. 
+Raft nodes are identified by `[group id, node id]` pairs. Multiple Raft groups
+can run in the same environment, distributed or even in a single JVM process, 
+and they can be discriminated from each other with unique group ids. A single 
+JVM process can run multiple Raft nodes that belong to different Raft groups or 
+even the same Raft group.
 
-A `RaftNode` uses the `RaftNodeRuntime` abstraction to run the Raft consensus
-algorithm on the underlying platform and the `StateMachine` abstraction to run
-committed operations on a user-specified state machine. 
+`RaftNode`s execute the Raft consensus algorithm with the 
+<a href="https://en.wikipedia.org/wiki/Actor_model" target="_blank">Actor model</a>.
+In this model, each `RaftNode` runs in a single-threaded manner. It uses a
+`RaftNodeExecutor` to sequentially handle API calls and `RaftMessage` objects 
+sent by other `RaftNode`s. The communication between `RaftNode`s are implemented 
+with the message-passing approach and abstracted away with the `Transport` 
+interface.
+
+In addition to these interfaces that abstract away task execution and 
+networking, `RaftNode`s use `StateMachine` objects to execute queries and 
+committed operations, and `RaftStore` objects to persist internal Raft state to
+stable storage to be able to recover from crashes. 
+
+All of these abstractions are explained below.
 
 
 ### `RaftEndpoint`
@@ -37,8 +51,7 @@ executes the Raft consensus algorithm with a `RaftNode`.
 `RaftNode` differentiates members of a Raft group with a unique id. MicroRaft
 users need to provide a unique id for each `RaftEndpoint`. Other than this 
 information, `RaftEndpoint` implementations can contain custom fields, such as
-network addresses and tags, to be utilized by `RaftNodeRuntime` 
-implementations.
+network addresses and tags, to be utilized by `Transport` implementations.
 
 
 ### `RaftRole`
@@ -60,20 +73,6 @@ It stays in this status until either a membership change is triggered
 in the Raft group, or either the Raft group or Raft node is terminated. 
 
 
-### `RaftNodeRuntime`
-
-<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/runtime/RaftNodeRuntime.java" target="_blank">`RaftNodeRuntime`</a> 
-enables execution of the Raft consensus algorithm by providing capabilities for 
-task scheduling & execution, serialization & deserialization of Raft messages, 
-and networking.
-
-A `RaftNode` runs in a single-threaded manner. Even if a `RaftNodeRuntime` 
-implementation makes use of multiple threads internally, it must ensure 
-the serial execution and 
-<a href="https://docs.oracle.com/javase/specs/jls/se8/html/jls-17.html" target="_blank">happens-before relationship</a>
-for the tasks submitted by a single `RaftNode`.
-
-
 ### `StateMachine`
 
 <a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/statemachine/StateMachine.java" target="_blank">`StateMachine`</a> 
@@ -87,11 +86,53 @@ the provided `StateMachine` implementation. It is
 the `StateMachine` implementation's responsibility to ensure deterministic 
 execution of committed operations.
  
-The operations committed in a `RaftNode` are executed in the same thread that 
-runs the Raft consensus algorithm. Since `RaftNodeRuntime` ensures 
-the thread-safe execution of `RaftNode` tasks, `StateMachine` implementations 
-do not need to be thread-safe.
+Since `RaftNodeExecutor` ensures the thread-safe execution of the tasks 
+submitted by `RaftNode`s, which include actual execution of committed 
+user-supplied operations, `StateMachine` implementations do not need to be 
+thread-safe.
 
+
+### `RaftModel` and `RaftModelFactory`
+
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/RaftModel.java" target="_blank">`RaftModel`</a>
+is the base interface for the objects that hit network and persistent storage. 
+There are 2 other interfaces extending this interface:
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/log/BaseLogEntry.java" target="_blank">`BaseLogEntry`</a> 
+and <a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/RaftMessage.java" target="_blank">`RaftMessage`</a>. 
+`BaseLogEntry` is used for representing log and snapshot entries stored in 
+the Raft log. `RaftMessage` is used for Raft RPCs and their responses. Please 
+see the interfaces inside 
+<a href="https://github.com/MicroRaft/MicroRaft/tree/master/microraft/src/main/java/io/microraft/model" target="_blank">`io.microraft.model`</a> 
+for more details. In addition, there is a 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/RaftModelFactory.java" target="_blank">`RaftModelFactory`</a> 
+interface for creating `RaftModel` objects with the builder pattern. 
+
+MicroRaft comes with a default POJO-style implementation of these interfaces 
+available under the 
+<a href="https://github.com/MicroRaft/MicroRaft/tree/master/microraft/src/main/java/io/microraft/model/impl" target="_blank">`io.microraft.model.impl`</a> 
+package. Users of MicroRaft can define serialization & deserialization 
+strategies for the default implementation objects, or implement the `RaftModel`
+interfaces with a serialization framework, such as 
+<a href="https://developers.google.com/protocol-buffers" target="_blank">Protocol Buffers</a>.  
+
+
+### `Transport`
+
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/transport/Transport.java" target="_blank">`Transport`</a>
+is used for communicating Raft nodes with each other. 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/transport/Transport.java" target="_blank">`Transport`</a>
+implementations must be able to serialize 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/RaftMessage.java" target="_blank">`RaftMessage`</a>
+objects created by
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/RaftModelFactory.java" target="_blank">`RaftModelFactory`</a>.
+MicroRaft requires a minimum set of functionality for networking. There are
+only two methods in this interface, one for sending a
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/RaftMessage.java" target="_blank">`RaftMessage`</a>
+to a
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftEndpoint.java" target="_blank">`RaftEndpoint`</a>
+and another one for checking reachability of a 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftEndpoint.java" target="_blank">`RaftEndpoint`</a>.
+ 
 
 ### `RaftStore` and `RestoredRaftState`
 
@@ -113,26 +154,32 @@ the current commit index and re-executes all the operations in the Raft log up
 to the commit index to re-populate the state machine. 
 
 
-### `RaftModel` and `RaftModelFactory`
+### `RaftNodeExecutor`
 
-<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/RaftModel.java" target="_blank">`RaftModel`</a>
-is the base interface for the objects that hit network and persistent storage. 
-There are 2 other interfaces extending this interface:
-<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/log/BaseLogEntry.java" target="_blank">`BaseLogEntry`</a> 
-and <a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/RaftMessage.java" target="_blank">`RaftMessage`</a>. 
-`BaseLogEntry` is used for representing log and snapshot entries stored in 
-the Raft log. `RaftMessage` is used for Raft RPCs and their responses. Please 
-see the interfaces inside 
-<a href="https://github.com/MicroRaft/MicroRaft/tree/master/microraft/src/main/java/io/microraft/model" target="_blank">`io.microraft.model`</a> 
-for more details. In addition, there is a 
-<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/RaftModelFactory.java" target="_blank">`RaftModelFactory`</a> 
-interface for creating `RaftModel` objects. 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/execution/RaftNodeExecutor.java" target="_blank">`RaftNodeExecutor`</a>
+is used by 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNode.java" target="_blank">`RaftNode`</a>
+to execute the Raft consensus algorithm with the 
+<a href="https://en.wikipedia.org/wiki/Actor_model" target="_blank">Actor model</a>.
 
-MicroRaft comes with a default POJO-style implementation of these interfaces 
-available under the 
-<a href="https://github.com/MicroRaft/MicroRaft/tree/master/microraft/src/main/java/io/microraft/model/impl" target="_blank">`io.microraft.model.impl`</a> 
-package.
-
+A 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNode.java" target="_blank">`RaftNode`</a>
+runs by submitting tasks to its 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/execution/RaftNodeExecutor.java" target="_blank">`RaftNodeExecutor`</a>. 
+All tasks submitted by a 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNode.java" target="_blank">`RaftNode`</a> 
+must be executed serially, with maintaining the 
+<a href="https://docs.oracle.com/javase/specs/jls/se8/html/jls-17.html" target="_blank">happens-before relationship</a>, 
+so that the Raft consensus algorithm and the user-provided state machine logic could be executed without synchronization.
+ 
+MicroRaft contains a default implementation, 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/execution/impl/DefaultRaftNodeExecutor.java" target="_blank">`DefaultRaftNodeExecutor`</a>.
+It internally uses a single-threaded `ScheduledExecutorService` and should be 
+suitable for most of the use-cases. Users of MicroRaft can provide their own
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/execution/RaftNodeExecutor.java" target="_blank">`RaftNodeExecutor`</a>
+implementations if they want to run 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNode.java" target="_blank">`RaftNode`</a>s 
+in their own threading system according to the rules defined by MicroRaft.  
 
 ### `RaftException`
 
@@ -157,8 +204,8 @@ create Raft RPC request / response objects and Raft log entries, or simply
 use the default POJO-style implementation of these interfaces available under
 the `io.microraft.model.impl` package,
 
-* provide a `RafNodeRuntime` implementation to realize task execution, 
-serialization of `RaftModel` objects and networking, 
+* provide a `Transport` implementation to realize serialization of `RaftModel` 
+objects and networking, 
 
 * __(optional)__ provide a `RaftStore` implementation if we want to restore
 crashed Raft nodes. We can persist the internal Raft node state to stable
@@ -173,22 +220,26 @@ tolerance capabilities of Raft groups. Please refer to the
 learn more about MicroRaft's fault tolerance capabilities. 
 
 * ![](/img/info.png){: style="height:25px;width:25px"} build a discovery and 
-RPC mechanism to replicate and commit our operations on a Raft group. This is 
+RPC mechanism to replicate and commit operations on a Raft group. This is 
 required because simplicity is the primary concern for MicroRaft's design
 philosophy. MicroRaft offers a minimum API set to cover the fundamental
 functionality and enables its users to implement higher-level abstractions, 
 such as an RPC system with request routing, retries, and deduplication. For 
 instance, MicroRaft neither broadcasts the Raft group members to any external 
 discovery system, nor integrates with any observability tool, but it exposes
-all necessary information, such as the current Raft group members, the leader
-endpoint, term, commit index. via `RaftNode.getReport()`. We can use that
-information to feed our discovery services and monitoring tools. Similarly, 
-the public APIs on `RaftNode` do not employ request routing or retry 
-mechanisms. For instance, if a client tries to replicate an operation via a
-follower or a candidate `RaftNode`, `RaftNode` responds back with a
-`NotLeaderException`, instead of internally forwarding the operation to 
-the leader `RaftNode`. `NotLeaderException` contains `RaftEndpoint` of 
-the current leader `RaftNode` so that clients can send their request to it.
+all necessary information, such as Raft group members, leader Raft endpoint, 
+term, commit index, via 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/report/RaftNodeReport.java" target="_blank">`RaftNodeReport`</a>, 
+which can be accessed via `RaftNode.getReport()` and 
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/report/RaftNodeReportListener.java" target="_blank">`RaftNodeReportListener`</a>.
+We can use that information to feed our discovery services and monitoring 
+tools. Similarly, the public APIs on `RaftNode` do not employ request routing 
+or retry mechanisms. For instance, if a client tries to replicate an operation 
+via a follower or a candidate `RaftNode`, `RaftNode` responds back with a
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/exception/NotLeaderException.java" target="_blank">`NotLeaderException`</a>,
+instead of internally forwarding the operation to the leader `RaftNode`. 
+`NotLeaderException` contains `RaftEndpoint` of the current leader `RaftNode` 
+so that clients can send their requests to it.
 
 In the next section, we will build an atomic register on top of MicroRaft to
 demonstrate how to implement and use MicroRaft's main abstractions.
@@ -201,15 +252,15 @@ the main abstractions explained above. Clients talk to the leader `RaftNode`
 for replicating operations. They can talk to both the leader and follower 
 `RaftNode`s for running queries with different consistency guarantees. 
 `RaftNode` uses `RaftModelFactory` to create Raft log entries, snapshot 
-entries, and Raft RPC request and response objects. Each `RaftNode` talks to
-its `RaftNodeRuntime` to communicate with the other `RaftNode`s and execute the 
-Raft consensus algorithm. It also uses `RaftStore` to persist Raft log entries
-to stable storage. Last, once a log entry is committed, i.e, it is successfully
-replicated to the majority of the Raft group, its operation is passed to 
-`StateMachine` for execution, and output of the execution is returned to the 
-client by the leader `RaftNode`.
+entries, and Raft RPC request and response objects. Each `RaftNode` uses its
+`Transport` object to communicate with the other `RaftNode`s. It also uses 
+`RaftStore` to persist Raft log entries and snapshots to stable storage. Last, 
+once a log entry is committed, i.e, it is successfully replicated to the 
+majority of the Raft group, its operation is passed to `StateMachine` for 
+execution, and output of the execution is returned to the client by the leader 
+`RaftNode`.
 
-![Integration](/img/architectural_overview.png){: style="height:592px;width:800px"}
+![Architectural overview of a Raft group](/img/architectural_overview.png){: style="height:592px;width:800px"}
 
 
 ## What is next?

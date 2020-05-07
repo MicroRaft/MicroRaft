@@ -24,7 +24,6 @@ import io.microraft.model.RaftModel;
  *
  * @author mdogan
  * @author metanet
- * @see TerminateRaftGroupOp
  * @see UpdateRaftGroupMembersOp
  */
 public interface RaftGroupOp

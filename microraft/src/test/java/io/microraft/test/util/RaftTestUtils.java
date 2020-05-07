@@ -22,8 +22,9 @@ import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.RaftNodeStatus;
 import io.microraft.RaftRole;
+import io.microraft.executor.RaftNodeExecutor;
+import io.microraft.executor.impl.DefaultRaftNodeExecutor;
 import io.microraft.impl.RaftNodeImpl;
-import io.microraft.impl.local.FaultInjectableLocalRaftNodeRuntime;
 import io.microraft.impl.local.InMemoryRaftStore;
 import io.microraft.impl.log.SnapshotChunkCollector;
 import io.microraft.impl.state.LeaderState;
@@ -33,7 +34,6 @@ import io.microraft.model.log.SnapshotEntry;
 import io.microraft.persistence.RaftStore;
 import io.microraft.persistence.RestoredRaftState;
 import io.microraft.report.RaftNodeReport;
-import io.microraft.runtime.RaftNodeRuntime;
 
 import java.lang.reflect.Field;
 import java.util.concurrent.Callable;
@@ -73,16 +73,17 @@ public final class RaftTestUtils {
 
     public static <T> T readRaftState(RaftNodeImpl node, Callable<T> task) {
         try {
-            RaftNodeRuntime runtime = getRaftNodeRuntime(node);
-            if (runtime instanceof FaultInjectableLocalRaftNodeRuntime) {
-                FaultInjectableLocalRaftNodeRuntime r = (FaultInjectableLocalRaftNodeRuntime) runtime;
-                if (r.isShutdown()) {
+
+            RaftNodeExecutor executor = getExecutor(node);
+            if (executor instanceof DefaultRaftNodeExecutor) {
+                DefaultRaftNodeExecutor e = (DefaultRaftNodeExecutor) executor;
+                if (e.getExecutor().isShutdown()) {
                     return task.call();
                 }
             }
 
             FutureTask<T> futureTask = new FutureTask<>(task);
-            runtime.execute(futureTask);
+            executor.execute(futureTask);
 
             return futureTask.get();
         } catch (Exception e) {
@@ -90,11 +91,11 @@ public final class RaftTestUtils {
         }
     }
 
-    private static RaftNodeRuntime getRaftNodeRuntime(RaftNodeImpl node)
+    private static RaftNodeExecutor getExecutor(RaftNodeImpl node)
             throws NoSuchFieldException, IllegalAccessException {
-        Field field = RaftNodeImpl.class.getDeclaredField("runtime");
+        Field field = RaftNodeImpl.class.getDeclaredField("executor");
         field.setAccessible(true);
-        return (RaftNodeRuntime) field.get(node);
+        return (RaftNodeExecutor) field.get(node);
     }
 
     public static SnapshotEntry getSnapshotEntry(RaftNodeImpl node) {

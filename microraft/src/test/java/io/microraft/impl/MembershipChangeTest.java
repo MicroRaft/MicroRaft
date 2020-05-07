@@ -308,10 +308,9 @@ public class MembershipChangeTest
         leader.replicate(applyValue("val")).get();
 
         try {
-            leader.changeMembership(leader.getLocalEndpoint(), null, 0).get();
+            leader.changeMembership(leader.getLocalEndpoint(), null, 0);
             fail();
-        } catch (ExecutionException e) {
-            assertThat(e).hasCauseInstanceOf(IllegalArgumentException.class);
+        } catch (NullPointerException ignored) {
         }
     }
 

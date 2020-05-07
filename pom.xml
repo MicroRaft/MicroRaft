@@ -13,6 +13,7 @@
         <module>microraft</module>
         <module>microraft-hocon</module>
         <module>microraft-yaml</module>
+        <module>microraft-metrics</module>
         <module>microraft-tutorial</module>
     </modules>
 

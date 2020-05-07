@@ -21,6 +21,8 @@ import io.microraft.statemachine.StateMachine;
 import io.microraft.tutorial.atomicregister.AtomicRegister;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /*
 
    TO RUN THIS TEST ON YOUR MACHINE:
@@ -44,6 +46,8 @@ public class LeaderElectionTest
     @Test
     public void testLeaderElection() {
         RaftNode leader = waitUntilLeaderElected();
+
+        assertThat(leader).isNotNull();
 
         System.out.println(leader.getLocalEndpoint().getId() + " is the leader!");
     }

@@ -22,8 +22,9 @@ import io.microraft.exception.IndeterminateStateException;
 import io.microraft.exception.LaggingCommitIndexException;
 import io.microraft.exception.MismatchingRaftGroupMembersCommitIndexException;
 import io.microraft.exception.NotLeaderException;
+import io.microraft.executor.RaftNodeExecutor;
+import io.microraft.executor.impl.DefaultRaftNodeExecutor;
 import io.microraft.impl.RaftNodeImpl.RaftNodeBuilderImpl;
-import io.microraft.model.RaftModel;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.model.impl.DefaultRaftModelFactory;
 import io.microraft.model.message.RaftMessage;
@@ -31,10 +32,11 @@ import io.microraft.persistence.NopRaftStore;
 import io.microraft.persistence.RaftStore;
 import io.microraft.persistence.RestoredRaftState;
 import io.microraft.report.RaftGroupMembers;
-import io.microraft.report.RaftGroupTerm;
 import io.microraft.report.RaftNodeReport;
-import io.microraft.runtime.RaftNodeRuntime;
+import io.microraft.report.RaftNodeReportListener;
+import io.microraft.report.RaftTerm;
 import io.microraft.statemachine.StateMachine;
+import io.microraft.transport.Transport;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -44,38 +46,53 @@ import java.util.concurrent.TimeoutException;
 /**
  * A Raft node runs the Raft consensus algorithm as a member of a Raft group.
  * <p>
- * Operations and queries that are passed to Raft nodes must be deterministic,
- * i.e., they must produce the same result independent of when or on which
- * Raft node it is being executed.
+ * Operations and queries passed to Raft nodes must be deterministic, i.e.,
+ * they must produce the same result independent of when or on which Raft node
+ * it is being executed.
  * <p>
- * Multiple Raft groups can run in a single distributed environment or even
- * in a single JVM, and they can be discriminated from each other via unique
- * group ids. A single JVM instance can run multiple Raft nodes that belong to
- * different Raft groups or even the same Raft group. The same Raft group id
- * must be provided to all Raft nodes of a Raft group.
+ * Raft nodes are identified by [group id, node id] pairs. Multiple Raft groups
+ * can run in the same environment, distributed or even in a single JVM
+ * process, and they can be discriminated from each other with unique group
+ * ids. A single JVM process can run multiple Raft nodes that belong to
+ * different Raft groups or even the same Raft group.
  * <p>
  * Before a new Raft group is created, its initial member list must be decided.
  * Then, a Raft node is created for each one of its members. When a new member
- * is added to an existing Raft group later on, it must be initialized with
- * this initial member list as well.
+ * is added to an existing Raft group later on, its Raft node must be
+ * initialized with the same initial member list as well.
  * <p>
- * Status of a Raft node is {@link RaftNodeStatus#INITIAL} when it is created,
- * and it moves to {@link RaftNodeStatus#ACTIVE} and starts executing the Raft
+ * Status of a Raft node is {@link RaftNodeStatus#INITIAL} on creation, and it
+ * moves to {@link RaftNodeStatus#ACTIVE} and starts executing the Raft
  * consensus algorithm when {@link #start()} is called.
  * <p>
- * No further operations can be triggered on a Raft node after it leaves its
- * Raft group or the Raft group is gracefully terminated.
+ * No further operations can be triggered on a Raft node after it is terminated
+ * or leaves its Raft group.
  * <p>
- * A Raft node uses a {@link RaftNodeRuntime} object to offload the async task
- * execution, threading, and networking concerns, and a {@link StateMachine}
- * object for operation execution and snapshotting concerns.
+ * Raft nodes execute the Raft consensus algorithm with the Actor model.
+ * You can read about the Actor Model at the following link:
+ * https://en.wikipedia.org/wiki/Actor_model
+ * In this model, each Raft node runs in a single-threaded manner. It uses a
+ * {@link RaftNodeExecutor} to sequentially handle API calls and
+ * {@link RaftMessage} objects sent by other Raft nodes. The communication
+ * between Raft nodes are implemented with the message-passing approach and
+ * abstracted away with the {@link Transport} interface.
+ * <p>
+ * Raft nodes use {@link StateMachine} to execute queries and committed
+ * operations.
+ * <p>
+ * Last, Raft nodes use {@link RaftStore} to persist internal Raft state to
+ * stable storage to be able to recover from crashes.
  *
  * @author mdogan
  * @author metanet
+ * @see RaftNodeBuilder
  * @see RaftEndpoint
  * @see RaftRole
  * @see RaftNodeStatus
- * @see RaftNodeReport
+ * @see RaftNodeExecutor
+ * @see Transport
+ * @see StateMachine
+ * @see RaftStore
  */
 public interface RaftNode {
 
@@ -121,7 +138,7 @@ public interface RaftNode {
      * @return the locally known term information
      */
     @Nonnull
-    RaftGroupTerm getTerm();
+    RaftTerm getTerm();
 
     /**
      * Returns the current status of this Raft node.
@@ -363,33 +380,6 @@ public interface RaftNode {
     CompletableFuture<Ordered<Object>> transferLeadership(@Nonnull RaftEndpoint endpoint);
 
     /**
-     * Replicates and commits an internal operation to the Raft group to terminate
-     * the Raft group gracefully. Raft group termination is eternal and after this
-     * commit, no new operations can be ever committed. The Raft group termination
-     * process is committed like a regular operation, so all rules that are valid
-     * for {@link #replicate(Object)} also apply here.
-     * <p>
-     * After a Raft group is terminated, its Raft nodes stop running the Raft
-     * consensus algorithm.
-     * <p>
-     * If the termination process is completed successfully, the returned
-     * future is notified with an {@link Ordered} object that contains
-     * the final commit index of the Raft group.
-     * <p>
-     * The returned future can notified with {@link CannotReplicateException},
-     * {@link NotLeaderException}, or {@link IndeterminateStateException}.
-     *
-     * @return the future to be notified when the Raft group is terminated,
-     *         or with the execution if the termination fails
-     *
-     * @see CannotReplicateException
-     * @see NotLeaderException
-     * @see IndeterminateStateException
-     */
-    @Nonnull
-    CompletableFuture<Ordered<Object>> terminateGroup();
-
-    /**
      * Returns a report object that contains information about this Raft node's
      * local state related to the execution of the Raft consensus algorithm.
      *
@@ -461,9 +451,9 @@ public interface RaftNode {
          * <p>
          * {@link RestoredRaftState} is used during crash-recover scenarios to
          * recover a Raft node after a crash or a restart. Namely, when
-         * a {@link RestoredRaftState} is provided, the Raft node initializes
-         * its internal Raft state from this object and continues its operation
-         * as if it has not crashed.
+         * a {@link RestoredRaftState} is provided, the created Raft node
+         * initializes its internal Raft state from this object and continues
+         * its operation as if it has not crashed.
          * <p>
          * {@link #setLocalEndpoint(RaftEndpoint)} and
          * {@link #setInitialGroupMembers(Collection)} must not be called when
@@ -496,28 +486,45 @@ public interface RaftNode {
         RaftNodeBuilder setConfig(@Nonnull RaftConfig config);
 
         /**
-         * Sets the runtime object which will be used by the Raft node
-         * for task execution and networking.
+         * Sets the Raft node executor object to be used for running submitted
+         * and scheduled tasks.
+         * <p>
+         * If not set, {@link DefaultRaftNodeExecutor} is used.
          *
-         * @param runtime
-         *         the runtime object which will be used
-         *         by the Raft node for task execution and networking
+         * @param executor
+         *         the Raft node executor object to be used for running
+         *         submitted and scheduled tasks
          *
          * @return the builder object for fluent calls
          *
-         * @see RaftNodeRuntime
+         * @see RaftNodeExecutor
+         * @see DefaultRaftNodeExecutor
          */
         @Nonnull
-        RaftNodeBuilder setRuntime(@Nonnull RaftNodeRuntime runtime);
+        RaftNodeBuilder setExecutor(@Nonnull RaftNodeExecutor executor);
 
         /**
-         * Sets the state machine object which will be used by the Raft node
-         * for execution of the committed operations.
+         * Sets the transport object to be used for communicating with other
+         * Raft nodes.
+         *
+         * @param transport
+         *         the transport object to be used for communicating with other
+         *         Raft nodes
+         *
+         * @return the builder object for fluent calls
+         *
+         * @see Transport
+         */
+        @Nonnull
+        RaftNodeBuilder setTransport(@Nonnull Transport transport);
+
+        /**
+         * Sets the state machine object to be used for execution of queries
+         * and committed operations.
          *
          * @param stateMachine
-         *         the state machine object which will be used by
-         *         the Raft node for execution of the committed
-         *         operations
+         *         the state machine object which will be used for execution of
+         *         queries and committed operations
          *
          * @return the builder object for fluent calls
          *
@@ -527,15 +534,15 @@ public interface RaftNode {
         RaftNodeBuilder setStateMachine(@Nonnull StateMachine stateMachine);
 
         /**
-         * Sets the Raft state object to be used by the Raft node for
-         * persisting internal Raft state.
+         * Sets the Raft state object to be used for persisting internal Raft
+         * state to stable storage.
          * <p>
          * If not set, {@link NopRaftStore} is used which keeps the internal
          * Raft state in memory and disables crash-recover scenarios.
          *
          * @param store
-         *         the Raft state object to be used by the Raft node for
-         *         persisting internal Raft state
+         *         the Raft state object to be used for persisting internal
+         *         Raft state to stable storage.
          *
          * @return the builder object for fluent calls
          *
@@ -545,22 +552,37 @@ public interface RaftNode {
         RaftNodeBuilder setStore(@Nonnull RaftStore store);
 
         /**
-         * Sets the Raft model factory object to be used by the Raft node for
-         * creating Raft model objects.
+         * Sets the Raft model factory object to be used for creating Raft
+         * model objects.
          * <p>
          * If not set, {@link DefaultRaftModelFactory} is used.
          *
          * @param modelFactory
-         *         the factory object to be used by the Raft node
-         *         for creating Raft model objects
+         *         the factory object to be used for creating Raft model
+         *         objects
          *
          * @return the builder object for fluent calls
          *
          * @see RaftModelFactory
-         * @see RaftModel
+         * @see DefaultRaftModelFactory
          */
         @Nonnull
         RaftNodeBuilder setModelFactory(@Nonnull RaftModelFactory modelFactory);
+
+        /**
+         * Sets the Raft node report listener object to be notified about
+         * events related to the execution of the Raft consensus algorithm.
+         *
+         * @param listener
+         *         the Raft node report listener object to be notified about
+         *         events related to the execution of the Raft consensus
+         *         algorithm
+         *
+         * @return the builder object for fluent calls
+         *
+         * @see RaftNodeReportListener
+         */
+        RaftNodeBuilder setRaftNodeReportListener(@Nonnull RaftNodeReportListener listener);
 
         /**
          * Builds and returns the RaftNode instance with the given settings.

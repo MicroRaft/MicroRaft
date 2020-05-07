@@ -24,17 +24,15 @@ Let's crank up the engine!
 We will start with writing our 
 <a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftEndpoint.java" target="_blank">`RaftEndpoint`</a>, 
 <a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/statemachine/StateMachine.java" target="_blank">`StateMachine`</a> 
-and <a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/runtime/RaftNodeRuntime.java" target="_blank">`RaftNodeRuntime`</a> 
-classes. We also need implementations of 
+and <a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/transport/Transport.java" target="_blank">`Transport`</a> 
+classes. We can use the default implementations of
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/executor/RaftNodeExecutor.java" target="_blank">`RaftNodeExecutor`</a>, 
 <a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/RaftModel.java" target="_blank">`RaftModel`</a> 
 and <a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/RaftModelFactory.java" target="_blank">`RaftModelFactory`</a>
-The good news is, MicroRaft comes with a default POJO-style implementation of 
-these 2 abstractions under the 
-<a href="https://github.com/MicroRaft/MicroRaft/tree/master/microraft/src/main/java/io/microraft/model/impl" target="_blank">`io.microraft.model.impl`</a> 
-package. We will use the default implementation in this tutorial. Since all of
-our Raft nodes will run in the same JVM process, we also don't need any
-serialization logic. Last, we will also skip persistence. Our Raft nodes will 
-keep their state only in memory. 
+abstractions. Since all of our Raft nodes will run in the same JVM process, we 
+also don't need any serialization logic inside our `Transport` implementation. 
+Last, we will also skip persistence. Our Raft nodes will keep their state only
+in memory. 
 
 ### `RaftEndpoint`
 
@@ -80,25 +78,23 @@ You can also see this class in the
 <a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/atomicregister/AtomicRegister.java" target="_blank">MicroRaft Github repository</a>.
 
 
-### `RaftNodeRuntime`
+### `Transport`
 
 We are almost there to run our first test for bootstrapping a Raft group and
 electing a leader. The only missing piece is 
-<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/runtime/RaftNodeRuntime.java" target="_blank">`RaftNodeRuntime`</a>. 
-Recall that `RaftNodeRuntime` is responsible for executing the tasks submitted 
-by Raft nodes, and sending Raft messages to other Raft nodes (serialization and
-networking). Since our Raft nodes will run in a single JVM process in this
-tutorial, we will skip serialization. To mimic networking, we will keep a
-mapping of Raft endpoints to Raft nodes on each `RaftNodeRuntime` object and 
-deliver Raft messages to target Raft nodes by using this mapping. Last, we will 
-use a single-threaded `ScheduledExecutor` for task execution.
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/Transport/Transport.java" target="_blank">`Transport`</a>. 
+Recall that `Transport` is responsible for sending Raft messages to other Raft 
+nodes (serialization and networking). Since our Raft nodes will run in a single
+JVM process in this tutorial, we will skip serialization. To mimic networking, 
+we will keep a mapping of Raft endpoints to Raft nodes on each `Transport` 
+object and pass Raft messages to between Raft nodes by using this mapping.
 
-Our `LocalRaftNodeRuntime` class is shown below.
+Our `LocalTransport` class is shown below.
 
 <script src="https://gist.github.com/metanet/efac8da9b92529391729221625b1ea75.js"></script>
 
 You can also see this class in the 
-<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/LocalRaftNodeRuntime.java" target="_blank">MicroRaft Github repository</a>.
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/LocalTransport.java" target="_blank">MicroRaft Github repository</a>.
 
 
 ## 2. Bootstrapping the Raft group
@@ -132,7 +128,7 @@ starts the created Raft nodes. When a new Raft node is created, it does not
 know how to talk to the other Raft nodes. Therefore, we pass created Raft node 
 objects to `enableDiscovery()` to enable them to talk to each other. This 
 method just adds a given Raft node to the *discovery maps* of the 
-`LocalRaftNodeRuntime` objects that belong to another Raft nodes.
+`LocalTransport` objects of the other Raft nodes.
  
 Once we create a Raft node via 
 <a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNode.java" target="_blank">`RaftNodeBuilder`</a>, 
@@ -141,7 +137,7 @@ its initial status is
 and it does not execute the Raft consensus algorithm in this status. When 
 `RaftNode.start()` is called, its status becomes 
 <a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNodeStatus.java" target="_blank">`RaftNodeStatus.ACTIVE`</a> 
-and the Raft node internally submits a task via `LocalRaftNodeRuntime` to check 
+and the Raft node internally submits a task to its `RaftNodeExecutor` to check 
 if there is a leader. Since we are starting a new Raft group in this test, 
 obviously there is no leader yet so our Raft nodes will start a new leader
 election round.  
@@ -230,7 +226,7 @@ another Raft node could become the leader.
 Now it is time to implement the `set`, `compare-and-set`, and `get` operations
 we talked before for our atomic register state machine. We must ensure that 
 they are implemented in a deterministic way, because it is a fundamental
-requirement of the replicated state machines approach. MicroRaft guarantees
+requirement of the _replicated state machines_ approach. MicroRaft guarantees
 that each Raft node will execute committed operations in the same order and 
 since our operations run deterministically, we know that our state machines 
 will end up with the same state after they execute committed operations. 
@@ -422,11 +418,11 @@ for more details.
 
 We will make a little trick to demonstrate how to maintain the monotonicity of 
 the observed Raft group state for the *local query policies*. Recall that 
-`LocalRaftNodeRuntime` keeps a *discovery map* to send Raft messages to target 
+`LocalTransport` keeps a *discovery map* to send Raft messages to target 
 Raft nodes. When we create a new Raft node, we add it to the other Raft nodes' 
 *discovery maps*. This time, we will do exactly the reverse to block the 
 communication between the leader and the follower. Let's add the following 
-method to `LocalRaftNodeRuntime`:
+method to our `LocalTransport` class:
 
 ~~~~{.java}
 public void undiscoverNode(RaftNode node) {
@@ -498,9 +494,9 @@ We have the following test to demonstrate how snapshotting works in MicroRaft.
 In `createRaftNode()`, we configure our Raft nodes to take a new snapshot at 
 every 100 commits. Similar to what we did in the previous test, we block the 
 communication between the leader and a follower, and fill up the leader's Raft 
-log until it takes a snapshot. When we allow the leader to communicate with the 
-follower again, the follower catches up with the leader by transferring the 
-snapshot. 
+log with new commits until it takes a snapshot. When we allow the leader to 
+communicate with the follower again, the follower catches up with the leader by 
+transferring the snapshot. 
 
 <script src="https://gist.github.com/metanet/4565a0e995e64960f8f3248934d9c430.js"></script>
 
@@ -519,7 +515,7 @@ You can also see it in the
 
 Ok. We covered a lot of topics up until this part. There are only a few things
 left to discuss. In this part, we will see how we can perform changes in Raft 
-group member lists and monitor our Raft groups. 
+group member lists. 
 
 ### Changing the Raft group member list
 
@@ -605,28 +601,6 @@ New member list: [LocalRaftEndpoint{id=node1}, LocalRaftEndpoint{id=node2}, Loca
 Now we have 5 nodes in our Raft group and the majority is still 3. It means
 that now our Raft group can tolerate failure of 2 Raft nodes and still remain
 operational. Voila! 
-
-
-### Monitoring
-
-<a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/report/RaftNodeReport.java" target="_blank">`RaftNodeReport`</a> 
-class contains detailed information about internal state of a `RaftNode`, such 
-as its Raft role, term, leader, last log index, and commit index. MicroRaft 
-provides multiple mechanisms to monitor internal state of Raft nodes:
-
-1. We can build a simple pull-based system to query `RaftNodeReport` objects 
-via `RaftNode.getReport()` and publish those objects to any external monitoring 
-system. 
-
-2. `RaftNodeRuntime` contains a hook method, 
-`RaftNodeRuntime.handleRaftNodeReport()`, which is called by MicroRaft anytime 
-there is an important change in the internal state of a `RaftNode`, such as 
-leader change, term change, or snapshot installation. We can also use this 
-method to capture `RaftNodeReport` objects and notify external monitoring 
-systems promptly. 
-
-We have seen a lot of code samples until here. I am just leaving this part as
-an exercise to the reader.
 
 
 ## What's next?

@@ -37,7 +37,7 @@ import static java.util.Objects.requireNonNull;
  * @author mdogan
  * @author metanet
  */
-public final class LocalRaftEndpoint
+final class LocalRaftEndpoint
         implements RaftEndpoint {
 
     private static final AtomicInteger ID_GENERATOR = new AtomicInteger();
@@ -52,7 +52,7 @@ public final class LocalRaftEndpoint
      *
      * @return a new unique Raft endpoint
      */
-    public static LocalRaftEndpoint newEndpoint() {
+    static LocalRaftEndpoint newEndpoint() {
         return new LocalRaftEndpoint("node" + ID_GENERATOR.incrementAndGet());
     }
 

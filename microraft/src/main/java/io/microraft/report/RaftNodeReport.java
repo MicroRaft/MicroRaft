@@ -16,6 +16,8 @@
 
 package io.microraft.report;
 
+import io.microraft.RaftConfig;
+import io.microraft.RaftConfig.RaftConfigBuilder;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.RaftNodeStatus;
@@ -27,8 +29,21 @@ import javax.annotation.Nonnull;
 /**
  * Contains information about a Raft node's local state related
  * to the execution of the Raft consensus algorithm.
+ * <p>
+ * Raft node reports are published either periodically or when there is a
+ * change in the local state of a Raft node related to the Raft consensus
+ * algorithm. The duration of the periodic report publishing is configured
+ * via {@link RaftConfigBuilder#setRaftNodeReportPublishPeriodSecs(int)}.
  *
  * @author metanet
+ * @see RaftNodeReportListener
+ * @see RaftConfig
+ * @see RaftNodeReportReason
+ * @see RaftRole
+ * @see RaftNodeStatus
+ * @see RaftGroupMembers
+ * @see RaftTerm
+ * @see RaftLogStats
  */
 public interface RaftNodeReport {
 
@@ -114,7 +129,7 @@ public interface RaftNodeReport {
      * @return the locally known term information
      */
     @Nonnull
-    RaftGroupTerm getTerm();
+    RaftTerm getTerm();
 
     /**
      * Returns statistics about a Raft node's local Raft log.
@@ -128,6 +143,12 @@ public interface RaftNodeReport {
      * Denotes the reason for a given report
      */
     enum RaftNodeReportReason {
+
+        /**
+         * The report is created on a periodic reporting tick of
+         * the {@link RaftNode}.
+         */
+        PERIODIC,
 
         /**
          * The report is created when a {@link RaftNode} changes
@@ -160,15 +181,10 @@ public interface RaftNodeReport {
         INSTALL_SNAPSHOT,
 
         /**
-         * The report is created on a periodic reporting tick of
-         * the {@link RaftNode}.
-         */
-        PERIODIC,
-
-        /**
          * The report is created for a {@link RaftNode#getReport()} call.
          */
         API_CALL
+
     }
 
 }

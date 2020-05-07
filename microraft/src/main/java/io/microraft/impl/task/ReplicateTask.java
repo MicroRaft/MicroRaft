@@ -26,14 +26,12 @@ import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.log.RaftLog;
 import io.microraft.impl.state.RaftState;
 import io.microraft.impl.util.OrderedFuture;
-import io.microraft.model.groupop.TerminateRaftGroupOp;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp;
 import io.microraft.model.log.LogEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static io.microraft.RaftNodeStatus.INITIAL;
-import static io.microraft.RaftNodeStatus.TERMINATING_RAFT_GROUP;
 import static io.microraft.RaftNodeStatus.UPDATING_RAFT_GROUP_MEMBER_LIST;
 import static io.microraft.RaftNodeStatus.isTerminal;
 import static io.microraft.RaftRole.LEADER;
@@ -102,7 +100,7 @@ public final class ReplicateTask
                                      .setOperation(operation).build();
             log.appendEntry(entry);
 
-            preApplyGroupOp(newEntryLogIndex, operation);
+            prepareGroupOp(newEntryLogIndex, operation);
 
             raftNode.broadcastAppendEntriesRequest();
         } catch (Throwable t) {
@@ -127,10 +125,8 @@ public final class ReplicateTask
         return true;
     }
 
-    private void preApplyGroupOp(long logIndex, Object operation) {
-        if (operation instanceof TerminateRaftGroupOp) {
-            raftNode.setStatus(TERMINATING_RAFT_GROUP);
-        } else if (operation instanceof UpdateRaftGroupMembersOp) {
+    private void prepareGroupOp(long logIndex, Object operation) {
+        if (operation instanceof UpdateRaftGroupMembersOp) {
             raftNode.setStatus(UPDATING_RAFT_GROUP_MEMBER_LIST);
             raftNode.updateGroupMembers(logIndex, ((UpdateRaftGroupMembersOp) operation).getMembers());
         }

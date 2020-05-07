@@ -21,7 +21,6 @@ import io.microraft.RaftEndpoint;
 import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.log.RaftLog;
 import io.microraft.model.groupop.RaftGroupOp;
-import io.microraft.model.groupop.TerminateRaftGroupOp;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.message.AppendEntriesFailureResponse;
@@ -37,7 +36,6 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import static io.microraft.RaftNodeStatus.ACTIVE;
-import static io.microraft.RaftNodeStatus.TERMINATING_RAFT_GROUP;
 import static io.microraft.RaftNodeStatus.UPDATING_RAFT_GROUP_MEMBER_LIST;
 import static io.microraft.RaftRole.FOLLOWER;
 import static java.lang.Math.min;
@@ -255,9 +253,7 @@ public class AppendEntriesRequestHandler
                   .filter(logEntry -> logEntry.getIndex() > commitIndex && logEntry.getOperation() instanceof RaftGroupOp)
                   .findFirst().ifPresent(logEntry -> {
             Object operation = logEntry.getOperation();
-            if (operation instanceof TerminateRaftGroupOp) {
-                node.setStatus(TERMINATING_RAFT_GROUP);
-            } else if (operation instanceof UpdateRaftGroupMembersOp) {
+            if (operation instanceof UpdateRaftGroupMembersOp) {
                 node.setStatus(UPDATING_RAFT_GROUP_MEMBER_LIST);
                 node.updateGroupMembers(logEntry.getIndex(), ((UpdateRaftGroupMembersOp) operation).getMembers());
             } else {

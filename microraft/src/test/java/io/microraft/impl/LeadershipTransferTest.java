@@ -41,6 +41,7 @@ import static io.microraft.impl.local.SimpleStateMachine.applyValue;
 import static io.microraft.test.util.RaftTestUtils.getRole;
 import static io.microraft.test.util.RaftTestUtils.getTerm;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author mdogan
@@ -68,15 +69,14 @@ public class LeadershipTransferTest
     }
 
     @Test(timeout = 300_000)
-    public void when_leaderTransfersLeadershipToNull_then_leadershipTransferFails()
-            throws Exception {
+    public void when_leaderTransfersLeadershipToNull_then_leadershipTransferFails() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
         try {
-            leader.transferLeadership(null).get();
-        } catch (ExecutionException e) {
-            assertThat(e).hasCauseInstanceOf(IllegalArgumentException.class);
+            leader.transferLeadership(null);
+            fail("Cannot transfer leadership to null endpoint");
+        } catch (NullPointerException ignored) {
         }
     }
 

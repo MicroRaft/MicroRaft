@@ -31,9 +31,9 @@ public final class RaftLogStatsImpl
         implements RaftLogStats {
 
     private final long commitIndex;
-    private final long lastLogOrSnapshotTerm;
+    private final int lastLogOrSnapshotTerm;
     private final long lastLogOrSnapshotIndex;
-    private final long snapshotTerm;
+    private final int snapshotTerm;
     private final long snapshotIndex;
     private final int takeSnapshotCount;
     private final int installSnapshotCount;
@@ -57,7 +57,7 @@ public final class RaftLogStatsImpl
     }
 
     @Override
-    public long getLastLogOrSnapshotTerm() {
+    public int getLastLogOrSnapshotTerm() {
         return lastLogOrSnapshotTerm;
     }
 
@@ -67,7 +67,7 @@ public final class RaftLogStatsImpl
     }
 
     @Override
-    public long getLastSnapshotTerm() {
+    public int getLastSnapshotTerm() {
         return snapshotTerm;
     }
 

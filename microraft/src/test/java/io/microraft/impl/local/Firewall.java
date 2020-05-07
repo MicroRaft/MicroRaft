@@ -35,7 +35,7 @@ import static java.util.Collections.newSetFromMap;
  *
  * @author metanet
  */
-public class Firewall {
+class Firewall {
 
     private final Set<DropRule> dropRules = newSetFromMap(new ConcurrentHashMap<>());
     private final Map<RaftEndpoint, Function<RaftMessage, RaftMessage>> alterFunctions = new ConcurrentHashMap<>();

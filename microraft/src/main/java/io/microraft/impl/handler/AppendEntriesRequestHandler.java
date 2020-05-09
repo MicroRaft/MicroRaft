@@ -82,7 +82,7 @@ public class AppendEntriesRequestHandler
                 LOGGER.warn(localEndpointStr() + " Stale " + request + " received in current term: " + state.term());
             }
 
-            node.send(createAppendEntriesFailureResponse(state.term(), 0, 0), leader);
+            node.send(leader, createAppendEntriesFailureResponse(state.term(), 0, 0));
             return;
         }
 
@@ -106,7 +106,7 @@ public class AppendEntriesRequestHandler
         if (!verifyLastLogEntry(request, log)) {
             RaftMessage response = createAppendEntriesFailureResponse(request.getTerm(), request.getQuerySeqNo(),
                                                                       request.getFlowControlSeqNo());
-            node.send(response, leader);
+            node.send(leader, response);
             return;
         }
 
@@ -129,7 +129,7 @@ public class AppendEntriesRequestHandler
                                                .setSender(localEndpoint()).setTerm(state.term()).setLastLogIndex(lastLogIndex)
                                                .setQuerySeqNo(request.getQuerySeqNo())
                                                .setFlowControlSeqNo(request.getFlowControlSeqNo()).build();
-            node.send(response, leader);
+            node.send(leader, response);
         } finally {
             if (state.commitIndex() > oldCommitIndex) {
                 node.applyLogEntries();

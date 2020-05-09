@@ -60,6 +60,7 @@ import io.microraft.impl.task.RaftNodeStatusAwareTask;
 import io.microraft.impl.task.ReplicateTask;
 import io.microraft.impl.util.Long2ObjectHashMap;
 import io.microraft.impl.util.OrderedFuture;
+import io.microraft.lifecycle.RaftNodeLifecycleAware;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.model.groupop.RaftGroupOp;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp;
@@ -120,6 +121,7 @@ import static io.microraft.model.log.SnapshotEntry.isNonInitial;
 import static java.lang.Math.min;
 import static java.util.Arrays.sort;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.shuffle;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -165,7 +167,9 @@ public final class RaftNodeImpl
     private final Runnable leaderBackoffResetTask;
     private final Runnable leaderFlushTask;
 
-    private final List<RaftNodeReportListener> raftNodeReportListeners = new ArrayList<>();
+    private final List<RaftNodeLifecycleAware> lifecycleAwareComponents = new ArrayList<>();
+    private final List<RaftNodeLifecycleAware> startedLifecycleAwareComponents = new ArrayList<>();
+    private final RaftNodeReportListener raftNodeReportListener;
 
     private long lastLeaderHeartbeatTimestamp;
     private volatile RaftNodeStatus status = INITIAL;
@@ -183,7 +187,7 @@ public final class RaftNodeImpl
         this.executor = requireNonNull(executor);
         this.stateMachine = requireNonNull(stateMachine);
         this.modelFactory = requireNonNull(modelFactory);
-        populateRaftNodeReportListeners(raftNodeReportListener);
+        this.raftNodeReportListener = requireNonNull(raftNodeReportListener);
         this.config = requireNonNull(config);
         this.localEndpointStr = localEndpoint.getId() + "<" + groupId + ">";
         this.leaderHeartbeatTimeoutMillis = SECONDS.toMillis(config.getLeaderHeartbeatTimeoutSecs());
@@ -200,6 +204,7 @@ public final class RaftNodeImpl
         } else {
             this.leaderFlushTask = new LeaderFlushTask();
         }
+        populateLifecycleAwareComponents(store);
     }
 
     @SuppressWarnings("checkstyle:executablestatementcount")
@@ -212,7 +217,7 @@ public final class RaftNodeImpl
         this.executor = requireNonNull(executor);
         this.stateMachine = requireNonNull(stateMachine);
         this.modelFactory = requireNonNull(modelFactory);
-        populateRaftNodeReportListeners(raftNodeReportListener);
+        this.raftNodeReportListener = requireNonNull(raftNodeReportListener);
         this.config = requireNonNull(config);
         this.localEndpointStr = restoredState.getLocalEndpoint().getId() + "<" + groupId + ">";
         this.leaderHeartbeatTimeoutMillis = SECONDS.toMillis(config.getLeaderHeartbeatTimeoutSecs());
@@ -229,18 +234,17 @@ public final class RaftNodeImpl
         } else {
             this.leaderFlushTask = new LeaderFlushTask();
         }
+        populateLifecycleAwareComponents(store);
     }
 
-    private void populateRaftNodeReportListeners(RaftNodeReportListener raftNodeReportListener) {
-        if (raftNodeReportListener != null) {
-            this.raftNodeReportListeners.add(raftNodeReportListener);
-        }
-
-        for (Object listener : Arrays.asList(executor, transport, stateMachine)) {
-            if (listener instanceof RaftNodeReportListener) {
-                raftNodeReportListeners.add((RaftNodeReportListener) listener);
+    private void populateLifecycleAwareComponents(RaftStore store) {
+        for (Object component : Arrays.asList(executor, transport, stateMachine, store, modelFactory, raftNodeReportListener)) {
+            if (component instanceof RaftNodeLifecycleAware) {
+                lifecycleAwareComponents.add((RaftNodeLifecycleAware) component);
             }
         }
+
+        shuffle(lifecycleAwareComponents);
     }
 
     private int getMaxBackoffRounds(RaftConfig config) {
@@ -346,11 +350,11 @@ public final class RaftNodeImpl
     }
 
     private void scheduleRaftStateSummaryPublishTask() {
-        schedule(new RaftStateSummaryPublishTask(), SECONDS.toMillis(config.getRaftNodeReportPublishPeriodSecs()));
+        executor.schedule(new RaftStateSummaryPublishTask(), config.getRaftNodeReportPublishPeriodSecs(), SECONDS);
     }
 
     private void scheduleHeartbeatTask() {
-        schedule(new HeartbeatTask(), SECONDS.toMillis(config.getLeaderHeartbeatPeriodSecs()));
+        executor.schedule(new HeartbeatTask(), config.getLeaderHeartbeatPeriodSecs(), SECONDS);
     }
 
     public void sendSnapshotChunk(RaftEndpoint follower, long snapshotIndex, int requestedSnapshotChunkIndex) {
@@ -404,7 +408,7 @@ public final class RaftNodeImpl
                                           .setQuerySeqNo(leaderState != null ? leaderState.querySeqNo() : 0)
                                           .setFlowControlSeqNo(followerState != null ? enableBackoff(followerState) : 0).build();
 
-        transport.send(follower, request);
+        send(follower, request);
 
         if (followerState != null) {
             scheduleLeaderRequestBackoffResetTask(leaderState);
@@ -503,10 +507,11 @@ public final class RaftNodeImpl
 
             Throwable failure = null;
             try {
+                startComponents();
                 initRestoredState();
-                state.init();
+                // TODO [basri] we don't need this call if we restored the Raft node
+                state.persistInitialMembers();
 
-                executor.submit(new PreVoteTask(RaftNodeImpl.this, 0));
                 scheduleHeartbeatTask();
                 scheduleRaftStateSummaryPublishTask();
 
@@ -517,11 +522,14 @@ public final class RaftNodeImpl
                 }
 
                 LOGGER.info("{} started.", localEndpointStr);
+
+                runPreVote();
             } catch (Throwable t) {
                 failure = t;
                 LOGGER.error(localEndpointStr + " could not start", t);
 
                 setStatus(TERMINATED);
+                terminateComponents();
             } finally {
                 if (failure == null) {
                     future.completeNull(state.commitIndex());
@@ -534,9 +542,26 @@ public final class RaftNodeImpl
         return future;
     }
 
+    private void startComponents() {
+        for (RaftNodeLifecycleAware component : lifecycleAwareComponents) {
+            startedLifecycleAwareComponents.add(component);
+            component.onRaftNodeStart();
+        }
+    }
+
+    private void terminateComponents() {
+        for (RaftNodeLifecycleAware component : startedLifecycleAwareComponents) {
+            try {
+                component.onRaftNodeTerminate();
+            } catch (Throwable t) {
+                LOGGER.error(localEndpointStr + " failure during termination of " + component, t);
+            }
+        }
+    }
+
     @Nonnull
     @Override
-    public CompletableFuture terminate() {
+    public CompletableFuture<Ordered<Object>> terminate() {
         if (isTerminal(status)) {
             return CompletableFuture.completedFuture(null);
         }
@@ -550,8 +575,9 @@ public final class RaftNodeImpl
             }
 
             Throwable failure = null;
+            boolean shouldTerminate = (status != INITIAL);
             try {
-                if (status != INITIAL) {
+                if (shouldTerminate) {
                     invalidateFuturesFrom(state.commitIndex() + 1, newIndeterminateStateException(null));
 
                     LeaderState leaderState = state.leaderState();
@@ -571,6 +597,10 @@ public final class RaftNodeImpl
                     setStatus(TERMINATED);
                 }
             } finally {
+                if (shouldTerminate) {
+                    terminateComponents();
+                }
+
                 if (failure == null) {
                     future.completeNull(state.commitIndex());
                 } else {
@@ -583,6 +613,7 @@ public final class RaftNodeImpl
     }
 
     @Override
+    @SuppressWarnings("checkstyle:cyclomaticcomplexity")
     public void handle(@Nonnull RaftMessage message) {
         if (isTerminal(status)) {
             LOGGER.warn("{} will not handle {} because {}", localEndpointStr, message, status);
@@ -614,7 +645,13 @@ public final class RaftNodeImpl
             throw new IllegalArgumentException("Invalid Raft msg: " + message);
         }
 
-        executor.execute(handler);
+        try {
+            executor.execute(handler);
+        } catch (Throwable t) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.error(localEndpointStr + " could not handle " + message, t);
+            }
+        }
     }
 
     @Nonnull
@@ -702,13 +739,9 @@ public final class RaftNodeImpl
      */
     private void scheduleLeaderRequestBackoffResetTask(LeaderState leaderState) {
         if (!leaderState.isRequestBackoffResetTaskScheduled()) {
+            executor.schedule(leaderBackoffResetTask, LEADER_BACKOFF_RESET_TASK_PERIOD_MILLIS, MILLISECONDS);
             leaderState.requestBackoffResetTaskScheduled(true);
-            schedule(leaderBackoffResetTask, LEADER_BACKOFF_RESET_TASK_PERIOD_MILLIS);
         }
-    }
-
-    private void schedule(Runnable task, long delayMillis) {
-        executor.schedule(task, delayMillis, MILLISECONDS);
     }
 
     public RaftNodeExecutor getExecutor() {
@@ -767,7 +800,7 @@ public final class RaftNodeImpl
 
         long logIndex = entry.getIndex();
         Object operation = entry.getOperation();
-        Object response = null;
+        Object response;
 
         if (operation instanceof RaftGroupOp) {
             if (operation instanceof UpdateRaftGroupMembersOp) {
@@ -1027,16 +1060,10 @@ public final class RaftNodeImpl
             LOGGER.info(sb.toString());
         }
 
-        invokeRaftNodeReportListeners(report);
-    }
-
-    private void invokeRaftNodeReportListeners(RaftNodeReport report) {
-        for (RaftNodeReportListener listener : raftNodeReportListeners) {
-            try {
-                listener.accept(report);
-            } catch (Throwable t) {
-                LOGGER.error(localEndpointStr + "'s listener: " + listener + " failed for " + report, t);
-            }
+        try {
+            raftNodeReportListener.accept(report);
+        } catch (Throwable t) {
+            LOGGER.error(localEndpointStr + "'s listener: " + raftNodeReportListener + " failed for " + report, t);
         }
     }
 
@@ -1132,7 +1159,7 @@ public final class RaftNodeImpl
                                 + " <= snapshot index: " + log.snapshotIndex());
             }
 
-            transport.send(follower, request);
+            send(follower, request);
             scheduleLeaderRequestBackoffResetTask(leaderState);
 
             return;
@@ -1193,7 +1220,7 @@ public final class RaftNodeImpl
             LOGGER.debug(localEndpointStr + " Sending " + request + " to " + follower.getId() + " with next index: " + nextIndex);
         }
 
-        send(request, follower);
+        send(follower, request);
 
         if (backoff) {
             scheduleLeaderRequestBackoffResetTask(leaderState);
@@ -1236,8 +1263,16 @@ public final class RaftNodeImpl
     /**
      * Sends the given Raft message to the given Raft endpoint.
      */
-    public void send(RaftMessage message, RaftEndpoint target) {
-        transport.send(target, message);
+    public void send(RaftEndpoint target, RaftMessage message) {
+        try {
+            transport.send(target, message);
+        } catch (Throwable t) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.error("Could not send " + message + " to " + target, t);
+            } else {
+                LOGGER.error("Could not send " + message.getClass().getSimpleName() + " to " + target, t);
+            }
+        }
     }
 
     private void submitLeaderFlushTask(LeaderState leaderState) {
@@ -1245,8 +1280,8 @@ public final class RaftNodeImpl
             return;
         }
 
-        leaderState.flushTaskSubmitted(true);
         executor.submit(leaderFlushTask);
+        leaderState.flushTaskSubmitted(true);
     }
 
     private void appendNewTermEntry() {
@@ -1280,9 +1315,9 @@ public final class RaftNodeImpl
                                           .setTerm(state.term()).setLastLogTerm(lastLogEntry.getTerm())
                                           .setLastLogIndex(lastLogEntry.getIndex()).setSticky(sticky).build();
 
-        state.remoteMembers().forEach(member -> send(request, member));
+        state.remoteMembers().forEach(member -> send(member, request));
 
-        schedule(new LeaderElectionTimeoutTask(this), getLeaderElectionTimeoutMs());
+        executor.schedule(new LeaderElectionTimeoutTask(this), getLeaderElectionTimeoutMs(), MILLISECONDS);
     }
 
     /**
@@ -1313,9 +1348,9 @@ public final class RaftNodeImpl
         LOGGER.info("{} Pre-vote started for next term: {}, last log index: {}, last log term: {}", localEndpointStr, nextTerm,
                     entry.getIndex(), entry.getTerm());
 
-        state.remoteMembers().forEach(member -> send(request, member));
+        state.remoteMembers().forEach(member -> send(member, request));
 
-        schedule(new PreVoteTimeoutTask(this, state.term()), getLeaderElectionTimeoutMs());
+        executor.schedule(new PreVoteTimeoutTask(this, state.term()), getLeaderElectionTimeoutMs(), MILLISECONDS);
     }
 
     public RaftException newCannotReplicateException() {
@@ -1392,7 +1427,7 @@ public final class RaftNodeImpl
         if (state.commitIndex() < state.log().lastLogOrSnapshotIndex()) {
             LOGGER.warn("{} waiting until all appended entries to be committed before transferring leadership to {}",
                         localEndpointStr, targetEndpoint.getId());
-            schedule(this::transferLeadership, SECONDS.toMillis(config.getLeaderHeartbeatPeriodSecs()));
+            executor.schedule(this::transferLeadership, config.getLeaderHeartbeatPeriodSecs(), SECONDS);
             return;
         }
 
@@ -1409,9 +1444,9 @@ public final class RaftNodeImpl
         RaftMessage request = modelFactory.createTriggerLeaderElectionRequestBuilder().setGroupId(getGroupId())
                                           .setSender(getLocalEndpoint()).setTerm(state.term()).setLastLogTerm(entry.getTerm())
                                           .setLastLogIndex(entry.getIndex()).build();
-        send(request, targetEndpoint);
+        send(targetEndpoint, request);
 
-        schedule(this::transferLeadership, SECONDS.toMillis(config.getLeaderHeartbeatPeriodSecs()));
+        executor.schedule(this::transferLeadership, config.getLeaderHeartbeatPeriodSecs(), SECONDS);
     }
 
     private long findQuorumMatchIndex() {
@@ -1608,7 +1643,6 @@ public final class RaftNodeImpl
 
         if (committedEntry != null) {
             state.commitIndex(committedEntry.getIndex());
-            // TODO [basri] can / should we call takeSnapshot() here ???
             applyLogEntries();
         }
 
@@ -1692,6 +1726,10 @@ public final class RaftNodeImpl
         return new IndeterminateStateException(leader);
     }
 
+    void runPreVote() {
+        new PreVoteTask(this, state.term()).run();
+    }
+
     public static class RaftNodeBuilderImpl
             implements RaftNodeBuilder {
 
@@ -1700,13 +1738,13 @@ public final class RaftNodeImpl
         private Collection<RaftEndpoint> initialGroupMembers;
         private RestoredRaftState restoredState;
         private RaftConfig config = DEFAULT_RAFT_CONFIG;
-        private RaftNodeExecutor executor;
+        private RaftNodeExecutor executor = new DefaultRaftNodeExecutor();
         private Transport transport;
         private StateMachine stateMachine;
         private RaftNodeReportListener listener = report -> {
         };
-        private RaftStore store = NopRaftStore.INSTANCE;
-        private RaftModelFactory modelFactory = DefaultRaftModelFactory.INSTANCE;
+        private RaftStore store = new NopRaftStore();
+        private RaftModelFactory modelFactory = new DefaultRaftModelFactory();
         private boolean done;
 
         @Nonnull
@@ -1757,12 +1795,14 @@ public final class RaftNodeImpl
             return this;
         }
 
+        @Nonnull
         @Override
         public RaftNodeBuilder setExecutor(@Nonnull RaftNodeExecutor executor) {
             this.executor = requireNonNull(executor);
             return this;
         }
 
+        @Nonnull
         @Override
         public RaftNodeBuilder setTransport(@Nonnull Transport transport) {
             this.transport = requireNonNull(transport);
@@ -1809,10 +1849,6 @@ public final class RaftNodeImpl
                         "Either local Raft endpoint and initial Raft group members, or restored state " + "must be provided!");
             }
 
-            if (executor == null) {
-                executor = new DefaultRaftNodeExecutor(localEndpoint != null ? localEndpoint : restoredState.getLocalEndpoint());
-            }
-
             done = true;
             if (restoredState != null) {
                 return new RaftNodeImpl(groupId, restoredState, config, executor, stateMachine, transport, modelFactory, listener,
@@ -1853,7 +1889,7 @@ public final class RaftNodeImpl
                     if (state.role() == FOLLOWER && state.preCandidateState() == null) {
                         LOGGER.warn("{} We are FOLLOWER and there is no current leader. Will start new election round",
                                     localEndpointStr);
-                        triggerPreVote();
+                        runPreVote();
                     }
                 } else if (isLeaderHeartbeatTimeoutElapsed() && state.preCandidateState() == null) {
                     LOGGER.warn("{} Current leader {}'s heartbeats are timed-out. Will start new election round.",
@@ -1871,11 +1907,7 @@ public final class RaftNodeImpl
 
         void resetLeaderAndTriggerPreVote() {
             leader(null);
-            triggerPreVote();
-        }
-
-        void triggerPreVote() {
-            new PreVoteTask(RaftNodeImpl.this, state.term()).run();
+            runPreVote();
         }
 
     }

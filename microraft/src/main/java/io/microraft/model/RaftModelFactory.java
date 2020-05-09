@@ -17,6 +17,7 @@
 package io.microraft.model;
 
 import io.microraft.RaftNode;
+import io.microraft.lifecycle.RaftNodeLifecycleAware;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp.UpdateRaftGroupMembersOpBuilder;
 import io.microraft.model.impl.DefaultRaftModelFactory;
 import io.microraft.model.log.LogEntry.LogEntryBuilder;
@@ -45,6 +46,13 @@ import javax.annotation.Nonnull;
  * {@link DefaultRaftModelFactory} is used. {@link RaftModel} objects created
  * by a Raft model factory implementation are passed to {@link Transport} for
  * networking, and {@link RaftStore} for persistence.
+ * <p>
+ * A {@link RaftModelFactory} implementation can implement
+ * {@link RaftNodeLifecycleAware} to perform initialization and clean up work
+ * during {@link RaftNode} startup and termination. {@link RaftNode} calls
+ * {@link RaftNodeLifecycleAware#onRaftNodeStart()} before calling any other
+ * method on {@link RaftModelFactory}, and finally calls
+ * {@link RaftNodeLifecycleAware#onRaftNodeTerminate()} on termination.
  *
  * @author metanet
  */

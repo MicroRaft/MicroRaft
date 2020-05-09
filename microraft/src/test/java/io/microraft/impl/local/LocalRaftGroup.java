@@ -190,7 +190,7 @@ public final class LocalRaftGroup {
         LocalRaftEndpoint endpoint = LocalRaftEndpoint.newEndpoint();
         LocalTransport transport = new LocalTransport(endpoint);
         SimpleStateMachine stateMachine = new SimpleStateMachine(newTermEntryEnabled);
-        RaftStore raftStore = raftStoreFactory != null ? raftStoreFactory.apply(endpoint, config) : NopRaftStore.INSTANCE;
+        RaftStore raftStore = raftStoreFactory != null ? raftStoreFactory.apply(endpoint, config) : new NopRaftStore();
         RaftNodeImpl node = (RaftNodeImpl) RaftNode.newBuilder().setGroupId("default").setLocalEndpoint(endpoint)
                                                    .setInitialGroupMembers(initialMembers).setConfig(config)
                                                    .setTransport(transport).setStateMachine(stateMachine).setStore(raftStore)
@@ -719,10 +719,9 @@ public final class LocalRaftGroup {
      *         if there is no running Raft node with the given endpoint
      */
     public void terminateNode(RaftEndpoint endpoint) {
-        requireNonNull(endpoint);
-
-        RaftNodeContext ctx = nodeContexts.get(endpoint);
-        requireNonNull(endpoint);
+        RaftNodeContext ctx = nodeContexts.get(requireNonNull(endpoint));
+        requireNonNull(ctx);
+        ctx.node.terminate().join();
         splitMembers(ctx.getLocalEndpoint());
         ctx.executor.getExecutor().shutdown();
         nodeContexts.remove(endpoint);
@@ -733,7 +732,7 @@ public final class LocalRaftGroup {
      */
     public static final class LocalRaftGroupBuilder {
 
-        private int groupSize;
+        private final int groupSize;
         private RaftConfig config = DEFAULT_RAFT_CONFIG;
         private boolean newTermOperationEnabled;
         private BiFunction<RaftEndpoint, RaftConfig, RaftStore> raftStoreFactory;

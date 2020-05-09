@@ -17,9 +17,7 @@
 package io.microraft.report;
 
 import io.microraft.RaftNode;
-import io.microraft.executor.RaftNodeExecutor;
-import io.microraft.statemachine.StateMachine;
-import io.microraft.transport.Transport;
+import io.microraft.lifecycle.RaftNodeLifecycleAware;
 
 import java.util.function.Consumer;
 
@@ -27,12 +25,15 @@ import java.util.function.Consumer;
  * Used for informing external systems about events related to the execution of
  * the Raft consensus algorithm.
  * <p>
- * {@link RaftNodeExecutor}, {@link Transport}, and {@link StateMachine}
- * implementations can also implement this interface, and get notified about
- * lifecycle events.
+ * Called when term, role, status, known leader, or member list of the Raft
+ * node changes.
  * <p>
- * Called when term, role, status, known leader, or member list
- * of the Raft node changes.
+ * A {@link RaftNodeReportListener} implementation can implement
+ * {@link RaftNodeLifecycleAware} to perform initialization and clean up work
+ * during {@link RaftNode} startup and termination. {@link RaftNode} calls
+ * {@link RaftNodeLifecycleAware#onRaftNodeStart()} before calling any other
+ * method on {@link RaftNodeReportListener}, and finally calls
+ * {@link RaftNodeLifecycleAware#onRaftNodeTerminate()} on termination.
  *
  * @author metanet
  * @see RaftNodeReport

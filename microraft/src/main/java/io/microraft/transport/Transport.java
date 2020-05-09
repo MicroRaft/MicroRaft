@@ -19,10 +19,10 @@ package io.microraft.transport;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.executor.RaftNodeExecutor;
+import io.microraft.lifecycle.RaftNodeLifecycleAware;
 import io.microraft.model.RaftModel;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.model.message.RaftMessage;
-import io.microraft.report.RaftNodeReportListener;
 
 import javax.annotation.Nonnull;
 
@@ -36,9 +36,12 @@ import javax.annotation.Nonnull;
  * Transport implementations must be able to serialize {@link RaftMessage}
  * objects created by {@link RaftModelFactory}.
  * <p>
- * Its implementations can also implement {@link RaftNodeReportListener} to
- * get notified about lifecycle events related to the execution of the Raft
- * consensus algorithm.
+ * A {@link Transport} implementation can implement
+ * {@link RaftNodeLifecycleAware} to perform initialization and clean up work
+ * during {@link RaftNode} startup and termination. {@link RaftNode} calls
+ * {@link RaftNodeLifecycleAware#onRaftNodeStart()} before calling any other
+ * method on {@link Transport}, and finally calls
+ * {@link RaftNodeLifecycleAware#onRaftNodeTerminate()} on termination.
  *
  * @author mdogan
  * @author metanet
@@ -47,7 +50,7 @@ import javax.annotation.Nonnull;
  * @see RaftModelFactory
  * @see RaftNode
  * @see RaftNodeExecutor
- * @see RaftNodeReportListener
+ * @see RaftNodeLifecycleAware
  */
 public interface Transport {
 

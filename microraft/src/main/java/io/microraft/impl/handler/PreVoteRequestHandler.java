@@ -72,7 +72,7 @@ public class PreVoteRequestHandler
         // Reply false if term < currentTerm (§5.1)
         if (state.term() > nextTerm) {
             LOGGER.info("{} Rejecting {} since current term: {} is bigger.", localEndpointStr(), request, state.term());
-            node.send(responseBuilder.setTerm(state.term()).setGranted(false).build(), candidate);
+            node.send(candidate, responseBuilder.setTerm(state.term()).setGranted(false).build());
             if (state.leaderState() != null) {
                 node.sendAppendEntriesRequest(candidate);
             }
@@ -83,7 +83,7 @@ public class PreVoteRequestHandler
         // Reply false if last AppendEntries call was received recently (leader stickiness)
         if (state.leaderState() != null || !node.isLeaderHeartbeatTimeoutElapsed()) {
             LOGGER.info("{} Rejecting {} since the leader is still alive...", localEndpointStr(), request);
-            node.send(responseBuilder.setTerm(state.term()).setGranted(false).build(), candidate);
+            node.send(candidate, responseBuilder.setTerm(state.term()).setGranted(false).build());
             return;
         }
 
@@ -91,19 +91,19 @@ public class PreVoteRequestHandler
         if (lastLogEntry.getTerm() > request.getLastLogTerm()) {
             LOGGER.info("{} Rejecting {} since our last log term: {} is greater.", localEndpointStr(), request,
                         lastLogEntry.getTerm());
-            node.send(responseBuilder.setTerm(nextTerm).setGranted(false).build(), candidate);
+            node.send(candidate, responseBuilder.setTerm(nextTerm).setGranted(false).build());
             return;
         }
 
         if (lastLogEntry.getTerm() == request.getLastLogTerm() && lastLogEntry.getIndex() > request.getLastLogIndex()) {
             LOGGER.info("{} Rejecting {} since our last log index: {} is greater.", localEndpointStr(), request,
                         lastLogEntry.getIndex());
-            node.send(responseBuilder.setTerm(nextTerm).setGranted(false).build(), candidate);
+            node.send(candidate, responseBuilder.setTerm(nextTerm).setGranted(false).build());
             return;
         }
 
         LOGGER.info("{} Granted pre-vote for {}", localEndpointStr(), request);
-        node.send(responseBuilder.setTerm(nextTerm).setGranted(true).build(), candidate);
+        node.send(candidate, responseBuilder.setTerm(nextTerm).setGranted(true).build());
     }
 
 }

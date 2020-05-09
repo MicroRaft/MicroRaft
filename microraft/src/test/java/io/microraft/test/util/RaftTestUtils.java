@@ -83,7 +83,7 @@ public final class RaftTestUtils {
             }
 
             FutureTask<T> futureTask = new FutureTask<>(task);
-            executor.execute(futureTask);
+            executor.submit(futureTask);
 
             return futureTask.get();
         } catch (Exception e) {

@@ -55,10 +55,6 @@ public final class InMemoryRaftStore
     }
 
     @Override
-    public synchronized void open() {
-    }
-
-    @Override
     public synchronized void persistInitialMembers(@Nonnull RaftEndpoint localEndpoint,
                                                    @Nonnull Collection<RaftEndpoint> initialMembers) {
         this.localEndpoint = localEndpoint;
@@ -106,10 +102,6 @@ public final class InMemoryRaftStore
 
     @Override
     public synchronized void flush() {
-    }
-
-    @Override
-    public synchronized void close() {
     }
 
     public synchronized RestoredRaftState toRestoredRaftState() {

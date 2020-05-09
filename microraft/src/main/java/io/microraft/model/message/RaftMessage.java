@@ -19,6 +19,7 @@ package io.microraft.model.message;
 
 import io.microraft.RaftEndpoint;
 import io.microraft.model.RaftModel;
+import io.microraft.model.RaftModelFactory;
 
 import javax.annotation.Nonnull;
 
@@ -29,9 +30,13 @@ import javax.annotation.Nonnull;
  * <p>
  * Raft message implementations must be treated as immutable and once
  * a Raft message object is created its contents must not be mutated.
+ * <p>
+ * {@link RaftMessage} objects are created by {@link RaftModelFactory}.
  *
  * @author mdogan
  * @author metanet
+ * @see RaftModel
+ * @see RaftModelFactory
  */
 public interface RaftMessage
         extends RaftModel {

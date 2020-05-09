@@ -21,7 +21,7 @@ You can see MicroRaft's configuration parameters below:
 Duration of leader election rounds in milliseconds. If a candidate cannot win 
 majority votes before this timeout elapses, a new leader election round is 
 started. See "Section 5.2: Leader Election" in the 
-[Raft paper]((https://raft.github.io/raft.pdf)) for more details about how 
+[Raft paper](https://raft.github.io/raft.pdf)) for more details about how 
 leader elections work in Raft.
 
 * __Leader heartbeat timeout seconds:__ 

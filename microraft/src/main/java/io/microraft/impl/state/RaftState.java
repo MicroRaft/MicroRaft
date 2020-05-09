@@ -182,7 +182,7 @@ public final class RaftState {
 
     public static RaftState create(Object groupId, RaftEndpoint localEndpoint, Collection<RaftEndpoint> endpoints,
                                    int logCapacity) {
-        return create(groupId, localEndpoint, endpoints, logCapacity, NopRaftStore.INSTANCE);
+        return create(groupId, localEndpoint, endpoints, logCapacity, new NopRaftStore());
     }
 
     public static RaftState create(Object groupId, RaftEndpoint localEndpoint, Collection<RaftEndpoint> endpoints,
@@ -191,7 +191,7 @@ public final class RaftState {
     }
 
     public static RaftState restore(Object groupId, RestoredRaftState restoredState, int logCapacity) {
-        return restore(groupId, restoredState, logCapacity, NopRaftStore.INSTANCE);
+        return restore(groupId, restoredState, logCapacity, new NopRaftStore());
     }
 
     public static RaftState restore(Object groupId, RestoredRaftState restoredState, int logCapacity, RaftStore store) {
@@ -327,17 +327,14 @@ public final class RaftState {
     }
 
     /**
-     * Initializes the Raft state by initializing the state store
-     * and persisting the initial member list
+     * Persists the initial member list to the Raft store
      *
      * @throws IOException
-     *         if an IO error occurs inside the state store
-     * @see RaftStore#open()
+     *         if an IO error occurs inside the store
      * @see RaftStore#persistInitialMembers(RaftEndpoint, Collection)
      */
-    public void init()
+    public void persistInitialMembers()
             throws IOException {
-        store.open();
         store.persistInitialMembers(localEndpoint, initialMembers.getMembers());
     }
 

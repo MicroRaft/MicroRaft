@@ -268,7 +268,7 @@ public class MembershipChangeTest
 
         leader.changeMembership(leader.getLocalEndpoint(), REMOVE, 0);
 
-        allTheTime(() -> assertThat(getCommitIndex(leader)).isEqualTo(1), 10);
+        allTheTime(() -> assertThat(getCommitIndex(leader)).isEqualTo(1), 5);
     }
 
     @Test(timeout = 300_000)

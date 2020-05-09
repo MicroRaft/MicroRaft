@@ -56,16 +56,8 @@ import javax.annotation.Nonnull;
  *
  * @author metanet
  */
-public final class DefaultRaftModelFactory
+public class DefaultRaftModelFactory
         implements RaftModelFactory {
-
-    /**
-     * The singleton instance.
-     */
-    public static final RaftModelFactory INSTANCE = new DefaultRaftModelFactory();
-
-    private DefaultRaftModelFactory() {
-    }
 
     @Nonnull
     @Override

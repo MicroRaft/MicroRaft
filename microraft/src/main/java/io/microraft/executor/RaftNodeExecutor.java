@@ -18,7 +18,7 @@ package io.microraft.executor;
 
 import io.microraft.RaftNode;
 import io.microraft.executor.impl.DefaultRaftNodeExecutor;
-import io.microraft.report.RaftNodeReportListener;
+import io.microraft.lifecycle.RaftNodeLifecycleAware;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
@@ -36,15 +36,18 @@ import java.util.concurrent.TimeUnit;
  * A default implementation, {@link DefaultRaftNodeExecutor} is provided and
  * should be suitable for most of the use-cases.
  * <p>
- * Its implementations can also implement {@link RaftNodeReportListener} to
- * get notified about lifecycle events related to the execution of the Raft
- * consensus algorithm.
+ * A {@link RaftNodeExecutor} implementation can implement
+ * {@link RaftNodeLifecycleAware} to perform initialization and clean up work
+ * during {@link RaftNode} startup and termination. However, there is one
+ * subtle point about the order of method calls. {@link RaftNode} calls
+ * {@link RaftNodeExecutor#execute(Runnable)} before
+ * {@link RaftNodeLifecycleAware#onRaftNodeStart()} to submit the start task.
  *
  * @author mdogan
  * @author metanet
  * @see RaftNode
  * @see DefaultRaftNodeExecutor
- * @see RaftNodeReportListener
+ * @see RaftNodeLifecycleAware
  */
 public interface RaftNodeExecutor {
 

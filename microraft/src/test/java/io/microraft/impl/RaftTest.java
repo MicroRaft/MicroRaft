@@ -702,7 +702,8 @@ public class RaftTest
     @Test(timeout = 300_000)
     public void when_leaderStaysInMinorityDuringSplit_then_itCannotCommitNewEntries()
             throws Exception {
-        RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(100).build();
+        RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(100).setLeaderHeartbeatPeriodSecs(1)
+                                      .setLeaderHeartbeatTimeoutSecs(5).build();
         group = LocalRaftGroup.start(3, config);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();

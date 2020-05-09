@@ -61,14 +61,8 @@ final class LocalTransport
         }
 
         RaftNode node = nodes.get(target);
-        if (node == null) {
-            return;
-        }
-
-        try {
+        if (node != null) {
             node.handle(message);
-        } catch (Exception e) {
-            LOGGER.error("Send " + message + " to " + target + " failed.", e);
         }
     }
 

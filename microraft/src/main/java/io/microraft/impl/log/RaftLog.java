@@ -105,7 +105,7 @@ public final class RaftLog {
     }
 
     public static RaftLog create(int capacity) {
-        return create(capacity, NopRaftStore.INSTANCE);
+        return create(capacity, new NopRaftStore());
     }
 
     public static RaftLog create(int capacity, RaftStore store) {
@@ -113,7 +113,7 @@ public final class RaftLog {
     }
 
     public static RaftLog restore(int capacity, SnapshotEntry snapshot, List<LogEntry> entries) {
-        return restore(capacity, snapshot, entries, NopRaftStore.INSTANCE);
+        return restore(capacity, snapshot, entries, new NopRaftStore());
     }
 
     public static RaftLog restore(int capacity, SnapshotEntry snapshot, List<LogEntry> entries, RaftStore store) {

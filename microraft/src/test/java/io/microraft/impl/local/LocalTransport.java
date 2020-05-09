@@ -59,8 +59,8 @@ public class LocalTransport
         try {
             RaftMessage maybeAlteredMessage = firewall.tryAlterMessage(target, message);
             if (maybeAlteredMessage == null) {
-                throw new IllegalStateException(
-                        message + " sent from " + localEndpoint.getId() + " to " + target.getId() + " is altered to null!");
+                LOGGER.error(message + " sent from " + localEndpoint.getId() + " to " + target.getId() + " is altered to null!");
+                return;
             }
 
             node.handle(maybeAlteredMessage);

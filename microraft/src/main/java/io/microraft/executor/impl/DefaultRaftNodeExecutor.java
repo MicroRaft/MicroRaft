@@ -16,21 +16,14 @@
 
 package io.microraft.executor.impl;
 
-import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.executor.RaftNodeExecutor;
-import io.microraft.report.RaftNodeReport;
-import io.microraft.report.RaftNodeReportListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.microraft.lifecycle.RaftNodeLifecycleAware;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static io.microraft.RaftNodeStatus.isTerminal;
-import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 
 /**
@@ -44,18 +37,10 @@ import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
  * @see RaftNodeExecutor
  */
 public class DefaultRaftNodeExecutor
-        implements RaftNodeExecutor, RaftNodeReportListener {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(RaftNodeExecutor.class);
+        implements RaftNodeExecutor, RaftNodeLifecycleAware {
 
     private final ThreadGroup threadGroup = new ThreadGroup("RaftThread");
-    private final RaftEndpoint localEndpoint;
-    private final ScheduledExecutorService executor;
-
-    public DefaultRaftNodeExecutor(RaftEndpoint localEndpoint) {
-        this.localEndpoint = requireNonNull(localEndpoint);
-        this.executor = newSingleThreadScheduledExecutor(r -> new Thread(threadGroup, r));
-    }
+    private final ScheduledExecutorService executor = newSingleThreadScheduledExecutor(r -> new Thread(threadGroup, r));
 
     @Override
     public void execute(@Nonnull Runnable task) {
@@ -64,35 +49,21 @@ public class DefaultRaftNodeExecutor
 
     @Override
     public void submit(@Nonnull Runnable task) {
-        try {
-            executor.submit(task);
-        } catch (RejectedExecutionException e) {
-            LOGGER.error(localEndpoint + " failed", e);
-        }
+        executor.submit(task);
     }
 
     @Override
     public void schedule(@Nonnull Runnable task, long delay, @Nonnull TimeUnit timeUnit) {
-        try {
-            executor.schedule(task, delay, timeUnit);
-        } catch (RejectedExecutionException e) {
-            LOGGER.error(localEndpoint + " failed", e);
-        }
+        executor.schedule(task, delay, timeUnit);
     }
 
     @Override
-    public void accept(@Nonnull RaftNodeReport report) {
-        if (isTerminal(report.getStatus())) {
-            shutdownExecutor();
-        }
+    public void onRaftNodeTerminate() {
+        executor.shutdown();
     }
 
     public ScheduledExecutorService getExecutor() {
         return executor;
-    }
-
-    private void shutdownExecutor() {
-        executor.shutdown();
     }
 
 }

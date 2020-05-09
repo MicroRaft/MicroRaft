@@ -31,20 +31,8 @@ import java.util.Collection;
  * @author mdogan
  * @author metanet
  */
-public final class NopRaftStore
+public class NopRaftStore
         implements RaftStore {
-
-    /**
-     * Non-persisting {@link RaftStore} instance
-     */
-    public static final RaftStore INSTANCE = new NopRaftStore();
-
-    private NopRaftStore() {
-    }
-
-    @Override
-    public void open() {
-    }
 
     @Override
     public void persistInitialMembers(@Nonnull RaftEndpoint localEndpoint, @Nonnull Collection<RaftEndpoint> initialMembers) {
@@ -72,10 +60,6 @@ public final class NopRaftStore
 
     @Override
     public void flush() {
-    }
-
-    @Override
-    public void close() {
     }
 
 }

@@ -25,6 +25,7 @@ import io.microraft.exception.NotLeaderException;
 import io.microraft.executor.RaftNodeExecutor;
 import io.microraft.executor.impl.DefaultRaftNodeExecutor;
 import io.microraft.impl.RaftNodeImpl.RaftNodeBuilderImpl;
+import io.microraft.lifecycle.RaftNodeLifecycleAware;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.model.impl.DefaultRaftModelFactory;
 import io.microraft.model.message.RaftMessage;
@@ -66,16 +67,18 @@ import java.util.concurrent.TimeoutException;
  * consensus algorithm when {@link #start()} is called.
  * <p>
  * No further operations can be triggered on a Raft node after it is terminated
- * or leaves its Raft group.
+ * or leaves its Raft group, i.e., removed from the Raft group member list.
  * <p>
  * Raft nodes execute the Raft consensus algorithm with the Actor model.
  * You can read about the Actor Model at the following link:
  * https://en.wikipedia.org/wiki/Actor_model
  * In this model, each Raft node runs in a single-threaded manner. It uses a
  * {@link RaftNodeExecutor} to sequentially handle API calls and
- * {@link RaftMessage} objects sent by other Raft nodes. The communication
- * between Raft nodes are implemented with the message-passing approach and
- * abstracted away with the {@link Transport} interface.
+ * {@link RaftMessage} objects created via {@link RaftModelFactory}.
+ * <p>
+ * The communication between Raft nodes are implemented with
+ * the message-passing approach and abstracted away with the {@link Transport}
+ * interface.
  * <p>
  * Raft nodes use {@link StateMachine} to execute queries and committed
  * operations.
@@ -93,6 +96,8 @@ import java.util.concurrent.TimeoutException;
  * @see Transport
  * @see StateMachine
  * @see RaftStore
+ * @see RaftNodeReportListener
+ * @see RaftNodeLifecycleAware
  */
 public interface RaftNode {
 

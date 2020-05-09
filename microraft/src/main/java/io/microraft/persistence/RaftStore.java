@@ -20,6 +20,7 @@ package io.microraft.persistence;
 import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
+import io.microraft.lifecycle.RaftNodeLifecycleAware;
 import io.microraft.model.RaftModel;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.model.log.LogEntry;
@@ -28,7 +29,6 @@ import io.microraft.statemachine.StateMachine;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.Collection;
 
@@ -36,6 +36,13 @@ import java.util.Collection;
  * This interface is used for persisting only the internal state of the Raft
  * consensus algorithm. Internal state of {@link StateMachine}
  * implementations are not persisted with this interface.
+ * <p>
+ * A {@link RaftStore} implementation can implement
+ * {@link RaftNodeLifecycleAware} to perform initialization and clean up work
+ * during {@link RaftNode} startup and termination. {@link RaftNode} calls
+ * {@link RaftNodeLifecycleAware#onRaftNodeStart()} before calling any other
+ * method on {@link RaftStore}, and finally calls
+ * {@link RaftNodeLifecycleAware#onRaftNodeTerminate()} on termination.
  *
  * @author mdogan
  * @author metanet
@@ -44,19 +51,7 @@ import java.util.Collection;
  * @see RaftModelFactory
  * @see RaftNode
  */
-public interface RaftStore
-        extends Closeable {
-
-    /**
-     * Initializes the store before starting to persist Raft state. This method
-     * is called before any other method in this interface. After this method
-     * returns, the state store must be ready to accept all other method calls.
-     *
-     * @throws IOException
-     *         if any problem occurs during initializing the Raft store
-     */
-    void open()
-            throws IOException;
+public interface RaftStore {
 
     /**
      * Persists the given local Raft endpoint and initial Raft group members.

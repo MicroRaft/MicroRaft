@@ -72,7 +72,7 @@ public class VoteRequestHandler
         // Reply false if term < currentTerm (§5.1)
         if (state.term() > candidateTerm) {
             LOGGER.info("{} Rejecting {} since current term: {} is bigger.", localEndpointStr(), request, state.term());
-            node.send(responseBuilder.setTerm(state.term()).setGranted(false).build(), candidate);
+            node.send(candidate, responseBuilder.setTerm(state.term()).setGranted(false).build());
             if (state.leaderState() != null) {
                 node.sendAppendEntriesRequest(candidate);
             }
@@ -88,7 +88,7 @@ public class VoteRequestHandler
         if (request.isSticky() && (state.leaderState() != null || !node.isLeaderHeartbeatTimeoutElapsed()) && !candidate
                 .equals(state.leader())) {
             LOGGER.info("{} Rejecting {} since the leader is still alive...", localEndpointStr(), request);
-            node.send(responseBuilder.setTerm(state.term()).setGranted(false).build(), candidate);
+            node.send(candidate, responseBuilder.setTerm(state.term()).setGranted(false).build());
             return;
         }
 
@@ -107,7 +107,7 @@ public class VoteRequestHandler
 
         if (state.leader() != null && !candidate.equals(state.leader())) {
             LOGGER.warn("{} Rejecting {} since we have a leader: {}", localEndpointStr(), request, state.leader().getId());
-            node.send(responseBuilder.setTerm(candidateTerm).setGranted(false).build(), candidate);
+            node.send(candidate, responseBuilder.setTerm(candidateTerm).setGranted(false).build());
 
             return;
         }
@@ -120,7 +120,7 @@ public class VoteRequestHandler
                 LOGGER.debug("{} no vote for {}. currently voted-for: {}", localEndpointStr(), request,
                              state.votedEndpoint().getId());
             }
-            node.send(responseBuilder.setTerm(candidateTerm).setGranted(granted).build(), candidate);
+            node.send(candidate, responseBuilder.setTerm(candidateTerm).setGranted(granted).build());
             return;
         }
 
@@ -128,21 +128,21 @@ public class VoteRequestHandler
         if (lastLogEntry.getTerm() > request.getLastLogTerm()) {
             LOGGER.info("{} Rejecting {} since our last log term: {} is greater.", localEndpointStr(), request,
                         lastLogEntry.getTerm());
-            node.send(responseBuilder.setTerm(candidateTerm).setGranted(false).build(), candidate);
+            node.send(candidate, responseBuilder.setTerm(candidateTerm).setGranted(false).build());
             return;
         }
 
         if (lastLogEntry.getTerm() == request.getLastLogTerm() && lastLogEntry.getIndex() > request.getLastLogIndex()) {
             LOGGER.info("{} Rejecting {} since our last log index: {} is greater.", localEndpointStr(), request,
                         lastLogEntry.getIndex());
-            node.send(responseBuilder.setTerm(candidateTerm).setGranted(false).build(), candidate);
+            node.send(candidate, responseBuilder.setTerm(candidateTerm).setGranted(false).build());
             return;
         }
 
         LOGGER.info("{} Granted vote for {}", localEndpointStr(), request);
         state.grantVote(candidateTerm, candidate);
 
-        node.send(responseBuilder.setTerm(candidateTerm).setGranted(true).build(), candidate);
+        node.send(candidate, responseBuilder.setTerm(candidateTerm).setGranted(true).build());
     }
 
 }

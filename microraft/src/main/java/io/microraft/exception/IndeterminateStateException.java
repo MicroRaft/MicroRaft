@@ -44,6 +44,10 @@ public class IndeterminateStateException
 
     private static final long serialVersionUID = -736303015926722821L;
 
+    public IndeterminateStateException() {
+        this(null);
+    }
+
     public IndeterminateStateException(RaftEndpoint leader) {
         super(leader);
     }

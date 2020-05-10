@@ -19,6 +19,7 @@ package io.microraft.impl.state;
 
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftRole;
+import io.microraft.exception.NotLeaderException;
 import io.microraft.exception.RaftException;
 import io.microraft.impl.log.RaftLog;
 import io.microraft.impl.log.SnapshotChunkCollector;
@@ -348,10 +349,15 @@ public final class RaftState {
     public void toFollower(int term) {
         role = FOLLOWER;
         preCandidateState = null;
+        LeaderState currentLeaderState = leaderState;
         leaderState = null;
         candidateState = null;
         completeLeadershipTransfer(null);
         setTerm(term);
+        if (currentLeaderState != null) {
+            // this is done here to read the updated leader field
+            currentLeaderState.queryState().fail(new NotLeaderException(localEndpoint, leader()));
+        }
         persistTerm();
     }
 

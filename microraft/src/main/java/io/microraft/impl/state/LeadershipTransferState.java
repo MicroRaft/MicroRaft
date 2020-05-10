@@ -69,7 +69,9 @@ public final class LeadershipTransferState {
             return;
         }
 
-        future.complete(commitIndex, result);
+        if (!future.isDone()) {
+            future.complete(commitIndex, result);
+        }
     }
 
     /**
@@ -80,7 +82,9 @@ public final class LeadershipTransferState {
     void andThen(RaftEndpoint targetEndpoint, OrderedFuture otherFuture) {
         if (this.endpoint.equals(targetEndpoint)) {
             future.thenApply(ordered -> {
-                otherFuture.complete(ordered.getCommitIndex(), ordered.getResult());
+                if (!otherFuture.isDone()) {
+                    otherFuture.complete(ordered.getCommitIndex(), ordered.getResult());
+                }
                 return null;
             }).exceptionally(throwable -> {
                 otherFuture.fail(throwable);

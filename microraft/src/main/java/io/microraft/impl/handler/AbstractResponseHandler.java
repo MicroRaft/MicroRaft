@@ -48,7 +48,7 @@ public abstract class AbstractResponseHandler<T extends RaftMessage>
 
         if (!node.state().isKnownMember(response.getSender())) {
             Logger logger = LoggerFactory.getLogger(getClass());
-            logger.warn("{} Won't run, since {} is unknown to us.", node.localEndpointStr(), response.getSender().getId());
+            logger.warn("{} Won't run, since {} is unknown to us.", localEndpointStr(), response.getSender().getId());
             return;
         }
 

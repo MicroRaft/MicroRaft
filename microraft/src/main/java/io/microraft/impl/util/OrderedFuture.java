@@ -20,6 +20,9 @@ import io.microraft.Ordered;
 
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * @author metanet
+ */
 public class OrderedFuture<T>
         extends CompletableFuture<Ordered<T>>
         implements Ordered<T> {
@@ -32,8 +35,12 @@ public class OrderedFuture<T>
     }
 
     public final void complete(long commitIndex, T result) {
-        assert !isDone();
         assert commitIndex >= 0;
+
+        if (isDone()) {
+            throw new IllegalStateException(
+                    "Cannot complete already completed future! new commit index: " + commitIndex + " result: " + result);
+        }
 
         this.commitIndex = commitIndex;
         this.result = result;
@@ -43,8 +50,7 @@ public class OrderedFuture<T>
     }
 
     public final void fail(Throwable throwable) {
-        boolean completed = super.completeExceptionally(throwable);
-        assert completed;
+        super.completeExceptionally(throwable);
     }
 
     @Override

@@ -24,7 +24,7 @@ import io.microraft.exception.MismatchingRaftGroupMembersCommitIndexException;
 import io.microraft.exception.NotLeaderException;
 import io.microraft.executor.RaftNodeExecutor;
 import io.microraft.executor.impl.DefaultRaftNodeExecutor;
-import io.microraft.impl.RaftNodeImpl.RaftNodeBuilderImpl;
+import io.microraft.impl.RaftNodeBuilderImpl;
 import io.microraft.lifecycle.RaftNodeLifecycleAware;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.model.impl.DefaultRaftModelFactory;

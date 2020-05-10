@@ -838,6 +838,7 @@ public class RaftTest
 
         leader.terminate().join();
 
+        assertThat(leader.getLeaderEndpoint()).isNull();
         assertThat(f.isCompletedExceptionally());
         try {
             f.join();

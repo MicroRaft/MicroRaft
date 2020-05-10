@@ -54,14 +54,14 @@ public abstract class RaftNodeStatusAwareTask
     public final void run() {
         RaftNodeStatus status = node.getStatus();
         if (isTerminal(status) || status == INITIAL) {
-            getLogger().debug("{} Won't run, since status is {}", node.localEndpointStr(), status);
+            getLogger().debug("{} Won't run, since status is {}", localEndpointStr(), status);
             return;
         }
 
         try {
             doRun();
         } catch (Throwable e) {
-            getLogger().error(node.localEndpointStr() + " got a failure in " + getClass().getSimpleName(), e);
+            getLogger().error(localEndpointStr() + " got a failure in " + getClass().getSimpleName(), e);
         }
     }
 

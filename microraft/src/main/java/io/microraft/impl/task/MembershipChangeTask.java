@@ -125,7 +125,7 @@ public final class MembershipChangeTask
                     return;
             }
 
-            LOGGER.info("{} New group members after {} {} -> {}", raftNode.localEndpointStr(), membershipChangeMode,
+            LOGGER.info("{} New group members after {} of {} -> {}", raftNode.localEndpointStr(), membershipChangeMode,
                         endpoint.getId(), members.stream().map(RaftEndpoint::getId).collect(toList()));
             RaftGroupOp operation = raftNode.getModelFactory().createUpdateRaftGroupMembersOpBuilder().setMembers(members)
                                             .setEndpoint(endpoint).setMode(membershipChangeMode).build();

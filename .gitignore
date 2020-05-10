@@ -131,3 +131,8 @@ buildNumber.properties
 ### mkdocs ###
 
 microraft.io/site
+
+.project
+.classpath
+.settings/
+.vscode/

@@ -19,6 +19,8 @@ package io.microraft.model;
 import io.microraft.model.log.BaseLogEntry;
 import io.microraft.model.message.RaftMessage;
 
+import java.io.Serializable;
+
 /**
  * The base interface for the objects that hit network and persistent storage.
  * <p>
@@ -28,5 +30,5 @@ import io.microraft.model.message.RaftMessage;
  * @see RaftMessage
  * @see BaseLogEntry
  */
-public interface RaftModel {
+public interface RaftModel extends Serializable {
 }

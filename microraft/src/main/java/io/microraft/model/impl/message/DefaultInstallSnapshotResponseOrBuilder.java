@@ -27,7 +27,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public final class DefaultInstallSnapshotResponseOrBuilder
+public class DefaultInstallSnapshotResponseOrBuilder
         implements InstallSnapshotResponse, InstallSnapshotResponseBuilder {
 
     private Object groupId;

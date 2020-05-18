@@ -30,7 +30,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public final class DefaultInstallSnapshotRequestOrBuilder
+public class DefaultInstallSnapshotRequestOrBuilder
         implements InstallSnapshotRequest, InstallSnapshotRequestBuilder {
 
     private Object groupId;

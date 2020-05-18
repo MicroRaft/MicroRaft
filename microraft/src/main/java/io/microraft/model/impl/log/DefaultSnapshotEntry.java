@@ -29,7 +29,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public final class DefaultSnapshotEntry
+public class DefaultSnapshotEntry
         extends AbstractLogEntry
         implements SnapshotEntry {
 

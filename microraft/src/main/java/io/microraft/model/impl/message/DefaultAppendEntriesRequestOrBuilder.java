@@ -29,7 +29,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public final class DefaultAppendEntriesRequestOrBuilder
+public class DefaultAppendEntriesRequestOrBuilder
         implements AppendEntriesRequest, AppendEntriesRequestBuilder {
 
     private Object groupId;

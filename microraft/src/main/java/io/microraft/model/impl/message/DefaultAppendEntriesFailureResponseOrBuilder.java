@@ -26,7 +26,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public final class DefaultAppendEntriesFailureResponseOrBuilder
+public class DefaultAppendEntriesFailureResponseOrBuilder
         implements AppendEntriesFailureResponse, AppendEntriesFailureResponse.AppendEntriesFailureResponseBuilder {
 
     private Object groupId;

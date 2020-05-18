@@ -26,7 +26,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public final class DefaultLogEntryOrBuilder
+public class DefaultLogEntryOrBuilder
         extends AbstractLogEntry
         implements LogEntry, LogEntryBuilder {
 

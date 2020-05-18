@@ -27,7 +27,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public final class DefaultPreVoteRequestOrBuilder
+public class DefaultPreVoteRequestOrBuilder
         implements PreVoteRequest, PreVoteRequestBuilder {
 
     private Object groupId;

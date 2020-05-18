@@ -27,7 +27,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public final class DefaultAppendEntriesSuccessResponseOrBuilder
+public class DefaultAppendEntriesSuccessResponseOrBuilder
         implements AppendEntriesSuccessResponse, AppendEntriesSuccessResponseBuilder {
 
     private Object groupId;

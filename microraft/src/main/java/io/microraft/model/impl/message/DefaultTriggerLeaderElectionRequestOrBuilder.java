@@ -27,7 +27,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author metanet
  */
-public final class DefaultTriggerLeaderElectionRequestOrBuilder
+public class DefaultTriggerLeaderElectionRequestOrBuilder
         implements TriggerLeaderElectionRequest, TriggerLeaderElectionRequestBuilder {
 
     private Object groupId;

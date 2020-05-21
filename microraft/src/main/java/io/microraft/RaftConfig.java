@@ -259,6 +259,16 @@ public final class RaftConfig
         return raftNodeReportPublishPeriodSecs;
     }
 
+    @Override
+    public String toString() {
+        return "RaftConfig{" + "leaderElectionTimeoutMillis=" + leaderElectionTimeoutMillis + ", leaderHeartbeatTimeoutSecs="
+                + leaderHeartbeatTimeoutSecs + ", leaderHeartbeatPeriodSecs=" + leaderHeartbeatPeriodSecs
+                + ", maxPendingLogEntryCount=" + maxPendingLogEntryCount + ", appendEntriesRequestBatchSize="
+                + appendEntriesRequestBatchSize + ", commitCountToTakeSnapshot=" + commitCountToTakeSnapshot
+                + ", transferSnapshotsFromFollowersEnabled=" + transferSnapshotsFromFollowersEnabled
+                + ", raftNodeReportPublishPeriodSecs=" + raftNodeReportPublishPeriodSecs + '}';
+    }
+
     /**
      * Builder for Raft config
      */
@@ -412,6 +422,15 @@ public final class RaftConfig
                                   transferSnapshotsFromFollowersEnabled, raftNodeReportPublishPeriodSecs);
         }
 
+        @Override
+        public String toString() {
+            return "RaftConfigBuilder{" + "leaderElectionTimeoutMillis=" + leaderElectionTimeoutMillis
+                    + ", leaderHeartbeatPeriodSecs=" + leaderHeartbeatPeriodSecs + ", leaderHeartbeatTimeoutSecs="
+                    + leaderHeartbeatTimeoutSecs + ", appendEntriesRequestBatchSize=" + appendEntriesRequestBatchSize
+                    + ", commitCountToTakeSnapshot=" + commitCountToTakeSnapshot + ", maxPendingLogEntryCount="
+                    + maxPendingLogEntryCount + ", transferSnapshotsFromFollowersEnabled=" + transferSnapshotsFromFollowersEnabled
+                    + ", raftNodeReportPublishPeriodSecs=" + raftNodeReportPublishPeriodSecs + '}';
+        }
     }
 
 }

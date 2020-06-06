@@ -72,7 +72,6 @@ import static java.util.stream.Collectors.toList;
  * By this way, we utilize the bandwidth of the followers and speed up
  * the process by transferring snapshot chunks to the follower in parallel.
  *
- * @author metanet
  * @see InstallSnapshotRequest
  * @see InstallSnapshotResponse
  * @see AppendEntriesSuccessResponse

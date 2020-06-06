@@ -4,9 +4,6 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * @author metanet
- */
 public class FollowerStateTest {
 
     private final FollowerState followerState = new FollowerState(0, 1);

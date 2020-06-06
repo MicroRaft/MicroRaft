@@ -27,9 +27,6 @@ import java.io.Serializable;
  * <p>
  * RaftConfig is an immutable configuration class.
  * You can use a RaftConfigBuilder to build a RaftConfig object.
- *
- * @author mdogan
- * @author metanet
  */
 public final class RaftConfig
         implements Serializable {

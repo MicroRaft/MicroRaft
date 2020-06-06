@@ -39,10 +39,6 @@ import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
-/**
- * @author mdogan
- * @author metanet
- */
 public class LocalQueryTest
         extends BaseTest {
 

@@ -23,8 +23,6 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * Contains a snapshot of a Raft node's current state in a term.
- *
- * @author metanet
  */
 public final class RaftTermState
         implements RaftTerm {

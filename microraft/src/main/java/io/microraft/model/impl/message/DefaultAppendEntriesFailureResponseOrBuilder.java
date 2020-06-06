@@ -18,16 +18,24 @@ package io.microraft.model.impl.message;
 
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.AppendEntriesFailureResponse;
+import io.microraft.model.message.AppendEntriesFailureResponse.AppendEntriesFailureResponseBuilder;
 
 import javax.annotation.Nonnull;
 
 import static java.util.Objects.requireNonNull;
 
 /**
- * @author metanet
+ * The default impl of the {@link AppendEntriesFailureResponse} and
+ * {@link AppendEntriesFailureResponseBuilder} interfaces. When an instance of
+ * this class is created, it is in the builder mode and its state is populated.
+ * Once all fields are set, the object switches to the DTO mode where it no
+ * longer allows mutations.
+ * <p>
+ * Please note that {@link #build()} does not verify if all fields are set or
+ * not. It is up to the user to populate the DTO state via the builder.
  */
 public class DefaultAppendEntriesFailureResponseOrBuilder
-        implements AppendEntriesFailureResponse, AppendEntriesFailureResponse.AppendEntriesFailureResponseBuilder {
+        implements AppendEntriesFailureResponse, AppendEntriesFailureResponseBuilder {
 
     private Object groupId;
     private RaftEndpoint sender;

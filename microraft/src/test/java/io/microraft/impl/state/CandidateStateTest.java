@@ -24,10 +24,6 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * @author mdogan
- * @author metanet
- */
 public class CandidateStateTest {
 
     private CandidateState state;

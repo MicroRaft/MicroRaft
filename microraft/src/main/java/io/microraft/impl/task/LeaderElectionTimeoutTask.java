@@ -26,9 +26,6 @@ import static io.microraft.RaftRole.CANDIDATE;
 /**
  * Scheduled by {@link LeaderElectionTask} to trigger leader election again if
  * a leader is not elected yet.
- *
- * @author mdogan
- * @author metanet
  */
 public final class LeaderElectionTimeoutTask
         extends RaftNodeStatusAwareTask

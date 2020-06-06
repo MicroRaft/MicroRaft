@@ -32,9 +32,6 @@ import org.slf4j.LoggerFactory;
  * Also a {@link PreVoteTimeoutTask} is scheduled with the
  * {@link RaftNodeImpl#getLeaderElectionTimeoutMs()} delay to trigger another
  * round of pre-voting if a leader is not available yet.
- *
- * @author mdogan
- * @author metanet
  */
 public final class PreVoteTask
         extends RaftNodeStatusAwareTask

@@ -43,10 +43,6 @@ import static io.microraft.test.util.RaftTestUtils.getTerm;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-/**
- * @author mdogan
- * @author metanet
- */
 public class LeadershipTransferTest
         extends BaseTest {
 

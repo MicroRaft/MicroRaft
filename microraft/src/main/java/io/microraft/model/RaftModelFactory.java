@@ -53,8 +53,6 @@ import javax.annotation.Nonnull;
  * {@link RaftNodeLifecycleAware#onRaftNodeStart()} before calling any other
  * method on {@link RaftModelFactory}, and finally calls
  * {@link RaftNodeLifecycleAware#onRaftNodeTerminate()} on termination.
- *
- * @author metanet
  */
 public interface RaftModelFactory {
 

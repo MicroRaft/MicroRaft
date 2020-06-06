@@ -31,10 +31,6 @@ import java.util.Set;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * @author mdogan
- * @author metanet
- */
 public class LeaderStateTest {
 
     private LeaderState state;

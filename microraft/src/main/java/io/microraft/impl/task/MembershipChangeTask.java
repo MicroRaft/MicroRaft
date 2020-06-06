@@ -55,8 +55,6 @@ import static java.util.stream.Collectors.toList;
  * group, and replicates this operation to the Raft group via passing it to
  * {@link ReplicateTask}.
  *
- * @author mdogan
- * @author metanet
  * @see MembershipChangeMode
  */
 public final class MembershipChangeTask

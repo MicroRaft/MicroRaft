@@ -44,9 +44,6 @@ import java.util.Collection;
  * method on {@link RaftStore}, and finally calls
  * {@link RaftNodeLifecycleAware#onRaftNodeTerminate()} on termination.
  *
- * @author mdogan
- * @author metanet
- * @author mtopolnik
  * @see RaftModel
  * @see RaftModelFactory
  * @see RaftNode

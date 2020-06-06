@@ -27,9 +27,6 @@ import java.util.Collection;
 
 /**
  * Used when a Raft node works transiently (its state is not persisted).
- *
- * @author mdogan
- * @author metanet
  */
 public class NopRaftStore
         implements RaftStore {

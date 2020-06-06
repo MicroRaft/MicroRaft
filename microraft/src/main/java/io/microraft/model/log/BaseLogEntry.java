@@ -32,7 +32,6 @@ import javax.annotation.Nonnull;
  * <p>
  * {@link BaseLogEntry} objects are created by {@link RaftModelFactory}.
  *
- * @author metanet
  * @see RaftModel
  * @see RaftModelFactory
  */

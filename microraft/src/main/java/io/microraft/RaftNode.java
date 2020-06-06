@@ -86,8 +86,6 @@ import java.util.concurrent.TimeoutException;
  * Last, Raft nodes use {@link RaftStore} to persist internal Raft state to
  * stable storage to be able to recover from crashes.
  *
- * @author mdogan
- * @author metanet
  * @see RaftNodeBuilder
  * @see RaftEndpoint
  * @see RaftRole

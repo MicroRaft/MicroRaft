@@ -35,7 +35,6 @@ import javax.annotation.Nonnull;
  * algorithm. The duration of the periodic report publishing is configured
  * via {@link RaftConfigBuilder#setRaftNodeReportPublishPeriodSecs(int)}.
  *
- * @author metanet
  * @see RaftNodeReportListener
  * @see RaftConfig
  * @see RaftNodeReportReason

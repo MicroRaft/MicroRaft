@@ -43,8 +43,6 @@ import javax.annotation.Nonnull;
  * method on {@link Transport}, and finally calls
  * {@link RaftNodeLifecycleAware#onRaftNodeTerminate()} on termination.
  *
- * @author mdogan
- * @author metanet
  * @see RaftModel
  * @see RaftMessage
  * @see RaftModelFactory

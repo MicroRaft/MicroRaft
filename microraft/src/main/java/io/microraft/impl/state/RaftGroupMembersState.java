@@ -30,9 +30,6 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * Contains member list of a Raft group.
- *
- * @author mdogan
- * @author metanet
  **/
 public final class RaftGroupMembersState
         implements RaftGroupMembers {

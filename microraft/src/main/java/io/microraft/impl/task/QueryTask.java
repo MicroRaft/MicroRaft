@@ -38,8 +38,6 @@ import static io.microraft.RaftRole.LEADER;
  * Scheduled by {@link RaftNodeImpl#query(Object, QueryPolicy, long)}
  * to perform a query on the {@link StateMachine}.
  *
- * @author mdogan
- * @author metanet
  * @see QueryPolicy
  */
 public final class QueryTask

@@ -27,8 +27,6 @@ import java.util.Map;
 /**
  * State maintained by the Raft group leader.
  *
- * @author mdogan
- * @author metanet
  * @see FollowerState
  */
 public final class LeaderState {

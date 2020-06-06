@@ -21,16 +21,16 @@ import io.microraft.model.log.BaseLogEntry;
 import javax.annotation.Nonnull;
 
 /**
- * @author metanet
+ * Base class for Raft log entry implementations.
  */
-public class AbstractLogEntry
+public class DefaultAbstractLogEntry
         implements BaseLogEntry {
 
     int term;
     long index;
     Object operation;
 
-    AbstractLogEntry() {
+    DefaultAbstractLogEntry() {
     }
 
     @Override

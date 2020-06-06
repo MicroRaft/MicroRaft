@@ -30,9 +30,6 @@ import java.util.Arrays;
  *
  * @param <E>
  *         the type of the data stored in the ringbuffer
- *
- * @author mdogan
- * @author metanet
  */
 public final class ArrayRingbuffer<E> {
 

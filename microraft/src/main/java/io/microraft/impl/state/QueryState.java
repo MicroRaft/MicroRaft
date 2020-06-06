@@ -42,8 +42,6 @@ import java.util.Set;
  * Fortunately, it is possible to bypass the Raft log for read-only queries and
  * still preserve linearizability.
  *
- * @author mdogan
- * @author metanet
  */
 public final class QueryState {
 

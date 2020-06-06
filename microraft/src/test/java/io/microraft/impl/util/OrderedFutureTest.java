@@ -29,9 +29,6 @@ import java.util.concurrent.TimeoutException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-/**
- * @author metanet
- */
 public class OrderedFutureTest
         extends BaseTest {
 

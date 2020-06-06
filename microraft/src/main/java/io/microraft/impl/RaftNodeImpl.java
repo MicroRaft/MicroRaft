@@ -134,9 +134,6 @@ import static java.util.stream.Collectors.toList;
  * {@link StateMachine} to execute committed operations on the user-supplied
  * state machine, and {@link RaftStore} to persist internal Raft state to
  * stable storage.
- *
- * @author mdogan
- * @author metanet
  */
 public final class RaftNodeImpl
         implements RaftNode {

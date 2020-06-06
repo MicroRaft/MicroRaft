@@ -20,9 +20,6 @@ package io.microraft;
 /**
  * Policies to decide how a query operation will be executed
  * on the state machine.
- *
- * @author mdogan
- * @author metanet
  */
 public enum QueryPolicy {
 

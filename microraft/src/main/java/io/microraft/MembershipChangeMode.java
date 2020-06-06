@@ -19,9 +19,6 @@ package io.microraft;
 
 /**
  * Types of membership changes that occur on Raft groups.
- *
- * @author mdogan
- * @author metanet
  */
 public enum MembershipChangeMode {
 

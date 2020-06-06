@@ -21,9 +21,6 @@ import io.microraft.RaftEndpoint;
 
 /**
  * Base exception class for Raft-related exceptions.
- *
- * @author mdogan
- * @author metanet
  */
 public class RaftException
         extends RuntimeException {

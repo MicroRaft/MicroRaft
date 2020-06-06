@@ -26,9 +26,6 @@ import io.microraft.impl.state.LeaderState;
  * the commit index.
  * <p>
  * Silently returns if the Raft node is no longer the leader.
- *
- * @author mdogan
- * @author metanet
  */
 public class LeaderFlushTask
         extends RaftNodeStatusAwareTask {

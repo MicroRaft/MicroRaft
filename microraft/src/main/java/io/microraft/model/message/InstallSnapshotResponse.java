@@ -30,7 +30,6 @@ import javax.annotation.Nonnull;
  * A follower can request the missing snapshot chunks in any order
  * from the leader.
  *
- * @author metanet
  * @see InstallSnapshotRequest
  */
 public interface InstallSnapshotResponse

@@ -52,7 +52,6 @@ import static io.microraft.RaftRole.LEADER;
  * back a new empty {@link InstallSnapshotRequest} in order to initiate a new
  * snapshot transfer process for the current snapshot.
  *
- * @author metanet
  * @see InstallSnapshotRequest
  * @see InstallSnapshotResponse
  */

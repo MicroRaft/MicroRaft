@@ -43,8 +43,6 @@ import java.util.concurrent.TimeUnit;
  * {@link RaftNodeExecutor#execute(Runnable)} before
  * {@link RaftNodeLifecycleAware#onRaftNodeStart()} to submit the start task.
  *
- * @author mdogan
- * @author metanet
  * @see RaftNode
  * @see DefaultRaftNodeExecutor
  * @see RaftNodeLifecycleAware

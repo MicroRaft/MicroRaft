@@ -39,9 +39,6 @@ import java.util.function.Consumer;
  * <p>
  * This class is thread safe. Committed values can be queried from test
  * threads while they are being updated in Raft node threads.
- *
- * @author mdogan
- * @author metanet
  */
 public class SimpleStateMachine
         implements StateMachine {

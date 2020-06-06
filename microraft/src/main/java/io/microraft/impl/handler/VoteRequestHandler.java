@@ -42,8 +42,6 @@ import static java.util.Objects.requireNonNull;
  * <i>In Search of an Understandable Consensus Algorithm</i>
  * paper by <i>Diego Ongaro</i> and <i>John Ousterhout</i>.
  *
- * @author mdogan
- * @author metanet
  * @see VoteRequest
  * @see VoteResponse
  * @see LeaderElectionTask

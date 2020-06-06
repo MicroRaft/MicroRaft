@@ -25,10 +25,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.fail;
 
-/**
- * @author mdogan
- * @author metanet
- */
 public final class AssertionUtils {
 
     public static final int EVENTUAL_ASSERTION_TIMEOUT_SECS;

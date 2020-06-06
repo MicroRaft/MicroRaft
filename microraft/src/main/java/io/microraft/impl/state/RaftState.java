@@ -40,9 +40,6 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * State maintained by each Raft node.
- *
- * @author mdogan
- * @author metanet
  */
 @SuppressWarnings({"checkstyle:methodcount"})
 public final class RaftState {

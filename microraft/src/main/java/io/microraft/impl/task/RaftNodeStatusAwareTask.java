@@ -33,9 +33,6 @@ import static io.microraft.RaftNodeStatus.isTerminal;
  * <p>
  * Subclass tasks are executed only if the local Raft node is already started,
  * and not terminated or left the Raft group.
- *
- * @author mdogan
- * @author metanet
  */
 public abstract class RaftNodeStatusAwareTask
         implements Runnable {

@@ -42,10 +42,6 @@ import java.util.function.Function;
 
 import static org.junit.Assert.assertNotNull;
 
-/**
- * @author mdogan
- * @author metanet
- */
 public final class RaftTestUtils {
 
     public static final RaftConfig TEST_RAFT_CONFIG = RaftConfig.newBuilder().setLeaderElectionTimeoutMillis(2000)

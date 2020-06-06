@@ -18,8 +18,6 @@ package io.microraft.report;
 
 /**
  * Contains statistics about a Raft node's local Raft log.
- *
- * @author metanet
  */
 public interface RaftLogStats {
 

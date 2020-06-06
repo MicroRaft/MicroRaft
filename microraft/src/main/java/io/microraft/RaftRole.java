@@ -22,9 +22,6 @@ package io.microraft;
  * <p>
  * At any given time each Raft node is in one of three roles: {@link #LEADER},
  * {@link #FOLLOWER}, or {@link #CANDIDATE}.
- *
- * @author mdogan
- * @author metanet
  */
 public enum RaftRole {
 

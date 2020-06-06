@@ -29,9 +29,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * Checks whether currently there is a known leader endpoint and triggers
  * the pre-voting mechanism there is no known leader or the leader has
  * timed out.
- *
- * @author mdogan
- * @author metanet
  */
 public class HeartbeatTask
         extends RaftNodeStatusAwareTask {

@@ -26,7 +26,6 @@ import java.io.Serializable;
  * <p>
  * RaftModel objects must be immutable.
  *
- * @author metanet
  * @see RaftMessage
  * @see BaseLogEntry
  */

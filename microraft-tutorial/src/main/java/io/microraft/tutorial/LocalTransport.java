@@ -39,8 +39,6 @@ import static java.util.Objects.requireNonNull;
  * YOU CAN SEE THIS CLASS AT:
  * <p>
  * https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/LocalTransport.java
- *
- * @author metanet
  */
 final class LocalTransport
         implements Transport {

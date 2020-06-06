@@ -34,8 +34,6 @@ import java.util.function.Consumer;
  * {@link StateMachine#takeSnapshot(long, Consumer)}. Additionally, a snapshot
  * entry contains the committed Raft group member list along with its commit
  * index at the time of the snapshot creation.
- *
- * @author metanet
  */
 public interface SnapshotEntry
         extends BaseLogEntry {
@@ -63,7 +61,7 @@ public interface SnapshotEntry
         SnapshotEntryBuilder setTerm(int term);
 
         @Nonnull
-        SnapshotEntryBuilder setSnapshotChunks(@Nonnull List<SnapshotChunk> snapshotChunksK);
+        SnapshotEntryBuilder setSnapshotChunks(@Nonnull List<SnapshotChunk> snapshotChunks);
 
         @Nonnull
         SnapshotEntryBuilder setGroupMembersLogIndex(long groupMembersLogIndex);

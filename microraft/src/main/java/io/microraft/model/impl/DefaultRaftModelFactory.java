@@ -22,7 +22,7 @@ import io.microraft.model.groupop.UpdateRaftGroupMembersOp.UpdateRaftGroupMember
 import io.microraft.model.impl.groupop.DefaultUpdateRaftGroupMembersOpOrBuilder;
 import io.microraft.model.impl.log.DefaultLogEntryOrBuilder;
 import io.microraft.model.impl.log.DefaultSnapshotChunkOrBuilder;
-import io.microraft.model.impl.log.DefaultSnapshotEntry.DefaultSnapshotEntryBuilder;
+import io.microraft.model.impl.log.DefaultSnapshotEntryOrBuilder;
 import io.microraft.model.impl.message.DefaultAppendEntriesFailureResponseOrBuilder;
 import io.microraft.model.impl.message.DefaultAppendEntriesRequestOrBuilder;
 import io.microraft.model.impl.message.DefaultAppendEntriesSuccessResponseOrBuilder;
@@ -53,8 +53,6 @@ import javax.annotation.Nonnull;
  * The default implementation of {@link RaftModelFactory}.
  * <p>
  * Creates POJO-style implementations of the {@link RaftModel} objects.
- *
- * @author metanet
  */
 public class DefaultRaftModelFactory
         implements RaftModelFactory {
@@ -68,7 +66,7 @@ public class DefaultRaftModelFactory
     @Nonnull
     @Override
     public SnapshotEntryBuilder createSnapshotEntryBuilder() {
-        return new DefaultSnapshotEntryBuilder();
+        return new DefaultSnapshotEntryOrBuilder();
     }
 
     @Nonnull

@@ -24,8 +24,6 @@ import javax.annotation.Nonnull;
 
 /**
  * Base class for {@link RaftMessage} handlers.
- *
- * @author metanet
  */
 public abstract class AbstractMessageHandler<T extends RaftMessage>
         extends RaftNodeStatusAwareTask {

@@ -33,8 +33,6 @@ import static java.util.Objects.requireNonNull;
  * election round if this Raft node accepts the sender as the leader and
  * the local Raft log is up-to-date with the leader's Raft log.
  *
- * @author mdogan
- * @author metanet
  * @see TriggerLeaderElectionRequest
  */
 public class TriggerLeaderElectionHandler

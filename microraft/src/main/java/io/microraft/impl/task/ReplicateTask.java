@@ -49,9 +49,6 @@ import static io.microraft.RaftRole.LEADER;
  * If the given operation could not be appended to the Raft log at the moment,
  * (see {@link RaftNodeImpl#canReplicateNewOperation(Object)}), the future is
  * notified with {@link CannotReplicateException}.
- *
- * @author mdogan
- * @author metanet
  */
 public final class ReplicateTask
         implements Runnable {

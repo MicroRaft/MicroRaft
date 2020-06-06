@@ -22,8 +22,6 @@ import io.microraft.model.RaftModel;
 /**
  * Base interface for the Raft messages to perform Raft group management tasks.
  *
- * @author mdogan
- * @author metanet
  * @see UpdateRaftGroupMembersOp
  */
 public interface RaftGroupOp

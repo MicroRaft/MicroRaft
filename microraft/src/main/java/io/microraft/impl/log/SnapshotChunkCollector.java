@@ -46,7 +46,6 @@ import static java.util.Objects.requireNonNull;
  * <p>
  * Snapshot chunks can be added in any order.
  *
- * @author metanet
  * @see InstallSnapshotRequest
  * @see InstallSnapshotResponse
  * @see InstallSnapshotRequestHandler

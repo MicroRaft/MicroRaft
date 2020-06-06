@@ -27,9 +27,6 @@ import java.util.Collection;
  * in the local state of the Raft group leader. A group members commit index
  * is the Raft log index at which the current Raft group member list is
  * committed.
- *
- * @author mdogan
- * @author metanet
  */
 public class MismatchingRaftGroupMembersCommitIndexException
         extends RaftException {

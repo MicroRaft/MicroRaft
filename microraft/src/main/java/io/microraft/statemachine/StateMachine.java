@@ -53,8 +53,6 @@ import java.util.function.Consumer;
  * method on {@link StateMachine}, and finally calls
  * {@link RaftNodeLifecycleAware#onRaftNodeTerminate()} on termination.
  *
- * @author mdogan
- * @author metanet
  * @see RaftNode
  * @see RaftNodeExecutor
  * @see RaftNodeLifecycleAware

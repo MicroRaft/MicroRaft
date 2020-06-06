@@ -36,8 +36,6 @@ import static io.microraft.RaftRole.FOLLOWER;
  * Initiates a new leader election by executing {@link LeaderElectionTask}
  * if the Raft group majority grants "pre-votes" for this pre-voting term.
  *
- * @author mdogan
- * @author metanet
  * @see PreVoteResponse
  * @see PreVoteTask
  * @see LeaderElectionTask

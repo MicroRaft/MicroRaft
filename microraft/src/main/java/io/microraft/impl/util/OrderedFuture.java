@@ -17,11 +17,16 @@
 package io.microraft.impl.util;
 
 import io.microraft.Ordered;
+import io.microraft.RaftNode;
 
 import java.util.concurrent.CompletableFuture;
 
 /**
- * @author metanet
+ * A utility class to implement {@link CompletableFuture} and {@link Ordered}
+ * interfaces together. By this way, the return value and result of a
+ * {@link RaftNode} API call is realized with a single object.
+ * <p>
+ * Please note that completion methods here can be called from a single thread.
  */
 public class OrderedFuture<T>
         extends CompletableFuture<Ordered<T>>

@@ -19,7 +19,7 @@ package io.microraft.impl.log;
 
 import io.microraft.exception.RaftException;
 import io.microraft.impl.util.ArrayRingbuffer;
-import io.microraft.model.impl.log.DefaultSnapshotEntry.DefaultSnapshotEntryBuilder;
+import io.microraft.model.impl.log.DefaultSnapshotEntryOrBuilder;
 import io.microraft.model.log.BaseLogEntry;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.SnapshotEntry;
@@ -49,8 +49,6 @@ import static java.util.Objects.requireNonNull;
  * the logs are identical in all preceding entries.</li>
  * </ul>
  *
- * @author mdogan
- * @author metanet
  * @see LogEntry
  * @see SnapshotEntry
  */
@@ -71,7 +69,7 @@ public final class RaftLog {
     /**
      * Latest snapshot entry
      */
-    private SnapshotEntry snapshot = new DefaultSnapshotEntryBuilder().build();
+    private SnapshotEntry snapshot = new DefaultSnapshotEntryOrBuilder().build();
     /**
      * Indicates if there is a change after the last {@link #flush()} call.
      */

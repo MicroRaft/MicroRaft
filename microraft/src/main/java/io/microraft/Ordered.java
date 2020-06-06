@@ -23,8 +23,6 @@ package io.microraft;
  *
  * @param <T>
  *         type of the actual result object
- *
- * @author metanet
  */
 public interface Ordered<T> {
 

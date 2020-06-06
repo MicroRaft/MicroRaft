@@ -26,8 +26,6 @@ import java.util.Collection;
  * index the given member list is appended to the Raft log.
  * <p>
  * The initial member list of a Raft group has index of 0.
- *
- * @author metanet
  */
 public interface RaftGroupMembers {
 

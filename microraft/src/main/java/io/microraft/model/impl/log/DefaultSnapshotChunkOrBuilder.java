@@ -18,6 +18,7 @@ package io.microraft.model.impl.log;
 
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.SnapshotChunk;
+import io.microraft.model.log.SnapshotChunk.SnapshotChunkBuilder;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -25,10 +26,17 @@ import java.util.Collection;
 import static java.util.Objects.requireNonNull;
 
 /**
- * @author metanet
+ * The default impl of the {@link SnapshotChunk} and
+ * {@link SnapshotChunkBuilder} interfaces. When an instance of this class is
+ * created, it is in the builder mode and its state is populated. Once all
+ * fields are set, the object switches to the DTO mode where it no longer
+ * allows mutations.
+ * <p>
+ * Please note that {@link #build()} does not verify if all fields are set or
+ * not. It is up to the user to populate the DTO state via the builder.
  */
 public class DefaultSnapshotChunkOrBuilder
-        implements SnapshotChunk, SnapshotChunk.SnapshotChunkBuilder {
+        implements SnapshotChunk, SnapshotChunkBuilder {
 
     private int term;
     private long index;

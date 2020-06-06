@@ -32,8 +32,6 @@ import io.microraft.RaftEndpoint;
  * in the current term.</li>
  * </ul>
  *
- * @author mdogan
- * @author metanet
  * @see RaftConfig#getMaxPendingLogEntryCount()
  */
 public class CannotReplicateException

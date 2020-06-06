@@ -43,8 +43,6 @@ import static java.util.Objects.requireNonNull;
  * <p>
  * This task is a read-only task and does not mutate the local Raft node state.
  *
- * @author mdogan
- * @author metanet
  * @see PreVoteRequest
  * @see PreVoteResponse
  * @see PreVoteTask

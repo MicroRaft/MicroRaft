@@ -25,9 +25,6 @@ import javax.annotation.Nonnull;
  * <p>
  * See <i>4.2.3 Disruptive servers</i> section of
  * of the Raft dissertation.
- *
- * @author mdogan
- * @author metanet
  */
 public interface TriggerLeaderElectionRequest
         extends RaftMessage {

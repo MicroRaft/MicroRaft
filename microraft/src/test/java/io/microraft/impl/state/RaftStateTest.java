@@ -34,10 +34,6 @@ import static io.microraft.RaftRole.LEADER;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * @author mdogan
- * @author metanet
- */
 public class RaftStateTest {
 
     private RaftState state;

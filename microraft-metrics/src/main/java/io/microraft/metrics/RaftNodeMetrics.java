@@ -103,7 +103,6 @@ import static java.util.Objects.requireNonNull;
  *     transferred from others and installed by the Raft node.</li>
  * </ul>
  *
- * @author metanet
  * @see RaftNode
  * @see RaftNodeBuilder
  * @see RaftNodeReport

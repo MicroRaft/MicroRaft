@@ -34,9 +34,6 @@ import org.slf4j.LoggerFactory;
  * Also a {@link LeaderElectionTimeoutTask} is scheduled with the
  * {@link RaftNodeImpl#getLeaderElectionTimeoutMs()} delay to trigger another
  * round of leader election if a leader is not elected yet.
- *
- * @author mdogan
- * @author metanet
  */
 public final class LeaderElectionTask
         extends RaftNodeStatusAwareTask

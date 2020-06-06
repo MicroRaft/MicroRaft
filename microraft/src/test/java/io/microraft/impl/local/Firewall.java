@@ -32,8 +32,6 @@ import static java.util.Collections.newSetFromMap;
 /**
  * Used for blocking and altering Raft messages sent between Raft nodes
  * during local testing.
- *
- * @author metanet
  */
 class Firewall {
 

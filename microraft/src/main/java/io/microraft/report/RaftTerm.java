@@ -22,8 +22,6 @@ import javax.annotation.Nullable;
 
 /**
  * Contains a snapshot of a Raft node's current state in a term.
- *
- * @author metanet
  */
 public interface RaftTerm {
 

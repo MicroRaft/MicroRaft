@@ -30,10 +30,6 @@ import java.util.List;
 /**
  * Contains restored state of a {@link RaftNode}. All the fields in this class
  * are persisted via {@link RaftStore}.
- *
- * @author mdogan
- * @author metanet
- * @author mtopolnik
  */
 public class RestoredRaftState {
 

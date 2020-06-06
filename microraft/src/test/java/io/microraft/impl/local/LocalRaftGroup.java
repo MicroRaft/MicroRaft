@@ -57,8 +57,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * over them, such as terminations, creating network partitions, dropping or
  * altering network messages.
  *
- * @author mdogan
- * @author metanet
  * @see LocalRaftEndpoint
  * @see SimpleStateMachine
  * @see Firewall

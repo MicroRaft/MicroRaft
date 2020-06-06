@@ -33,8 +33,6 @@ import java.util.List;
  * Invoked by leader to replicate log entries (§5.3);
  * also used as heartbeat (§5.2).
  *
- * @author mdogan
- * @author metanet
  * @see AppendEntriesRequestHandler
  */
 public interface AppendEntriesRequest

@@ -22,9 +22,6 @@ import io.microraft.impl.util.OrderedFuture;
 
 /**
  * State maintained by the Raft group leader during leadership transfer.
- *
- * @author mdogan
- * @author metanet
  */
 public final class LeadershipTransferState {
 

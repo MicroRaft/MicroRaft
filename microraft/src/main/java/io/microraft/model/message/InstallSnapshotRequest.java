@@ -34,8 +34,6 @@ import java.util.Collection;
  * Chunks are sent in the order defined by the follower and the follower
  * is free to request the chunks in any order.
  *
- * @author mdogan
- * @author metanet
  * @see InstallSnapshotResponse
  */
 public interface InstallSnapshotRequest

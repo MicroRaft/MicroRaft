@@ -21,9 +21,6 @@ import static java.lang.Math.min;
 
 /**
  * State maintained for each follower by the Raft group leader.
- *
- * @author mdogan
- * @author metanet
  */
 public final class FollowerState {
 

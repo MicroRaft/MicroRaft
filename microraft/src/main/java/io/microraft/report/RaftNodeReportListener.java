@@ -35,7 +35,6 @@ import java.util.function.Consumer;
  * method on {@link RaftNodeReportListener}, and finally calls
  * {@link RaftNodeLifecycleAware#onRaftNodeTerminate()} on termination.
  *
- * @author metanet
  * @see RaftNodeReport
  * @see RaftNode
  */

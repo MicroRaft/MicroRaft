@@ -20,8 +20,6 @@ package io.microraft;
 /**
  * Statuses of a Raft node during its own and its Raft group's lifecycle.
  *
- * @author mdogan
- * @author metanet
  * @see RaftNode
  */
 public enum RaftNodeStatus {

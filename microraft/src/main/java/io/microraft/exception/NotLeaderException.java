@@ -23,9 +23,6 @@ import io.microraft.RaftEndpoint;
  * Thrown when an operation, query, or a membership change is triggered
  * on a non-leader Raft node. In this case, the operation can be retried
  * on another Raft node of the Raft group.
- *
- * @author mdogan
- * @author metanet
  */
 public class NotLeaderException
         extends RaftException {

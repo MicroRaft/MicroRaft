@@ -26,8 +26,6 @@ import javax.annotation.Nonnull;
  * See <i>Four modifications for the Raft consensus algorithm</i>
  * by Henrik Ingo.
  *
- * @author mdogan
- * @author metanet
  * @see PreVoteRequest
  * @see VoteResponse
  */

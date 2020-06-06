@@ -33,8 +33,6 @@ import java.util.function.Consumer;
  * {@link StateMachine#takeSnapshot(long, Consumer)}. Additionally, a snapshot
  * chunk contains the committed Raft group member list along with its commit
  * index at the time of the snapshot creation.
- *
- * @author metanet
  */
 public interface SnapshotChunk
         extends BaseLogEntry {

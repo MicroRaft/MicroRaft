@@ -28,8 +28,6 @@ import javax.annotation.Nonnull;
  * <i>In Search of an Understandable Consensus Algorithm</i>
  * paper by <i>Diego Ongaro</i> and <i>John Ousterhout</i>.
  *
- * @author mdogan
- * @author metanet
  * @see AppendEntriesRequest
  * @see AppendEntriesRequestHandler
  */

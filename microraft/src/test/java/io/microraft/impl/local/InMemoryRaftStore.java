@@ -19,7 +19,7 @@ package io.microraft.impl.local;
 
 import io.microraft.RaftEndpoint;
 import io.microraft.impl.log.RaftLog;
-import io.microraft.model.impl.log.DefaultSnapshotEntry.DefaultSnapshotEntryBuilder;
+import io.microraft.model.impl.log.DefaultSnapshotEntryOrBuilder;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotEntry;
@@ -36,9 +36,6 @@ import java.util.List;
 
 /**
  * A very simple in-memory {@link RaftStore} implementation used for testing.
- *
- * @author mdogan
- * @author metanet
  */
 public final class InMemoryRaftStore
         implements RaftStore {
@@ -78,13 +75,13 @@ public final class InMemoryRaftStore
 
         if (snapshotChunk.getSnapshotChunkCount() == snapshotChunks.size()) {
             snapshotChunks.sort(Comparator.comparingInt(SnapshotChunk::getSnapshotChunkIndex));
-            SnapshotEntry snapshotEntry = new DefaultSnapshotEntryBuilder().setTerm(snapshotChunk.getTerm())
-                                                                           .setIndex(snapshotChunk.getIndex())
-                                                                           .setSnapshotChunks(snapshotChunks)
-                                                                           .setGroupMembersLogIndex(
-                                                                                   snapshotChunk.getGroupMembersLogIndex())
-                                                                           .setGroupMembers(snapshotChunk.getGroupMembers())
-                                                                           .build();
+            SnapshotEntry snapshotEntry = new DefaultSnapshotEntryOrBuilder().setTerm(snapshotChunk.getTerm())
+                                                                             .setIndex(snapshotChunk.getIndex())
+                                                                             .setSnapshotChunks(snapshotChunks)
+                                                                             .setGroupMembersLogIndex(
+                                                                                     snapshotChunk.getGroupMembersLogIndex())
+                                                                             .setGroupMembers(snapshotChunk.getGroupMembers())
+                                                                             .build();
             raftLog.setSnapshot(snapshotEntry);
             snapshotChunks = new ArrayList<>();
         }

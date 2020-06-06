@@ -25,8 +25,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Publishes a {@link RaftNodeReport} for the current state of the Raft node
- *
- * @author metanet
  */
 public class RaftStateSummaryPublishTask
         extends RaftNodeStatusAwareTask {

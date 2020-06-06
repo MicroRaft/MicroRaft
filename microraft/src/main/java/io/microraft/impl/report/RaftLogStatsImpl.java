@@ -24,8 +24,6 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * Contains statistics about a Raft node's local Raft log.
- *
- * @author metanet
  */
 public final class RaftLogStatsImpl
         implements RaftLogStats {

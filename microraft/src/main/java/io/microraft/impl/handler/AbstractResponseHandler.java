@@ -31,9 +31,6 @@ import static java.util.Objects.requireNonNull;
  * <p>
  * If {@link RaftMessage#getSender()} is not a known Raft group member,
  * then the response is ignored.
- *
- * @author mdogan
- * @author metanet
  */
 public abstract class AbstractResponseHandler<T extends RaftMessage>
         extends AbstractMessageHandler<T> {

@@ -28,9 +28,6 @@ import java.util.Map.Entry;
  * If the append entries request backoff period is active for any follower,
  * this task will send a new append entries request on the backoff
  * completion.
- *
- * @author mdogan
- * @author metanet
  */
 public class LeaderBackoffResetTask
         extends RaftNodeStatusAwareTask {

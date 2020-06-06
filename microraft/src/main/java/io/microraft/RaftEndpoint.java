@@ -27,9 +27,6 @@ import javax.annotation.Nonnull;
  * members of a Raft group with a unique id, and that is why we only have
  * a single method in this interface. It is users' responsibility to assign
  * unique ids to different Raft endpoints.
- *
- * @author mdogan
- * @author metanet
  */
 public interface RaftEndpoint {
 

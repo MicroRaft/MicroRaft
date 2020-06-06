@@ -22,9 +22,6 @@ import java.util.Set;
 
 /**
  * State maintained by each candidate during the pre-voting and voting phases.
- *
- * @author mdogan
- * @author metanet
  */
 public final class CandidateState {
 

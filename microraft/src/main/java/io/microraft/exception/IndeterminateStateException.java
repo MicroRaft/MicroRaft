@@ -35,9 +35,6 @@ import io.microraft.RaftNode;
  * then at-most-once execution happens.
  * <p>
  * Idempotent operations can be retried on indeterminate situations.
- *
- * @author mdogan
- * @author metanet
  */
 public class IndeterminateStateException
         extends RaftException {

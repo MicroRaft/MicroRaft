@@ -20,8 +20,6 @@ import javax.annotation.Nonnull;
 
 /**
  * Represents an entry in the Raft log.
- *
- * @author metanet
  */
 public interface LogEntry
         extends BaseLogEntry {

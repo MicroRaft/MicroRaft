@@ -33,8 +33,6 @@ import javax.annotation.Nonnull;
  * <p>
  * {@link RaftMessage} objects are created by {@link RaftModelFactory}.
  *
- * @author mdogan
- * @author metanet
  * @see RaftModel
  * @see RaftModelFactory
  */

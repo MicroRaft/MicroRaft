@@ -27,7 +27,7 @@ on their needs.
 * Pipelining and batching during log replication,
 * Back pressure to prevent OOMEs on Raft leader and followers,
 * Parallel snapshot transfer from Raft leader and followers,
-* Pre-voting and leader stickiness <a href="https://openlife.cc/system/files/4-modifications-for-Raft-consensus.pdf" target="_blank">(4 Modifications for Raft Consensus)</a>,
+* Pre-voting and leader stickiness (<a href="https://github.com/ongardie/dissertation" target="_blank">Sections 4.2.3 and 9.6 of the Raft dissertation</a>, and <a href="https://openlife.cc/system/files/4-modifications-for-Raft-consensus.pdf" target="_blank">4 Modifications for Raft Consensus</a>),
 * Auto-demotion of Raft leader on loss of quorum heartbeats,
 * Linearizable quorum reads without appending log entries <a href="https://github.com/ongardie/dissertation" target="_blank">(Section 6.4 of the Raft dissertation)</a>,
 * Lease-based local queries on Raft leader <a href="https://github.com/ongardie/dissertation" target="_blank">(Section 6.4.1 of the Raft dissertation)</a>,

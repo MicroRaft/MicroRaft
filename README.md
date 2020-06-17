@@ -36,8 +36,8 @@ enhancements:
 * Pipelining and batching during log replication,
 * Back pressure to prevent OOMEs on Raft leader and followers,
 * Parallel snapshot transfer from Raft leader and followers,
-* Pre-voting and leader stickiness [(4 Modifications for Raft Consensus)](https://openlife.cc/system/files/4-modifications-for-Raft-consensus.pdf),
-* Auto-demotion of Raft leader on loss of quorum heartbeats,
+* Pre-voting and leader stickiness ([Section 4.2.3 of the Raft dissertation](https://github.com/ongardie/dissertation) and [Four modifications of the Raft consensus algorithm](https://openlife.cc/system/files/4-modifications-for-Raft-consensus.pdf)),
+* Auto-demotion of Raft leader on loss of quorum heartbeats [(Section 6.2 of the Raft dissertation)](https://github.com/ongardie/dissertation),
 * Linearizable quorum reads without appending log entries [(Section 6.4 of the Raft dissertation)](https://github.com/ongardie/dissertation),
 * Lease-based local queries on Raft leader [(Section 6.4.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
 * Monotonic local queries on Raft followers [(Section 6.4.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
@@ -52,7 +52,7 @@ See [the User Guide](https://microraft.io/user-guide/setup).
 
 ## Building from Source
 
-Pull the latest code with `git clone git@github.com:metanet/MicroRaft.git` 
+Pull the latest code with `git clone git@github.com:MicroRaft/MicroRaft.git` 
 and build with `cd MicroRaft && ./mvnw clean package`. 
 
 

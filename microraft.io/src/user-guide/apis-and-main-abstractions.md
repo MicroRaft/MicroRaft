@@ -15,7 +15,7 @@ MicroRaft's implementation. Please check the
 
 <a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNode.java" target="_blank">`RaftNode`</a> 
 runs the Raft consensus algorithm as a member of a Raft group. A Raft group is
-a cluster of `RaftNode` instances that behave as _replicated state machines_. 
+a cluster of `RaftNode` instances that behave as a _replicated state machine_. 
 `RaftNode` contains APIs for replicating operations, performing queries, 
 applying membership changes in the Raft group, handling Raft RPCs and 
 responses, etc.

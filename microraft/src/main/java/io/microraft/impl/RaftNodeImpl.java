@@ -1153,19 +1153,18 @@ public final class RaftNodeImpl
                                                                  .setSender(getLocalEndpoint()).setTerm(state.term())
                                                                  .setCommitIndex(state.commitIndex())
                                                                  .setQuerySeqNo(leaderState.querySeqNo());
-        int prevEntryTerm = 0;
-        long prevEntryIndex = 0;
         List<LogEntry> entries;
         boolean backoff = true;
 
         long lastLogIndex = log.lastLogOrSnapshotIndex();
         if (nextIndex > 1) {
-            prevEntryIndex = nextIndex - 1;
+            long prevEntryIndex = nextIndex - 1;
+            requestBuilder.setPreviousLogIndex(prevEntryIndex);
             BaseLogEntry prevEntry = (log.snapshotIndex() == prevEntryIndex) ? log.snapshotEntry() : log
                     .getLogEntry(prevEntryIndex);
             assert prevEntry != null : localEndpointStr + " prev entry index: " + prevEntryIndex + ", snapshot: " + log
                     .snapshotIndex();
-            prevEntryTerm = prevEntry.getTerm();
+            requestBuilder.setPreviousLogTerm(prevEntry.getTerm());
 
             long matchIndex = followerState.matchIndex();
             if (matchIndex == 0) {
@@ -1175,8 +1174,6 @@ public final class RaftNodeImpl
                 // the follower before we learn its match index
                 entries = emptyList();
             } else if (nextIndex <= lastLogIndex) {
-                // TODO [basri] boost the follower if it has just installed a snapshot...
-
                 // Then, once the matchIndex immediately precedes the nextIndex,
                 // the leader should begin to send the actual entries
                 long end = min(nextIndex + appendEntriesRequestBatchSize, lastLogIndex);
@@ -1196,9 +1193,11 @@ public final class RaftNodeImpl
             backoff = false;
         }
 
-        RaftMessage request = requestBuilder.setPreviousLogTerm(prevEntryTerm).setPreviousLogIndex(prevEntryIndex)
-                                            .setFlowControlSeqNo(backoff ? enableBackoff(followerState) : 0)
-                                            .setLogEntries(entries).build();
+        if (backoff) {
+            requestBuilder.setFlowControlSeqNo(enableBackoff(followerState));
+        }
+
+        RaftMessage request = requestBuilder.setLogEntries(entries).build();
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(localEndpointStr + " Sending " + request + " to " + follower.getId() + " with next index: " + nextIndex);

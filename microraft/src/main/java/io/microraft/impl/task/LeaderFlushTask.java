@@ -36,13 +36,13 @@ public class LeaderFlushTask
 
     @Override
     protected void doRun() {
+        RaftLog log = state.log();
+        log.flush();
+
         LeaderState leaderState = state.leaderState();
         if (leaderState == null) {
             return;
         }
-
-        RaftLog log = state.log();
-        log.flush();
 
         leaderState.flushTaskSubmitted(false);
         leaderState.flushedLogIndex(log.lastLogOrSnapshotIndex());

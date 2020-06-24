@@ -189,7 +189,7 @@ is the base class for Raft-related exceptions. MicroRaft defines a number of
 to report some certain failure scenarios to clients. 
 
 
-## How to run a raft group 
+## How to run a Raft group 
 
 In order to run a Raft group (i.e., Raft cluster) using MicroRaft, we need to:
 

@@ -19,8 +19,12 @@ package io.microraft.test.util;
 import org.junit.Rule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BaseTest {
+
+    static final Logger LOGGER = LoggerFactory.getLogger("Test");
 
     @Rule
     @SuppressWarnings("checkstyle:anoninnerlength")
@@ -39,7 +43,7 @@ public class BaseTest {
                     durationMillis > 0 ? durationMillis : (durationMicros > 0 ? durationMicros : durationNanos));
             String unit =
                     durationSeconds > 0 ? "secs" : (durationMillis > 0 ? "millis" : (durationMicros > 0 ? "micros" : "nanos"));
-            System.out.println("+ SUCCEEDED: " + description.getMethodName() + " IN " + duration + " " + unit);
+            LOGGER.info("+ SUCCEEDED: " + description.getMethodName() + " IN " + duration + " " + unit);
         }
 
         @Override
@@ -54,13 +58,13 @@ public class BaseTest {
                     durationMs > 0 ? durationMs : (durationMicros > 0 ? durationMicros : durationNs));
             final String unit =
                     durationSecs > 0 ? "secs" : (durationMs > 0 ? "millis" : (durationMicros > 0 ? "micros" : "nanos"));
-            System.out.println("- FAILED: " + description.getMethodName() + " IN " + duration + " " + unit);
+            LOGGER.info("- FAILED: " + description.getMethodName() + " IN " + duration + " " + unit);
         }
 
         @Override
         protected void starting(Description description) {
             super.starting(description);
-            System.out.println("- STARTED: " + description.getMethodName());
+            LOGGER.info("- STARTED: " + description.getMethodName());
             start = System.nanoTime();
             super.starting(description);
         }

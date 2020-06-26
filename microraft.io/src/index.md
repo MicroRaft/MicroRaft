@@ -1,5 +1,5 @@
 
-![](img/logo.png){: style="height:64px;width:348px"}
+![](img/microraft-logo.png){: style="height:192px;width:192px;float:right;"}  
 
 MicroRaft is a feature-complete, stable and production-grade open-source 
 implementation of the Raft consensus algorithm in Java. 
@@ -132,8 +132,10 @@ paper by Diego Ongaro and John Ousterhout.
 
 ## Acknowledgements
 
-MicroRaft originates from 
-[the Raft implementation](https://github.com/hazelcast/hazelcast/tree/master/hazelcast/src/main/java/com/hazelcast/cp/internal/raft) 
-that empowers Hazelcast IMDG's 
-[CP Subsystem module](https://docs.hazelcast.org/docs/latest/manual/html-single/index.html#cp-subsystem),
+MicroRaft originates from Hazelcast IMDG's
+<a href="https://github.com/hazelcast/hazelcast/tree/master/hazelcast/src/main/java/com/hazelcast/cp/internal/raft" target="_blank">Raft implementation</a> 
 and includes several significant improvements on the public APIs and internals. 
+
+MicroRaft's logo is created by modifying <a href="https://github.com/raft/logo/tree/3d2c4d5ca0d9c4fb8d5c28a82c4a43e576673b06" target="_blank">
+Raft's original logo</a>. Raft's logo was created by Andrea Ruygt and licensed 
+under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">the Creative Commons Attribution-4.0 International</a>.   

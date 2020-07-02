@@ -18,8 +18,11 @@ package io.microraft.metrics;
 
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.MultiGauge;
 import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.binder.MeterBinder;
+import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.RaftNode.RaftNodeBuilder;
 import io.microraft.RaftNodeStatus;
@@ -31,11 +34,13 @@ import io.microraft.report.RaftNodeReportListener;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Collect metrics reported by Raft nodes and publishes them to Metric registries.
@@ -113,6 +118,7 @@ public final class RaftNodeMetrics
 
     private final List<Tag> tags;
     private volatile RaftNodeReport report;
+    private volatile MultiGauge followerMatchIndicesGauge;
 
     /**
      * Creates the object with the given Raft group id and node id strings.
@@ -142,6 +148,12 @@ public final class RaftNodeMetrics
     @Override
     public void accept(@Nonnull RaftNodeReport report) {
         this.report = report;
+
+        Map<RaftEndpoint, Long> followerMatchIndices = report.getLog().getFollowerMatchIndices();
+        this.followerMatchIndicesGauge.register(followerMatchIndices.keySet().stream().map(endpoint -> {
+            Tags followerTag = Tags.of("follower", endpoint.getId().toString());
+            return MultiGauge.Row.of(followerTag, () -> getFollowerMatchIndex(endpoint));
+        }).collect(toList()));
     }
 
     @Override
@@ -183,20 +195,23 @@ public final class RaftNodeMetrics
     }
 
     private void registerRaftLogMetrics(MeterRegistry registry) {
-        Gauge.builder("raft.node.commit.index", this, RaftNodeMetrics::getCommitIndex).tags(tags)
+        Gauge.builder("raft.log.commit.index", this, RaftNodeMetrics::getCommitIndex).tags(tags)
              .description("The committed Raft log index of the Raft node").register(registry);
-        Gauge.builder("raft.node.last.log.term", this, RaftNodeMetrics::getLastLogOrSnapshotTerm).tags(tags)
+        Gauge.builder("raft.log.last.term", this, RaftNodeMetrics::getLastLogOrSnapshotTerm).tags(tags)
              .description("The term of the last appended Raft log entry").register(registry);
-        Gauge.builder("raft.node.last.log.index", this::getLastLogOrSnapshotIndex).tags(tags)
+        Gauge.builder("raft.log.last.index", this::getLastLogOrSnapshotIndex).tags(tags)
              .description("The index of the last appended Raft log entry").register(registry);
-        Gauge.builder("raft.node.last.snapshot.term", this, RaftNodeMetrics::getLastSnapshotTerm).tags(tags)
+        Gauge.builder("raft.log.last.snapshot.term", this, RaftNodeMetrics::getLastSnapshotTerm).tags(tags)
              .description("The term of the last snapshot taken or installed by the Raft node").register(registry);
-        Gauge.builder("raft.node.last.snapshot.index", this, RaftNodeMetrics::getLastSnapshotIndex).tags(tags)
+        Gauge.builder("raft.log.last.snapshot.index", this, RaftNodeMetrics::getLastSnapshotIndex).tags(tags)
              .description("The Raft log index of the last snapshot taken or installed by the Raft node").register(registry);
-        Gauge.builder("raft.node.last.take.snapshot.count", this, RaftNodeMetrics::getTakeSnapshotCount).tags(tags)
+        Gauge.builder("raft.log.take.snapshot.count", this, RaftNodeMetrics::getTakeSnapshotCount).tags(tags)
              .description("The number of snapshots locally taken by the Raft node").register(registry);
-        Gauge.builder("raft.node.last.install.snapshot.count", this, RaftNodeMetrics::getInstallSnapshotCount).tags(tags)
+        Gauge.builder("raft.log.install.snapshot.count", this, RaftNodeMetrics::getInstallSnapshotCount).tags(tags)
              .description("The number of snapshots transferred from others and installed by the Raft node").register(registry);
+        followerMatchIndicesGauge = MultiGauge.builder("raft.log.follower.match.index")
+                                              .description("The index of the last known appended Raft log entry on the follower")
+                                              .tags(tags).register(registry);
     }
 
     private int getRaftRole() {
@@ -265,6 +280,10 @@ public final class RaftNodeMetrics
 
     private int getInstallSnapshotCount() {
         return getOrDefaultValue(() -> report.getLog().getInstallSnapshotCount(), 0);
+    }
+
+    private long getFollowerMatchIndex(RaftEndpoint endpoint) {
+        return getOrDefaultValue(() -> report.getLog().getFollowerMatchIndices().getOrDefault(endpoint, 0L), 0L);
     }
 
     private <T> T getOrDefaultValue(Supplier<T> supplier, T defaultValue) {

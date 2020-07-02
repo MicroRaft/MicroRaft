@@ -103,6 +103,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 
@@ -120,11 +121,13 @@ import static io.microraft.model.log.SnapshotEntry.isNonInitial;
 import static java.lang.Math.min;
 import static java.util.Arrays.sort;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.shuffle;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Implementation of {@link RaftNode}.
@@ -597,7 +600,12 @@ public final class RaftNodeImpl
     @SuppressWarnings("checkstyle:cyclomaticcomplexity")
     public void handle(@Nonnull RaftMessage message) {
         if (isTerminal(status)) {
-            LOGGER.warn("{} will not handle {} because {}", localEndpointStr, message, status);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.warn("{} will not handle {} because {}", localEndpointStr, message, status);
+            } else {
+                LOGGER.warn("{} will not handle {} because {}", localEndpointStr, message.getClass().getSimpleName(), status);
+            }
+
             return;
         }
 
@@ -691,8 +699,17 @@ public final class RaftNodeImpl
     }
 
     private RaftLogStatsImpl newLogReport() {
+        LeaderState leaderState = state.leaderState();
+        Map<RaftEndpoint, Long> followerMatchIndices;
+        if (leaderState != null) {
+            followerMatchIndices = leaderState.getFollowerStates().entrySet().stream()
+                                              .collect(toMap(Entry::getKey, e -> e.getValue().matchIndex()));
+        } else {
+            followerMatchIndices = emptyMap();
+        }
+
         return new RaftLogStatsImpl(state.commitIndex(), state.log().lastLogOrSnapshotEntry(), state.log().snapshotEntry(),
-                                    takeSnapshotCount, installSnapshotCount);
+                                    takeSnapshotCount, installSnapshotCount, followerMatchIndices);
     }
 
     private <T> OrderedFuture<T> executeIfRunning(Runnable task, OrderedFuture<T> future) {

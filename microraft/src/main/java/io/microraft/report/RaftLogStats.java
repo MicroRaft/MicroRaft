@@ -16,8 +16,12 @@
 
 package io.microraft.report;
 
+import io.microraft.RaftEndpoint;
+
+import java.util.Map;
+
 /**
- * Contains statistics about a Raft node's local Raft log.
+ * Contains statistics about a Raft node's Raft log.
  */
 public interface RaftLogStats {
 
@@ -73,5 +77,17 @@ public interface RaftLogStats {
      * @return the number of snapshots installed by a Raft node
      */
     int getInstallSnapshotCount();
+
+    /**
+     * Returns the indices of the last known appended Raft log entries
+     * on the followers.
+     * <p>
+     * This map is non-empty only for the leader Raft node. Followers
+     * return an empty map.
+     *
+     * @return the indices of the last known appended Raft log entries
+     *         on the followers
+     */
+    Map<RaftEndpoint, Long> getFollowerMatchIndices();
 
 }

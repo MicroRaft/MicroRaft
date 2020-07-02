@@ -16,9 +16,12 @@
 
 package io.microraft.impl.report;
 
+import io.microraft.RaftEndpoint;
 import io.microraft.model.log.BaseLogEntry;
 import io.microraft.model.log.SnapshotEntry;
 import io.microraft.report.RaftLogStats;
+
+import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
 
@@ -35,9 +38,10 @@ public final class RaftLogStatsImpl
     private final long snapshotIndex;
     private final int takeSnapshotCount;
     private final int installSnapshotCount;
+    private final Map<RaftEndpoint, Long> followerMatchIndices;
 
     public RaftLogStatsImpl(long commitIndex, BaseLogEntry lastLogOrSnapshotEntry, SnapshotEntry snapshotEntry,
-                            int takeSnapshotCount, int installSnapshotCount) {
+                            int takeSnapshotCount, int installSnapshotCount, Map<RaftEndpoint, Long> followerMatchIndices) {
         requireNonNull(lastLogOrSnapshotEntry);
         requireNonNull(snapshotEntry);
         this.commitIndex = commitIndex;
@@ -47,6 +51,7 @@ public final class RaftLogStatsImpl
         this.snapshotIndex = snapshotEntry.getIndex();
         this.takeSnapshotCount = takeSnapshotCount;
         this.installSnapshotCount = installSnapshotCount;
+        this.followerMatchIndices = requireNonNull(followerMatchIndices);
     }
 
     @Override
@@ -85,11 +90,16 @@ public final class RaftLogStatsImpl
     }
 
     @Override
+    public Map<RaftEndpoint, Long> getFollowerMatchIndices() {
+        return followerMatchIndices;
+    }
+
+    @Override
     public String toString() {
         return "RaftLogReport{" + "commitIndex=" + commitIndex + ", lastLogOrSnapshotTerm=" + lastLogOrSnapshotTerm
                 + ", lastLogOrSnapshotIndex=" + lastLogOrSnapshotIndex + ", snapshotTerm=" + snapshotTerm + ", snapshotIndex="
                 + snapshotIndex + ", takeSnapshotCount=" + takeSnapshotCount + ", installSnapshotCount=" + installSnapshotCount
-                + '}';
+                + ", followerMatchIndices=" + followerMatchIndices + '}';
     }
 
 }

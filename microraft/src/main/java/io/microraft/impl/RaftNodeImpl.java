@@ -1042,14 +1042,18 @@ public final class RaftNodeImpl
         if ((reason == RaftNodeReportReason.STATUS_CHANGE || reason == RaftNodeReportReason.ROLE_CHANGE
                 || reason == RaftNodeReportReason.GROUP_MEMBERS_CHANGE)) {
             Object groupId = state.groupId();
-            RaftGroupMembers committedMembers = report.getCommittedMembers();
-            StringBuilder sb = new StringBuilder(localEndpointStr).append(" Raft Group Members {").append("groupId: ")
+            RaftGroupMembers members = report.getEffectiveMembers();
+            StringBuilder sb = new StringBuilder(localEndpointStr).append(" lastLogIndex: ")
+                                                                  .append(report.getLog().getLastLogOrSnapshotIndex())
+                                                                  .append(", commitIndex: ")
+                                                                  .append(report.getLog().getCommitIndex())
+                                                                  .append(", Raft Group Members {").append("groupId: ")
                                                                   .append(groupId).append(", size: ")
-                                                                  .append(committedMembers.getMembers().size()).append(", term: ")
+                                                                  .append(members.getMembers().size()).append(", term: ")
                                                                   .append(report.getTerm().getTerm()).append(", logIndex: ")
-                                                                  .append(committedMembers.getLogIndex()).append("} [");
+                                                                  .append(members.getLogIndex()).append("} [");
 
-            committedMembers.getMembers().forEach(member -> {
+            members.getMembers().forEach(member -> {
                 sb.append("\n\t").append(member.getId());
                 if (getLocalEndpoint().equals(member)) {
                     sb.append(" - ").append(state.role()).append(" this (").append(status).append(")");

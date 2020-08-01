@@ -1,3 +1,0 @@
-## Leader Election
-
-tbd

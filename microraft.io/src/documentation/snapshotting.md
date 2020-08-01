@@ -1,3 +1,0 @@
-## Snapshotting
-
-tbd

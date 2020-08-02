@@ -83,7 +83,7 @@ href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java
 target="_blank">`StateMachine`</a> enables users to implement arbitrary
 services, such as an atomic register or a key-value store, and execute
 operations on them. Currently, MicroRaft supports memory-based state machines
-with datasets in the gigabytes or tens of gigabytes.
+with datasets in the gigabytes.
 
 `RaftNode` does not deal with the actual logic of committed operations. Once a
 given operation is committed with the Raft consensus algorithm, i.e., it is

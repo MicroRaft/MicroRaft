@@ -54,7 +54,7 @@ public class PreVoteResponseHandler
         LOGGER.debug("{} received {}.", localEndpointStr(), response);
 
         if (state.role() != FOLLOWER) {
-            LOGGER.info("{} Ignored {}. We are not FOLLOWER anymore.", localEndpointStr(), response);
+            LOGGER.debug("{} Ignored {}. We are not FOLLOWER anymore.", localEndpointStr(), response);
             return;
         }
 

@@ -1369,8 +1369,8 @@ public final class RaftNodeImpl
             // Raft dissertation Section 10.2.1:
             // The leader may even commit an entry before it has been written to its own disk,
             // if a majority of followers have written it to their disks; this is still safe.
-            long leaderIndex = leaderFlushTask == null ? state.log().lastLogOrSnapshotIndex() : leaderState.flushedLogIndex();
-            indices[indices.length - 1] = leaderIndex;
+            long leaderLogIndex = leaderFlushTask == null ? state.log().lastLogOrSnapshotIndex() : leaderState.flushedLogIndex();
+            indices[indices.length - 1] = leaderLogIndex;
         } else {
             // Remove the last empty slot reserved for leader index
             indices = Arrays.copyOf(indices, indices.length - 1);
@@ -1378,7 +1378,10 @@ public final class RaftNodeImpl
 
         sort(indices);
 
-        long quorumMatchIndex = indices[(indices.length - 1) / 2];
+        // 4 nodes: [0, 1, 2, 3] => Qlr = 2, quorum index = 2
+        // 5 nodes: [0, 1, 2, 3, 4] => Qlr = 3, quorum index = 2
+
+        long quorumMatchIndex = indices[state.memberCount() - state.logReplicationQuorumSize()];
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(
                     localEndpointStr + " Quorum match index: " + quorumMatchIndex + ", indices: " + Arrays.toString(indices));
@@ -1456,7 +1459,7 @@ public final class RaftNodeImpl
     public void tryRunQueries() {
         QueryState queryState = state.leaderState().queryState();
         long commitIndex = state.commitIndex();
-        if (!queryState.isMajorityAckReceived(commitIndex, state.majority())) {
+        if (!queryState.isQuorumAckReceived(commitIndex, state.logReplicationQuorumSize())) {
             return;
         }
 
@@ -1568,14 +1571,14 @@ public final class RaftNodeImpl
         return modelFactory;
     }
 
-    public boolean demoteToFollowerIfMajorityHeartbeatTimeoutElapsed() {
+    public boolean demoteToFollowerIfLeaderElectionQuorumHeartbeatTimeoutElapsed() {
         LeaderState leaderState = state.leaderState();
         if (leaderState == null) {
             return true;
         }
 
-        long majorityTimestamp = leaderState.majorityAppendEntriesResponseTimestamp(state.majority());
-        if (isLeaderHeartbeatTimeoutElapsed(majorityTimestamp)) {
+        long quorumTimestamp = leaderState.logReplicationQuorumResponseTimestamp(state.logReplicationQuorumSize());
+        if (isLeaderHeartbeatTimeoutElapsed(quorumTimestamp)) {
             LOGGER.warn("{} Demoting to {} since not received append entries responses from majority recently.", localEndpointStr,
                         FOLLOWER);
             toFollower(state.term());

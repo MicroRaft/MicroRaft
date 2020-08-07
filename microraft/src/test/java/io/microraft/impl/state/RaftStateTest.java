@@ -21,7 +21,6 @@ import io.microraft.RaftEndpoint;
 import io.microraft.impl.local.LocalRaftEndpoint;
 import io.microraft.impl.log.RaftLog;
 import io.microraft.model.impl.log.DefaultLogEntryOrBuilder;
-import io.microraft.test.util.RaftTestUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,19 +30,20 @@ import java.util.HashSet;
 import static io.microraft.RaftRole.CANDIDATE;
 import static io.microraft.RaftRole.FOLLOWER;
 import static io.microraft.RaftRole.LEADER;
+import static io.microraft.impl.local.LocalRaftEndpoint.newEndpoint;
+import static io.microraft.test.util.RaftTestUtils.majority;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RaftStateTest {
 
+    private final LocalRaftEndpoint localMember = newEndpoint();
     private RaftState state;
-    private LocalRaftEndpoint localMember = LocalRaftEndpoint.newEndpoint();
     private Collection<RaftEndpoint> members;
 
     @Before
     public void setup() {
-        members = new HashSet<>(asList(localMember, localMember, LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint(),
-                                       LocalRaftEndpoint.newEndpoint()));
+        members = new HashSet<>(asList(localMember, newEndpoint(), newEndpoint(), newEndpoint(), newEndpoint()));
         state = RaftState.create("default", localMember, members, 100);
     }
 
@@ -62,7 +62,7 @@ public class RaftStateTest {
         assertThat(state.leader()).isNull();
         assertThat(state.commitIndex()).isEqualTo(0);
         assertThat(state.lastApplied()).isEqualTo(0);
-        assertThat(state.majority()).isEqualTo(3);
+        assertThat(state.leaderElectionQuorumSize()).isEqualTo(3);
         assertThat(state.votedEndpoint()).isNull();
         assertThat(state.leaderState()).isNull();
         assertThat(state.candidateState()).isNull();
@@ -73,7 +73,7 @@ public class RaftStateTest {
     }
 
     @Test
-    public void test_Leader() {
+    public void test_leader() {
         state.leader(localMember);
         assertThat(state.leader()).isEqualTo(localMember);
     }
@@ -143,7 +143,7 @@ public class RaftStateTest {
 
         CandidateState candidateState = state.candidateState();
         assertThat(candidateState).isNotNull();
-        assertThat(candidateState.majority()).isEqualTo(state.majority());
+        assertThat(candidateState.majority()).isEqualTo(state.leaderElectionQuorumSize());
         assertThat(candidateState.isMajorityGranted()).isFalse();
         assertThat(candidateState.voteCount()).isEqualTo(1);
     }
@@ -187,30 +187,41 @@ public class RaftStateTest {
             assertThat(state.isKnownMember(endpoint)).isTrue();
         }
 
-        assertThat(state.isKnownMember(LocalRaftEndpoint.newEndpoint())).isFalse();
+        assertThat(state.isKnownMember(newEndpoint())).isFalse();
     }
 
     @Test
-    public void test_majority_withOddMemberGroup() {
-        test_majority(7);
-    }
-
-    private void test_majority(int count) {
+    public void testQuorumSizesOfOddSizedCluster() {
+        int memberCount = 7;
         members = new HashSet<>();
         members.add(localMember);
 
-        for (int i = 1; i < count; i++) {
-            members.add(LocalRaftEndpoint.newEndpoint());
+        for (int i = 1; i < memberCount; i++) {
+            members.add(newEndpoint());
         }
 
         state = RaftState.create("default", localMember, members, 100);
 
-        assertThat(state.majority()).isEqualTo(RaftTestUtils.majority(count));
+        int majorityQuorumSize = majority(memberCount);
+        assertThat(state.leaderElectionQuorumSize()).isEqualTo(majorityQuorumSize);
+        assertThat(state.logReplicationQuorumSize()).isEqualTo(majorityQuorumSize);
     }
 
     @Test
-    public void test_majority_withEvenMemberGroup() {
-        test_majority(8);
+    public void testQuorumSizesOfEvenSizedCluster() {
+        int memberCount = 8;
+        members = new HashSet<>();
+        members.add(localMember);
+
+        for (int i = 1; i < memberCount; i++) {
+            members.add(newEndpoint());
+        }
+
+        state = RaftState.create("default", localMember, members, 100);
+
+        int majorityQuorumSize = majority(memberCount);
+        assertThat(state.leaderElectionQuorumSize()).isEqualTo(majorityQuorumSize);
+        assertThat(state.logReplicationQuorumSize()).isEqualTo(majorityQuorumSize - 1);
     }
 
 }

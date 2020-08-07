@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Scheduled when the current leader is null, unreachable, or unknown by
- * {@link PreVoteResponseHandler} after a follower receives votes from at-least
+ * {@link PreVoteResponseHandler} after a follower receives votes from the
  * majority. A Raft node becomes a candidate via
  * {@link RaftState#toCandidate()} and sends {@link VoteRequest}s to the other
  * Raft group members.

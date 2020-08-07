@@ -43,7 +43,7 @@ public class HeartbeatTask
     protected void doRun() {
         try {
             if (state.leaderState() != null) {
-                if (!node.demoteToFollowerIfMajorityHeartbeatTimeoutElapsed()) {
+                if (!node.demoteToFollowerIfLeaderElectionQuorumHeartbeatTimeoutElapsed()) {
                     node.broadcastAppendEntriesRequest();
                     // TODO [basri] append no-op if snapshotIndex > 0 && snapshotIndex == lastLogIndex
                 }

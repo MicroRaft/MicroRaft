@@ -37,12 +37,14 @@ public final class RaftGroupMembersState
     private long index;
     private Collection<RaftEndpoint> members;
     private Collection<RaftEndpoint> remoteMembers;
+    private int majority;
 
     public RaftGroupMembersState(long index, Collection<RaftEndpoint> members, RaftEndpoint localMember) {
         requireNonNull(members);
         requireNonNull(localMember);
         this.index = index;
         this.members = unmodifiableSet(new LinkedHashSet<>(members));
+        this.majority = members.size() / 2 + 1;
         Set<RaftEndpoint> remoteMembers = new LinkedHashSet<>(members);
         remoteMembers.remove(localMember);
         this.remoteMembers = unmodifiableSet(remoteMembers);
@@ -86,7 +88,7 @@ public final class RaftGroupMembersState
      */
     @Override
     public int getMajority() {
-        return members.size() / 2 + 1;
+        return majority;
     }
 
     /**

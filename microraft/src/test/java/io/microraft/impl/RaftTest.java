@@ -515,7 +515,7 @@ public class RaftTest
     @Test(timeout = 300_000)
     public void when_leaderCrashes_then_theFollowerWithLongestLogBecomesLeader()
             throws Exception {
-        group = LocalRaftGroup.start(4, TEST_RAFT_CONFIG);
+        group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
@@ -531,9 +531,8 @@ public class RaftTest
             }
         });
 
-        for (int i = 1; i < followers.size(); i++) {
-            group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(i).getLocalEndpoint(), AppendEntriesRequest.class);
-        }
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint(), AppendEntriesRequest.class);
+        group.dropMessagesTo(nextLeader.getLocalEndpoint(), leader.getLocalEndpoint(), AppendEntriesSuccessResponse.class);
 
         leader.replicate(applyValue("val2"));
 
@@ -553,20 +552,18 @@ public class RaftTest
             }
         });
 
-        eventually(() -> {
+        // new leader cannot commit "val2" before replicating a new entry in its term
+
+        allTheTime(() -> {
             for (RaftNodeImpl node : followers) {
                 assertThat(getCommitIndex(node)).isEqualTo(commitIndex);
                 assertThat(getLastLogOrSnapshotEntry(node).getIndex()).isGreaterThan(commitIndex);
-                SimpleStateMachine stateMachine = group.getStateMachine(node.getLocalEndpoint());
-                assertThat(stateMachine.size()).isEqualTo(1);
-                assertThat(stateMachine.get(1)).isEqualTo("val1");
-                // val2 not committed yet
             }
-        });
+        }, 3);
     }
 
     @Test(timeout = 300_000)
-    public void when_followerBecomesLeaderWithUncommittedEntries_then_thoseEntriesAreCommittedWithANewEntryOfCurrentTerm()
+    public void when_followerBecomesLeaderWithUncommittedEntries_then_thoseEntriesAreCommittedWithANewEntryOfNewTerm()
             throws Exception {
         group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
@@ -789,7 +786,7 @@ public class RaftTest
     @Test(timeout = 300_000)
     public void when_leaderStaysInMinority_then_itDemotesItselfToFollower()
             throws Exception {
-        group = LocalRaftGroup.start(2, TEST_RAFT_CONFIG);
+        group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
@@ -806,7 +803,7 @@ public class RaftTest
 
     @Test(timeout = 300_000)
     public void when_leaderDemotesToFollower_then_itShouldNotDeleteItsVote() {
-        group = LocalRaftGroup.start(2, TEST_RAFT_CONFIG);
+        group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
@@ -842,6 +839,17 @@ public class RaftTest
         } catch (CompletionException e) {
             assertThat(e).hasCauseInstanceOf(IndeterminateStateException.class);
         }
+    }
+
+    @Test(timeout = 300_000)
+    public void when_evenSizedRaftGroupRunning_then_logReplicationQuorumCanBeDecreased() {
+        group = LocalRaftGroup.start(4, TEST_RAFT_CONFIG);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+
+        group.getAnyFollower().terminate().join();
+
+        leader.replicate(applyValue("val")).join();
     }
 
 }

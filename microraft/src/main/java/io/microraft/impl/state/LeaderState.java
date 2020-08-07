@@ -77,12 +77,12 @@ public final class LeaderState {
      * Additionally an empty slot is added at the end of indices array for leader itself.
      */
     public long[] matchIndices() {
-        // Leader index is appended at the end of array in AppendSuccessResponseHandlerTask
+        // Leader index is appended at the end of array in while calculating quorum match index.
         // That's why we add one more empty slot.
         long[] indices = new long[followerStates.size() + 1];
-        int ix = 0;
+        int i = 0;
         for (FollowerState state : followerStates.values()) {
-            indices[ix++] = state.matchIndex();
+            indices[i++] = state.matchIndex();
         }
         return indices;
     }
@@ -111,8 +111,8 @@ public final class LeaderState {
     }
 
     /**
-     * Returns the query sequence number to be acked by the majority to execute
-     * the currently waiting queries.
+     * Returns the query sequence number to be acked by the log replication
+     * quorum to execute the currently waiting queries.
      */
     public long querySeqNo() {
         return queryState.querySeqNo();
@@ -144,9 +144,10 @@ public final class LeaderState {
     }
 
     /**
-     * Returns the earliest append entries response timestamp of the majority nodes.
+     * Returns the earliest append entries response timestamp of the log
+     * replication quorum nodes.
      */
-    public long majorityAppendEntriesResponseTimestamp(int majority) {
+    public long logReplicationQuorumResponseTimestamp(int quorumSize) {
         long[] timestamps = new long[followerStates.size() + 1];
         int i = 0;
         // for the local RaftNode
@@ -157,7 +158,7 @@ public final class LeaderState {
 
         Arrays.sort(timestamps);
 
-        return timestamps[timestamps.length - majority];
+        return timestamps[timestamps.length - quorumSize];
     }
 
 }

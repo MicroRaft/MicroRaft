@@ -169,7 +169,7 @@ public interface RaftNode {
      * (appended but not-yet-committed) membership change in the majority of
      * the Raft group. Similarly, it can be different from the current
      * committed member list of the Raft group, also if a new membership change
-     * is committed by the majority Raft nodes but not-learnt by this Raft node
+     * is committed by the majority Raft nodes but not learnt by this Raft node
      * yet.
      *
      * @return the last committed member list of the Raft group
@@ -273,9 +273,10 @@ public interface RaftNode {
      * {@link LaggingCommitIndexException} so that the caller could retry its
      * query on the same Raft node after some time or forward it to another
      * Raft node. This mechanism enables callers to execute queries on Raft
-     * nodes without hitting the majority and preserve monotonicity of query
-     * results. Please see the <i>Section: 6.4 Processing read-only queries
-     * more efficiently</i> of the Raft dissertation for more details.
+     * nodes without hitting the log replication quorum and preserve
+     * monotonicity of query results. Please see the <i>Section: 6.4 Processing
+     * read-only queries more efficiently</i> of the Raft dissertation for more
+     * details.
      * <p>
      * The returned future can be notified with {@link NotLeaderException},
      * {@link CannotReplicateException} or {@link LaggingCommitIndexException}.
@@ -320,7 +321,7 @@ public interface RaftNode {
      * The returned future be can notified with {@link NotLeaderException},
      * {@link CannotReplicateException} or {@link IndeterminateStateException}.
      * <p>
-     * The majority value of the Raft group can increase or decrease by 1 after
+     * The majority size of the Raft group can increase or decrease by 1 after
      * the given membership change is committed.</p>
      *
      * @param endpoint

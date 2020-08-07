@@ -20,7 +20,9 @@ package io.microraft.impl;
 import io.microraft.Ordered;
 import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
+import io.microraft.RaftNode;
 import io.microraft.exception.CannotReplicateException;
+import io.microraft.exception.IndeterminateStateException;
 import io.microraft.impl.local.LocalRaftGroup;
 import io.microraft.impl.local.SimpleStateMachine;
 import io.microraft.impl.state.RaftGroupMembersState;
@@ -35,6 +37,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -607,6 +610,41 @@ public class MembershipChangeTest
             assertThat(getCommittedGroupMembers(newRaftNode).getLogIndex())
                     .isEqualTo(getCommittedGroupMembers(newLeader).getLogIndex());
         });
+    }
+
+    @Test(timeout = 300_000)
+    public void when_raftGroupIsExtendedToEvenNumberOfServers_then_logReplicationQuorumSizeCanBeDecreased() {
+        group = LocalRaftGroup.newBuilder(3).setConfig(TEST_RAFT_CONFIG).enableNewTermOperation().start();
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
+        RaftNodeImpl newNode = group.createNewNode();
+        leader.changeMembership(newNode.getLocalEndpoint(), ADD, 0).join();
+
+        eventually(() -> assertThat(newNode.getLeaderEndpoint()).isEqualTo(leader.getLocalEndpoint()));
+
+        for (RaftNodeImpl follower : followers) {
+            group.dropMessagesTo(leader.getLocalEndpoint(), follower.getLocalEndpoint(), AppendEntriesRequest.class);
+        }
+
+        leader.replicate(applyValue("val")).join();
+    }
+
+    @Test(timeout = 300_000)
+    public void when_raftGroupIsExtendingToEvenNumberOfServers_then_membershipChangeCannotBeCommittedWithoutMajority() {
+        group = LocalRaftGroup.newBuilder(3).setConfig(TEST_RAFT_CONFIG).enableNewTermOperation().start();
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        for (RaftNode follower : group.getNodesExcept(leader.getLocalEndpoint())) {
+            group.dropMessagesTo(leader.getLocalEndpoint(), follower.getLocalEndpoint(), AppendEntriesRequest.class);
+        }
+
+        RaftNodeImpl newNode = group.createNewNode();
+        try {
+            leader.changeMembership(newNode.getLocalEndpoint(), ADD, 0).join();
+        } catch (CompletionException e) {
+            assertThat(e).hasCauseInstanceOf(IndeterminateStateException.class);
+        }
     }
 
 }

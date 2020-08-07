@@ -406,7 +406,7 @@ public final class RaftState {
         role = CANDIDATE;
         preCandidateState = null;
         leaderState = null;
-        candidateState = new CandidateState(majority());
+        candidateState = new CandidateState(leaderElectionQuorumSize());
         candidateState.grantVote(localEndpoint);
         int newTerm = term() + 1;
         setTerm(newTerm);
@@ -414,10 +414,27 @@ public final class RaftState {
     }
 
     /**
-     * Returns majority number of the last applied group members.
+     * Returns the quorum size for a candidate to win leader election.
      */
-    public int majority() {
+    public int leaderElectionQuorumSize() {
         return effectiveGroupMembers.getMajority();
+    }
+
+    /**
+     * Returns the quorum size for committing a log entry.
+     */
+    public int logReplicationQuorumSize() {
+        /*
+          We use the improved majority quorums technique of FPaxos here.
+          In a cluster of size N * 2, we can commit log entries after collecting
+          acks from N nodes. Since leader elections are done with majority
+          quorums (N + 1), we still guarantee that a new leader will always
+          have all committed log entries.
+         */
+        int quorumSize = leaderElectionQuorumSize();
+        return effectiveGroupMembers.memberCount() % 2 != 0 || committedGroupMembers.getLogIndex() != effectiveGroupMembers
+                .getLogIndex() || quorumSize == 2 ? quorumSize : quorumSize - 1;
+        // TODO [basri] get rid of quorumSize == 2 check when single-node Raft cluster is supported.
     }
 
     /**
@@ -461,7 +478,7 @@ public final class RaftState {
      * for the local endpoint.
      */
     public void initPreCandidateState() {
-        preCandidateState = new CandidateState(majority());
+        preCandidateState = new CandidateState(leaderElectionQuorumSize());
         preCandidateState.grantVote(localEndpoint);
     }
 

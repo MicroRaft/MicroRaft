@@ -35,7 +35,7 @@ import static io.microraft.RaftRole.CANDIDATE;
  * Handles a {@link VoteResponse} sent for a {@link VoteRequest}.
  * <p>
  * Changes the local Raft node's role to {@link RaftRole#LEADER} via
- * {@link RaftState#toLeader()} if the majority vote has been granted for this
+ * {@link RaftState#toLeader()} if the majority votes has been granted for this
  * term.
  * <p>
  * In the beginning of the new term, the Raft group leader appends a new log

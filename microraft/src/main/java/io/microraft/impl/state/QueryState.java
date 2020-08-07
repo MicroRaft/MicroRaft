@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -131,15 +130,17 @@ public final class QueryState {
 
     /**
      * Returns {@code true} if there are queries waiting and acks are received
-     * from the majority. Fails with {@link IllegalStateException} if
-     * the given commit index is smaller than {@link #readIndex}.
+     * from the log replication quorum.
+     * <p>
+     * Fails with {@link IllegalStateException} if the given commit index is
+     * smaller than {@link #readIndex}.
      */
-    public boolean isMajorityAckReceived(long commitIndex, int majority) {
+    public boolean isQuorumAckReceived(long commitIndex, int quorumSize) {
         if (readIndex > commitIndex) {
             throw new IllegalStateException("Cannot execute: " + this + ", current commit index: " + commitIndex);
         }
 
-        return queries.size() > 0 && majority <= ackCount();
+        return queries.size() > 0 && quorumSize <= ackCount();
     }
 
     /**
@@ -151,11 +152,11 @@ public final class QueryState {
     }
 
     /**
-     * Returns {@code true} if more acks are needed to achieve the given
-     * majority.
+     * Returns {@code true} if more acks are needed to complete the given
+     * quorum size.
      */
-    public boolean isAckNeeded(Object follower, int majority) {
-        return queryCount() > 0 && !acks.contains(follower) && ackCount() < majority;
+    public boolean isAckNeeded(Object follower, int quorumSize) {
+        return queryCount() > 0 && !acks.contains(follower) && ackCount() < quorumSize;
     }
 
     /**
@@ -172,8 +173,11 @@ public final class QueryState {
         return queries;
     }
 
+    /**
+     * Fails the pending query futures with the given throwable.
+     */
     public void fail(Throwable t) {
-        queries.stream().map(Map.Entry::getValue).forEach(f -> f.fail(t));
+        queries.stream().map(Entry::getValue).forEach(f -> f.fail(t));
         reset();
     }
 

@@ -44,14 +44,14 @@ public final class CandidateState {
     }
 
     /**
-     * Returns true if majority of the votes are granted, false otherwise.
+     * Returns true if the majority votes are granted, false otherwise.
      */
     public boolean isMajorityGranted() {
         return voteCount() >= majority();
     }
 
     /**
-     * Returns the number of expected majority of the votes.
+     * Returns the number of the majority votes.
      */
     public int majority() {
         return majority;

@@ -122,7 +122,7 @@ public class AppendEntriesSuccessResponseHandler
 
     private void checkIfQueryAckNeeded(AppendEntriesSuccessResponse response) {
         QueryState queryState = state.leaderState().queryState();
-        if (queryState.isAckNeeded(response.getSender(), state.majority())) {
+        if (queryState.isAckNeeded(response.getSender(), state.logReplicationQuorumSize())) {
             node.sendAppendEntriesRequest(response.getSender());
         }
     }

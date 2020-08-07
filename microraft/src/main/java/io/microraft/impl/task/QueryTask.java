@@ -88,7 +88,7 @@ public final class QueryTask
     }
 
     private void handleLeaderLocalRead() {
-        if (raftNode.demoteToFollowerIfMajorityHeartbeatTimeoutElapsed()) {
+        if (raftNode.demoteToFollowerIfLeaderElectionQuorumHeartbeatTimeoutElapsed()) {
             future.fail(raftNode.newNotLeaderException());
             return;
         }

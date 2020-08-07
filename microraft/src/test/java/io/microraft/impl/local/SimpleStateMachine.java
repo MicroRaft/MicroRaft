@@ -169,7 +169,7 @@ public class SimpleStateMachine
     }
 
     @Override
-    public synchronized void installSnapshot(long commitIndex, List<Object> chunks) {
+    public synchronized void installSnapshot(long commitIndex, @Nonnull List<Object> chunks) {
         map.clear();
         for (Object chunk : chunks) {
             for (Entry<Long, Object> e : ((Map<Long, Object>) chunk).entrySet()) {

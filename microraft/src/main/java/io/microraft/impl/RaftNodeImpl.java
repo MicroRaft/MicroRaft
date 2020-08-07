@@ -333,7 +333,7 @@ public final class RaftNodeImpl
         }
 
         // We can execute multiple queries at one-shot without appending to the Raft log,
-        // and we use the maxUncommittedEntryCount configuration parameter to upper-bound
+        // and we use the maxPendingLogEntryCount configuration parameter to upper-bound
         // the number of queries that are collected until the heartbeat round is done.
         QueryState queryState = state.leaderState().queryState();
         return queryState.queryCount() < maxPendingLogEntryCount;
@@ -1176,7 +1176,6 @@ public final class RaftNodeImpl
                                                                  .setQuerySeqNo(leaderState.querySeqNo());
         List<LogEntry> entries;
         boolean backoff = true;
-
         long lastLogIndex = log.lastLogOrSnapshotIndex();
         if (nextIndex > 1) {
             long prevEntryIndex = nextIndex - 1;
@@ -1192,26 +1191,26 @@ public final class RaftNodeImpl
                 // Until the leader has discovered where it and the follower's logs match,
                 // the leader can send AppendEntries with no entries (like heartbeats) to save bandwidth.
                 // We still need to enable append request backoff here because we do not want to bombard
-                // the follower before we learn its match index
+                // the follower before we learn its match index.
                 entries = emptyList();
             } else if (nextIndex <= lastLogIndex) {
                 // Then, once the matchIndex immediately precedes the nextIndex,
-                // the leader should begin to send the actual entries
-                long end = min(nextIndex + appendEntriesRequestBatchSize, lastLogIndex);
-                entries = log.getLogEntriesBetween(nextIndex, end);
+                // the leader should begin to send the actual entries.
+                entries = log.getLogEntriesBetween(nextIndex, min(nextIndex + appendEntriesRequestBatchSize, lastLogIndex));
             } else {
                 // The follower has caught up with the leader. Sending an empty append request as a heartbeat...
                 entries = emptyList();
-                backoff = false;
+                // amortize cost of multiple queries.
+                backoff = leaderState.queryState().queryCount() > 0;
             }
         } else if (nextIndex == 1 && lastLogIndex > 0) {
             // Entries will be sent to the follower for the first time...
-            long end = min(nextIndex + appendEntriesRequestBatchSize, lastLogIndex);
-            entries = log.getLogEntriesBetween(nextIndex, end);
+            entries = log.getLogEntriesBetween(nextIndex, min(nextIndex + appendEntriesRequestBatchSize, lastLogIndex));
         } else {
             // There is no entry in the Raft log. Sending an empty append request as a heartbeat...
             entries = emptyList();
-            backoff = false;
+            // amortize cost of multiple queries.
+            backoff = leaderState.queryState().queryCount() > 0;
         }
 
         if (backoff) {
@@ -1233,7 +1232,7 @@ public final class RaftNodeImpl
         if (entries.size() > 0 && entries.get(entries.size() - 1).getIndex() > leaderState.flushedLogIndex()) {
             // If I am sending any non-flushed entry to the follower, I should
             // trigger the flush task. I hope that I will flush before
-            // receiving append responses from half of the followers...
+            // receiving append entries responses from half of the followers...
             // This is a very critical optimization because it makes the leader
             // and followers flush in parallel...
             submitLeaderFlushTask(leaderState);
@@ -1456,10 +1455,6 @@ public final class RaftNodeImpl
 
     public void tryRunQueries() {
         QueryState queryState = state.leaderState().queryState();
-        if (queryState.queryCount() == 0) {
-            return;
-        }
-
         long commitIndex = state.commitIndex();
         if (!queryState.isMajorityAckReceived(commitIndex, state.majority())) {
             return;

@@ -54,9 +54,10 @@ public final class QueryState {
      */
     private final Set<Object> acks = new HashSet<>();
     /**
-     * The minimum commit index required on the leader to execute the queries.
+     * The minimum log index required to be committed and applied on the leader
+     * to execute the queries.
      */
-    private long queryCommitIndex;
+    private long readIndex;
     /**
      * The index of the heartbeat round to execute the currently waiting
      * queries. When a query is received and there is no other query waiting
@@ -75,13 +76,13 @@ public final class QueryState {
      * that is expected on the leader to execute the queries.
      */
     public boolean addQuery(long commitIndex, Object query, OrderedFuture resultFuture) {
-        if (commitIndex < queryCommitIndex) {
+        if (commitIndex < readIndex) {
             throw new IllegalArgumentException(
                     "Cannot execute query: " + query + " at commit index because of the current " + this);
         }
 
-        if (queryCommitIndex < commitIndex) {
-            queryCommitIndex = commitIndex;
+        if (readIndex < commitIndex) {
+            readIndex = commitIndex;
         }
 
         queries.add(new SimpleImmutableEntry<>(query, resultFuture));
@@ -131,10 +132,10 @@ public final class QueryState {
     /**
      * Returns {@code true} if there are queries waiting and acks are received
      * from the majority. Fails with {@link IllegalStateException} if
-     * the given commit index is smaller than {@link #queryCommitIndex}.
+     * the given commit index is smaller than {@link #readIndex}.
      */
     public boolean isMajorityAckReceived(long commitIndex, int majority) {
-        if (queryCommitIndex > commitIndex) {
+        if (readIndex > commitIndex) {
             throw new IllegalStateException("Cannot execute: " + this + ", current commit index: " + commitIndex);
         }
 
@@ -145,6 +146,7 @@ public final class QueryState {
      * Returns the number of collected acks for the current query round.
      */
     private int ackCount() {
+        // +1 is for the leader itself.
         return acks.size() + 1;
     }
 
@@ -185,8 +187,8 @@ public final class QueryState {
 
     @Override
     public String toString() {
-        return "QueryState{" + "queryCommitIndex=" + queryCommitIndex + ", queryRound=" + querySeqNo + ", queryCount="
-                + queryCount() + ", acks=" + acks + '}';
+        return "QueryState{" + "readIndex=" + readIndex + ", queryRound=" + querySeqNo + ", queryCount=" + queryCount()
+                + ", acks=" + acks + '}';
     }
 
 }

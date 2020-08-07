@@ -87,7 +87,7 @@ public final class MembershipChangeTask
             } else if (state.role() != LEADER) {
                 future.fail(raftNode.newNotLeaderException());
                 return;
-            } else if (!isValidGroupMemberCommitIndex()) {
+            } else if (!verifyGroupMemberCommitIndex()) {
                 return;
             }
 
@@ -151,7 +151,7 @@ public final class MembershipChangeTask
         return true;
     }
 
-    private boolean isValidGroupMemberCommitIndex() {
+    private boolean verifyGroupMemberCommitIndex() {
         RaftGroupMembersState groupMembers = state.committedGroupMembers();
         if (groupMembers.getLogIndex() != groupMembersCommitIndex) {
             LOGGER.error("{} Cannot {} {} because expected members commit index: {} is different than group members commit"

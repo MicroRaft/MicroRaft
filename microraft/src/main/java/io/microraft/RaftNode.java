@@ -321,8 +321,8 @@ public interface RaftNode {
      * The returned future be can notified with {@link NotLeaderException},
      * {@link CannotReplicateException} or {@link IndeterminateStateException}.
      * <p>
-     * The majority size of the Raft group can increase or decrease by 1 after
-     * the given membership change is committed.</p>
+     * The majority quorum size of the Raft group can increase or decrease by 1
+     * after the given membership change is committed.
      *
      * @param endpoint
      *         the endpoint to add to or remove from the Raft group

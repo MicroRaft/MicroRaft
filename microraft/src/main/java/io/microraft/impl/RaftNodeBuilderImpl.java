@@ -79,7 +79,7 @@ public class RaftNodeBuilderImpl
     @Override
     public RaftNodeBuilder setInitialGroupMembers(@Nonnull Collection<RaftEndpoint> initialGroupMembers) {
         if (this.restoredState != null) {
-            throw new IllegalStateException("Initial group members cannot be set when restored Raft state is " + "provided!");
+            throw new IllegalStateException("Initial group members cannot be set when restored Raft state is provided!");
         }
 
         this.initialGroupMembers = requireNonNull(initialGroupMembers);
@@ -154,9 +154,10 @@ public class RaftNodeBuilderImpl
             throw new IllegalStateException("Raft node is already built!");
         }
 
-        if (!((localEndpoint != null && initialGroupMembers != null) || restoredState != null)) {
+        if (!((localEndpoint != null && initialGroupMembers != null && !initialGroupMembers.isEmpty())
+                || restoredState != null)) {
             throw new IllegalStateException(
-                    "Either local Raft endpoint and initial Raft group members, or restored state " + "must be provided!");
+                    "Either local Raft endpoint and initial Raft group members, or restored state must be provided!");
         }
 
         done = true;

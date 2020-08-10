@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
- * Modified work Copyright 2020, MicroRaft.
+ * Modified work Copyright (c) 2020, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ public final class LeaderElectionTask
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LeaderElectionTask.class);
 
-    private boolean sticky;
+    private final boolean sticky;
 
     public LeaderElectionTask(RaftNodeImpl raftNode, boolean sticky) {
         super(raftNode);

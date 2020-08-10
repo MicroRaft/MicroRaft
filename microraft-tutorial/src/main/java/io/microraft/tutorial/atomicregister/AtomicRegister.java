@@ -20,7 +20,6 @@ package io.microraft.tutorial.atomicregister;
 import io.microraft.statemachine.StateMachine;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -49,7 +48,7 @@ public class AtomicRegister
         throw new IllegalArgumentException("Invalid operation: " + operation + " at commit index: " + commitIndex);
     }
 
-    @Nullable
+    @Nonnull
     @Override
     public Object getNewTermOperation() {
         return new NewTermOperation();

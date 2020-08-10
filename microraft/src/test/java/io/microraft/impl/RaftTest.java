@@ -152,9 +152,9 @@ public class RaftTest
     }
 
     @Test(timeout = 300_000)
-    public void when_2NodeRaftGroupIsStarted_then_leaderCannotCommitWithOnlyLocalAppend()
+    public void when_4NodeRaftGroupIsStarted_then_leaderCannotCommitWithOnlyLocalAppend()
             throws Exception {
-        testNoCommitWhenOnlyLeaderAppends(2);
+        testNoCommitWhenOnlyLeaderAppends(4);
     }
 
     private void testNoCommitWhenOnlyLeaderAppends(int nodeCount)
@@ -765,11 +765,13 @@ public class RaftTest
             throws Exception {
         int pendingEntryCount = 10;
         RaftConfig config = RaftConfig.newBuilder().setMaxPendingLogEntryCount(pendingEntryCount).build();
-        group = LocalRaftGroup.start(2, config);
+        group = LocalRaftGroup.start(3, config);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
-        RaftNodeImpl follower = group.getAnyFollower();
-        group.terminateNode(follower.getLocalEndpoint());
+
+        for (RaftNode follower : group.getNodesExcept(leader.getLocalEndpoint())) {
+            group.terminateNode(follower.getLocalEndpoint());
+        }
 
         for (int i = 0; i < pendingEntryCount; i++) {
             leader.replicate(applyValue("val" + i));
@@ -797,7 +799,12 @@ public class RaftTest
             f.get();
             fail();
         } catch (ExecutionException e) {
-            assertThat(e).hasCauseInstanceOf(IndeterminateStateException.class);
+            assertThat(e).satisfiesAnyOf(e2 -> {
+                assertThat(e2).hasCauseInstanceOf(IndeterminateStateException.class);
+            }, e2 -> {
+                assertThat(e2).hasCauseInstanceOf(NotLeaderException.class);
+            });
+
         }
     }
 
@@ -847,6 +854,7 @@ public class RaftTest
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
+        group.getAnyFollower().terminate().join();
         group.getAnyFollower().terminate().join();
 
         leader.replicate(applyValue("val")).join();

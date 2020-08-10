@@ -23,6 +23,7 @@ import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.exception.CannotReplicateException;
 import io.microraft.exception.IndeterminateStateException;
+import io.microraft.exception.NotLeaderException;
 import io.microraft.impl.local.LocalRaftGroup;
 import io.microraft.impl.local.SimpleStateMachine;
 import io.microraft.impl.state.RaftGroupMembersState;
@@ -642,8 +643,14 @@ public class MembershipChangeTest
         RaftNodeImpl newNode = group.createNewNode();
         try {
             leader.changeMembership(newNode.getLocalEndpoint(), ADD, 0).join();
+            fail();
         } catch (CompletionException e) {
-            assertThat(e).hasCauseInstanceOf(IndeterminateStateException.class);
+            assertThat(e).satisfiesAnyOf(e2 -> {
+                assertThat(e2).hasCauseInstanceOf(IndeterminateStateException.class);
+            }, e2 -> {
+                assertThat(e2).hasCauseInstanceOf(NotLeaderException.class);
+            });
+
         }
     }
 

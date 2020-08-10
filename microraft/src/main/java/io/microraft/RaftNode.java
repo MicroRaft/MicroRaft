@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
- * Modified work Copyright 2020, MicroRaft.
+ * Modified work Copyright (c) 2020, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -306,23 +306,30 @@ public interface RaftNode {
     /**
      * Replicates and commits the given membership change to the Raft group,
      * if the given group members commit index is equal to the current group
-     * members commit index in the local Raft state. The initial group members
-     * commit index is 0. The current group members commit index can be
-     * accessed via {@link #getCommittedMembers()}. If the given group members
-     * commit index is different than the current group members commit index
-     * in the local Raft state, then the returned future is notified with
-     * {@link MismatchingRaftGroupMembersCommitIndexException}.
+     * members commit index in the local Raft state.
+     * <p>
+     * The initial group members commit index is 0. The current group members
+     * commit index can be accessed via {@link #getCommittedMembers()}.
      * <p>
      * When the membership change process is completed successfully,
      * the returned future is notified with an {@link Ordered} object that
      * contains the new member list of the Raft group and the log index at
      * which the given membership change is committed.
      * <p>
+     * The majority quorum size of the Raft group can increase or decrease by 1
+     * after the given membership change is committed.
+     * <p>
+     * If the given group members commit index is different than the current
+     * group members commit index in the local Raft state, then the returned
+     * future is notified with
+     * {@link MismatchingRaftGroupMembersCommitIndexException}.
+     * <p>
      * The returned future be can notified with {@link NotLeaderException},
      * {@link CannotReplicateException} or {@link IndeterminateStateException}.
      * <p>
-     * The majority quorum size of the Raft group can increase or decrease by 1
-     * after the given membership change is committed.
+     * If the Raft group contains only a single member and that member is being
+     * removed, then the returned future is notified with
+     * {@link IllegalStateException}.
      *
      * @param endpoint
      *         the endpoint to add to or remove from the Raft group
@@ -340,6 +347,7 @@ public interface RaftNode {
      * @see NotLeaderException
      * @see CannotReplicateException
      * @see IndeterminateStateException
+     * @see IllegalStateException
      */
     @Nonnull
     CompletableFuture<Ordered<RaftGroupMembers>> changeMembership(@Nonnull RaftEndpoint endpoint,

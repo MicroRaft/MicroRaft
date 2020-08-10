@@ -20,7 +20,6 @@ package io.microraft.impl.local;
 import io.microraft.statemachine.StateMachine;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -179,7 +178,7 @@ public class SimpleStateMachine
         }
     }
 
-    @Nullable
+    @Nonnull
     @Override
     public Object getNewTermOperation() {
         return newTermOpEnabled ? new NewTermOp() : null;

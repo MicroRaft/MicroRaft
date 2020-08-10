@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
- * Modified work Copyright 2020, MicroRaft.
+ * Modified work Copyright (c) 2020, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -254,7 +254,6 @@ public final class RaftNodeImpl
      * <p>
      * Replication is not allowed, when;
      * <ul>
-     * <li>The local Raft node is terminated or left the Raft group.</li>
      * <li>The local Raft log has no more empty slots for pending entries.</li>
      * <li>The given operation is a {@link RaftGroupOp} and there's an ongoing
      * membership change in group.</li>
@@ -268,10 +267,6 @@ public final class RaftNodeImpl
      * @see StateMachine#getNewTermOperation()
      */
     public boolean canReplicateNewOperation(Object operation) {
-        if (isTerminal(status)) {
-            return false;
-        }
-
         RaftLog log = state.log();
         long lastLogIndex = log.lastLogOrSnapshotIndex();
         long commitIndex = state.commitIndex();
@@ -305,7 +300,6 @@ public final class RaftNodeImpl
      * <p>
      * A new linearizable query execution is not allowed when:
      * <ul>
-     * <li>The local Raft node is terminated or left the Raft group.</li>
      * <li>If the leader has not yet committed an entry in the current term.
      * See Section 6.4 of Raft Dissertation.</li>
      * <li>There are already a lot of queries waiting to be executed.</li>
@@ -315,10 +309,6 @@ public final class RaftNodeImpl
      * @see RaftConfig#getMaxPendingLogEntryCount()
      */
     public boolean canQueryLinearizable() {
-        if (isTerminal(status)) {
-            return false;
-        }
-
         long commitIndex = state.commitIndex();
         RaftLog log = state.log();
 
@@ -484,7 +474,7 @@ public final class RaftNodeImpl
                 return;
             }
 
-            LOGGER.info("{} Starting for {} with {} members: {}", localEndpointStr, groupId, state.memberCount(),
+            LOGGER.info("{} Starting for {} with {} members: {}.", localEndpointStr, groupId, state.memberCount(),
                         state.members());
 
             Throwable failure = null;
@@ -501,12 +491,19 @@ public final class RaftNodeImpl
                     setStatus(ACTIVE);
                 }
 
-                LOGGER.info("{} started.", localEndpointStr);
-
-                runPreVote();
+                if (state.initialMembers().getMembers().equals(state.committedGroupMembers().getMembers()) && state
+                        .initialMembers().getMembers().equals(state.effectiveGroupMembers().getMembers()) && state
+                        .initialMembers().getMembers().contains(state.localEndpoint()) && state.leaderElectionQuorumSize() == 1) {
+                    // this node is starting for the first time as a singleton Raft group
+                    LOGGER.info("{} is started as a singleton Raft group.", localEndpointStr());
+                    toSingletonLeader();
+                } else {
+                    LOGGER.info("{} started.", localEndpointStr);
+                    runPreVote();
+                }
             } catch (Throwable t) {
                 failure = t;
-                LOGGER.error(localEndpointStr + " could not start", t);
+                LOGGER.error(localEndpointStr + " could not start.", t);
 
                 setStatus(TERMINATED);
                 terminateComponents();
@@ -1090,8 +1087,7 @@ public final class RaftNodeImpl
      * <li>Setting the local endpoint as the current leader,</li>
      * <li>Clearing (pre)candidate states,</li>
      * <li>Initializing the leader state for the current members,</li>
-     * <li>Appending an operation to the Raft log if enabled,</li>
-     * <li>Scheduling the periodic heartbeat task.</li>
+     * <li>Appending an operation to the Raft log if enabled.</li>
      * </ul>
      */
     public void toLeader() {
@@ -1278,13 +1274,23 @@ public final class RaftNodeImpl
         }
     }
 
-    private void submitLeaderFlushTask(LeaderState leaderState) {
-        if (leaderFlushTask == null || leaderState.isFlushTaskSubmitted()) {
-            return;
+    /**
+     * Returns true if the leader flush task is submitted either by the current
+     * call or a previous call of this method. Returns false if the leader
+     * flush task is not submitted, because this Raft node is created with
+     * {@link NopRaftStore}.
+     */
+    public boolean submitLeaderFlushTask(LeaderState leaderState) {
+        if (leaderFlushTask == null) {
+            return false;
         }
 
-        executor.submit(leaderFlushTask);
-        leaderState.flushTaskSubmitted(true);
+        if (!leaderState.isFlushTaskSubmitted()) {
+            executor.submit(leaderFlushTask);
+            leaderState.flushTaskSubmitted(true);
+        }
+
+        return true;
     }
 
     private void appendNewTermEntry() {
@@ -1298,8 +1304,8 @@ public final class RaftNodeImpl
     }
 
     /**
-     * Switches this Raft node to the candidate role and starts a new
-     * leader election round. Regular leader elections are sticky,
+     * Switches this Raft node to the candidate role for the next term and
+     * starts a new leader election round. Regular leader elections are sticky,
      * meaning that leader stickiness will be considered by other Raft nodes
      * when they receive vote requests. A non-sticky leader election occurs
      * when the current Raft group leader tries to transfer leadership to
@@ -1571,7 +1577,7 @@ public final class RaftNodeImpl
         return modelFactory;
     }
 
-    public boolean demoteToFollowerIfLeaderElectionQuorumHeartbeatTimeoutElapsed() {
+    public boolean demoteToFollowerIfLogReplicationQuorumHeartbeatTimeoutElapsed() {
         LeaderState leaderState = state.leaderState();
         if (leaderState == null) {
             return true;
@@ -1628,6 +1634,31 @@ public final class RaftNodeImpl
 
     public void runPreVote() {
         new PreVoteTask(this, state.term()).run();
+    }
+
+    /**
+     * Switches this Raft node directly to the leader role for the next term.
+     *
+     * @see #toLeader()
+     */
+    public void toSingletonLeader() {
+        state.toCandidate();
+        BaseLogEntry lastLogEntry = state.log().lastLogOrSnapshotEntry();
+
+        LOGGER.info("{} Leader election started for term: {}, last log index: {}, last log term: {}", localEndpointStr,
+                    state.term(), lastLogEntry.getIndex(), lastLogEntry.getTerm());
+
+        publishRaftNodeReport(RaftNodeReportReason.ROLE_CHANGE);
+
+        toLeader();
+
+        LOGGER.info("{} We are the LEADER!", localEndpointStr());
+
+        if (leaderFlushTask != null) {
+            leaderFlushTask.run();
+        } else {
+            tryAdvanceCommitIndex();
+        }
     }
 
 }

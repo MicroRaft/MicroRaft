@@ -736,7 +736,7 @@ public final class LocalRaftGroup {
         private BiFunction<RaftEndpoint, RaftConfig, RaftStore> raftStoreFactory;
 
         private LocalRaftGroupBuilder(int groupSize) {
-            if (groupSize < 2) {
+            if (groupSize < 1) {
                 throw new IllegalArgumentException("Raft groups must have at least 2 Raft nodes!");
             }
             this.groupSize = groupSize;

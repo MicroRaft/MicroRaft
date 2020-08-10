@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
- * Modified work Copyright 2020, MicroRaft.
+ * Modified work Copyright (c) 2020, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,18 +108,20 @@ public final class MembershipChangeTask
                     }
                     members.add(endpoint);
                     break;
-
                 case REMOVE:
                     if (!memberExists) {
                         String msg = endpoint + " does not exist in " + members + " of group " + raftNode.getGroupId();
                         future.fail(new IllegalArgumentException(msg));
                         return;
+                    } else if (members.size() == 1) {
+                        String msg = "Cannot remove " + endpoint + " from singleton group " + raftNode.getGroupId();
+                        future.fail(new IllegalStateException(msg));
+                        return;
                     }
                     members.remove(endpoint);
                     break;
-
                 default:
-                    future.fail(new IllegalArgumentException("Unknown type: " + membershipChangeMode));
+                    future.fail(new IllegalArgumentException("Unknown membership change mode: " + membershipChangeMode));
                     return;
             }
 

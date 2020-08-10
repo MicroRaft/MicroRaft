@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
- * Modified work Copyright 2020, MicroRaft.
+ * Modified work Copyright (c) 2020, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public final class RaftState {
      * <p>
      * [PERSISTENT]
      */
-    private final RaftGroupMembersState initialMembers;
+    private final RaftGroupMembersState initialGroupMembers;
 
     /**
      * Used for reflecting persistent-state changes to persistent storage.
@@ -147,7 +147,7 @@ public final class RaftState {
         this.groupId = requireNonNull(groupId);
         this.localEndpoint = requireNonNull(localEndpoint);
         RaftGroupMembersState groupMembers = new RaftGroupMembersState(0, endpoints, localEndpoint);
-        this.initialMembers = groupMembers;
+        this.initialGroupMembers = groupMembers;
         this.committedGroupMembers = groupMembers;
         this.effectiveGroupMembers = groupMembers;
         this.termState = RaftTermState.INITIAL;
@@ -159,8 +159,8 @@ public final class RaftState {
         requireNonNull(restoredState);
         this.groupId = requireNonNull(groupId);
         this.localEndpoint = restoredState.getLocalEndpoint();
-        this.initialMembers = new RaftGroupMembersState(0, restoredState.getInitialMembers(), this.localEndpoint);
-        this.committedGroupMembers = this.initialMembers;
+        this.initialGroupMembers = new RaftGroupMembersState(0, restoredState.getInitialMembers(), this.localEndpoint);
+        this.committedGroupMembers = this.initialGroupMembers;
         this.effectiveGroupMembers = this.committedGroupMembers;
         this.termState = RaftTermState.restore(restoredState.getTerm(), restoredState.getVotedEndpoint());
 
@@ -174,8 +174,8 @@ public final class RaftState {
             this.lastApplied = snapshot.getIndex();
         }
 
-        this.log = RaftLog.restore(logCapacity, snapshot, restoredState.getLogEntries(), store);
         this.store = requireNonNull(store);
+        this.log = RaftLog.restore(logCapacity, snapshot, restoredState.getLogEntries(), store);
     }
 
     public static RaftState create(Object groupId, RaftEndpoint localEndpoint, Collection<RaftEndpoint> endpoints,
@@ -214,25 +214,25 @@ public final class RaftState {
      * Returns the initial members of the Raft group.
      */
     public RaftGroupMembersState initialMembers() {
-        return initialMembers;
+        return initialGroupMembers;
     }
 
     /**
-     * Returns all members in the last applied group members.
+     * Returns all members in the effective group members.
      */
     public Collection<RaftEndpoint> members() {
         return effectiveGroupMembers.getMembers();
     }
 
     /**
-     * Returns remote members in the last applied group members.
+     * Returns remote members in the effective group members.
      */
     public Collection<RaftEndpoint> remoteMembers() {
         return effectiveGroupMembers.remoteMembers();
     }
 
     /**
-     * Returns number of members in the last applied group members.
+     * Returns number of members in the effective group members.
      */
     public int memberCount() {
         return effectiveGroupMembers.memberCount();
@@ -246,7 +246,7 @@ public final class RaftState {
     }
 
     /**
-     * Returns the last applied group members.
+     * Returns the effective group members.
      */
     public RaftGroupMembersState effectiveGroupMembers() {
         return effectiveGroupMembers;
@@ -333,7 +333,7 @@ public final class RaftState {
      */
     public void persistInitialMembers()
             throws IOException {
-        store.persistInitialMembers(localEndpoint, initialMembers.getMembers());
+        store.persistInitialMembers(localEndpoint, initialGroupMembers.getMembers());
     }
 
     /**
@@ -434,7 +434,6 @@ public final class RaftState {
         int quorumSize = leaderElectionQuorumSize();
         return effectiveGroupMembers.memberCount() % 2 != 0 || committedGroupMembers.getLogIndex() != effectiveGroupMembers
                 .getLogIndex() || quorumSize == 2 ? quorumSize : quorumSize - 1;
-        // TODO [basri] get rid of quorumSize == 2 check when single-node Raft cluster is supported.
     }
 
     /**
@@ -466,7 +465,7 @@ public final class RaftState {
     }
 
     /**
-     * Returns true if the given endpoint is in of the last applied members,
+     * Returns true if the given endpoint is in the effective group members,
      * false otherwise.
      */
     public boolean isKnownMember(RaftEndpoint endpoint) {
@@ -490,15 +489,15 @@ public final class RaftState {
     }
 
     /**
-     * Initializes the last applied group members with the given members
-     * and the log Index.
+     * Initializes the effective members with the given members and the log
+     * index.
      * <p>
      * This method expects that there's no pending membership changes and
-     * the committed members are the same as the last applied members.
+     * the committed members are the same as the effective members.
      * <p>
      * The leader state is also updated for the members which don't exist
      * in the committed members and the committed members that don't exist
-     * in the latest applied members are removed.
+     * in the effective members are removed.
      *
      * @param logIndex
      *         log index of membership change
@@ -507,10 +506,10 @@ public final class RaftState {
      */
     public void updateGroupMembers(long logIndex, Collection<RaftEndpoint> members) {
         assert committedGroupMembers == effectiveGroupMembers : "Cannot update group members to: " + members + " at log index: "
-                + logIndex + " because last group " + "members: " + effectiveGroupMembers
+                + logIndex + " because effective group members: " + effectiveGroupMembers
                 + " is different than committed group members: " + committedGroupMembers;
         assert effectiveGroupMembers.getLogIndex() < logIndex : "Cannot update group members to: " + members + " at log index: "
-                + logIndex + " because last group " + "members: " + effectiveGroupMembers + " has a bigger log index.";
+                + logIndex + " because effective group members: " + effectiveGroupMembers + " has a bigger log index.";
 
         RaftGroupMembersState newGroupMembers = new RaftGroupMembersState(logIndex, members, localEndpoint);
         committedGroupMembers = effectiveGroupMembers;
@@ -526,19 +525,19 @@ public final class RaftState {
     }
 
     /**
-     * Marks the last applied group members as committed.
+     * Marks the effective group members as committed.
      * At this point {@link #committedGroupMembers}
      * and {@link #effectiveGroupMembers} are the same.
      */
     public void commitGroupMembers() {
-        assert committedGroupMembers != effectiveGroupMembers : "Cannot commit last group members: " + effectiveGroupMembers
+        assert committedGroupMembers != effectiveGroupMembers : "Cannot commit effective group members: " + effectiveGroupMembers
                 + " because it is same with committed " + "group " + "members";
 
         committedGroupMembers = effectiveGroupMembers;
     }
 
     /**
-     * Reverts the last group members back to the committed group members.
+     * Reverts the effective group members back to the committed group members.
      * Essentially this means that the applied but not-yet-committed membership
      * change is reverted.
      */
@@ -551,12 +550,12 @@ public final class RaftState {
 
     /**
      * Restores group members from the snapshot. Both the committed group
-     * members and the last group members are overwritten with the given
+     * members and the effective group members are overwritten with the given
      * member list.
      */
     public boolean restoreGroupMembers(long logIndex, Collection<RaftEndpoint> members) {
         assert effectiveGroupMembers.getLogIndex() <= logIndex : "Cannot restore group members to: " + members + " at log index: "
-                + logIndex + " because last group " + "members: " + effectiveGroupMembers + " has a bigger log index.";
+                + logIndex + " because effective group members: " + effectiveGroupMembers + " has a bigger log index.";
 
         // there is no leader state to clean up
 

@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
- * Modified work Copyright 2020, MicroRaft.
+ * Modified work Copyright (c) 2020, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public class HeartbeatTask
     protected void doRun() {
         try {
             if (state.leaderState() != null) {
-                if (!node.demoteToFollowerIfLeaderElectionQuorumHeartbeatTimeoutElapsed()) {
+                if (!node.demoteToFollowerIfLogReplicationQuorumHeartbeatTimeoutElapsed()) {
                     node.broadcastAppendEntriesRequest();
                     // TODO [basri] append no-op if snapshotIndex > 0 && snapshotIndex == lastLogIndex
                 }
@@ -54,27 +54,37 @@ public class HeartbeatTask
             RaftEndpoint leader = state.leader();
             if (leader == null) {
                 if (state.role() == FOLLOWER && state.preCandidateState() == null) {
-                    LOGGER.warn("{} We are FOLLOWER and there is no current leader. Will start new election round",
+                    LOGGER.warn("{} We are FOLLOWER and there is no current leader. Will start new election round.",
                                 localEndpointStr());
-                    node.runPreVote();
+                    resetLeaderAndTriggerPreVote(false);
                 }
             } else if (node.isLeaderHeartbeatTimeoutElapsed() && state.preCandidateState() == null) {
                 LOGGER.warn("{} Current leader {}'s heartbeats are timed-out. Will start new election round.", localEndpointStr(),
                             leader.getId());
-                resetLeaderAndTriggerPreVote();
+                resetLeaderAndTriggerPreVote(true);
             } else if (!state.committedGroupMembers().isKnownMember(leader) && state.preCandidateState() == null) {
                 LOGGER.warn("{} Current leader {} is not member anymore. Will start new election round.", localEndpointStr(),
                             leader.getId());
-                resetLeaderAndTriggerPreVote();
+                resetLeaderAndTriggerPreVote(true);
             }
         } finally {
             node.getExecutor().schedule(this, node.getConfig().getLeaderHeartbeatPeriodSecs(), SECONDS);
         }
     }
 
-    void resetLeaderAndTriggerPreVote() {
-        node.leader(null);
-        node.runPreVote();
+    void resetLeaderAndTriggerPreVote(boolean resetLeader) {
+        if (resetLeader) {
+            node.leader(null);
+        }
+
+        if (state.leaderElectionQuorumSize() > 1) {
+            node.runPreVote();
+        } else {
+            // we can encounter this case if the leader crashes while it is
+            // leaving but could not commit the replicated membership change
+            LOGGER.info("{} is left as a singleton group.", localEndpointStr());
+            node.toSingletonLeader();
+        }
     }
 
 }

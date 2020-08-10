@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
- * Modified work Copyright 2020, MicroRaft.
+ * Modified work Copyright (c) 2020, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import io.microraft.executor.RaftNodeExecutor;
 import io.microraft.lifecycle.RaftNodeLifecycleAware;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -138,19 +137,16 @@ public interface StateMachine {
 
     /**
      * Returns the operation to be appended after a new leader is elected in
-     * a new term. Null return value means no entry will be appended.
+     * a new term.
      * <p>
      * See <a href="https://groups.google.com/forum/#!msg/raft-dev/t4xj6dJTP6E/d2D9LrWRza8J">
      * <i>Bug in single-server membership changes</i></a> post by Diego Ongaro
      * for more information.
-     * <p>
-     * At least a NOP object is strongly recommended to be returned
-     * on production because it has zero overhead.
      *
      * @return the operation to be appended after a new leader is elected in
-     *         a new term. Null return value means no entry will be appended.
+     *         a new term.
      */
-    @Nullable
+    @Nonnull
     Object getNewTermOperation();
 
 }

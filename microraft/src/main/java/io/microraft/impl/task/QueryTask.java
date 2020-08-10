@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
- * Modified work Copyright 2020, MicroRaft.
+ * Modified work Copyright (c) 2020, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,12 +88,11 @@ public final class QueryTask
     }
 
     private void handleLeaderLocalRead() {
-        if (raftNode.demoteToFollowerIfLeaderElectionQuorumHeartbeatTimeoutElapsed()) {
+        if (raftNode.demoteToFollowerIfLogReplicationQuorumHeartbeatTimeoutElapsed()) {
             future.fail(raftNode.newNotLeaderException());
-            return;
+        } else {
+            handleAnyLocalRead();
         }
-
-        handleAnyLocalRead();
     }
 
     private void handleAnyLocalRead() {
@@ -120,15 +119,19 @@ public final class QueryTask
             return;
         }
 
-        QueryState queryState = state.leaderState().queryState();
+        if (state.logReplicationQuorumSize() > 1) {
+            QueryState queryState = state.leaderState().queryState();
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(raftNode.localEndpointStr() + " Adding query at commit index: " + commitIndex + ", query seq no: "
-                                 + queryState.querySeqNo());
-        }
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(raftNode.localEndpointStr() + " Adding query at commit index: " + commitIndex + ", query seq no: "
+                                     + queryState.querySeqNo());
+            }
 
-        if (queryState.addQuery(commitIndex, operation, future)) {
-            raftNode.broadcastAppendEntriesRequest();
+            if (queryState.addQuery(commitIndex, operation, future)) {
+                raftNode.broadcastAppendEntriesRequest();
+            }
+        } else {
+            handleAnyLocalRead();
         }
     }
 

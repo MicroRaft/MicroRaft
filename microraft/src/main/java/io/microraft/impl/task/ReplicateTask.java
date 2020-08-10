@@ -1,6 +1,6 @@
 /*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
- * Modified work Copyright 2020, MicroRaft.
+ * Modified work Copyright (c) 2020, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,6 +100,13 @@ public final class ReplicateTask
             prepareGroupOp(newEntryLogIndex, operation);
 
             raftNode.broadcastAppendEntriesRequest();
+
+            if (state.logReplicationQuorumSize() == 1 && !raftNode.submitLeaderFlushTask(state.leaderState())) {
+                // If this is a singleton Raft group and persistence is enabled,
+                // we submit the flush task to amortize disk writes. Otherwise,
+                // we commit the new log entry directly.
+                raftNode.tryAdvanceCommitIndex();
+            }
         } catch (Throwable t) {
             LOGGER.error(raftNode.localEndpointStr() + " " + operation + " could not be replicated to leader: " + raftNode
                     .getLocalEndpoint(), t);

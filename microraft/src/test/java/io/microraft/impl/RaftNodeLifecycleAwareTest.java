@@ -353,7 +353,7 @@ public class RaftNodeLifecycleAwareTest
         public void installSnapshot(long commitIndex, @Nonnull List<Object> snapshotChunks) {
         }
 
-        @Nullable
+        @Nonnull
         @Override
         public Object getNewTermOperation() {
             return null;

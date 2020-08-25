@@ -345,7 +345,7 @@ target="_blank">3 policies for queries</a>, each with a different consistency
 guarantee:
 
 * `QueryPolicy.LINEARIZABLE`: We can perform a linearizable query with this
-  policy. MicroRaft employs the optimization described in *Section: 6.4
+  policy. MicroRaft employs the optimization described in *§ 6.4:
   Processing read-only queries more efficiently* of <a
   href="https://github.com/ongardie/dissertation" target="_blank">the Raft
   dissertation</a> to preserve linearizability without growing the internal Raft
@@ -429,7 +429,7 @@ target="_blank">`LaggingCommitIndexException`</a>. This exception means that the
 state observed by the client is more up-to-date than the contacted Raft node's
 state. In this case, the client can retry its query on another Raft node. Please
 refer to <a href="https://github.com/ongardie/dissertation"
-target="_blank">Section 6.4.1 of the Raft dissertation</a> for more details.
+target="_blank">§ 6.4.1 of the Raft dissertation</a> for more details.
 
 We will make a little trick to demonstrate how to maintain the monotonicity of
 the observed Raft group state for the *local query policies*. Recall that

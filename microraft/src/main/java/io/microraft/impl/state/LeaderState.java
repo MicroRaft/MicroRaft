@@ -147,7 +147,7 @@ public final class LeaderState {
      * Returns the earliest append entries response timestamp of the log
      * replication quorum nodes.
      */
-    public long logReplicationQuorumResponseTimestamp(int quorumSize) {
+    public long quorumResponseTimestamp(int quorumSize) {
         long[] timestamps = new long[followerStates.size() + 1];
         int i = 0;
         // for the local RaftNode

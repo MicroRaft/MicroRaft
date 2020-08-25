@@ -43,9 +43,7 @@ metadata and coordination services. Here are some common examples:
 * group membership management systems
 * distributed locks
 * distributed transaction managers
-* distributed resource schedulers MicroRaft contains the Raft consensus
-  algorithm behind well-defined and minimal abstractions so that these systems
-  can be built without intertwining their high-level logic with Raft logic.
+* distributed resource schedulers 
 
 ## Main Abstractions
 

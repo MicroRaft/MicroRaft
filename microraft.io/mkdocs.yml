@@ -26,7 +26,9 @@ nav:
       - 'Javadoc 1.0': 'javadoc/1.0/index.html'
       - Release Notes: 'docs/release-notes.md'
       - Roadmap: 'docs/roadmap.md'
-  - 'Blog': 'blog'
+  - 'Blog':
+      - 'July 31, 2020 | Introducing MicroRaft': 'blog/2020-07-31-introducing-microraft.md'
+      - 'All Blog Posts': 'blog'
   - 'Github': 'https://github.com/MicroRaft/MicroRaft'
   - 'Slack': 'https://join.slack.com/t/microraft/shared_invite/zt-dc6utpfk-84P0VbK7EcrD3lIme2IaaQ'
   - 'Twitter': 'https://twitter.com/MicroRaft'

@@ -1577,22 +1577,22 @@ public final class RaftNodeImpl
         return modelFactory;
     }
 
-    public boolean demoteToFollowerIfLogReplicationQuorumHeartbeatTimeoutElapsed() {
+    public boolean demoteToFollowerIfQuorumHeartbeatTimeoutElapsed() {
         LeaderState leaderState = state.leaderState();
         if (leaderState == null) {
             return true;
         }
 
-        long quorumTimestamp = leaderState.logReplicationQuorumResponseTimestamp(state.logReplicationQuorumSize());
-        if (isLeaderHeartbeatTimeoutElapsed(quorumTimestamp)) {
+        long quorumTimestamp = leaderState.quorumResponseTimestamp(state.logReplicationQuorumSize());
+        boolean demoteToFollower = isLeaderHeartbeatTimeoutElapsed(quorumTimestamp);
+        if (demoteToFollower) {
             LOGGER.warn("{} Demoting to {} since not received append entries responses from majority recently.", localEndpointStr,
                         FOLLOWER);
             toFollower(state.term());
             invalidateFuturesFrom(state.commitIndex() + 1, new IndeterminateStateException());
-            return true;
         }
 
-        return false;
+        return demoteToFollower;
     }
 
     /**

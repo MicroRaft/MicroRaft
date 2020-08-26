@@ -114,8 +114,8 @@ public final class LeaderState {
      * Returns the query sequence number to be acked by the log replication
      * quorum to execute the currently waiting queries.
      */
-    public long querySeqNo() {
-        return queryState.querySeqNo();
+    public long querySequenceNumber() {
+        return queryState.querySequenceNumber();
     }
 
     public boolean isRequestBackoffResetTaskScheduled() {

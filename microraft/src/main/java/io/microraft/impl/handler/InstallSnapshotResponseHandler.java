@@ -82,14 +82,14 @@ public class InstallSnapshotResponseHandler
             }
         }
 
-        node.tryAckQuery(response.getQuerySeqNo(), response.getSender());
+        node.tryAckQuery(response.getQuerySequenceNumber(), response.getSender());
 
         LeaderState leaderState = state.leaderState();
         FollowerState followerState = leaderState != null ? leaderState.getFollowerState(response.getSender()) : null;
         if (followerState != null) {
-            if (response.getFlowControlSeqNo() == 0) {
+            if (response.getFlowControlSequenceNumber() == 0) {
                 followerState.resetRequestBackoff();
-            } else if (!followerState.responseReceived(response.getFlowControlSeqNo())) {
+            } else if (!followerState.responseReceived(response.getFlowControlSequenceNumber())) {
                 return;
             }
         }

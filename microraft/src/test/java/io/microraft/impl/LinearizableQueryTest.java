@@ -44,7 +44,7 @@ import static io.microraft.impl.local.SimpleStateMachine.queryLastValue;
 import static io.microraft.test.util.AssertionUtils.eventually;
 import static io.microraft.test.util.RaftTestUtils.TEST_RAFT_CONFIG;
 import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
-import static io.microraft.test.util.RaftTestUtils.getLeaderQuerySeqNo;
+import static io.microraft.test.util.RaftTestUtils.getLeaderQuerySequenceNumber;
 import static io.microraft.test.util.RaftTestUtils.getRole;
 import static io.microraft.test.util.RaftTestUtils.getSnapshotEntry;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -75,8 +75,8 @@ public class LinearizableQueryTest
 
         assertThat(o1.getResult()).isEqualTo("value1");
         assertThat(o1.getCommitIndex()).isEqualTo(commitIndex1);
-        long leaderQuerySeqNo1 = getLeaderQuerySeqNo(leader);
-        assertThat(leaderQuerySeqNo1).isGreaterThan(0);
+        long leaderQuerySeqNum1 = getLeaderQuerySequenceNumber(leader);
+        assertThat(leaderQuerySeqNum1).isGreaterThan(0);
         assertThat(getCommitIndex(leader)).isEqualTo(commitIndex1);
 
         leader.replicate(applyValue("value2")).get();
@@ -86,8 +86,8 @@ public class LinearizableQueryTest
 
         assertThat(o2.getResult()).isEqualTo("value2");
         assertThat(o2.getCommitIndex()).isEqualTo(commitIndex2);
-        long leaderQuerySeqNo2 = getLeaderQuerySeqNo(leader);
-        assertThat(leaderQuerySeqNo2).isEqualTo(leaderQuerySeqNo1 + 1);
+        long leaderQuerySeqNum2 = getLeaderQuerySequenceNumber(leader);
+        assertThat(leaderQuerySeqNum2).isEqualTo(leaderQuerySeqNum1 + 1);
         assertThat(getCommitIndex(leader)).isEqualTo(commitIndex2);
     }
 
@@ -104,8 +104,8 @@ public class LinearizableQueryTest
 
         assertThat(o1.getResult()).isEqualTo("value1");
         assertThat(o1.getCommitIndex()).isEqualTo(commitIndex1);
-        long leaderQuerySeqNo1 = getLeaderQuerySeqNo(leader);
-        assertThat(leaderQuerySeqNo1).isGreaterThan(0);
+        long leaderQuerySeqNum1 = getLeaderQuerySequenceNumber(leader);
+        assertThat(leaderQuerySeqNum1).isGreaterThan(0);
         assertThat(getCommitIndex(leader)).isEqualTo(commitIndex1);
 
         leader.replicate(applyValue("value2")).get();
@@ -115,8 +115,8 @@ public class LinearizableQueryTest
 
         assertThat(o2.getResult()).isEqualTo("value2");
         assertThat(o2.getCommitIndex()).isEqualTo(commitIndex2);
-        long leaderQuerySeqNo2 = getLeaderQuerySeqNo(leader);
-        assertThat(leaderQuerySeqNo2).isEqualTo(leaderQuerySeqNo1 + 1);
+        long leaderQuerySeqNum2 = getLeaderQuerySequenceNumber(leader);
+        assertThat(leaderQuerySeqNum2).isEqualTo(leaderQuerySeqNum1 + 1);
         assertThat(getCommitIndex(leader)).isEqualTo(commitIndex2);
     }
 
@@ -309,7 +309,7 @@ public class LinearizableQueryTest
 
         CompletableFuture<Ordered<Object>> f = leader.query(queryLastValue(), LINEARIZABLE, 0);
 
-        eventually(() -> assertThat(getLeaderQuerySeqNo(leader)).isEqualTo(1));
+        eventually(() -> assertThat(getLeaderQuerySequenceNumber(leader)).isEqualTo(1));
 
         group.allowAllMessagesTo(leader.getLocalEndpoint(), followers.get(0).getLocalEndpoint());
         group.allowAllMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint());

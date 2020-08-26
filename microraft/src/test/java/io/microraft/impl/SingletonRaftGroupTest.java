@@ -54,7 +54,7 @@ import static io.microraft.test.util.RaftTestUtils.getRestoredState;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-public class SingletonClusterTest
+public class SingletonRaftGroupTest
         extends BaseTest {
 
     private LocalRaftGroup group;

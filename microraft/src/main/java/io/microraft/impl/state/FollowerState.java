@@ -56,7 +56,7 @@ public final class FollowerState {
      * the flow control sequence number sent to the follower in the last append
      * entries or install snapshot request
      */
-    private long flowControlSeqNo;
+    private long flowControlSequenceNumber;
 
     FollowerState(long matchIndex, long nextIndex) {
         this.matchIndex = matchIndex;
@@ -116,7 +116,7 @@ public final class FollowerState {
         assert backoffRound == 0 : "backoff round: " + backoffRound;
         backoffRound = min((1 << (nextBackoffPower++)) * minRounds, maxRounds);
 
-        return ++flowControlSeqNo;
+        return ++flowControlSequenceNumber;
     }
 
     /**
@@ -135,9 +135,9 @@ public final class FollowerState {
      * number is equal to the last sent flow sequence number, the internal
      * request backoff state is also reset.
      */
-    public boolean responseReceived(long flowControlSeqNo) {
+    public boolean responseReceived(long flowControlSequenceNumber) {
         responseTimestamp = Math.max(responseTimestamp, System.currentTimeMillis());
-        boolean success = this.flowControlSeqNo == flowControlSeqNo;
+        boolean success = this.flowControlSequenceNumber == flowControlSequenceNumber;
         if (success) {
             resetRequestBackoff();
         }
@@ -164,15 +164,15 @@ public final class FollowerState {
         return backoffRound;
     }
 
-    long flowControlSeqNo() {
-        return flowControlSeqNo;
+    long flowControlSequenceNumber() {
+        return flowControlSequenceNumber;
     }
 
     @Override
     public String toString() {
         return "FollowerState{" + "matchIndex=" + matchIndex + ", nextIndex=" + nextIndex + ", backoffRound=" + backoffRound
-                + ", nextBackoffPower=" + nextBackoffPower + ", responseTimestamp=" + responseTimestamp + ", flowControlSeqNo="
-                + flowControlSeqNo + '}';
+                + ", nextBackoffPower=" + nextBackoffPower + ", responseTimestamp=" + responseTimestamp
+                + ", flowControlSequenceNumber=" + flowControlSequenceNumber + '}';
     }
 
 }

@@ -47,9 +47,9 @@ public interface AppendEntriesRequest
     @Nonnull
     List<LogEntry> getLogEntries();
 
-    long getQuerySeqNo();
+    long getQuerySequenceNumber();
 
-    long getFlowControlSeqNo();
+    long getFlowControlSequenceNumber();
 
     /**
      * The builder interface for {@link AppendEntriesRequest}.
@@ -79,10 +79,10 @@ public interface AppendEntriesRequest
         AppendEntriesRequestBuilder setLogEntries(@Nonnull List<LogEntry> logEntries);
 
         @Nonnull
-        AppendEntriesRequestBuilder setQuerySeqNo(long querySeqNo);
+        AppendEntriesRequestBuilder setQuerySequenceNumber(long querySequenceNumber);
 
         @Nonnull
-        AppendEntriesRequestBuilder setFlowControlSeqNo(long flowControlSeqNo);
+        AppendEntriesRequestBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
 
     }
 

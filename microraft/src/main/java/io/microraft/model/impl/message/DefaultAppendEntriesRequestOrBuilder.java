@@ -46,8 +46,8 @@ public class DefaultAppendEntriesRequestOrBuilder
     private long previousLogIndex;
     private long commitIndex;
     private List<LogEntry> logEntries;
-    private long querySeqNo;
-    private long flowControlSeqNo;
+    private long querySequenceNumber;
+    private long flowControlSequenceNumber;
     private DefaultAppendEntriesRequestOrBuilder builder = this;
 
     public DefaultAppendEntriesRequestOrBuilder() {
@@ -91,13 +91,13 @@ public class DefaultAppendEntriesRequestOrBuilder
     }
 
     @Override
-    public long getQuerySeqNo() {
-        return querySeqNo;
+    public long getQuerySequenceNumber() {
+        return querySequenceNumber;
     }
 
     @Override
-    public long getFlowControlSeqNo() {
-        return flowControlSeqNo;
+    public long getFlowControlSequenceNumber() {
+        return flowControlSequenceNumber;
     }
 
     @Nonnull
@@ -151,15 +151,15 @@ public class DefaultAppendEntriesRequestOrBuilder
 
     @Nonnull
     @Override
-    public AppendEntriesRequestBuilder setQuerySeqNo(long querySeqNo) {
-        builder.querySeqNo = querySeqNo;
+    public AppendEntriesRequestBuilder setQuerySequenceNumber(long querySequenceNumber) {
+        builder.querySequenceNumber = querySequenceNumber;
         return this;
     }
 
     @Nonnull
     @Override
-    public AppendEntriesRequestBuilder setFlowControlSeqNo(long flowControlSeqNo) {
-        builder.flowControlSeqNo = flowControlSeqNo;
+    public AppendEntriesRequestBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber) {
+        builder.flowControlSequenceNumber = flowControlSequenceNumber;
         return this;
     }
 
@@ -176,7 +176,8 @@ public class DefaultAppendEntriesRequestOrBuilder
         String header = builder != null ? "AppendEntriesRequestBuilder" : "AppendEntriesRequest";
         return header + "{" + "groupId=" + groupId + ", sender=" + sender + ", term=" + term + ", prevLogTerm=" + previousLogTerm
                 + ", prevLogIndex=" + previousLogIndex + ", leaderCommitIndex=" + commitIndex + ", logEntries=" + logEntries
-                + ", querySeqNo=" + querySeqNo + ", flowControlSeqNo=" + flowControlSeqNo + '}';
+                + ", querySequenceNumber=" + querySequenceNumber + ", flowControlSequenceNumber=" + flowControlSequenceNumber
+                + '}';
     }
 
 }

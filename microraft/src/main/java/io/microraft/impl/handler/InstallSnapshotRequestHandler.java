@@ -102,7 +102,7 @@ public class InstallSnapshotRequestHandler
             if (request.isSenderLeader()) {
                 RaftMessage response = modelFactory.createAppendEntriesFailureResponseBuilder().setGroupId(node.getGroupId())
                                                    .setSender(localEndpoint()).setTerm(state.term()).setExpectedNextIndex(0)
-                                                   .setQuerySeqNo(0).setFlowControlSeqNo(0).build();
+                                                   .setQuerySequenceNumber(0).setFlowControlSequenceNumber(0).build();
                 node.send(sender, response);
             }
 
@@ -182,8 +182,9 @@ public class InstallSnapshotRequestHandler
     private void sendAppendEntriesSuccessResponse(InstallSnapshotRequest request) {
         RaftMessage response = modelFactory.createAppendEntriesSuccessResponseBuilder().setGroupId(node.getGroupId())
                                            .setSender(localEndpoint()).setTerm(state.term())
-                                           .setLastLogIndex(request.getSnapshotIndex()).setQuerySeqNo(request.getQuerySeqNo())
-                                           .setFlowControlSeqNo(request.getFlowControlSeqNo()).build();
+                                           .setLastLogIndex(request.getSnapshotIndex())
+                                           .setQuerySequenceNumber(request.getQuerySequenceNumber())
+                                           .setFlowControlSequenceNumber(request.getFlowControlSequenceNumber()).build();
         node.send(state.leader(), response);
     }
 
@@ -268,8 +269,9 @@ public class InstallSnapshotRequestHandler
             RaftMessage response = node.getModelFactory().createInstallSnapshotResponseBuilder().setGroupId(node.getGroupId())
                                        .setSender(localEndpoint()).setTerm(state.term())
                                        .setSnapshotIndex(request.getSnapshotIndex()).setRequestedSnapshotChunkIndex(e.getValue())
-                                       .setQuerySeqNo(state.leader().equals(target) ? request.getQuerySeqNo() : 0)
-                                       .setFlowControlSeqNo(request.getFlowControlSeqNo()).build();
+                                       .setQuerySequenceNumber(
+                                               state.leader().equals(target) ? request.getQuerySequenceNumber() : 0)
+                                       .setFlowControlSequenceNumber(request.getFlowControlSequenceNumber()).build();
 
             node.send(target, response);
 
@@ -315,7 +317,8 @@ public class InstallSnapshotRequestHandler
             RaftEndpoint target = e.getKey();
             RaftMessage response = node.getModelFactory().createInstallSnapshotResponseBuilder().setGroupId(node.getGroupId())
                                        .setSender(localEndpoint()).setTerm(state.term()).setSnapshotIndex(snapshotIndex)
-                                       .setRequestedSnapshotChunkIndex(e.getValue()).setQuerySeqNo(0).setFlowControlSeqNo(0)
+                                       .setRequestedSnapshotChunkIndex(e.getValue()).setQuerySequenceNumber(0)
+                                       .setFlowControlSequenceNumber(0)
                                        .build();
 
             node.send(target, response);

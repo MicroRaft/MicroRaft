@@ -88,17 +88,17 @@ public class AppendEntriesSuccessResponseHandler
         FollowerState followerState = leaderState.getFollowerState(follower);
         QueryState queryState = leaderState.queryState();
 
-        if (queryState.tryAck(response.getQuerySeqNo(), follower)) {
+        if (queryState.tryAck(response.getQuerySequenceNumber(), follower)) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(
-                        localEndpointStr() + " ack from " + follower.getId() + " for query seq no: " + response.getQuerySeqNo());
+                LOGGER.debug(localEndpointStr() + " ack from " + follower.getId() + " for query sequence number: " + response
+                        .getQuerySequenceNumber());
             }
         }
 
         long matchIndex = followerState.matchIndex();
         long followerLastLogIndex = response.getLastLogIndex();
 
-        followerState.responseReceived(response.getFlowControlSeqNo());
+        followerState.responseReceived(response.getFlowControlSequenceNumber());
 
         if (followerLastLogIndex > matchIndex) {
             long newNextIndex = followerLastLogIndex + 1;

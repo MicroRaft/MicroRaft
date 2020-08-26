@@ -39,9 +39,9 @@ public interface InstallSnapshotResponse
 
     int getRequestedSnapshotChunkIndex();
 
-    long getQuerySeqNo();
+    long getQuerySequenceNumber();
 
-    long getFlowControlSeqNo();
+    long getFlowControlSequenceNumber();
 
     /**
      * The builder interface for {@link InstallSnapshotResponse}.
@@ -65,10 +65,10 @@ public interface InstallSnapshotResponse
         InstallSnapshotResponseBuilder setRequestedSnapshotChunkIndex(int requestedSnapshotChunkIndex);
 
         @Nonnull
-        InstallSnapshotResponseBuilder setQuerySeqNo(long querySeqNo);
+        InstallSnapshotResponseBuilder setQuerySequenceNumber(long querySequenceNumber);
 
         @Nonnull
-        InstallSnapshotResponseBuilder setFlowControlSeqNo(long flowControlSeqNo);
+        InstallSnapshotResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
 
     }
 

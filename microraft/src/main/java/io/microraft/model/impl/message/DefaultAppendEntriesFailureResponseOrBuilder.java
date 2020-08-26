@@ -41,8 +41,8 @@ public class DefaultAppendEntriesFailureResponseOrBuilder
     private RaftEndpoint sender;
     private int term;
     private long expectedNextIndex;
-    private long querySeqNo;
-    private long flowControlSeqNo;
+    private long querySequenceNumber;
+    private long flowControlSequenceNumber;
     private DefaultAppendEntriesFailureResponseOrBuilder builder = this;
 
     public DefaultAppendEntriesFailureResponseOrBuilder() {
@@ -70,13 +70,13 @@ public class DefaultAppendEntriesFailureResponseOrBuilder
     }
 
     @Override
-    public long getQuerySeqNo() {
-        return querySeqNo;
+    public long getQuerySequenceNumber() {
+        return querySequenceNumber;
     }
 
     @Override
-    public long getFlowControlSeqNo() {
-        return flowControlSeqNo;
+    public long getFlowControlSequenceNumber() {
+        return flowControlSequenceNumber;
     }
 
     @Nonnull
@@ -109,15 +109,15 @@ public class DefaultAppendEntriesFailureResponseOrBuilder
 
     @Nonnull
     @Override
-    public AppendEntriesFailureResponseBuilder setQuerySeqNo(long querySeqNo) {
-        builder.querySeqNo = querySeqNo;
+    public AppendEntriesFailureResponseBuilder setQuerySequenceNumber(long querySequenceNumber) {
+        builder.querySequenceNumber = querySequenceNumber;
         return this;
     }
 
     @Nonnull
     @Override
-    public AppendEntriesFailureResponseBuilder setFlowControlSeqNo(long flowControlSeqNo) {
-        builder.flowControlSeqNo = flowControlSeqNo;
+    public AppendEntriesFailureResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber) {
+        builder.flowControlSequenceNumber = flowControlSequenceNumber;
         return this;
     }
 
@@ -133,7 +133,8 @@ public class DefaultAppendEntriesFailureResponseOrBuilder
     public String toString() {
         String header = builder != null ? "AppendEntriesFailureResponseBuilder" : "AppendEntriesFailureResponse";
         return header + "{" + "groupId=" + groupId + ", sender=" + sender + ", term=" + term + ", expectedNextIndex="
-                + expectedNextIndex + ", querySeqNo=" + querySeqNo + ", flowControlSeqNo=" + flowControlSeqNo + '}';
+                + expectedNextIndex + ", querySequenceNumber=" + querySequenceNumber + ", flowControlSequenceNumber="
+                + flowControlSequenceNumber + '}';
     }
 
 }

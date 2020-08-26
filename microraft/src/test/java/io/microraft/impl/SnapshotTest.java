@@ -749,8 +749,9 @@ public class SnapshotTest
                                                                          .setPreviousLogIndex(request.getPreviousLogIndex())
                                                                          .setCommitIndex(request.getCommitIndex())
                                                                          .setLogEntries(entries)
-                                                                         .setQuerySeqNo(request.getQuerySeqNo())
-                                                                         .setFlowControlSeqNo(request.getFlowControlSeqNo())
+                                                                         .setQuerySequenceNumber(request.getQuerySequenceNumber())
+                                                                         .setFlowControlSequenceNumber(
+                                                                                 request.getFlowControlSequenceNumber())
                                                                          .build();
                     } else if (entries.get(0).getOperation() instanceof DefaultUpdateRaftGroupMembersOpOrBuilder) {
                         entries = emptyList();
@@ -760,8 +761,9 @@ public class SnapshotTest
                                                                          .setPreviousLogIndex(request.getPreviousLogIndex())
                                                                          .setCommitIndex(request.getCommitIndex())
                                                                          .setLogEntries(entries)
-                                                                         .setQuerySeqNo(request.getQuerySeqNo())
-                                                                         .setFlowControlSeqNo(request.getFlowControlSeqNo())
+                                                                         .setQuerySequenceNumber(request.getQuerySequenceNumber())
+                                                                         .setFlowControlSequenceNumber(
+                                                                                 request.getFlowControlSequenceNumber())
                                                                          .build();
                     }
                 }

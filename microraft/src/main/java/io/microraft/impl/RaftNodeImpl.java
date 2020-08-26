@@ -377,8 +377,9 @@ public final class RaftNodeImpl
                                           .setSnapshotChunk(snapshotChunk).setSnapshottedMembers(snapshottedMembers)
                                           .setGroupMembersLogIndex(snapshotEntry.getGroupMembersLogIndex())
                                           .setGroupMembers(snapshotEntry.getGroupMembers())
-                                          .setQuerySeqNo(leaderState != null ? leaderState.querySeqNo() : 0)
-                                          .setFlowControlSeqNo(followerState != null ? enableBackoff(followerState) : 0).build();
+                                          .setQuerySequenceNumber(leaderState != null ? leaderState.querySequenceNumber() : 0)
+                                          .setFlowControlSequenceNumber(followerState != null ? enableBackoff(followerState) : 0)
+                                          .build();
 
         send(follower, request);
 
@@ -1151,8 +1152,8 @@ public final class RaftNodeImpl
                                               .setSnapshotChunk(null).setSnapshottedMembers(snapshottedMembers)
                                               .setGroupMembersLogIndex(snapshotEntry.getGroupMembersLogIndex())
                                               .setGroupMembers(snapshotEntry.getGroupMembers())
-                                              .setQuerySeqNo(leaderState.querySeqNo())
-                                              .setFlowControlSeqNo(enableBackoff(followerState)).build();
+                                              .setQuerySequenceNumber(leaderState.querySequenceNumber())
+                                              .setFlowControlSequenceNumber(enableBackoff(followerState)).build();
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(
@@ -1169,7 +1170,7 @@ public final class RaftNodeImpl
         AppendEntriesRequestBuilder requestBuilder = modelFactory.createAppendEntriesRequestBuilder().setGroupId(getGroupId())
                                                                  .setSender(getLocalEndpoint()).setTerm(state.term())
                                                                  .setCommitIndex(state.commitIndex())
-                                                                 .setQuerySeqNo(leaderState.querySeqNo());
+                                                                 .setQuerySequenceNumber(leaderState.querySequenceNumber());
         List<LogEntry> entries;
         boolean backoff = true;
         long lastLogIndex = log.lastLogOrSnapshotIndex();
@@ -1210,7 +1211,7 @@ public final class RaftNodeImpl
         }
 
         if (backoff) {
-            requestBuilder.setFlowControlSeqNo(enableBackoff(followerState));
+            requestBuilder.setFlowControlSequenceNumber(enableBackoff(followerState));
         }
 
         RaftMessage request = requestBuilder.setLogEntries(entries).build();
@@ -1438,16 +1439,17 @@ public final class RaftNodeImpl
         broadcastAppendEntriesRequest();
     }
 
-    public void tryAckQuery(long querySeqNo, RaftEndpoint sender) {
+    public void tryAckQuery(long querySequenceNumber, RaftEndpoint sender) {
         LeaderState leaderState = state.leaderState();
         if (leaderState == null) {
             return;
         }
 
         QueryState queryState = leaderState.queryState();
-        if (queryState.tryAck(querySeqNo, sender)) {
+        if (queryState.tryAck(querySequenceNumber, sender)) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(localEndpointStr() + " ack from " + sender.getId() + " for query seq no: " + querySeqNo);
+                LOGGER.debug(localEndpointStr() + " ack from " + sender.getId() + " for query sequence number: "
+                                     + querySequenceNumber);
             }
 
             tryRunQueries();
@@ -1473,7 +1475,7 @@ public final class RaftNodeImpl
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(localEndpointStr + " running " + operations.size() + " queries at commit index: " + commitIndex
-                                 + ", query seq no: " + queryState.querySeqNo());
+                                 + ", query sequence number: " + queryState.querySequenceNumber());
         }
 
         for (Entry<Object, OrderedFuture> t : operations) {

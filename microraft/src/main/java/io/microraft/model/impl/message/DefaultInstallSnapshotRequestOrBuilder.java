@@ -51,8 +51,8 @@ public class DefaultInstallSnapshotRequestOrBuilder
     private Collection<RaftEndpoint> snapshottedMembers;
     private long groupMembersLogIndex;
     private Collection<RaftEndpoint> groupMembers;
-    private long querySeqNo;
-    private long flowControlSeqNo;
+    private long querySequenceNumber;
+    private long flowControlSequenceNumber;
     private DefaultInstallSnapshotRequestOrBuilder builder = this;
 
     @Override
@@ -115,13 +115,13 @@ public class DefaultInstallSnapshotRequestOrBuilder
     }
 
     @Override
-    public long getQuerySeqNo() {
-        return querySeqNo;
+    public long getQuerySequenceNumber() {
+        return querySequenceNumber;
     }
 
     @Override
-    public long getFlowControlSeqNo() {
-        return flowControlSeqNo;
+    public long getFlowControlSequenceNumber() {
+        return flowControlSequenceNumber;
     }
 
     @Nonnull
@@ -203,15 +203,15 @@ public class DefaultInstallSnapshotRequestOrBuilder
 
     @Nonnull
     @Override
-    public InstallSnapshotRequestBuilder setQuerySeqNo(long querySeqNo) {
-        builder.querySeqNo = querySeqNo;
+    public InstallSnapshotRequestBuilder setQuerySequenceNumber(long querySequenceNumber) {
+        builder.querySequenceNumber = querySequenceNumber;
         return this;
     }
 
     @Nonnull
     @Override
-    public InstallSnapshotRequestBuilder setFlowControlSeqNo(long flowControlSeqNo) {
-        builder.flowControlSeqNo = flowControlSeqNo;
+    public InstallSnapshotRequestBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber) {
+        builder.flowControlSequenceNumber = flowControlSequenceNumber;
         return this;
     }
 
@@ -229,8 +229,8 @@ public class DefaultInstallSnapshotRequestOrBuilder
         return header + "{" + "groupId=" + groupId + ", sender=" + sender + ", term=" + term + ", leader=" + leader
                 + ", snapshotTerm=" + snapshotTerm + ", snapshotIndex=" + snapshotIndex + ", chunkCount="
                 + totalSnapshotChunkCount + ", snapshotChunk=" + snapshotChunk + ", snapshottedMembers=" + snapshottedMembers
-                + ", groupMembersLogIndex=" + groupMembersLogIndex + ", groupMembers=" + groupMembers + ", querySeqNo="
-                + querySeqNo + ", flowControlSeqNo=" + flowControlSeqNo + '}';
+                + ", groupMembersLogIndex=" + groupMembersLogIndex + ", groupMembers=" + groupMembers + ", querySequenceNumber="
+                + querySequenceNumber + ", flowControlSequenceNumber=" + flowControlSequenceNumber + '}';
     }
 
 }

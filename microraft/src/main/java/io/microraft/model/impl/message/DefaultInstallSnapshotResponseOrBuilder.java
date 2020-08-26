@@ -42,8 +42,8 @@ public class DefaultInstallSnapshotResponseOrBuilder
     private int term;
     private long snapshotIndex;
     private int requestedSnapshotChunkIndex;
-    private long querySeqNo;
-    private long flowControlSeqNo;
+    private long querySequenceNumber;
+    private long flowControlSequenceNumber;
     private DefaultInstallSnapshotResponseOrBuilder builder = this;
 
     @Override
@@ -73,13 +73,13 @@ public class DefaultInstallSnapshotResponseOrBuilder
     }
 
     @Override
-    public long getQuerySeqNo() {
-        return querySeqNo;
+    public long getQuerySequenceNumber() {
+        return querySequenceNumber;
     }
 
     @Override
-    public long getFlowControlSeqNo() {
-        return flowControlSeqNo;
+    public long getFlowControlSequenceNumber() {
+        return flowControlSequenceNumber;
     }
 
     @Nonnull
@@ -119,15 +119,15 @@ public class DefaultInstallSnapshotResponseOrBuilder
 
     @Nonnull
     @Override
-    public InstallSnapshotResponseBuilder setQuerySeqNo(long querySeqNo) {
-        builder.querySeqNo = querySeqNo;
+    public InstallSnapshotResponseBuilder setQuerySequenceNumber(long querySequenceNumber) {
+        builder.querySequenceNumber = querySequenceNumber;
         return this;
     }
 
     @Nonnull
     @Override
-    public InstallSnapshotResponseBuilder setFlowControlSeqNo(long flowControlSeqNo) {
-        builder.flowControlSeqNo = flowControlSeqNo;
+    public InstallSnapshotResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber) {
+        builder.flowControlSequenceNumber = flowControlSequenceNumber;
         return this;
     }
 
@@ -143,8 +143,8 @@ public class DefaultInstallSnapshotResponseOrBuilder
     public String toString() {
         String header = builder != null ? "InstallSnapshotResponseBuilder" : "InstallSnapshotResponse";
         return header + "{" + "groupId=" + groupId + ", sender=" + sender + ", term=" + term + ", snapshotIndex=" + snapshotIndex
-                + ", requestedSnapshotChunkIndex=" + requestedSnapshotChunkIndex + ", querySeqNo=" + querySeqNo
-                + ", flowControlSeqNo=" + flowControlSeqNo + '}';
+                + ", requestedSnapshotChunkIndex=" + requestedSnapshotChunkIndex + ", querySequenceNumber=" + querySequenceNumber
+                + ", flowControlSequenceNumber=" + flowControlSequenceNumber + '}';
     }
 
 }

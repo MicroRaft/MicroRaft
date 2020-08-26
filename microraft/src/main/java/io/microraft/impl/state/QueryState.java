@@ -67,7 +67,7 @@ public final class QueryState {
      * bounced back to the leader to complete the heartbeat round and execute
      * the queries.
      */
-    private long querySeqNo;
+    private long querySequenceNumber;
 
     /**
      * Adds the given query to the collection of queries and returns the number
@@ -87,7 +87,7 @@ public final class QueryState {
         queries.add(new SimpleImmutableEntry<>(query, resultFuture));
         boolean firstQuery = queries.size() == 1;
         if (firstQuery) {
-            querySeqNo++;
+            querySequenceNumber++;
         }
 
         return firstQuery;
@@ -96,18 +96,19 @@ public final class QueryState {
     /**
      * Returns {@code true} if the given follower's ack is accepted
      * for the current query round. It is accepted only if there are
-     * waiting queries to be executed and the {@code querySeqNo} argument
-     * matches to the current query round.
+     * waiting queries to be executed and the {@code querySequenceNumber}
+     * argument matches to the current query round.
      */
-    public boolean tryAck(long querySeqNo, Object follower) {
+    public boolean tryAck(long querySequenceNumber, Object follower) {
         // If there is no query waiting to be executed or the received ack
         // belongs to an earlier query, we ignore it.
-        if (queries.isEmpty() || this.querySeqNo > querySeqNo) {
+        if (queries.isEmpty() || this.querySequenceNumber > querySequenceNumber) {
             return false;
         }
 
-        if (querySeqNo != this.querySeqNo) {
-            throw new IllegalStateException(this + ", acked query seq no: " + querySeqNo + ", follower: " + follower);
+        if (querySequenceNumber != this.querySequenceNumber) {
+            throw new IllegalStateException(
+                    this + ", acked query sequence number: " + querySequenceNumber + ", follower: " + follower);
         }
 
         return acks.add(follower);
@@ -124,8 +125,8 @@ public final class QueryState {
      * Returns the index of the heartbeat round to execute the currently
      * waiting queries.
      */
-    public long querySeqNo() {
-        return querySeqNo;
+    public long querySequenceNumber() {
+        return querySequenceNumber;
     }
 
     /**
@@ -191,8 +192,8 @@ public final class QueryState {
 
     @Override
     public String toString() {
-        return "QueryState{" + "readIndex=" + readIndex + ", queryRound=" + querySeqNo + ", queryCount=" + queryCount()
-                + ", acks=" + acks + '}';
+        return "QueryState{" + "readIndex=" + readIndex + ", querySequenceNumber=" + querySequenceNumber + ", queryCount="
+                + queryCount() + ", acks=" + acks + '}';
     }
 
 }

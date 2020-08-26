@@ -36,9 +36,9 @@ public interface AppendEntriesSuccessResponse
 
     long getLastLogIndex();
 
-    long getQuerySeqNo();
+    long getQuerySequenceNumber();
 
-    long getFlowControlSeqNo();
+    long getFlowControlSequenceNumber();
 
     /**
      * The builder interface for {@link AppendEntriesSuccessResponse}.
@@ -59,10 +59,10 @@ public interface AppendEntriesSuccessResponse
         AppendEntriesSuccessResponseBuilder setLastLogIndex(long lastLogIndex);
 
         @Nonnull
-        AppendEntriesSuccessResponseBuilder setQuerySeqNo(long querySeqNo);
+        AppendEntriesSuccessResponseBuilder setQuerySequenceNumber(long querySequenceNumber);
 
         @Nonnull
-        AppendEntriesSuccessResponseBuilder setFlowControlSeqNo(long flowControlSeqNo);
+        AppendEntriesSuccessResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
 
     }
 

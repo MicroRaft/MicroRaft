@@ -36,9 +36,9 @@ public interface AppendEntriesFailureResponse
 
     long getExpectedNextIndex();
 
-    long getQuerySeqNo();
+    long getQuerySequenceNumber();
 
-    long getFlowControlSeqNo();
+    long getFlowControlSequenceNumber();
 
     /**
      * The builder interface for {@link AppendEntriesFailureResponse}.
@@ -59,10 +59,10 @@ public interface AppendEntriesFailureResponse
         AppendEntriesFailureResponseBuilder setExpectedNextIndex(long expectedNextIndex);
 
         @Nonnull
-        AppendEntriesFailureResponseBuilder setQuerySeqNo(long querySeqNo);
+        AppendEntriesFailureResponseBuilder setQuerySequenceNumber(long querySequenceNumber);
 
         @Nonnull
-        AppendEntriesFailureResponseBuilder setFlowControlSeqNo(long flowControlSeqNo);
+        AppendEntriesFailureResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
 
     }
 

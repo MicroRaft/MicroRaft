@@ -34,10 +34,10 @@ import static java.util.Objects.requireNonNull;
 public final class RaftGroupMembersState
         implements RaftGroupMembers {
 
-    private long index;
-    private Collection<RaftEndpoint> members;
-    private Collection<RaftEndpoint> remoteMembers;
-    private int majority;
+    private final long index;
+    private final Collection<RaftEndpoint> members;
+    private final Collection<RaftEndpoint> remoteMembers;
+    private final int majority;
 
     public RaftGroupMembersState(long index, Collection<RaftEndpoint> members, RaftEndpoint localMember) {
         requireNonNull(members);

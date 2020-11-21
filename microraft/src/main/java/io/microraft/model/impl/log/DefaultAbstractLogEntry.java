@@ -33,19 +33,15 @@ public class DefaultAbstractLogEntry
     DefaultAbstractLogEntry() {
     }
 
-    @Override
-    public long getIndex() {
+    @Override public long getIndex() {
         return index;
     }
 
-    @Override
-    public int getTerm() {
+    @Override public int getTerm() {
         return term;
     }
 
-    @Nonnull
-    @Override
-    public Object getOperation() {
+    @Nonnull @Override public Object getOperation() {
         return operation;
     }
 

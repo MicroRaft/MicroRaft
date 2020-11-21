@@ -36,12 +36,10 @@ import static java.util.Objects.requireNonNull;
 /**
  * {@code RaftLog} keeps and maintains Raft log entries and snapshot.
  * <p>
- * The entries appended in the Raft group leader's log are replicated to all
- * followers in the same log order and all Raft nodes in a Raft group
- * eventually keep the exact same copy of the Raft log.
+ * The entries appended in the Raft group leader's log are replicated to all followers in the same log order and all Raft nodes in
+ * a Raft group eventually keep the exact same copy of the Raft log.
  * <p>
- * Raft maintains the following properties, which together constitute
- * the LogMatching Property:
+ * Raft maintains the following properties, which together constitute the LogMatching Property:
  * <ul>
  * <li>If two entries in different logs have the same index and term, then
  * they store the same command.</li>
@@ -123,8 +121,8 @@ public final class RaftLog {
     }
 
     /**
-     * Returns the log entry stored at {@code entryIndex}. Entry is retrieved
-     * only from the current log, not from the snapshot entry.
+     * Returns the log entry stored at {@code entryIndex}. Entry is retrieved only from the current log, not from the snapshot
+     * entry.
      * <p>
      * If no entry available at this index, then {@code null} is returned.
      * <p>
@@ -143,8 +141,7 @@ public final class RaftLog {
     }
 
     /**
-     * Returns true if the log contains an entry at {@code entryIndex},
-     * false otherwise.
+     * Returns true if the log contains an entry at {@code entryIndex}, false otherwise.
      * <p>
      * Important: Log entry indices start from 1, not 0.
      */
@@ -159,8 +156,8 @@ public final class RaftLog {
      * @return truncated log entries
      *
      * @throws IllegalArgumentException
-     *         If no entries are available to truncate, if {@code entryIndex}
-     *         is greater than last log index or smaller than snapshot index.
+     *         If no entries are available to truncate, if {@code entryIndex} is greater than last log index or smaller than
+     *         snapshot index.
      */
     public List<LogEntry> truncateEntriesFrom(long entryIndex) {
         if (entryIndex <= snapshotIndex()) {
@@ -191,17 +188,14 @@ public final class RaftLog {
     }
 
     /**
-     * Returns the last entry index in the Raft log,
-     * either from the last log entry or from the last snapshot
+     * Returns the last entry index in the Raft log, either from the last log entry or from the last snapshot
      */
     public long lastLogOrSnapshotIndex() {
         return lastLogOrSnapshotEntry().getIndex();
     }
 
     /**
-     * Returns the last entry in the Raft log,
-     * either from the last log entry or from the last snapshot
-     * if no logs are available.
+     * Returns the last entry in the Raft log, either from the last log entry or from the last snapshot if no logs are available.
      */
     public BaseLogEntry lastLogOrSnapshotEntry() {
         return !log.isEmpty() ? log.read(log.tailSequence()) : snapshot;
@@ -218,9 +212,8 @@ public final class RaftLog {
      * Appends new entries to the Raft log.
      *
      * @throws IllegalArgumentException
-     *         If an entry is appended with a lower term than the last term
-     *         in the log or if an entry is appended with an index not equal to
-     *         {@code index == lastIndex + 1}.
+     *         If an entry is appended with a lower term than the last term in the log or if an entry is appended with an index
+     *         not equal to {@code index == lastIndex + 1}.
      * @throws IllegalStateException
      *         if the Raft log has no enough available capacity
      */
@@ -231,7 +224,7 @@ public final class RaftLog {
         if (!checkAvailableCapacity(entries.size())) {
             throw new IllegalStateException(
                     "Not enough capacity! Capacity: " + log.getCapacity() + ", Size: " + log.size() + ", New entries:" + " "
-                            + entries.size());
+                    + entries.size());
         }
 
         for (LogEntry entry : entries) {
@@ -257,16 +250,14 @@ public final class RaftLog {
     }
 
     /**
-     * Returns the last term in the Raft log,
-     * either from the last log entry or from the last snapshot
+     * Returns the last term in the Raft log, either from the last log entry or from the last snapshot
      */
     public int lastLogOrSnapshotTerm() {
         return lastLogOrSnapshotEntry().getTerm();
     }
 
     /**
-     * Returns true if the Raft log contains empty indices
-     * for the requested amount
+     * Returns true if the Raft log contains empty indices for the requested amount
      */
     public boolean checkAvailableCapacity(int requestedCapacity) {
         return availableCapacity() >= requestedCapacity;
@@ -283,9 +274,8 @@ public final class RaftLog {
      * Appends the given entry to the Raft log.
      *
      * @throws IllegalArgumentException
-     *         If an entry is appended with a lower term than the last term
-     *         in the log or if an entry is appended with an index not equal to
-     *         {@code index == lastIndex + 1}.
+     *         If an entry is appended with a lower term than the last term in the log or if an entry is appended with an index
+     *         not equal to {@code index == lastIndex + 1}.
      * @throws IllegalStateException
      *         if the Raft log has no available capacity
      */
@@ -319,15 +309,12 @@ public final class RaftLog {
     }
 
     /**
-     * Returns log entries between {@code fromEntryIndex} and
-     * {@code toEntryIndex}, both inclusive.
+     * Returns log entries between {@code fromEntryIndex} and {@code toEntryIndex}, both inclusive.
      *
      * @throws IllegalArgumentException
-     *         If {@code fromEntryIndex} is greater than {@code toEntryIndex},
-     *         or if {@code fromEntryIndex} is equal to / smaller than
-     *         {@code snapshotIndex}, or if {@code fromEntryIndex} is greater
-     *         than last log index, or if {@code toEntryIndex} is greater than
-     *         last log index.
+     *         If {@code fromEntryIndex} is greater than {@code toEntryIndex}, or if {@code fromEntryIndex} is equal to / smaller
+     *         than {@code snapshotIndex}, or if {@code fromEntryIndex} is greater than last log index, or if {@code toEntryIndex}
+     *         is greater than last log index.
      */
     public List<LogEntry> getLogEntriesBetween(long fromEntryIndex, long toEntryIndex) {
         if (fromEntryIndex > toEntryIndex) {
@@ -357,15 +344,13 @@ public final class RaftLog {
     }
 
     /**
-     * Installs the snapshot entry and truncates log entries those are included
-     * in snapshot (entries whose indexes are smaller than
-     * the snapshot's index).
+     * Installs the snapshot entry and truncates log entries those are included in snapshot (entries whose indexes are smaller
+     * than the snapshot's index).
      *
      * @return truncated log entries after snapshot is installed
      *
      * @throws IllegalArgumentException
-     *         if the snapshot's index is smaller than or equal to the current
-     *         snapshot index
+     *         if the snapshot's index is smaller than or equal to the current snapshot index
      */
     public int setSnapshot(SnapshotEntry snapshot) {
         return setSnapshot(snapshot, snapshot.getIndex());
@@ -424,8 +409,8 @@ public final class RaftLog {
     }
 
     public static int getLogCapacity(int commitCountToTakeSnapshot, int maxUncommittedLogEntryCount) {
-        int maxLogEntryCountToKeepAfterSnapshot = Math
-                .max(1, (int) (commitCountToTakeSnapshot * KEPT_LOG_ENTRY_RATIO_BEFORE_SNAPSHOT_INDEX));
+        int maxLogEntryCountToKeepAfterSnapshot = Math.max(1, (int) (commitCountToTakeSnapshot
+                                                                     * KEPT_LOG_ENTRY_RATIO_BEFORE_SNAPSHOT_INDEX));
         return commitCountToTakeSnapshot + maxUncommittedLogEntryCount + maxLogEntryCountToKeepAfterSnapshot;
     }
 

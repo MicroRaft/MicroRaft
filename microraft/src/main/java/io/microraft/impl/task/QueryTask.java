@@ -35,8 +35,7 @@ import static io.microraft.RaftNodeStatus.isTerminal;
 import static io.microraft.RaftRole.LEADER;
 
 /**
- * Scheduled by {@link RaftNodeImpl#query(Object, QueryPolicy, long)}
- * to perform a query on the {@link StateMachine}.
+ * Scheduled by {@link RaftNodeImpl#query(Object, QueryPolicy, long)} to perform a query on the {@link StateMachine}.
  *
  * @see QueryPolicy
  */
@@ -61,8 +60,7 @@ public final class QueryTask
         this.future = future;
     }
 
-    @Override
-    public void run() {
+    @Override public void run() {
         try {
             if (!verifyOperation() || !verifyRaftNodeStatus()) {
                 return;
@@ -98,7 +96,7 @@ public final class QueryTask
     private void handleAnyLocalRead() {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(raftNode.localEndpointStr() + " Querying: " + operation + " with policy: " + queryPolicy + " in term: "
-                                 + state.term());
+                         + state.term());
         }
 
         raftNode.runQuery(operation, minCommitIndex, future);
@@ -124,7 +122,7 @@ public final class QueryTask
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(raftNode.localEndpointStr() + " Adding query at commit index: " + commitIndex
-                                     + ", query sequence number: " + queryState.querySequenceNumber());
+                             + ", query sequence number: " + queryState.querySequenceNumber());
             }
 
             if (queryState.addQuery(commitIndex, operation, future)) {

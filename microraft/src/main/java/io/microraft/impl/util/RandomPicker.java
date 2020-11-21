@@ -30,9 +30,9 @@ public final class RandomPicker {
     }
 
     /**
-     * Return a pseudorandom, uniformly distributed in value between the low value (inclusive) and
-     * the high value (exclusive), drawn from this random number generator's sequence.
-     * Starts the random number generator sequence if it has not been initialized.
+     * Return a pseudorandom, uniformly distributed in value between the low value (inclusive) and the high value (exclusive),
+     * drawn from this random number generator's sequence. Starts the random number generator sequence if it has not been
+     * initialized.
      *
      * @param low
      *         lowest value of the range (inclusive)
@@ -46,9 +46,8 @@ public final class RandomPicker {
     }
 
     /**
-     * Returns a pseudorandom, uniformly distributed int value between 0 (inclusive)
-     * and the specified value (exclusive), drawn from this random number generator's sequence.
-     * Starts the random number generator sequence if it has not been initialized.
+     * Returns a pseudorandom, uniformly distributed int value between 0 (inclusive) and the specified value (exclusive), drawn
+     * from this random number generator's sequence. Starts the random number generator sequence if it has not been initialized.
      *
      * @param n
      *         the specified value

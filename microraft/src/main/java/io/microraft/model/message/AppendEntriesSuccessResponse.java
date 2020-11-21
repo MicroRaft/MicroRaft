@@ -46,23 +46,17 @@ public interface AppendEntriesSuccessResponse
     interface AppendEntriesSuccessResponseBuilder
             extends RaftMessageBuilder<AppendEntriesSuccessResponse> {
 
-        @Nonnull
-        AppendEntriesSuccessResponseBuilder setGroupId(@Nonnull Object groupId);
+        @Nonnull AppendEntriesSuccessResponseBuilder setGroupId(@Nonnull Object groupId);
 
-        @Nonnull
-        AppendEntriesSuccessResponseBuilder setSender(@Nonnull RaftEndpoint sender);
+        @Nonnull AppendEntriesSuccessResponseBuilder setSender(@Nonnull RaftEndpoint sender);
 
-        @Nonnull
-        AppendEntriesSuccessResponseBuilder setTerm(int term);
+        @Nonnull AppendEntriesSuccessResponseBuilder setTerm(int term);
 
-        @Nonnull
-        AppendEntriesSuccessResponseBuilder setLastLogIndex(long lastLogIndex);
+        @Nonnull AppendEntriesSuccessResponseBuilder setLastLogIndex(long lastLogIndex);
 
-        @Nonnull
-        AppendEntriesSuccessResponseBuilder setQuerySequenceNumber(long querySequenceNumber);
+        @Nonnull AppendEntriesSuccessResponseBuilder setQuerySequenceNumber(long querySequenceNumber);
 
-        @Nonnull
-        AppendEntriesSuccessResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
+        @Nonnull AppendEntriesSuccessResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
 
     }
 

@@ -25,41 +25,35 @@ package io.microraft;
 public enum RaftNodeStatus {
 
     /**
-     * Initial status of a Raft node. It stays in this status until it is
-     * started.
+     * Initial status of a Raft node. It stays in this status until it is started.
      */
     INITIAL,
 
     /**
-     * A Raft node stays in this status when there is no ongoing membership
-     * change or a Raft group termination process. Operations are committed
-     * in this status.
+     * A Raft node stays in this status when there is no ongoing membership change or a Raft group termination process. Operations
+     * are committed in this status.
      */
     ACTIVE,
 
     /**
-     * A Raft node moves to this status when a Raft group membership change
-     * operation is appended to its Raft log and stays in this status until
-     * the membership change is either committed or reverted. New operations
-     * can be replicated while there is an ongoing membership change in
-     * the Raft group, but no other membership change, or leadership transfer
-     * can be triggered until the ongoing membership change process is
-     * completed.
+     * A Raft node moves to this status when a Raft group membership change operation is appended to its Raft log and stays in
+     * this status until the membership change is either committed or reverted. New operations can be replicated while there is an
+     * ongoing membership change in the Raft group, but no other membership change, or leadership transfer can be triggered until
+     * the ongoing membership change process is completed.
      */
     UPDATING_RAFT_GROUP_MEMBER_LIST,
 
     /**
-     * A Raft node moves to this status either when it is removed from the Raft
-     * group member list, or it is being terminated on its own, for instance,
-     * because its JVM is shutting down.
+     * A Raft node moves to this status either when it is removed from the Raft group member list, or it is being terminated on
+     * its own, for instance, because its JVM is shutting down.
      * <p>
      * A Raft node stops running the Raft consensus algorithm in this status.
      */
     TERMINATED;
 
     /**
-     * Returns true if the given Raft node status is a terminal. A Raft node
-     * stops running the Raft consensus algorithm in a terminal status.
+     * Returns true if the given Raft node status is a terminal. A Raft node stops running the Raft consensus algorithm in a
+     * terminal status.
      *
      * @param status
      *         the status object to check

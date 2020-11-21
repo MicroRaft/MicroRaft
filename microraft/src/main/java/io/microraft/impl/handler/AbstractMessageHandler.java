@@ -35,8 +35,7 @@ public abstract class AbstractMessageHandler<T extends RaftMessage>
         this.message = message;
     }
 
-    @Override
-    protected final void doRun() {
+    @Override protected final void doRun() {
         handle(message);
     }
 

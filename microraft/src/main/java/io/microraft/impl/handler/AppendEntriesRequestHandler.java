@@ -44,9 +44,8 @@ import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Handles an {@link AppendEntriesRequest} sent by the Raft group leader and
- * responds with either an {@link AppendEntriesSuccessResponse}
- * or an {@link AppendEntriesFailureResponse}.
+ * Handles an {@link AppendEntriesRequest} sent by the Raft group leader and responds with either an {@link
+ * AppendEntriesSuccessResponse} or an {@link AppendEntriesFailureResponse}.
  * <p>
  * See <i>5.3 Log replication</i> section of
  * <i>In Search of an Understandable Consensus Algorithm</i>
@@ -124,10 +123,14 @@ public class AppendEntriesRequestHandler
         }
 
         try {
-            RaftMessage response = modelFactory.createAppendEntriesSuccessResponseBuilder().setGroupId(node.getGroupId())
-                                               .setSender(localEndpoint()).setTerm(state.term()).setLastLogIndex(lastLogIndex)
+            RaftMessage response = modelFactory.createAppendEntriesSuccessResponseBuilder()
+                                               .setGroupId(node.getGroupId())
+                                               .setSender(localEndpoint())
+                                               .setTerm(state.term())
+                                               .setLastLogIndex(lastLogIndex)
                                                .setQuerySequenceNumber(request.getQuerySequenceNumber())
-                                               .setFlowControlSequenceNumber(request.getFlowControlSequenceNumber()).build();
+                                               .setFlowControlSequenceNumber(request.getFlowControlSequenceNumber())
+                                               .build();
             node.send(leader, response);
         } finally {
             if (state.commitIndex() > oldCommitIndex) {
@@ -154,7 +157,7 @@ public class AppendEntriesRequestHandler
                 if (prevEntry == null) {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.warn(localEndpointStr() + " Failed to get previous log index for " + request + ", last"
-                                            + " log index: " + lastLogIndex);
+                                    + " log index: " + lastLogIndex);
                     }
 
                     return false;
@@ -194,7 +197,7 @@ public class AppendEntriesRequestHandler
                 LogEntry localEntry = log.getLogEntry(requestEntry.getIndex());
 
                 assert localEntry != null : localEndpointStr() + " Entry not found on log index: " + requestEntry.getIndex()
-                        + " for " + request;
+                                            + " for " + request;
 
                 // If an existing entry conflicts with a new one (same index but different terms),
                 // delete the existing entry and all that follow it (§5.3)
@@ -203,7 +206,7 @@ public class AppendEntriesRequestHandler
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.warn(
                                 localEndpointStr() + " Truncated " + truncatedEntries.size() + " entries from " + "entry index: "
-                                        + requestEntry.getIndex() + " => " + truncatedEntries);
+                                + requestEntry.getIndex() + " => " + truncatedEntries);
                     } else {
                         LOGGER.warn("{} Truncated {} entries from entry index: {}", localEndpointStr(), truncatedEntries.size(),
                                     requestEntry.getIndex());
@@ -220,8 +223,8 @@ public class AppendEntriesRequestHandler
             if (newLogEntries.size() > 0) {
                 if (log.availableCapacity() < newLogEntries.size()) {
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.warn(localEndpointStr() + " Truncating " + newLogEntries.size() + " entries to " + log
-                                .availableCapacity() + " to fit into the available capacity of the Raft log");
+                        LOGGER.warn(localEndpointStr() + " Truncating " + newLogEntries.size() + " entries to "
+                                    + log.availableCapacity() + " to fit into the available capacity of the Raft log");
                     }
 
                     truncatedRequestEntryCount = newLogEntries.size() - log.availableCapacity();
@@ -250,16 +253,17 @@ public class AppendEntriesRequestHandler
         // There can be at most one appended & not-committed group operation in the log
         logEntries.stream()
                   .filter(logEntry -> logEntry.getIndex() > commitIndex && logEntry.getOperation() instanceof RaftGroupOp)
-                  .findFirst().ifPresent(logEntry -> {
-            Object operation = logEntry.getOperation();
-            if (operation instanceof UpdateRaftGroupMembersOp) {
-                node.setStatus(UPDATING_RAFT_GROUP_MEMBER_LIST);
-                UpdateRaftGroupMembersOp groupOp = (UpdateRaftGroupMembersOp) operation;
-                node.updateGroupMembers(logEntry.getIndex(), groupOp.getMembers(), groupOp.getVotingMembers());
-            } else {
-                assert false : "Invalid Raft group operation: " + operation + " in " + node.getGroupId();
-            }
-        });
+                  .findFirst()
+                  .ifPresent(logEntry -> {
+                      Object operation = logEntry.getOperation();
+                      if (operation instanceof UpdateRaftGroupMembersOp) {
+                          node.setStatus(UPDATING_RAFT_GROUP_MEMBER_LIST);
+                          UpdateRaftGroupMembersOp groupOp = (UpdateRaftGroupMembersOp) operation;
+                          node.updateGroupMembers(logEntry.getIndex(), groupOp.getMembers(), groupOp.getVotingMembers());
+                      } else {
+                          assert false : "Invalid Raft group operation: " + operation + " in " + node.getGroupId();
+                      }
+                  });
     }
 
     private void revertPreparedGroupOp(List<LogEntry> logEntries) {
@@ -274,9 +278,14 @@ public class AppendEntriesRequestHandler
     }
 
     private RaftMessage createAppendEntriesFailureResponse(int term, long queryRound, long sequenceNumber) {
-        return modelFactory.createAppendEntriesFailureResponseBuilder().setGroupId(node.getGroupId()).setSender(localEndpoint())
-                           .setTerm(term).setExpectedNextIndex(message.getPreviousLogIndex() + 1)
-                           .setQuerySequenceNumber(queryRound).setFlowControlSequenceNumber(sequenceNumber).build();
+        return modelFactory.createAppendEntriesFailureResponseBuilder()
+                           .setGroupId(node.getGroupId())
+                           .setSender(localEndpoint())
+                           .setTerm(term)
+                           .setExpectedNextIndex(message.getPreviousLogIndex() + 1)
+                           .setQuerySequenceNumber(queryRound)
+                           .setFlowControlSequenceNumber(sequenceNumber)
+                           .build();
     }
 
 }

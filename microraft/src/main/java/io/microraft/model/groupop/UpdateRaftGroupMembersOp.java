@@ -26,9 +26,8 @@ import java.util.Collection;
 /**
  * Updates member list of a Raft group.
  * <p>
- * This operation is replicated when a Raft group membership change is
- * triggered via
- * {@link RaftNode#changeMembership(RaftEndpoint, MembershipChangeMode, long)}.
+ * This operation is replicated when a Raft group membership change is triggered via {@link
+ * RaftNode#changeMembership(RaftEndpoint, MembershipChangeMode, long)}.
  */
 public interface UpdateRaftGroupMembersOp
         extends RaftGroupOp {

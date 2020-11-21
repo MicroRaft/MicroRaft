@@ -25,8 +25,7 @@ import java.io.Serializable;
 /**
  * Contains the configuration parameters for MicroRaft's implementation.
  * <p>
- * RaftConfig is an immutable configuration class.
- * You can use a RaftConfigBuilder to build a RaftConfig object.
+ * RaftConfig is an immutable configuration class. You can use a RaftConfigBuilder to build a RaftConfig object.
  */
 public final class RaftConfig
         implements Serializable {
@@ -76,83 +75,63 @@ public final class RaftConfig
      */
     public static final RaftConfig DEFAULT_RAFT_CONFIG = new RaftConfigBuilder().build();
     /**
-     * Duration of leader election rounds in milliseconds. If a candidate
-     * cannot win majority votes before this timeout elapses, a new leader
-     * election round is started. See "Section 5.2: Leader Election"
-     * in the Raft paper.
+     * Duration of leader election rounds in milliseconds. If a candidate cannot win majority votes before this timeout elapses, a
+     * new leader election round is started. See "Section 5.2: Leader Election" in the Raft paper.
      */
     private final long leaderElectionTimeoutMillis;
     /**
-     * Duration in seconds for a follower to decide on failure of the current
-     * leader and start a new leader election round. If this duration is too
-     * short, a leader could be considered as failed unnecessarily in case of
-     * a small hiccup. If it is too long, it takes longer to detect an actual
-     * failure.
+     * Duration in seconds for a follower to decide on failure of the current leader and start a new leader election round. If
+     * this duration is too short, a leader could be considered as failed unnecessarily in case of a small hiccup. If it is too
+     * long, it takes longer to detect an actual failure.
      * <p>
-     * Even though there is a single "election timeout" parameter in the Raft
-     * paper for both timing-out a leader election round and detecting failure
-     * of the leader, MicroRaft uses two different parameters for these cases.
+     * Even though there is a single "election timeout" parameter in the Raft paper for both timing-out a leader election round
+     * and detecting failure of the leader, MicroRaft uses two different parameters for these cases.
      * <p>
-     * You can set {@link #leaderElectionTimeoutMillis} and this field to
-     * the same duration to align with the "election timeout" definition
-     * in the Raft paper.
+     * You can set {@link #leaderElectionTimeoutMillis} and this field to the same duration to align with the "election timeout"
+     * definition in the Raft paper.
      */
     private final long leaderHeartbeatTimeoutSecs;
     /**
-     * Duration in seconds for a Raft leader node to send periodic heartbeat
-     * requests to its followers in order to denote its liveliness. Periodic
-     * heartbeat requests are actually append entries requests and can contain
-     * log entries. A heartbeat request is not sent to a follower if an append
-     * entries request has been sent to that follower recently.
+     * Duration in seconds for a Raft leader node to send periodic heartbeat requests to its followers in order to denote its
+     * liveliness. Periodic heartbeat requests are actually append entries requests and can contain log entries. A heartbeat
+     * request is not sent to a follower if an append entries request has been sent to that follower recently.
      */
     private final long leaderHeartbeatPeriodSecs;
     /**
-     * Maximum number of pending log entries in the leader's Raft log before
-     * temporarily rejecting new requests of clients. This configuration
-     * enables a back pressure mechanism to prevent OOME when a Raft leader
-     * cannot keep up with the requests sent by the clients. When
-     * the "pending log entries buffer" whose capacity is specified with
-     * this configuration field is filled, new requests fail with
-     * {@link CannotReplicateException} to slow down the clients. You can
-     * configure this field by considering the degree of concurrency of your
-     * clients.
+     * Maximum number of pending log entries in the leader's Raft log before temporarily rejecting new requests of clients. This
+     * configuration enables a back pressure mechanism to prevent OOME when a Raft leader cannot keep up with the requests sent by
+     * the clients. When the "pending log entries buffer" whose capacity is specified with this configuration field is filled, new
+     * requests fail with {@link CannotReplicateException} to slow down the clients. You can configure this field by considering
+     * the degree of concurrency of your clients.
      */
     private final int maxPendingLogEntryCount;
 
     /**
-     * In MicroRaft, a leader Raft node sends log entries to its followers in
-     * batches to improve the throughput. This configuration parameter specifies
-     * the maximum number of Raft log entries that can be sent as a batch in a
-     * single append entries request.
+     * In MicroRaft, a leader Raft node sends log entries to its followers in batches to improve the throughput. This
+     * configuration parameter specifies the maximum number of Raft log entries that can be sent as a batch in a single append
+     * entries request.
      */
     private final int appendEntriesRequestBatchSize;
     /**
-     * Number of new commits to initiate a new snapshot after the last snapshot
-     * taken by a Raft node. This value must be configured wisely as it effects
-     * performance of the system in multiple ways. If a small value is set, it
-     * means that snapshots are taken too frequently and Raft nodes keep a very
-     * short Raft log. If snapshot objects are large and the Raft state is
-     * persisted to disk, this can create an unnecessary overhead on IO
-     * performance. Moreover, a Raft leader can send too many snapshots to
-     * slow followers which can create a network overhead. On the other hand,
-     * if a very large value is set, it can create a memory overhead since Raft
-     * log entries are going to be kept in memory until the next snapshot.
+     * Number of new commits to initiate a new snapshot after the last snapshot taken by a Raft node. This value must be
+     * configured wisely as it effects performance of the system in multiple ways. If a small value is set, it means that
+     * snapshots are taken too frequently and Raft nodes keep a very short Raft log. If snapshot objects are large and the Raft
+     * state is persisted to disk, this can create an unnecessary overhead on IO performance. Moreover, a Raft leader can send too
+     * many snapshots to slow followers which can create a network overhead. On the other hand, if a very large value is set, it
+     * can create a memory overhead since Raft log entries are going to be kept in memory until the next snapshot.
      */
     private final int commitCountToTakeSnapshot;
 
     /**
-     * If enabled, when a Raft follower falls far behind the Raft leader and
-     * needs to install a snapshot, it transfers the snapshot chunks from both
-     * the Raft leader and other followers in parallel. This is a safe
-     * optimization because in MicroRaft snapshots are taken at the same log
-     * indices on all Raft nodes.
+     * If enabled, when a Raft follower falls far behind the Raft leader and needs to install a snapshot, it transfers the
+     * snapshot chunks from both the Raft leader and other followers in parallel. This is a safe optimization because in MicroRaft
+     * snapshots are taken at the same log indices on all Raft nodes.
      */
     private final boolean transferSnapshotsFromFollowersEnabled;
 
     /**
-     * Denotes how frequently a Raft node publishes a report of its internal
-     * Raft state. {@link RaftNodeReport} objects can be used for monitoring
-     * a running Raft group.
+     * Denotes how frequently a Raft node publishes a report of its internal Raft state. {@link RaftNodeReport} objects can be
+     * used for monitoring a running Raft group.
      */
     private final int raftNodeReportPublishPeriodSecs;
 
@@ -256,14 +235,13 @@ public final class RaftConfig
         return raftNodeReportPublishPeriodSecs;
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         return "RaftConfig{" + "leaderElectionTimeoutMillis=" + leaderElectionTimeoutMillis + ", leaderHeartbeatTimeoutSecs="
-                + leaderHeartbeatTimeoutSecs + ", leaderHeartbeatPeriodSecs=" + leaderHeartbeatPeriodSecs
-                + ", maxPendingLogEntryCount=" + maxPendingLogEntryCount + ", appendEntriesRequestBatchSize="
-                + appendEntriesRequestBatchSize + ", commitCountToTakeSnapshot=" + commitCountToTakeSnapshot
-                + ", transferSnapshotsFromFollowersEnabled=" + transferSnapshotsFromFollowersEnabled
-                + ", raftNodeReportPublishPeriodSecs=" + raftNodeReportPublishPeriodSecs + '}';
+               + leaderHeartbeatTimeoutSecs + ", leaderHeartbeatPeriodSecs=" + leaderHeartbeatPeriodSecs
+               + ", maxPendingLogEntryCount=" + maxPendingLogEntryCount + ", appendEntriesRequestBatchSize="
+               + appendEntriesRequestBatchSize + ", commitCountToTakeSnapshot=" + commitCountToTakeSnapshot
+               + ", transferSnapshotsFromFollowersEnabled=" + transferSnapshotsFromFollowersEnabled
+               + ", raftNodeReportPublishPeriodSecs=" + raftNodeReportPublishPeriodSecs + '}';
     }
 
     /**
@@ -285,8 +263,7 @@ public final class RaftConfig
 
         /**
          * @param leaderElectionTimeoutMillis
-         *         the leader election timeout in
-         *         milliseconds value to set
+         *         the leader election timeout in milliseconds value to set
          *
          * @return the builder object for fluent calls
          *
@@ -300,8 +277,7 @@ public final class RaftConfig
 
         /**
          * @param leaderHeartbeatTimeoutSecs
-         *         the leader heartbeat timeout in
-         *         seconds value to set
+         *         the leader heartbeat timeout in seconds value to set
          *
          * @return the builder object for fluent calls
          *
@@ -315,8 +291,7 @@ public final class RaftConfig
 
         /**
          * @param leaderHeartbeatPeriodSecs
-         *         the leader heartbeat period in
-         *         seconds value to set
+         *         the leader heartbeat period in seconds value to set
          *
          * @return the builder object for fluent calls
          *
@@ -330,8 +305,7 @@ public final class RaftConfig
 
         /**
          * @param appendEntriesRequestBatchSize
-         *         the append entries request
-         *         batch size value to set
+         *         the append entries request batch size value to set
          *
          * @return the builder object for fluent calls
          *
@@ -345,8 +319,7 @@ public final class RaftConfig
 
         /**
          * @param commitCountToTakeSnapshot
-         *         the commit count to take snapshot
-         *         value to set
+         *         the commit count to take snapshot value to set
          *
          * @return the builder object for fluent calls
          *
@@ -374,9 +347,7 @@ public final class RaftConfig
 
         /**
          * @param transferSnapshotsFromFollowersEnabled
-         *         the transfer snapshot
-         *         from followers value
-         *         to set
+         *         the transfer snapshot from followers value to set
          *
          * @return the builder object for fluent calls
          *
@@ -389,8 +360,7 @@ public final class RaftConfig
 
         /**
          * @param raftNodeReportPublishPeriodSecs
-         *         the raft node report publish
-         *         period value to set
+         *         the raft node report publish period value to set
          *
          * @return the builder object for fluent calls
          *
@@ -410,8 +380,8 @@ public final class RaftConfig
         public RaftConfig build() {
             if (leaderHeartbeatTimeoutSecs < leaderHeartbeatPeriodSecs) {
                 throw new IllegalArgumentException("leader heartbeat timeout secs: " + leaderHeartbeatTimeoutSecs
-                                                           + " cannot be smaller than leader heartbeat timeout period secs: "
-                                                           + leaderHeartbeatPeriodSecs);
+                                                   + " cannot be smaller than leader heartbeat timeout period secs: "
+                                                   + leaderHeartbeatPeriodSecs);
             }
 
             return new RaftConfig(leaderElectionTimeoutMillis, leaderHeartbeatPeriodSecs, leaderHeartbeatTimeoutSecs,
@@ -419,14 +389,13 @@ public final class RaftConfig
                                   transferSnapshotsFromFollowersEnabled, raftNodeReportPublishPeriodSecs);
         }
 
-        @Override
-        public String toString() {
+        @Override public String toString() {
             return "RaftConfigBuilder{" + "leaderElectionTimeoutMillis=" + leaderElectionTimeoutMillis
-                    + ", leaderHeartbeatPeriodSecs=" + leaderHeartbeatPeriodSecs + ", leaderHeartbeatTimeoutSecs="
-                    + leaderHeartbeatTimeoutSecs + ", appendEntriesRequestBatchSize=" + appendEntriesRequestBatchSize
-                    + ", commitCountToTakeSnapshot=" + commitCountToTakeSnapshot + ", maxPendingLogEntryCount="
-                    + maxPendingLogEntryCount + ", transferSnapshotsFromFollowersEnabled=" + transferSnapshotsFromFollowersEnabled
-                    + ", raftNodeReportPublishPeriodSecs=" + raftNodeReportPublishPeriodSecs + '}';
+                   + ", leaderHeartbeatPeriodSecs=" + leaderHeartbeatPeriodSecs + ", leaderHeartbeatTimeoutSecs="
+                   + leaderHeartbeatTimeoutSecs + ", appendEntriesRequestBatchSize=" + appendEntriesRequestBatchSize
+                   + ", commitCountToTakeSnapshot=" + commitCountToTakeSnapshot + ", maxPendingLogEntryCount="
+                   + maxPendingLogEntryCount + ", transferSnapshotsFromFollowersEnabled=" + transferSnapshotsFromFollowersEnabled
+                   + ", raftNodeReportPublishPeriodSecs=" + raftNodeReportPublishPeriodSecs + '}';
         }
     }
 

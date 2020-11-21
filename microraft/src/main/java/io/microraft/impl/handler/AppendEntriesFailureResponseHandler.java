@@ -32,9 +32,8 @@ import javax.annotation.Nonnull;
 import static io.microraft.RaftRole.LEADER;
 
 /**
- * Handles an {@link AppendEntriesFailureResponse} which can be sent
- * as a response to a previous append-entries request or an install-snapshot
- * request.
+ * Handles an {@link AppendEntriesFailureResponse} which can be sent as a response to a previous append-entries request or an
+ * install-snapshot request.
  * <p>
  * Decrements {@code nextIndex} of the follower by 1 if the response is valid.
  * <p>
@@ -54,8 +53,7 @@ public class AppendEntriesFailureResponseHandler
         super(raftNode, response);
     }
 
-    @Override
-    protected void handleResponse(@Nonnull AppendEntriesFailureResponse response) {
+    @Override protected void handleResponse(@Nonnull AppendEntriesFailureResponse response) {
         if (state.role() != LEADER) {
             LOGGER.warn("{} {} is ignored since we are not LEADER.", localEndpointStr(), response);
             return;

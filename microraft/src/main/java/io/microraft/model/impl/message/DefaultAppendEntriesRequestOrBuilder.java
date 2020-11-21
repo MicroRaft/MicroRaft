@@ -27,14 +27,12 @@ import java.util.List;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The default impl of the {@link AppendEntriesRequest} and
- * {@link AppendEntriesRequestBuilder} interfaces. When an instance of this
- * class is created, it is in the builder mode and its state is populated. Once
- * all fields are set, the object switches to the DTO mode where it no longer
- * allows mutations.
+ * The default impl of the {@link AppendEntriesRequest} and {@link AppendEntriesRequestBuilder} interfaces. When an instance of
+ * this class is created, it is in the builder mode and its state is populated. Once all fields are set, the object switches to
+ * the DTO mode where it no longer allows mutations.
  * <p>
- * Please note that {@link #build()} does not verify if all fields are set or
- * not. It is up to the user to populate the DTO state via the builder.
+ * Please note that {@link #build()} does not verify if all fields are set or not. It is up to the user to populate the DTO state
+ * via the builder.
  */
 public class DefaultAppendEntriesRequestOrBuilder
         implements AppendEntriesRequest, AppendEntriesRequestBuilder {
@@ -53,131 +51,99 @@ public class DefaultAppendEntriesRequestOrBuilder
     public DefaultAppendEntriesRequestOrBuilder() {
     }
 
-    @Override
-    public Object getGroupId() {
+    @Override public Object getGroupId() {
         return groupId;
     }
 
-    @Nonnull
-    @Override
-    public RaftEndpoint getSender() {
+    @Nonnull @Override public RaftEndpoint getSender() {
         return sender;
     }
 
-    @Override
-    public int getTerm() {
+    @Override public int getTerm() {
         return term;
     }
 
-    @Override
-    public int getPreviousLogTerm() {
+    @Override public int getPreviousLogTerm() {
         return previousLogTerm;
     }
 
-    @Override
-    public long getPreviousLogIndex() {
+    @Override public long getPreviousLogIndex() {
         return previousLogIndex;
     }
 
-    @Override
-    public long getCommitIndex() {
+    @Override public long getCommitIndex() {
         return commitIndex;
     }
 
-    @Nonnull
-    @Override
-    public List<LogEntry> getLogEntries() {
+    @Nonnull @Override public List<LogEntry> getLogEntries() {
         return logEntries;
     }
 
-    @Override
-    public long getQuerySequenceNumber() {
+    @Override public long getQuerySequenceNumber() {
         return querySequenceNumber;
     }
 
-    @Override
-    public long getFlowControlSequenceNumber() {
+    @Override public long getFlowControlSequenceNumber() {
         return flowControlSequenceNumber;
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesRequestBuilder setGroupId(@Nonnull Object groupId) {
+    @Nonnull @Override public AppendEntriesRequestBuilder setGroupId(@Nonnull Object groupId) {
         builder.groupId = groupId;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesRequestBuilder setSender(@Nonnull RaftEndpoint sender) {
+    @Nonnull @Override public AppendEntriesRequestBuilder setSender(@Nonnull RaftEndpoint sender) {
         builder.sender = sender;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesRequestBuilder setTerm(int term) {
+    @Nonnull @Override public AppendEntriesRequestBuilder setTerm(int term) {
         builder.term = term;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesRequestBuilder setPreviousLogTerm(int previousLogTerm) {
+    @Nonnull @Override public AppendEntriesRequestBuilder setPreviousLogTerm(int previousLogTerm) {
         builder.previousLogTerm = previousLogTerm;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesRequestBuilder setPreviousLogIndex(long previousLogIndex) {
+    @Nonnull @Override public AppendEntriesRequestBuilder setPreviousLogIndex(long previousLogIndex) {
         builder.previousLogIndex = previousLogIndex;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesRequestBuilder setCommitIndex(long commitIndex) {
+    @Nonnull @Override public AppendEntriesRequestBuilder setCommitIndex(long commitIndex) {
         builder.commitIndex = commitIndex;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesRequestBuilder setLogEntries(@Nonnull List<LogEntry> logEntries) {
+    @Nonnull @Override public AppendEntriesRequestBuilder setLogEntries(@Nonnull List<LogEntry> logEntries) {
         builder.logEntries = logEntries;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesRequestBuilder setQuerySequenceNumber(long querySequenceNumber) {
+    @Nonnull @Override public AppendEntriesRequestBuilder setQuerySequenceNumber(long querySequenceNumber) {
         builder.querySequenceNumber = querySequenceNumber;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesRequestBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber) {
+    @Nonnull @Override public AppendEntriesRequestBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber) {
         builder.flowControlSequenceNumber = flowControlSequenceNumber;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesRequest build() {
+    @Nonnull @Override public AppendEntriesRequest build() {
         requireNonNull(builder);
         builder = null;
         return this;
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         String header = builder != null ? "AppendEntriesRequestBuilder" : "AppendEntriesRequest";
         return header + "{" + "groupId=" + groupId + ", sender=" + sender + ", term=" + term + ", prevLogTerm=" + previousLogTerm
-                + ", prevLogIndex=" + previousLogIndex + ", leaderCommitIndex=" + commitIndex + ", logEntries=" + logEntries
-                + ", querySequenceNumber=" + querySequenceNumber + ", flowControlSequenceNumber=" + flowControlSequenceNumber
-                + '}';
+               + ", prevLogIndex=" + previousLogIndex + ", leaderCommitIndex=" + commitIndex + ", logEntries=" + logEntries
+               + ", querySequenceNumber=" + querySequenceNumber + ", flowControlSequenceNumber=" + flowControlSequenceNumber
+               + '}';
     }
 
 }

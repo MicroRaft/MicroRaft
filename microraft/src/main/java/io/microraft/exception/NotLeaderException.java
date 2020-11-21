@@ -20,9 +20,8 @@ package io.microraft.exception;
 import io.microraft.RaftEndpoint;
 
 /**
- * Thrown when an operation, query, or a membership change is triggered
- * on a non-leader Raft node. In this case, the operation can be retried
- * on another Raft node of the Raft group.
+ * Thrown when an operation, query, or a membership change is triggered on a non-leader Raft node. In this case, the operation can
+ * be retried on another Raft node of the Raft group.
  */
 public class NotLeaderException
         extends RaftException {
@@ -33,8 +32,7 @@ public class NotLeaderException
         super(local + " is not LEADER. Known leader is: " + (leader != null ? leader : "N/A"), leader);
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         return "NotLeaderException{leader=" + getLeader() + "}";
     }
 

@@ -23,8 +23,7 @@ import javax.annotation.Nonnull;
 /**
  * Response for {@link PreVoteRequest}.
  * <p>
- * See <i>Four modifications for the Raft consensus algorithm</i>
- * by Henrik Ingo.
+ * See <i>Four modifications for the Raft consensus algorithm</i> by Henrik Ingo.
  *
  * @see PreVoteRequest
  * @see VoteResponse
@@ -40,17 +39,13 @@ public interface PreVoteResponse
     interface PreVoteResponseBuilder
             extends RaftMessageBuilder<PreVoteResponse> {
 
-        @Nonnull
-        PreVoteResponseBuilder setGroupId(@Nonnull Object groupId);
+        @Nonnull PreVoteResponseBuilder setGroupId(@Nonnull Object groupId);
 
-        @Nonnull
-        PreVoteResponseBuilder setSender(@Nonnull RaftEndpoint sender);
+        @Nonnull PreVoteResponseBuilder setSender(@Nonnull RaftEndpoint sender);
 
-        @Nonnull
-        PreVoteResponseBuilder setTerm(int term);
+        @Nonnull PreVoteResponseBuilder setTerm(int term);
 
-        @Nonnull
-        PreVoteResponseBuilder setGranted(boolean granted);
+        @Nonnull PreVoteResponseBuilder setGranted(boolean granted);
 
     }
 

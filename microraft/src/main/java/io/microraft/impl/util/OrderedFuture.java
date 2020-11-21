@@ -22,9 +22,8 @@ import io.microraft.RaftNode;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * A utility class to implement {@link CompletableFuture} and {@link Ordered}
- * interfaces together. By this way, the return value and result of a
- * {@link RaftNode} API call is realized with a single object.
+ * A utility class to implement {@link CompletableFuture} and {@link Ordered} interfaces together. By this way, the return value
+ * and result of a {@link RaftNode} API call is realized with a single object.
  * <p>
  * Please note that completion methods here can be called from a single thread.
  */
@@ -58,38 +57,31 @@ public class OrderedFuture<T>
         super.completeExceptionally(throwable);
     }
 
-    @Override
-    public long getCommitIndex() {
+    @Override public long getCommitIndex() {
         return commitIndex;
     }
 
-    @Override
-    public T getResult() {
+    @Override public T getResult() {
         return result;
     }
 
-    @Override
-    public boolean complete(Ordered<T> result) {
+    @Override public boolean complete(Ordered<T> result) {
         throw new UnsupportedOperationException("This future cannot be completed from outside of RaftNode");
     }
 
-    @Override
-    public boolean completeExceptionally(Throwable throwable) {
+    @Override public boolean completeExceptionally(Throwable throwable) {
         throw new UnsupportedOperationException("This future cannot be completed from outside of RaftNode");
     }
 
-    @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
+    @Override public boolean cancel(boolean mayInterruptIfRunning) {
         throw new UnsupportedOperationException("This future cannot be completed from outside of RaftNode");
     }
 
-    @Override
-    public void obtrudeValue(Ordered<T> result) {
+    @Override public void obtrudeValue(Ordered<T> result) {
         throw new UnsupportedOperationException("This future cannot be completed from outside of RaftNode");
     }
 
-    @Override
-    public void obtrudeException(Throwable throwable) {
+    @Override public void obtrudeException(Throwable throwable) {
         throw new UnsupportedOperationException("This future cannot be completed from outside of RaftNode");
     }
 

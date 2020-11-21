@@ -27,14 +27,12 @@ import java.util.Collection;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The default impl of the {@link UpdateRaftGroupMembersOp} and
- * {@link UpdateRaftGroupMembersOp} interfaces. When an instance of this class
- * is created, it is in the builder mode and its state is populated. Once all
- * fields are set, the object switches to the DTO mode where it no longer
- * allows mutations.
+ * The default impl of the {@link UpdateRaftGroupMembersOp} and {@link UpdateRaftGroupMembersOp} interfaces. When an instance of
+ * this class is created, it is in the builder mode and its state is populated. Once all fields are set, the object switches to
+ * the DTO mode where it no longer allows mutations.
  * <p>
- * Please note that {@link #build()} does not verify if all fields are set or
- * not. It is up to the user to populate the DTO state via the builder.
+ * Please note that {@link #build()} does not verify if all fields are set or not. It is up to the user to populate the DTO state
+ * via the builder.
  */
 public class DefaultUpdateRaftGroupMembersOpOrBuilder
         implements UpdateRaftGroupMembersOp, UpdateRaftGroupMembersOpBuilder {
@@ -76,22 +74,18 @@ public class DefaultUpdateRaftGroupMembersOpOrBuilder
         return this;
     }
 
-    @Nonnull @Override
-    public UpdateRaftGroupMembersOpBuilder setMode(@Nonnull MembershipChangeMode mode) {
+    @Nonnull @Override public UpdateRaftGroupMembersOpBuilder setMode(@Nonnull MembershipChangeMode mode) {
         builder.mode = mode;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public UpdateRaftGroupMembersOp build() {
+    @Nonnull @Override public UpdateRaftGroupMembersOp build() {
         requireNonNull(builder);
         builder = null;
         return this;
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         String header = builder != null ? "UpdateRaftGroupMembersOpBuilder" : "UpdateRaftGroupMembersOp";
         return header + "{" + "members=" + members + ", votingMembers=" + votingMembers + ", endpoint=" + endpoint + ", mode="
                + mode + '}';

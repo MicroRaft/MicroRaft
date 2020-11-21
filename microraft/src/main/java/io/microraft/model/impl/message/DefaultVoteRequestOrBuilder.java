@@ -25,13 +25,12 @@ import javax.annotation.Nonnull;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The default impl of the {@link VoteRequest} and {@link VoteRequestBuilder}
- * interfaces. When an instance of this class is created, it is in the builder
- * mode and its state is populated. Once all fields are set, the object
- * switches to the DTO mode where it no longer allows mutations.
+ * The default impl of the {@link VoteRequest} and {@link VoteRequestBuilder} interfaces. When an instance of this class is
+ * created, it is in the builder mode and its state is populated. Once all fields are set, the object switches to the DTO mode
+ * where it no longer allows mutations.
  * <p>
- * Please note that {@link #build()} does not verify if all fields are set or
- * not. It is up to the user to populate the DTO state via the builder.
+ * Please note that {@link #build()} does not verify if all fields are set or not. It is up to the user to populate the DTO state
+ * via the builder.
  */
 public class DefaultVoteRequestOrBuilder
         implements VoteRequest, VoteRequestBuilder {
@@ -44,92 +43,70 @@ public class DefaultVoteRequestOrBuilder
     private boolean sticky;
     private DefaultVoteRequestOrBuilder builder = this;
 
-    @Override
-    public Object getGroupId() {
+    @Override public Object getGroupId() {
         return groupId;
     }
 
-    @Nonnull
-    @Override
-    public RaftEndpoint getSender() {
+    @Nonnull @Override public RaftEndpoint getSender() {
         return sender;
     }
 
-    @Override
-    public int getTerm() {
+    @Override public int getTerm() {
         return term;
     }
 
-    @Override
-    public int getLastLogTerm() {
+    @Override public int getLastLogTerm() {
         return lastLogTerm;
     }
 
-    @Override
-    public long getLastLogIndex() {
+    @Override public long getLastLogIndex() {
         return lastLogIndex;
     }
 
-    @Override
-    public boolean isSticky() {
+    @Override public boolean isSticky() {
         return sticky;
     }
 
-    @Nonnull
-    @Override
-    public VoteRequestBuilder setGroupId(@Nonnull Object groupId) {
+    @Nonnull @Override public VoteRequestBuilder setGroupId(@Nonnull Object groupId) {
         builder.groupId = groupId;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public VoteRequestBuilder setSender(@Nonnull RaftEndpoint sender) {
+    @Nonnull @Override public VoteRequestBuilder setSender(@Nonnull RaftEndpoint sender) {
         builder.sender = sender;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public VoteRequestBuilder setTerm(int term) {
+    @Nonnull @Override public VoteRequestBuilder setTerm(int term) {
         builder.term = term;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public VoteRequestBuilder setLastLogTerm(int lastLogTerm) {
+    @Nonnull @Override public VoteRequestBuilder setLastLogTerm(int lastLogTerm) {
         builder.lastLogTerm = lastLogTerm;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public VoteRequestBuilder setLastLogIndex(long lastLogIndex) {
+    @Nonnull @Override public VoteRequestBuilder setLastLogIndex(long lastLogIndex) {
         builder.lastLogIndex = lastLogIndex;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public VoteRequestBuilder setSticky(boolean sticky) {
+    @Nonnull @Override public VoteRequestBuilder setSticky(boolean sticky) {
         builder.sticky = sticky;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public VoteRequest build() {
+    @Nonnull @Override public VoteRequest build() {
         requireNonNull(builder);
         builder = null;
         return this;
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         String header = builder != null ? "VoteRequestBuilder" : "VoteRequest";
         return header + "{" + "groupId=" + groupId + ", sender=" + sender + ", term=" + term + ", lastLogTerm=" + lastLogTerm
-                + ", lastLogIndex=" + lastLogIndex + ", sticky=" + sticky + '}';
+               + ", lastLogIndex=" + lastLogIndex + ", sticky=" + sticky + '}';
     }
 
 }

@@ -23,8 +23,7 @@ import javax.annotation.Nonnull;
 /**
  * Raft message for the leadership transfer logic.
  * <p>
- * See <i>4.2.3 Disruptive servers</i> section of
- * of the Raft dissertation.
+ * See <i>4.2.3 Disruptive servers</i> section of of the Raft dissertation.
  */
 public interface TriggerLeaderElectionRequest
         extends RaftMessage {
@@ -39,20 +38,15 @@ public interface TriggerLeaderElectionRequest
     interface TriggerLeaderElectionRequestBuilder
             extends RaftMessageBuilder<TriggerLeaderElectionRequest> {
 
-        @Nonnull
-        TriggerLeaderElectionRequestBuilder setGroupId(@Nonnull Object groupId);
+        @Nonnull TriggerLeaderElectionRequestBuilder setGroupId(@Nonnull Object groupId);
 
-        @Nonnull
-        TriggerLeaderElectionRequestBuilder setSender(@Nonnull RaftEndpoint sender);
+        @Nonnull TriggerLeaderElectionRequestBuilder setSender(@Nonnull RaftEndpoint sender);
 
-        @Nonnull
-        TriggerLeaderElectionRequestBuilder setTerm(int term);
+        @Nonnull TriggerLeaderElectionRequestBuilder setTerm(int term);
 
-        @Nonnull
-        TriggerLeaderElectionRequestBuilder setLastLogTerm(int lastLogTerm);
+        @Nonnull TriggerLeaderElectionRequestBuilder setLastLogTerm(int lastLogTerm);
 
-        @Nonnull
-        TriggerLeaderElectionRequestBuilder setLastLogIndex(long lastLogIndex);
+        @Nonnull TriggerLeaderElectionRequestBuilder setLastLogIndex(long lastLogIndex);
 
     }
 

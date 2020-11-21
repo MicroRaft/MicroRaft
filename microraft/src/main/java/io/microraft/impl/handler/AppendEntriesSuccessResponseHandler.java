@@ -34,11 +34,10 @@ import javax.annotation.Nonnull;
 import static io.microraft.RaftRole.LEADER;
 
 /**
- * Handles an {@link AppendEntriesSuccessResponse} which can be sent
- * as a response to a append-entries request or an install-snapshot request.
+ * Handles an {@link AppendEntriesSuccessResponse} which can be sent as a response to a append-entries request or an
+ * install-snapshot request.
  * <p>
- * Advances {@link RaftState#commitIndex()} according to the match indices
- * of the Raft group members.
+ * Advances {@link RaftState#commitIndex()} according to the match indices of the Raft group members.
  * <p>
  * See <i>5.3 Log replication</i> section of
  * <i>In Search of an Understandable Consensus Algorithm</i>
@@ -57,8 +56,7 @@ public class AppendEntriesSuccessResponseHandler
         super(raftNode, response);
     }
 
-    @Override
-    protected void handleResponse(@Nonnull AppendEntriesSuccessResponse response) {
+    @Override protected void handleResponse(@Nonnull AppendEntriesSuccessResponse response) {
         if (state.role() != LEADER) {
             LOGGER.warn("{} Ignored {}. We are not LEADER anymore.", localEndpointStr(), response);
             return;
@@ -114,13 +112,13 @@ public class AppendEntriesSuccessResponseHandler
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(
                         localEndpointStr() + " Updated match index: " + followerLastLogIndex + " and next index: " + newNextIndex
-                                + " for follower: " + follower.getId());
+                        + " for follower: " + follower.getId());
             }
 
             return true;
         } else if (followerLastLogIndex < matchIndex && LOGGER.isDebugEnabled()) {
             LOGGER.debug(localEndpointStr() + " Will not update match index for follower: " + follower.getId()
-                                 + ". follower last log index: " + followerLastLogIndex + ", match index: " + matchIndex);
+                         + ". follower last log index: " + followerLastLogIndex + ", match index: " + matchIndex);
         }
 
         return false;

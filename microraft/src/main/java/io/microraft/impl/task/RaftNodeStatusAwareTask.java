@@ -31,8 +31,7 @@ import static io.microraft.RaftNodeStatus.isTerminal;
 /**
  * The base class for the tasks that should not run on some Raft node statuses.
  * <p>
- * Subclass tasks are executed only if the local Raft node is already started,
- * and not terminated or left the Raft group.
+ * Subclass tasks are executed only if the local Raft node is already started, and not terminated or left the Raft group.
  */
 public abstract class RaftNodeStatusAwareTask
         implements Runnable {
@@ -47,8 +46,7 @@ public abstract class RaftNodeStatusAwareTask
         this.modelFactory = node.getModelFactory();
     }
 
-    @Override
-    public final void run() {
+    @Override public final void run() {
         RaftNodeStatus status = node.getStatus();
         if (isTerminal(status) || status == INITIAL) {
             getLogger().debug("{} Won't run, since status is {}", localEndpointStr(), status);

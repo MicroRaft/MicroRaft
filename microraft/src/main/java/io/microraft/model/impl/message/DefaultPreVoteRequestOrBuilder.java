@@ -25,14 +25,12 @@ import javax.annotation.Nonnull;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The default impl of the {@link PreVoteRequest} and
- * {@link PreVoteRequestBuilder} interfaces. When an instance of this
- * class is created, it is in the builder mode and its state is populated. Once
- * all fields are set, the object switches to the DTO mode where it no longer
- * allows mutations.
+ * The default impl of the {@link PreVoteRequest} and {@link PreVoteRequestBuilder} interfaces. When an instance of this class is
+ * created, it is in the builder mode and its state is populated. Once all fields are set, the object switches to the DTO mode
+ * where it no longer allows mutations.
  * <p>
- * Please note that {@link #build()} does not verify if all fields are set or
- * not. It is up to the user to populate the DTO state via the builder.
+ * Please note that {@link #build()} does not verify if all fields are set or not. It is up to the user to populate the DTO state
+ * via the builder.
  */
 public class DefaultPreVoteRequestOrBuilder
         implements PreVoteRequest, PreVoteRequestBuilder {
@@ -44,80 +42,61 @@ public class DefaultPreVoteRequestOrBuilder
     private long lastLogIndex;
     private DefaultPreVoteRequestOrBuilder builder = this;
 
-    @Override
-    public Object getGroupId() {
+    @Override public Object getGroupId() {
         return groupId;
     }
 
-    @Nonnull
-    @Override
-    public RaftEndpoint getSender() {
+    @Nonnull @Override public RaftEndpoint getSender() {
         return sender;
     }
 
-    @Override
-    public int getTerm() {
+    @Override public int getTerm() {
         return nextTerm;
     }
 
-    @Override
-    public int getLastLogTerm() {
+    @Override public int getLastLogTerm() {
         return lastLogTerm;
     }
 
-    @Override
-    public long getLastLogIndex() {
+    @Override public long getLastLogIndex() {
         return lastLogIndex;
     }
 
-    @Nonnull
-    @Override
-    public PreVoteRequestBuilder setGroupId(@Nonnull Object groupId) {
+    @Nonnull @Override public PreVoteRequestBuilder setGroupId(@Nonnull Object groupId) {
         builder.groupId = groupId;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public PreVoteRequestBuilder setSender(@Nonnull RaftEndpoint sender) {
+    @Nonnull @Override public PreVoteRequestBuilder setSender(@Nonnull RaftEndpoint sender) {
         builder.sender = sender;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public PreVoteRequestBuilder setTerm(int term) {
+    @Nonnull @Override public PreVoteRequestBuilder setTerm(int term) {
         builder.nextTerm = term;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public PreVoteRequestBuilder setLastLogTerm(int lastLogTerm) {
+    @Nonnull @Override public PreVoteRequestBuilder setLastLogTerm(int lastLogTerm) {
         builder.lastLogTerm = lastLogTerm;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public PreVoteRequestBuilder setLastLogIndex(long lastLogIndex) {
+    @Nonnull @Override public PreVoteRequestBuilder setLastLogIndex(long lastLogIndex) {
         builder.lastLogIndex = lastLogIndex;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public PreVoteRequest build() {
+    @Nonnull @Override public PreVoteRequest build() {
         requireNonNull(builder);
         builder = null;
         return this;
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         String header = builder != null ? "PreVoteRequestBuilder" : "PreVoteRequest";
         return header + "{" + "groupId=" + groupId + ", sender=" + sender + ", nextTerm=" + nextTerm + ", lastLogTerm="
-                + lastLogTerm + ", lastLogIndex=" + lastLogIndex + '}';
+               + lastLogTerm + ", lastLogIndex=" + lastLogIndex + '}';
     }
 
 }

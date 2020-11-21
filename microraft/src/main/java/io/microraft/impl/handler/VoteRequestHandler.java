@@ -33,8 +33,7 @@ import static io.microraft.RaftRole.LEARNER;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Handles a {@link VoteRequest} sent by a candidate and responds with
- * a {@link VoteResponse}.
+ * Handles a {@link VoteRequest} sent by a candidate and responds with a {@link VoteResponse}.
  * <p>
  * Leader election is initiated by {@link LeaderElectionTask}.
  * <p>
@@ -55,13 +54,13 @@ public class VoteRequestHandler
         super(raftNode, request);
     }
 
-    @Override
-    @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity"})
+    @Override @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity"})
     // Justification: It is easier to follow the RequestVoteRPC logic in a single method
     protected void handle(@Nonnull VoteRequest request) {
         requireNonNull(request);
 
-        VoteResponseBuilder responseBuilder = modelFactory.createVoteResponseBuilder().setGroupId(node.getGroupId())
+        VoteResponseBuilder responseBuilder = modelFactory.createVoteResponseBuilder()
+                                                          .setGroupId(node.getGroupId())
                                                           .setSender(localEndpoint());
 
         RaftEndpoint candidate = request.getSender();
@@ -83,8 +82,8 @@ public class VoteRequestHandler
         // Those VoteRequest objects are marked as "non-sticky" to bypass leader stickiness.
         // Also if the request comes from the current leader, then the leader stickiness check is skipped.
         // Since the current leader may have restarted by recovering its persistent state.
-        if (request.isSticky() && (state.leaderState() != null || !node.isLeaderHeartbeatTimeoutElapsed()) && !candidate
-                .equals(state.leader())) {
+        if (request.isSticky() && (state.leaderState() != null || !node.isLeaderHeartbeatTimeoutElapsed()) && !candidate.equals(
+                state.leader())) {
             LOGGER.info("{} Rejecting {} since the leader is still alive...", localEndpointStr(), request);
             node.send(candidate, responseBuilder.setTerm(state.term()).setGranted(false).build());
             return;

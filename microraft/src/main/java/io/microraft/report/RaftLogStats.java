@@ -33,20 +33,19 @@ public interface RaftLogStats {
     long getCommitIndex();
 
     /**
-     * Returns the last term in the Raft log, either from the last log entry
-     * or from the last locally taken or installed snapshot.
+     * Returns the last term in the Raft log, either from the last log entry or from the last locally taken or installed
+     * snapshot.
      *
-     * @return the last term in the Raft log, either from the last log entry
-     *         or from the last locally taken or installed snapshot
+     * @return the last term in the Raft log, either from the last log entry or from the last locally taken or installed snapshot
      */
     int getLastLogOrSnapshotTerm();
 
     /**
-     * Returns the last log entry index in the Raft log, either from the last
-     * log entry or from the last locally taken or installed snapshot.
+     * Returns the last log entry index in the Raft log, either from the last log entry or from the last locally taken or
+     * installed snapshot.
      *
-     * @return the last log entry index in the Raft log, either from the last
-     *         log entry or from the last locally taken or installed snapshot
+     * @return the last log entry index in the Raft log, either from the last log entry or from the last locally taken or
+     *         installed snapshot
      */
     long getLastLogOrSnapshotIndex();
 
@@ -79,14 +78,11 @@ public interface RaftLogStats {
     int getInstallSnapshotCount();
 
     /**
-     * Returns the indices of the last known appended Raft log entries
-     * on the followers.
+     * Returns the indices of the last known appended Raft log entries on the followers.
      * <p>
-     * This map is non-empty only for the leader Raft node. Followers
-     * return an empty map.
+     * This map is non-empty only for the leader Raft node. Followers return an empty map.
      *
-     * @return the indices of the last known appended Raft log entries
-     *         on the followers
+     * @return the indices of the last known appended Raft log entries on the followers
      */
     Map<RaftEndpoint, Long> getFollowerMatchIndices();
 

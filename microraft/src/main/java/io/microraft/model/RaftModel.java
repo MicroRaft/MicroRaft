@@ -29,5 +29,6 @@ import java.io.Serializable;
  * @see RaftMessage
  * @see BaseLogEntry
  */
-public interface RaftModel extends Serializable {
+public interface RaftModel
+        extends Serializable {
 }

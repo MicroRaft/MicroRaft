@@ -33,8 +33,7 @@ public class RaftStateSummaryPublishTask
         super(node);
     }
 
-    @Override
-    protected void doRun() {
+    @Override protected void doRun() {
         try {
             node.publishRaftNodeReport(RaftNodeReportReason.PERIODIC);
         } finally {

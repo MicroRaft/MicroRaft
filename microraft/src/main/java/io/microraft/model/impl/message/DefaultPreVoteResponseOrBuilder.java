@@ -25,14 +25,12 @@ import javax.annotation.Nonnull;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The default impl of the {@link PreVoteResponse} and
- * {@link PreVoteResponseBuilder} interfaces. When an instance of this
- * class is created, it is in the builder mode and its state is populated. Once
- * all fields are set, the object switches to the DTO mode where it no longer
- * allows mutations.
+ * The default impl of the {@link PreVoteResponse} and {@link PreVoteResponseBuilder} interfaces. When an instance of this class
+ * is created, it is in the builder mode and its state is populated. Once all fields are set, the object switches to the DTO mode
+ * where it no longer allows mutations.
  * <p>
- * Please note that {@link #build()} does not verify if all fields are set or
- * not. It is up to the user to populate the DTO state via the builder.
+ * Please note that {@link #build()} does not verify if all fields are set or not. It is up to the user to populate the DTO state
+ * via the builder.
  */
 public class DefaultPreVoteResponseOrBuilder
         implements PreVoteResponse, PreVoteResponseBuilder {
@@ -43,65 +41,49 @@ public class DefaultPreVoteResponseOrBuilder
     private boolean granted;
     private DefaultPreVoteResponseOrBuilder builder = this;
 
-    @Override
-    public Object getGroupId() {
+    @Override public Object getGroupId() {
         return groupId;
     }
 
-    @Nonnull
-    @Override
-    public RaftEndpoint getSender() {
+    @Nonnull @Override public RaftEndpoint getSender() {
         return sender;
     }
 
-    @Override
-    public int getTerm() {
+    @Override public int getTerm() {
         return term;
     }
 
-    @Override
-    public boolean isGranted() {
+    @Override public boolean isGranted() {
         return granted;
     }
 
-    @Nonnull
-    @Override
-    public PreVoteResponseBuilder setGroupId(@Nonnull Object groupId) {
+    @Nonnull @Override public PreVoteResponseBuilder setGroupId(@Nonnull Object groupId) {
         builder.groupId = groupId;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public PreVoteResponseBuilder setSender(@Nonnull RaftEndpoint sender) {
+    @Nonnull @Override public PreVoteResponseBuilder setSender(@Nonnull RaftEndpoint sender) {
         builder.sender = sender;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public PreVoteResponseBuilder setTerm(int term) {
+    @Nonnull @Override public PreVoteResponseBuilder setTerm(int term) {
         builder.term = term;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public PreVoteResponseBuilder setGranted(boolean granted) {
+    @Nonnull @Override public PreVoteResponseBuilder setGranted(boolean granted) {
         builder.granted = granted;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public PreVoteResponse build() {
+    @Nonnull @Override public PreVoteResponse build() {
         requireNonNull(builder);
         builder = null;
         return this;
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         String header = builder != null ? "PreVoteResponseBuilder" : "PreVoteResponse";
         return header + "{" + "groupId=" + groupId + ", sender=" + sender + ", term=" + term + ", granted=" + granted + '}';
     }

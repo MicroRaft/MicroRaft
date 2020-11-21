@@ -27,14 +27,12 @@ import java.util.List;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The default impl of the {@link SnapshotEntry} and
- * {@link SnapshotEntryBuilder} interfaces. When an instance of this class
- * is created, it is in the builder mode and its state is populated. Once all
- * fields are set, the object switches to the DTO mode where it no longer
- * allows mutations.
+ * The default impl of the {@link SnapshotEntry} and {@link SnapshotEntryBuilder} interfaces. When an instance of this class is
+ * created, it is in the builder mode and its state is populated. Once all fields are set, the object switches to the DTO mode
+ * where it no longer allows mutations.
  * <p>
- * Please note that {@link #build()} does not verify if all fields are set or
- * not. It is up to the user to populate the DTO state via the builder.
+ * Please note that {@link #build()} does not verify if all fields are set or not. It is up to the user to populate the DTO state
+ * via the builder.
  */
 public class DefaultSnapshotEntryOrBuilder
         extends DefaultAbstractLogEntry
@@ -43,8 +41,7 @@ public class DefaultSnapshotEntryOrBuilder
     private RaftGroupMembersView groupMembersView;
     private DefaultSnapshotEntryOrBuilder builder = this;
 
-    @Override
-    public int getSnapshotChunkCount() {
+    @Override public int getSnapshotChunkCount() {
         return ((List<SnapshotChunk>) getOperation()).size();
     }
 
@@ -52,23 +49,17 @@ public class DefaultSnapshotEntryOrBuilder
         return groupMembersView;
     }
 
-    @Nonnull
-    @Override
-    public SnapshotEntryBuilder setIndex(long index) {
+    @Nonnull @Override public SnapshotEntryBuilder setIndex(long index) {
         builder.index = index;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public SnapshotEntryBuilder setTerm(int term) {
+    @Nonnull @Override public SnapshotEntryBuilder setTerm(int term) {
         builder.term = term;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public SnapshotEntryBuilder setSnapshotChunks(@Nonnull List<SnapshotChunk> snapshotChunks) {
+    @Nonnull @Override public SnapshotEntryBuilder setSnapshotChunks(@Nonnull List<SnapshotChunk> snapshotChunks) {
         builder.operation = snapshotChunks;
         return this;
     }
@@ -78,16 +69,13 @@ public class DefaultSnapshotEntryOrBuilder
         return this;
     }
 
-    @Nonnull
-    @Override
-    public SnapshotEntry build() {
+    @Nonnull @Override public SnapshotEntry build() {
         requireNonNull(builder);
         builder = null;
         return this;
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         String header = builder != null ? "SnapshotEntryBuilder" : "SnapshotEntry";
         return header + "{" + "term=" + term + ", index=" + index + ", operation=" + operation + ", groupMembers="
                + groupMembersView + '}';

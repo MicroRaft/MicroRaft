@@ -33,14 +33,12 @@ import static io.microraft.RaftRole.LEARNER;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Handles a {@link PreVoteRequest} and responds to the sender with a
- * {@link PreVoteResponse}. Pre-voting is initiated by {@link PreVoteTask}.
+ * Handles a {@link PreVoteRequest} and responds to the sender with a {@link PreVoteResponse}. Pre-voting is initiated by {@link
+ * PreVoteTask}.
  * <p>
- * Rejects to grant a "pre-vote" if the local Raft node has recently heard from
- * the current Raft group leader, or has a longer Raft log than the sender, or
- * has a bigger term. If none of these conditions hold, then a "pre-vote" is
- * granted. A "pre-vote" means that if the sender starts a new election,
- * the local Raft member could vote for it.
+ * Rejects to grant a "pre-vote" if the local Raft node has recently heard from the current Raft group leader, or has a longer
+ * Raft log than the sender, or has a bigger term. If none of these conditions hold, then a "pre-vote" is granted. A "pre-vote"
+ * means that if the sender starts a new election, the local Raft member could vote for it.
  * <p>
  * This task is a read-only task and does not mutate the local Raft node state.
  *
@@ -57,15 +55,15 @@ public class PreVoteRequestHandler
         super(raftNode, request);
     }
 
-    @Override
-    protected void handle(@Nonnull PreVoteRequest request) {
+    @Override protected void handle(@Nonnull PreVoteRequest request) {
         requireNonNull(request);
 
         RaftEndpoint localEndpoint = localEndpoint();
         RaftEndpoint candidate = request.getSender();
         int nextTerm = request.getTerm();
 
-        PreVoteResponseBuilder responseBuilder = modelFactory.createPreVoteResponseBuilder().setGroupId(node.getGroupId())
+        PreVoteResponseBuilder responseBuilder = modelFactory.createPreVoteResponseBuilder()
+                                                             .setGroupId(node.getGroupId())
                                                              .setSender(localEndpoint);
 
         // Reply false if term < currentTerm (§5.1)

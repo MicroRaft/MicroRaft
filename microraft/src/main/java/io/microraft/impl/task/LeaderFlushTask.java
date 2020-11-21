@@ -22,8 +22,7 @@ import io.microraft.impl.log.RaftLog;
 import io.microraft.impl.state.LeaderState;
 
 /**
- * Flushes the leader Raft node's local Raft log and tries to advance
- * the commit index.
+ * Flushes the leader Raft node's local Raft log and tries to advance the commit index.
  * <p>
  * Silently returns if the Raft node is no longer the leader.
  */
@@ -34,8 +33,7 @@ public class LeaderFlushTask
         super(node);
     }
 
-    @Override
-    protected void doRun() {
+    @Override protected void doRun() {
         RaftLog log = state.log();
         log.flush();
 

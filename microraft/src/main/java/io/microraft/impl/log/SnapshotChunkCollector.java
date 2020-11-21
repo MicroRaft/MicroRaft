@@ -95,7 +95,7 @@ public final class SnapshotChunkCollector {
         if (this.snapshotIndex != snapshotIndex) {
             throw new IllegalArgumentException(
                     "Invalid snapshot chunk at snapshot index: " + snapshotIndex + " current snapshot index: "
-                            + this.snapshotIndex);
+                    + this.snapshotIndex);
         }
 
         // TODO(basri): exponential backoff maybe?

@@ -46,23 +46,17 @@ public interface AppendEntriesFailureResponse
     interface AppendEntriesFailureResponseBuilder
             extends RaftMessageBuilder<AppendEntriesFailureResponse> {
 
-        @Nonnull
-        AppendEntriesFailureResponseBuilder setGroupId(@Nonnull Object groupId);
+        @Nonnull AppendEntriesFailureResponseBuilder setGroupId(@Nonnull Object groupId);
 
-        @Nonnull
-        AppendEntriesFailureResponseBuilder setSender(@Nonnull RaftEndpoint sender);
+        @Nonnull AppendEntriesFailureResponseBuilder setSender(@Nonnull RaftEndpoint sender);
 
-        @Nonnull
-        AppendEntriesFailureResponseBuilder setTerm(int term);
+        @Nonnull AppendEntriesFailureResponseBuilder setTerm(int term);
 
-        @Nonnull
-        AppendEntriesFailureResponseBuilder setExpectedNextIndex(long expectedNextIndex);
+        @Nonnull AppendEntriesFailureResponseBuilder setExpectedNextIndex(long expectedNextIndex);
 
-        @Nonnull
-        AppendEntriesFailureResponseBuilder setQuerySequenceNumber(long querySequenceNumber);
+        @Nonnull AppendEntriesFailureResponseBuilder setQuerySequenceNumber(long querySequenceNumber);
 
-        @Nonnull
-        AppendEntriesFailureResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
+        @Nonnull AppendEntriesFailureResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
 
     }
 

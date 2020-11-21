@@ -72,13 +72,11 @@ public final class RestoredRaftState {
         return votedMember;
     }
 
-    @Nullable
-    public SnapshotEntry getSnapshotEntry() {
+    @Nullable public SnapshotEntry getSnapshotEntry() {
         return snapshotEntry;
     }
 
-    @Nonnull
-    public List<LogEntry> getLogEntries() {
+    @Nonnull public List<LogEntry> getLogEntries() {
         return entries;
     }
 

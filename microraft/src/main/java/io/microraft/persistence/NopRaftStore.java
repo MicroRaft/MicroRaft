@@ -47,16 +47,13 @@ public class NopRaftStore
     @Override public void persistSnapshotChunk(@Nonnull SnapshotChunk snapshotChunk) {
     }
 
-    @Override
-    public void truncateLogEntriesFrom(long logIndexInclusive) {
+    @Override public void truncateLogEntriesFrom(long logIndexInclusive) {
     }
 
-    @Override
-    public void truncateSnapshotChunksUntil(long logIndexInclusive) {
+    @Override public void truncateSnapshotChunksUntil(long logIndexInclusive) {
     }
 
-    @Override
-    public void flush() {
+    @Override public void flush() {
     }
 
 }

@@ -42,53 +42,38 @@ import javax.annotation.Nonnull;
 /**
  * Used for creating {@link RaftModel} objects with the builder pattern.
  * <p>
- * Users of MicroRaft can provide an implementation of this interface while
- * creating {@link RaftNode} instances. Otherwise,
- * {@link DefaultRaftModelFactory} is used. {@link RaftModel} objects created
- * by a Raft model factory implementation are passed to {@link Transport} for
- * networking, and {@link RaftStore} for persistence.
+ * Users of MicroRaft can provide an implementation of this interface while creating {@link RaftNode} instances. Otherwise, {@link
+ * DefaultRaftModelFactory} is used. {@link RaftModel} objects created by a Raft model factory implementation are passed to {@link
+ * Transport} for networking, and {@link RaftStore} for persistence.
  * <p>
- * A {@link RaftModelFactory} implementation can implement
- * {@link RaftNodeLifecycleAware} to perform initialization and clean up work
- * during {@link RaftNode} startup and termination. {@link RaftNode} calls
- * {@link RaftNodeLifecycleAware#onRaftNodeStart()} before calling any other
- * method on {@link RaftModelFactory}, and finally calls
- * {@link RaftNodeLifecycleAware#onRaftNodeTerminate()} on termination.
+ * A {@link RaftModelFactory} implementation can implement {@link RaftNodeLifecycleAware} to perform initialization and clean up
+ * work during {@link RaftNode} startup and termination. {@link RaftNode} calls {@link RaftNodeLifecycleAware#onRaftNodeStart()}
+ * before calling any other method on {@link RaftModelFactory}, and finally calls {@link
+ * RaftNodeLifecycleAware#onRaftNodeTerminate()} on termination.
  */
 public interface RaftModelFactory {
 
-    @Nonnull
-    LogEntryBuilder createLogEntryBuilder();
+    @Nonnull LogEntryBuilder createLogEntryBuilder();
 
-    @Nonnull
-    SnapshotEntryBuilder createSnapshotEntryBuilder();
+    @Nonnull SnapshotEntryBuilder createSnapshotEntryBuilder();
 
-    @Nonnull
-    SnapshotChunkBuilder createSnapshotChunkBuilder();
+    @Nonnull SnapshotChunkBuilder createSnapshotChunkBuilder();
 
-    @Nonnull
-    AppendEntriesRequestBuilder createAppendEntriesRequestBuilder();
+    @Nonnull AppendEntriesRequestBuilder createAppendEntriesRequestBuilder();
 
-    @Nonnull
-    AppendEntriesSuccessResponseBuilder createAppendEntriesSuccessResponseBuilder();
+    @Nonnull AppendEntriesSuccessResponseBuilder createAppendEntriesSuccessResponseBuilder();
 
-    @Nonnull
-    AppendEntriesFailureResponseBuilder createAppendEntriesFailureResponseBuilder();
+    @Nonnull AppendEntriesFailureResponseBuilder createAppendEntriesFailureResponseBuilder();
 
-    @Nonnull
-    InstallSnapshotRequestBuilder createInstallSnapshotRequestBuilder();
+    @Nonnull InstallSnapshotRequestBuilder createInstallSnapshotRequestBuilder();
 
-    @Nonnull
-    InstallSnapshotResponseBuilder createInstallSnapshotResponseBuilder();
+    @Nonnull InstallSnapshotResponseBuilder createInstallSnapshotResponseBuilder();
 
-    @Nonnull
-    PreVoteRequestBuilder createPreVoteRequestBuilder();
+    @Nonnull PreVoteRequestBuilder createPreVoteRequestBuilder();
 
-    @Nonnull
-    PreVoteResponseBuilder createPreVoteResponseBuilder();
+    @Nonnull PreVoteResponseBuilder createPreVoteResponseBuilder();
 
-    @Nonnull
-    TriggerLeaderElectionRequestBuilder createTriggerLeaderElectionRequestBuilder();
+    @Nonnull TriggerLeaderElectionRequestBuilder createTriggerLeaderElectionRequestBuilder();
 
     @Nonnull VoteRequestBuilder createVoteRequestBuilder();
 

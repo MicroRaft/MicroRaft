@@ -25,14 +25,12 @@ import javax.annotation.Nonnull;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The default impl of the {@link SnapshotChunk} and
- * {@link SnapshotChunkBuilder} interfaces. When an instance of this class is
- * created, it is in the builder mode and its state is populated. Once all
- * fields are set, the object switches to the DTO mode where it no longer
- * allows mutations.
+ * The default impl of the {@link SnapshotChunk} and {@link SnapshotChunkBuilder} interfaces. When an instance of this class is
+ * created, it is in the builder mode and its state is populated. Once all fields are set, the object switches to the DTO mode
+ * where it no longer allows mutations.
  * <p>
- * Please note that {@link #build()} does not verify if all fields are set or
- * not. It is up to the user to populate the DTO state via the builder.
+ * Please note that {@link #build()} does not verify if all fields are set or not. It is up to the user to populate the DTO state
+ * via the builder.
  */
 public class DefaultSnapshotChunkOrBuilder
         implements SnapshotChunk, SnapshotChunkBuilder {
@@ -45,29 +43,23 @@ public class DefaultSnapshotChunkOrBuilder
     private RaftGroupMembersView groupMembersView;
     private DefaultSnapshotChunkOrBuilder builder = this;
 
-    @Override
-    public long getIndex() {
+    @Override public long getIndex() {
         return index;
     }
 
-    @Override
-    public int getTerm() {
+    @Override public int getTerm() {
         return term;
     }
 
-    @Nonnull
-    @Override
-    public Object getOperation() {
+    @Nonnull @Override public Object getOperation() {
         return operation;
     }
 
-    @Override
-    public int getSnapshotChunkIndex() {
+    @Override public int getSnapshotChunkIndex() {
         return snapshotChunkIndex;
     }
 
-    @Override
-    public int getSnapshotChunkCount() {
+    @Override public int getSnapshotChunkCount() {
         return snapshotChunkCount;
     }
 
@@ -75,37 +67,27 @@ public class DefaultSnapshotChunkOrBuilder
         return groupMembersView;
     }
 
-    @Nonnull
-    @Override
-    public SnapshotChunkBuilder setIndex(long index) {
+    @Nonnull @Override public SnapshotChunkBuilder setIndex(long index) {
         builder.index = index;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public SnapshotChunkBuilder setTerm(int term) {
+    @Nonnull @Override public SnapshotChunkBuilder setTerm(int term) {
         builder.term = term;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public SnapshotChunkBuilder setOperation(@Nonnull Object operation) {
+    @Nonnull @Override public SnapshotChunkBuilder setOperation(@Nonnull Object operation) {
         builder.operation = operation;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public SnapshotChunkBuilder setSnapshotChunkIndex(int snapshotChunkIndex) {
+    @Nonnull @Override public SnapshotChunkBuilder setSnapshotChunkIndex(int snapshotChunkIndex) {
         builder.snapshotChunkIndex = snapshotChunkIndex;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public SnapshotChunkBuilder setSnapshotChunkCount(int snapshotChunkCount) {
+    @Nonnull @Override public SnapshotChunkBuilder setSnapshotChunkCount(int snapshotChunkCount) {
         builder.snapshotChunkCount = snapshotChunkCount;
         return this;
     }
@@ -115,16 +97,13 @@ public class DefaultSnapshotChunkOrBuilder
         return this;
     }
 
-    @Nonnull
-    @Override
-    public SnapshotChunk build() {
+    @Nonnull @Override public SnapshotChunk build() {
         requireNonNull(builder);
         builder = null;
         return this;
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         String header = builder != null ? "SnapshotChunkBuilder" : "SnapshotChunk";
         return header + "{" + "term=" + term + ", index=" + index + ", operation=" + operation + ", chunkIndex="
                + snapshotChunkIndex + ", chunkCount=" + snapshotChunkCount + ", groupMembers=" + groupMembersView + '}';

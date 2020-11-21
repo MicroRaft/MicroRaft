@@ -21,18 +21,14 @@ import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 
 /**
- * A Raft leader may demote to the follower role after it appends an entry to
- * its local Raft log, but before discovering its commit status. In some of
- * these cases, which cause this exception to be thrown, it may happen that
- * the Raft node cannot determine if the operation is committed or not.
- * In this case, the {@code CompletableFuture} objects returned for these
+ * A Raft leader may demote to the follower role after it appends an entry to its local Raft log, but before discovering its
+ * commit status. In some of these cases, which cause this exception to be thrown, it may happen that the Raft node cannot
+ * determine if the operation is committed or not. In this case, the {@code CompletableFuture} objects returned for these
  * operations are notified with this exception.
  * <p>
- * It is up to the clients to decide on retry upon receiving this exception.
- * If the operation is retried either on the same or different Raft node,
- * it could be committed twice, hence causes at-least-once execution.
- * On the contrary, if {@link RaftNode#replicate(Object)} is not called again,
- * then at-most-once execution happens.
+ * It is up to the clients to decide on retry upon receiving this exception. If the operation is retried either on the same or
+ * different Raft node, it could be committed twice, hence causes at-least-once execution. On the contrary, if {@link
+ * RaftNode#replicate(Object)} is not called again, then at-most-once execution happens.
  * <p>
  * Idempotent operations can be retried on indeterminate situations.
  */
@@ -49,8 +45,7 @@ public class IndeterminateStateException
         super(leader);
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         return "IndeterminateStateException{leader=" + getLeader() + "}";
     }
 

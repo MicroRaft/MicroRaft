@@ -34,13 +34,11 @@ import static io.microraft.RaftRole.CANDIDATE;
 /**
  * Handles a {@link VoteResponse} sent for a {@link VoteRequest}.
  * <p>
- * Changes the local Raft node's role to {@link RaftRole#LEADER} via
- * {@link RaftState#toLeader()} if the majority votes has been granted for this
- * term.
+ * Changes the local Raft node's role to {@link RaftRole#LEADER} via {@link RaftState#toLeader()} if the majority votes has been
+ * granted for this term.
  * <p>
- * In the beginning of the new term, the Raft group leader appends a new log
- * entry that contains an operation which is returned via
- * {@link StateMachine#getNewTermOperation()}.
+ * In the beginning of the new term, the Raft group leader appends a new log entry that contains an operation which is returned
+ * via {@link StateMachine#getNewTermOperation()}.
  * <p>
  * See <i>5.2 Leader election</i> section of
  * <i>In Search of an Understandable Consensus Algorithm</i>
@@ -58,8 +56,7 @@ public class VoteResponseHandler
         super(raftNode, response);
     }
 
-    @Override
-    protected void handleResponse(@Nonnull VoteResponse response) {
+    @Override protected void handleResponse(@Nonnull VoteResponse response) {
         if (state.role() != CANDIDATE) {
             LOGGER.debug("{} Ignored {}. We are not CANDIDATE anymore.", localEndpointStr(), response);
             return;

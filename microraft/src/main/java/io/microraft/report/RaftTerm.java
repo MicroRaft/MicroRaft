@@ -33,23 +33,17 @@ public interface RaftTerm {
     int getTerm();
 
     /**
-     * Returns the known Raft leader endpoint in the current term,
-     * or null if unknown.
+     * Returns the known Raft leader endpoint in the current term, or null if unknown.
      *
-     * @return the known Raft leader endpoint in the current term,
-     *         or null if unknown
+     * @return the known Raft leader endpoint in the current term, or null if unknown
      */
-    @Nullable
-    RaftEndpoint getLeaderEndpoint();
+    @Nullable RaftEndpoint getLeaderEndpoint();
 
     /**
-     * Returns the Raft endpoint that this Raft node has voted for
-     * in the current term, or null if none.
+     * Returns the Raft endpoint that this Raft node has voted for in the current term, or null if none.
      *
-     * @return the Raft endpoint that this Raft node has voted for
-     *         in the current term, or null if none
+     * @return the Raft endpoint that this Raft node has voted for in the current term, or null if none
      */
-    @Nullable
-    RaftEndpoint getVotedEndpoint();
+    @Nullable RaftEndpoint getVotedEndpoint();
 
 }

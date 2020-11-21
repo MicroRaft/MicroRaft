@@ -63,16 +63,12 @@ public class RaftNodeBuilderImpl
     private RaftModelFactory modelFactory = new DefaultRaftModelFactory();
     private boolean done;
 
-    @Nonnull
-    @Override
-    public RaftNodeBuilder setGroupId(@Nonnull Object groupId) {
+    @Nonnull @Override public RaftNodeBuilder setGroupId(@Nonnull Object groupId) {
         this.groupId = groupId;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public RaftNodeBuilder setLocalEndpoint(@Nonnull RaftEndpoint localEndpoint) {
+    @Nonnull @Override public RaftNodeBuilder setLocalEndpoint(@Nonnull RaftEndpoint localEndpoint) {
         if (this.restoredState != null) {
             throw new IllegalStateException("Local member cannot be set when restored Raft state is provided!");
         }
@@ -111,58 +107,42 @@ public class RaftNodeBuilderImpl
         return this;
     }
 
-    @Nonnull
-    @Override
-    public RaftNodeBuilder setConfig(@Nonnull RaftConfig config) {
+    @Nonnull @Override public RaftNodeBuilder setConfig(@Nonnull RaftConfig config) {
         this.config = requireNonNull(config);
         return this;
     }
 
-    @Nonnull
-    @Override
-    public RaftNodeBuilder setExecutor(@Nonnull RaftNodeExecutor executor) {
+    @Nonnull @Override public RaftNodeBuilder setExecutor(@Nonnull RaftNodeExecutor executor) {
         this.executor = requireNonNull(executor);
         return this;
     }
 
-    @Nonnull
-    @Override
-    public RaftNodeBuilder setTransport(@Nonnull Transport transport) {
+    @Nonnull @Override public RaftNodeBuilder setTransport(@Nonnull Transport transport) {
         this.transport = requireNonNull(transport);
         return this;
     }
 
-    @Nonnull
-    @Override
-    public RaftNodeBuilder setStateMachine(@Nonnull StateMachine stateMachine) {
+    @Nonnull @Override public RaftNodeBuilder setStateMachine(@Nonnull StateMachine stateMachine) {
         this.stateMachine = requireNonNull(stateMachine);
         return this;
     }
 
-    @Nonnull
-    @Override
-    public RaftNodeBuilder setStore(@Nonnull RaftStore store) {
+    @Nonnull @Override public RaftNodeBuilder setStore(@Nonnull RaftStore store) {
         this.store = requireNonNull(store);
         return this;
     }
 
-    @Nonnull
-    @Override
-    public RaftNodeBuilder setModelFactory(@Nonnull RaftModelFactory modelFactory) {
+    @Nonnull @Override public RaftNodeBuilder setModelFactory(@Nonnull RaftModelFactory modelFactory) {
         this.modelFactory = requireNonNull(modelFactory);
         return this;
     }
 
-    @Nonnull
-    @Override
-    public RaftNodeBuilder setRaftNodeReportListener(@Nonnull RaftNodeReportListener listener) {
+    @Nonnull @Override public RaftNodeBuilder setRaftNodeReportListener(@Nonnull RaftNodeReportListener listener) {
         this.listener = requireNonNull(listener);
         return this;
     }
 
-    @Nonnull
-    @Override
-    public RaftNode build() {
+    @Nonnull @Override public RaftNode build() {
         if (done) {
             throw new IllegalStateException("Raft node is already built!");
         }

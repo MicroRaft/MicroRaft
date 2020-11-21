@@ -44,23 +44,17 @@ public interface VoteRequest
     interface VoteRequestBuilder
             extends RaftMessageBuilder<VoteRequest> {
 
-        @Nonnull
-        VoteRequestBuilder setGroupId(@Nonnull Object groupId);
+        @Nonnull VoteRequestBuilder setGroupId(@Nonnull Object groupId);
 
-        @Nonnull
-        VoteRequestBuilder setSender(@Nonnull RaftEndpoint sender);
+        @Nonnull VoteRequestBuilder setSender(@Nonnull RaftEndpoint sender);
 
-        @Nonnull
-        VoteRequestBuilder setTerm(int term);
+        @Nonnull VoteRequestBuilder setTerm(int term);
 
-        @Nonnull
-        VoteRequestBuilder setLastLogTerm(int lastLogTerm);
+        @Nonnull VoteRequestBuilder setLastLogTerm(int lastLogTerm);
 
-        @Nonnull
-        VoteRequestBuilder setLastLogIndex(long lastLogIndex);
+        @Nonnull VoteRequestBuilder setLastLogIndex(long lastLogIndex);
 
-        @Nonnull
-        VoteRequestBuilder setSticky(boolean sticky);
+        @Nonnull VoteRequestBuilder setSticky(boolean sticky);
 
     }
 

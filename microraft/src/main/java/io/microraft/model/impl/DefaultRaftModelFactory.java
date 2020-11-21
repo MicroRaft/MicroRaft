@@ -59,80 +59,55 @@ import javax.annotation.Nonnull;
 public class DefaultRaftModelFactory
         implements RaftModelFactory {
 
-    @Nonnull
-    @Override
-    public LogEntryBuilder createLogEntryBuilder() {
+    @Nonnull @Override public LogEntryBuilder createLogEntryBuilder() {
         return new DefaultLogEntryOrBuilder();
     }
 
-    @Nonnull
-    @Override
-    public SnapshotEntryBuilder createSnapshotEntryBuilder() {
+    @Nonnull @Override public SnapshotEntryBuilder createSnapshotEntryBuilder() {
         return new DefaultSnapshotEntryOrBuilder();
     }
 
-    @Nonnull
-    @Override
-    public SnapshotChunkBuilder createSnapshotChunkBuilder() {
+    @Nonnull @Override public SnapshotChunkBuilder createSnapshotChunkBuilder() {
         return new DefaultSnapshotChunkOrBuilder();
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesRequestBuilder createAppendEntriesRequestBuilder() {
+    @Nonnull @Override public AppendEntriesRequestBuilder createAppendEntriesRequestBuilder() {
         return new DefaultAppendEntriesRequestOrBuilder();
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesSuccessResponseBuilder createAppendEntriesSuccessResponseBuilder() {
+    @Nonnull @Override public AppendEntriesSuccessResponseBuilder createAppendEntriesSuccessResponseBuilder() {
         return new DefaultAppendEntriesSuccessResponseOrBuilder();
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesFailureResponseBuilder createAppendEntriesFailureResponseBuilder() {
+    @Nonnull @Override public AppendEntriesFailureResponseBuilder createAppendEntriesFailureResponseBuilder() {
         return new DefaultAppendEntriesFailureResponseOrBuilder();
     }
 
-    @Nonnull
-    @Override
-    public InstallSnapshotRequestBuilder createInstallSnapshotRequestBuilder() {
+    @Nonnull @Override public InstallSnapshotRequestBuilder createInstallSnapshotRequestBuilder() {
         return new DefaultInstallSnapshotRequestOrBuilder();
     }
 
-    @Nonnull
-    @Override
-    public InstallSnapshotResponseBuilder createInstallSnapshotResponseBuilder() {
+    @Nonnull @Override public InstallSnapshotResponseBuilder createInstallSnapshotResponseBuilder() {
         return new DefaultInstallSnapshotResponseOrBuilder();
     }
 
-    @Nonnull
-    @Override
-    public PreVoteRequestBuilder createPreVoteRequestBuilder() {
+    @Nonnull @Override public PreVoteRequestBuilder createPreVoteRequestBuilder() {
         return new DefaultPreVoteRequestOrBuilder();
     }
 
-    @Nonnull
-    @Override
-    public PreVoteResponseBuilder createPreVoteResponseBuilder() {
+    @Nonnull @Override public PreVoteResponseBuilder createPreVoteResponseBuilder() {
         return new DefaultPreVoteResponseOrBuilder();
     }
 
-    @Nonnull
-    @Override
-    public TriggerLeaderElectionRequestBuilder createTriggerLeaderElectionRequestBuilder() {
+    @Nonnull @Override public TriggerLeaderElectionRequestBuilder createTriggerLeaderElectionRequestBuilder() {
         return new DefaultTriggerLeaderElectionRequestOrBuilder();
     }
 
-    @Nonnull
-    @Override
-    public VoteRequestBuilder createVoteRequestBuilder() {
+    @Nonnull @Override public VoteRequestBuilder createVoteRequestBuilder() {
         return new DefaultVoteRequestOrBuilder();
     }
 
-    @Nonnull
-    @Override public VoteResponseBuilder createVoteResponseBuilder() {
+    @Nonnull @Override public VoteResponseBuilder createVoteResponseBuilder() {
         return new DefaultVoteResponseOrBuilder();
     }
 

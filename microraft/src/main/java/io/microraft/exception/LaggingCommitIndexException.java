@@ -21,12 +21,10 @@ import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 
 /**
- * Thrown when a Raft node's current commit index is smaller than the commit
- * index specified in a {@link RaftNode#query(Object, QueryPolicy, long)} call.
- * This exception means that the Raft node instance cannot execute the given
- * query by preserving the monotonicity of the observed state. Please see
- * the <i>Section: 6.4 Processing read-only queries more efficiently</i> of
- * the Raft dissertation for more details.
+ * Thrown when a Raft node's current commit index is smaller than the commit index specified in a {@link RaftNode#query(Object,
+ * QueryPolicy, long)} call. This exception means that the Raft node instance cannot execute the given query by preserving the
+ * monotonicity of the observed state. Please see the <i>Section: 6.4 Processing read-only queries more efficiently</i> of the
+ * Raft dissertation for more details.
  */
 public class LaggingCommitIndexException
         extends RaftException {
@@ -37,8 +35,7 @@ public class LaggingCommitIndexException
         super("Commit index: " + commitIndex + " is smaller than min commit index: " + expectedCommitIndex, leader);
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         return "LaggingCommitIndexException{leader=" + getLeader() + "}";
     }
 

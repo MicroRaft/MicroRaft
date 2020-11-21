@@ -57,18 +57,15 @@ public final class RaftTermState
         return new RaftTermState(term, null, votedEndpoint);
     }
 
-    @Override
-    public int getTerm() {
+    @Override public int getTerm() {
         return term;
     }
 
-    @Override
-    public RaftEndpoint getLeaderEndpoint() {
+    @Override public RaftEndpoint getLeaderEndpoint() {
         return leaderEndpoint;
     }
 
-    @Override
-    public RaftEndpoint getVotedEndpoint() {
+    @Override public RaftEndpoint getVotedEndpoint() {
         return votedEndpoint;
     }
 
@@ -84,22 +81,22 @@ public final class RaftTermState
         requireNonNull(votedEndpoint);
         assert this.term == term : "current term: " + this.term + " voted term: " + term + " voted for: " + votedEndpoint;
         assert this.votedEndpoint == null : "current term: " + this.term + " already voted for: " + this.votedEndpoint
-                + " new vote to: " + votedEndpoint;
+                                            + " new vote to: " + votedEndpoint;
 
         return new RaftTermState(this.term, this.leaderEndpoint, votedEndpoint);
     }
 
     public RaftTermState withLeader(RaftEndpoint leaderEndpoint) {
         assert this.leaderEndpoint == null || leaderEndpoint == null : "current term: " + this.term + " current " + "leader: "
-                + this.leaderEndpoint + " new " + "leader: " + leaderEndpoint;
+                                                                       + this.leaderEndpoint + " new " + "leader: "
+                                                                       + leaderEndpoint;
 
         return new RaftTermState(this.term, leaderEndpoint, this.votedEndpoint);
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         return "RaftGroupTerm{" + "term=" + term + ", leaderEndpoint=" + leaderEndpoint + ", votedEndpoint=" + votedEndpoint
-                + '}';
+               + '}';
     }
 
 }

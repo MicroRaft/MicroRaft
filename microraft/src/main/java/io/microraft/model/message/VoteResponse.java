@@ -40,17 +40,13 @@ public interface VoteResponse
     interface VoteResponseBuilder
             extends RaftMessageBuilder<VoteResponse> {
 
-        @Nonnull
-        VoteResponseBuilder setGroupId(@Nonnull Object groupId);
+        @Nonnull VoteResponseBuilder setGroupId(@Nonnull Object groupId);
 
-        @Nonnull
-        VoteResponseBuilder setSender(@Nonnull RaftEndpoint sender);
+        @Nonnull VoteResponseBuilder setSender(@Nonnull RaftEndpoint sender);
 
-        @Nonnull
-        VoteResponseBuilder setTerm(int term);
+        @Nonnull VoteResponseBuilder setTerm(int term);
 
-        @Nonnull
-        VoteResponseBuilder setGranted(boolean granted);
+        @Nonnull VoteResponseBuilder setGranted(boolean granted);
 
     }
 

@@ -33,8 +33,8 @@ import static io.microraft.RaftRole.FOLLOWER;
 /**
  * Handles a {@link PreVoteResponse} sent for a {@link PreVoteRequest}.
  * <p>
- * Initiates a new leader election by executing {@link LeaderElectionTask}
- * if the Raft group majority grants "pre-votes" for this pre-voting term.
+ * Initiates a new leader election by executing {@link LeaderElectionTask} if the Raft group majority grants "pre-votes" for this
+ * pre-voting term.
  *
  * @see PreVoteResponse
  * @see PreVoteTask
@@ -49,8 +49,7 @@ public class PreVoteResponseHandler
         super(raftNode, response);
     }
 
-    @Override
-    protected void handleResponse(@Nonnull PreVoteResponse response) {
+    @Override protected void handleResponse(@Nonnull PreVoteResponse response) {
         LOGGER.debug("{} received {}.", localEndpointStr(), response);
 
         if (state.role() != FOLLOWER) {

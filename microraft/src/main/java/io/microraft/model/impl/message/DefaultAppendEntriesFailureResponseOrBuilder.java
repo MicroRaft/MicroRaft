@@ -25,14 +25,12 @@ import javax.annotation.Nonnull;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The default impl of the {@link AppendEntriesFailureResponse} and
- * {@link AppendEntriesFailureResponseBuilder} interfaces. When an instance of
- * this class is created, it is in the builder mode and its state is populated.
- * Once all fields are set, the object switches to the DTO mode where it no
- * longer allows mutations.
+ * The default impl of the {@link AppendEntriesFailureResponse} and {@link AppendEntriesFailureResponseBuilder} interfaces. When
+ * an instance of this class is created, it is in the builder mode and its state is populated. Once all fields are set, the object
+ * switches to the DTO mode where it no longer allows mutations.
  * <p>
- * Please note that {@link #build()} does not verify if all fields are set or
- * not. It is up to the user to populate the DTO state via the builder.
+ * Please note that {@link #build()} does not verify if all fields are set or not. It is up to the user to populate the DTO state
+ * via the builder.
  */
 public class DefaultAppendEntriesFailureResponseOrBuilder
         implements AppendEntriesFailureResponse, AppendEntriesFailureResponseBuilder {
@@ -48,93 +46,71 @@ public class DefaultAppendEntriesFailureResponseOrBuilder
     public DefaultAppendEntriesFailureResponseOrBuilder() {
     }
 
-    @Override
-    public Object getGroupId() {
+    @Override public Object getGroupId() {
         return groupId;
     }
 
-    @Nonnull
-    @Override
-    public RaftEndpoint getSender() {
+    @Nonnull @Override public RaftEndpoint getSender() {
         return sender;
     }
 
-    @Override
-    public int getTerm() {
+    @Override public int getTerm() {
         return term;
     }
 
-    @Override
-    public long getExpectedNextIndex() {
+    @Override public long getExpectedNextIndex() {
         return expectedNextIndex;
     }
 
-    @Override
-    public long getQuerySequenceNumber() {
+    @Override public long getQuerySequenceNumber() {
         return querySequenceNumber;
     }
 
-    @Override
-    public long getFlowControlSequenceNumber() {
+    @Override public long getFlowControlSequenceNumber() {
         return flowControlSequenceNumber;
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesFailureResponseBuilder setGroupId(@Nonnull Object groupId) {
+    @Nonnull @Override public AppendEntriesFailureResponseBuilder setGroupId(@Nonnull Object groupId) {
         builder.groupId = groupId;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesFailureResponseBuilder setSender(@Nonnull RaftEndpoint sender) {
+    @Nonnull @Override public AppendEntriesFailureResponseBuilder setSender(@Nonnull RaftEndpoint sender) {
         builder.sender = sender;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesFailureResponseBuilder setTerm(int term) {
+    @Nonnull @Override public AppendEntriesFailureResponseBuilder setTerm(int term) {
         builder.term = term;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesFailureResponseBuilder setExpectedNextIndex(long expectedNextIndex) {
+    @Nonnull @Override public AppendEntriesFailureResponseBuilder setExpectedNextIndex(long expectedNextIndex) {
         builder.expectedNextIndex = expectedNextIndex;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesFailureResponseBuilder setQuerySequenceNumber(long querySequenceNumber) {
+    @Nonnull @Override public AppendEntriesFailureResponseBuilder setQuerySequenceNumber(long querySequenceNumber) {
         builder.querySequenceNumber = querySequenceNumber;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesFailureResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber) {
+    @Nonnull @Override public AppendEntriesFailureResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber) {
         builder.flowControlSequenceNumber = flowControlSequenceNumber;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public AppendEntriesFailureResponse build() {
+    @Nonnull @Override public AppendEntriesFailureResponse build() {
         requireNonNull(builder);
         builder = null;
         return this;
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         String header = builder != null ? "AppendEntriesFailureResponseBuilder" : "AppendEntriesFailureResponse";
         return header + "{" + "groupId=" + groupId + ", sender=" + sender + ", term=" + term + ", expectedNextIndex="
-                + expectedNextIndex + ", querySequenceNumber=" + querySequenceNumber + ", flowControlSequenceNumber="
-                + flowControlSequenceNumber + '}';
+               + expectedNextIndex + ", querySequenceNumber=" + querySequenceNumber + ", flowControlSequenceNumber="
+               + flowControlSequenceNumber + '}';
     }
 
 }

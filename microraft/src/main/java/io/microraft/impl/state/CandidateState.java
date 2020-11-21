@@ -33,9 +33,8 @@ public final class CandidateState {
     }
 
     /**
-     * Persists vote for the endpoint during election.
-     * This method is idempotent, multiple votes from the same point are
-     * counted only once.
+     * Persists vote for the endpoint during election. This method is idempotent, multiple votes from the same point are counted
+     * only once.
      *
      * @return false if endpoint is already voted, true otherwise
      */

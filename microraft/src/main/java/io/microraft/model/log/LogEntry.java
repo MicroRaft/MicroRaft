@@ -29,17 +29,13 @@ public interface LogEntry
      */
     interface LogEntryBuilder {
 
-        @Nonnull
-        LogEntryBuilder setIndex(long index);
+        @Nonnull LogEntryBuilder setIndex(long index);
 
-        @Nonnull
-        LogEntryBuilder setTerm(int term);
+        @Nonnull LogEntryBuilder setTerm(int term);
 
-        @Nonnull
-        LogEntryBuilder setOperation(@Nonnull Object operation);
+        @Nonnull LogEntryBuilder setOperation(@Nonnull Object operation);
 
-        @Nonnull
-        LogEntry build();
+        @Nonnull LogEntry build();
 
     }
 

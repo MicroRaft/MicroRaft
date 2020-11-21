@@ -44,34 +44,26 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Handles an {@link InstallSnapshotRequest} which could be sent by the leader
- * or a follower.
+ * Handles an {@link InstallSnapshotRequest} which could be sent by the leader or a follower.
  * <p>
- * Responds with either an {@link InstallSnapshotResponse},
- * {@link AppendEntriesSuccessResponse},
- * or {@link AppendEntriesFailureResponse}.
+ * Responds with either an {@link InstallSnapshotResponse}, {@link AppendEntriesSuccessResponse}, or {@link
+ * AppendEntriesFailureResponse}.
  * <p>
  * See <i>7 Log compaction</i> section of
  * <i>In Search of an Understandable Consensus Algorithm</i>
  * paper by <i>Diego Ongaro</i> and <i>John Ousterhout</i>.
  * <p>
- * If the request contains no snapshot chunk, it means that the Raft leader
- * intends to transfer a new snapshot to the follower. In this case,
- * the follower initializes its {@link SnapshotChunkCollector} state based on
- * the total snapshot chunk count present in the request, then starts asking
- * snapshot chunks via sending {@link InstallSnapshotResponse} objects.
- * Once the follower collects all snapshot chunks, it installs the snapshot and
- * sends an {@link AppendEntriesSuccessResponse} back to the leader.
+ * If the request contains no snapshot chunk, it means that the Raft leader intends to transfer a new snapshot to the follower. In
+ * this case, the follower initializes its {@link SnapshotChunkCollector} state based on the total snapshot chunk count present in
+ * the request, then starts asking snapshot chunks via sending {@link InstallSnapshotResponse} objects. Once the follower collects
+ * all snapshot chunks, it installs the snapshot and sends an {@link AppendEntriesSuccessResponse} back to the leader.
  * <p>
- * Our Raft log design ensures that every Raft group member takes a snapshot
- * at exactly the same log index. This behaviour enables an optimization.
- * The {@link InstallSnapshotRequest} object sent by the leader contains a list
- * of followers whom are known to be installed the given snapshot. Using this
- * information, when a follower receives an {@link InstallSnapshotRequest} from
- * the leader, it can ask snapshot chunks not only from the leader, but also
- * from the followers provided in the received {@link InstallSnapshotRequest}.
- * By this way, we utilize the bandwidth of the followers and speed up
- * the process by transferring snapshot chunks to the follower in parallel.
+ * Our Raft log design ensures that every Raft group member takes a snapshot at exactly the same log index. This behaviour enables
+ * an optimization. The {@link InstallSnapshotRequest} object sent by the leader contains a list of followers whom are known to be
+ * installed the given snapshot. Using this information, when a follower receives an {@link InstallSnapshotRequest} from the
+ * leader, it can ask snapshot chunks not only from the leader, but also from the followers provided in the received {@link
+ * InstallSnapshotRequest}. By this way, we utilize the bandwidth of the followers and speed up the process by transferring
+ * snapshot chunks to the follower in parallel.
  *
  * @see InstallSnapshotRequest
  * @see InstallSnapshotResponse
@@ -87,9 +79,7 @@ public class InstallSnapshotRequestHandler
         super(raftNode, request);
     }
 
-    @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity"})
-    @Override
-    protected void handle(@Nonnull InstallSnapshotRequest request) {
+    @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity"}) @Override protected void handle(@Nonnull InstallSnapshotRequest request) {
         requireNonNull(request);
 
         RaftEndpoint sender = request.getSender();
@@ -101,9 +91,14 @@ public class InstallSnapshotRequestHandler
                         sender.getId(), request.getSnapshotIndex());
 
             if (request.isSenderLeader()) {
-                RaftMessage response = modelFactory.createAppendEntriesFailureResponseBuilder().setGroupId(node.getGroupId())
-                                                   .setSender(localEndpoint()).setTerm(state.term()).setExpectedNextIndex(0)
-                                                   .setQuerySequenceNumber(0).setFlowControlSequenceNumber(0).build();
+                RaftMessage response = modelFactory.createAppendEntriesFailureResponseBuilder()
+                                                   .setGroupId(node.getGroupId())
+                                                   .setSender(localEndpoint())
+                                                   .setTerm(state.term())
+                                                   .setExpectedNextIndex(0)
+                                                   .setQuerySequenceNumber(0)
+                                                   .setFlowControlSequenceNumber(0)
+                                                   .build();
                 node.send(sender, response);
             }
 
@@ -181,11 +176,14 @@ public class InstallSnapshotRequestHandler
     }
 
     private void sendAppendEntriesSuccessResponse(InstallSnapshotRequest request) {
-        RaftMessage response = modelFactory.createAppendEntriesSuccessResponseBuilder().setGroupId(node.getGroupId())
-                                           .setSender(localEndpoint()).setTerm(state.term())
+        RaftMessage response = modelFactory.createAppendEntriesSuccessResponseBuilder()
+                                           .setGroupId(node.getGroupId())
+                                           .setSender(localEndpoint())
+                                           .setTerm(state.term())
                                            .setLastLogIndex(request.getSnapshotIndex())
                                            .setQuerySequenceNumber(request.getQuerySequenceNumber())
-                                           .setFlowControlSequenceNumber(request.getFlowControlSequenceNumber()).build();
+                                           .setFlowControlSequenceNumber(request.getFlowControlSequenceNumber())
+                                           .build();
         node.send(state.leader(), response);
     }
 
@@ -202,7 +200,7 @@ public class InstallSnapshotRequestHandler
             return snapshotChunkCollector;
         } else if (snapshotChunkCollector.getSnapshotIndex() > request.getSnapshotIndex()) {
             LOGGER.warn("{} current snapshot chunks at log index: {} are more recent than received snapshot "
-                                + "chunks at log index: {} from sender: {} (is leader: {})", localEndpointStr(),
+                        + "chunks at log index: {} from sender: {} (is leader: {})", localEndpointStr(),
                         snapshotChunkCollector.getSnapshotIndex(), request.getSnapshotIndex(), request.getSender().getId(),
                         request.isSenderLeader());
 
@@ -229,7 +227,7 @@ public class InstallSnapshotRequestHandler
         if (snapshotChunkCollector.getSnapshotTerm() != request.getSnapshotTerm()) {
             throw new IllegalStateException(
                     "snapshot index: " + request.getSnapshotIndex() + " snapshot term: " + request.getSnapshotTerm()
-                            + " snapshot collector term: " + snapshotChunkCollector.getSnapshotTerm());
+                    + " snapshot collector term: " + snapshotChunkCollector.getSnapshotTerm());
         }
 
         return snapshotChunkCollector;
@@ -243,12 +241,11 @@ public class InstallSnapshotRequestHandler
                     state.store().persistSnapshotChunk(snapshotChunk);
                     // we will flush() after all snapshot chunks are persisted.
                     LOGGER.debug(localEndpointStr() + " added new snapshot chunk: " + snapshotChunk.getSnapshotChunkIndex()
-                                         + " at snapshot index: " + request.getSnapshotIndex());
+                                 + " at snapshot index: " + request.getSnapshotIndex());
                 } catch (IOException e) {
                     throw new RaftException(
                             "Could not persist snapshot chunk: " + snapshotChunk.getSnapshotChunkIndex() + " at snapshot index: "
-                                    + snapshotChunk.getIndex() + " and term: " + snapshotChunk.getTerm(),
-                            node.getLeaderEndpoint(), e);
+                            + snapshotChunk.getIndex() + " and term: " + snapshotChunk.getTerm(), node.getLeaderEndpoint(), e);
                 }
             }
         }
@@ -257,8 +254,8 @@ public class InstallSnapshotRequestHandler
     }
 
     private void requestMissingSnapshotChunks(InstallSnapshotRequest request, SnapshotChunkCollector snapshotChunkCollector) {
-        Map<RaftEndpoint, Integer> requestedSnapshotChunkIndices = snapshotChunkCollector
-                .requestSnapshotChunks(node.getConfig().isTransferSnapshotsFromFollowersEnabled());
+        Map<RaftEndpoint, Integer> requestedSnapshotChunkIndices = snapshotChunkCollector.requestSnapshotChunks(
+                node.getConfig().isTransferSnapshotsFromFollowersEnabled());
         if (requestedSnapshotChunkIndices.isEmpty()) {
             return;
         }
@@ -267,12 +264,17 @@ public class InstallSnapshotRequestHandler
 
         for (Entry<RaftEndpoint, Integer> e : requestedSnapshotChunkIndices.entrySet()) {
             RaftEndpoint target = e.getKey();
-            RaftMessage response = node.getModelFactory().createInstallSnapshotResponseBuilder().setGroupId(node.getGroupId())
-                                       .setSender(localEndpoint()).setTerm(state.term())
-                                       .setSnapshotIndex(request.getSnapshotIndex()).setRequestedSnapshotChunkIndex(e.getValue())
+            RaftMessage response = node.getModelFactory()
+                                       .createInstallSnapshotResponseBuilder()
+                                       .setGroupId(node.getGroupId())
+                                       .setSender(localEndpoint())
+                                       .setTerm(state.term())
+                                       .setSnapshotIndex(request.getSnapshotIndex())
+                                       .setRequestedSnapshotChunkIndex(e.getValue())
                                        .setQuerySequenceNumber(
                                                state.leader().equals(target) ? request.getQuerySequenceNumber() : 0)
-                                       .setFlowControlSequenceNumber(request.getFlowControlSequenceNumber()).build();
+                                       .setFlowControlSequenceNumber(request.getFlowControlSequenceNumber())
+                                       .build();
 
             node.send(target, response);
 
@@ -285,8 +287,11 @@ public class InstallSnapshotRequestHandler
     }
 
     private void log(long snapshotIndex, Map<RaftEndpoint, Integer> requestedSnapshotChunkIndices) {
-        Map<String, Integer> endpointIds = requestedSnapshotChunkIndices.entrySet().stream().collect(
-                Collectors.toMap(e -> e.getKey().getId().toString(), Entry::getValue));
+        Map<String, Integer> endpointIds = requestedSnapshotChunkIndices.entrySet()
+                                                                        .stream()
+                                                                        .collect(Collectors.toMap(
+                                                                                e -> e.getKey().getId().toString(),
+                                                                                Entry::getValue));
 
         LOGGER.info("{} requesting snapshot chunks: {} at snapshot index: {}.", localEndpointStr(), endpointIds, snapshotIndex);
     }
@@ -294,7 +299,7 @@ public class InstallSnapshotRequestHandler
     private void handleUnresponsiveEndpoint(int term, RaftEndpoint endpoint, long snapshotIndex, int snapshotChunkIndex) {
         SnapshotChunkCollector snapshotChunkCollector = state.snapshotChunkCollector();
         if (state.term() != term || snapshotChunkCollector == null
-                || snapshotChunkCollector.getSnapshotIndex() != snapshotIndex) {
+            || snapshotChunkCollector.getSnapshotIndex() != snapshotIndex) {
             return;
         }
 
@@ -328,8 +333,9 @@ public class InstallSnapshotRequestHandler
                                        .build();
 
             node.send(target, response);
-            node.getExecutor().schedule(() -> handleUnresponsiveEndpoint(term, target, snapshotIndex, e.getValue()),
-                                        node.getConfig().getLeaderHeartbeatPeriodSecs(), SECONDS);
+            node.getExecutor()
+                .schedule(() -> handleUnresponsiveEndpoint(term, target, snapshotIndex, e.getValue()),
+                          node.getConfig().getLeaderHeartbeatPeriodSecs(), SECONDS);
         }
     }
 

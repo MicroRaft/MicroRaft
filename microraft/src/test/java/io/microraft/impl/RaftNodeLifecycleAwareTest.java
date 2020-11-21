@@ -26,6 +26,7 @@ import io.microraft.model.groupop.UpdateRaftGroupMembersOp.UpdateRaftGroupMember
 import io.microraft.model.impl.DefaultRaftModelFactory;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.LogEntry.LogEntryBuilder;
+import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotChunk.SnapshotChunkBuilder;
 import io.microraft.model.log.SnapshotEntry.SnapshotEntryBuilder;
@@ -53,7 +54,6 @@ import org.junit.Test;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
@@ -586,25 +586,25 @@ public class RaftNodeLifecycleAwareTest
             }
         }
 
-        @Override
-        public void onRaftNodeTerminate() {
+        @Override public void onRaftNodeTerminate() {
             if (terminateCall == 0) {
                 terminateCall = ++callOrder;
             }
         }
 
-        @Override
-        public void persistInitialMembers(@Nonnull RaftEndpoint localEndpoint, @Nonnull Collection<RaftEndpoint> initialMembers) {
+        @Override public void persistAndFlushLocalEndpoint(RaftEndpoint localEndpoint, boolean localEndpointVoting) {
             recordCall();
         }
 
-        @Override
-        public void persistTerm(int term, @Nullable RaftEndpoint votedFor) {
+        @Override public void persistAndFlushInitialGroupMembers(@Nonnull RaftGroupMembersView initialGroupMembers) {
             recordCall();
         }
 
-        @Override
-        public void persistLogEntry(@Nonnull LogEntry logEntry) {
+        @Override public void persistAndFlushTerm(int term, @Nullable RaftEndpoint votedFor) {
+            recordCall();
+        }
+
+        @Override public void persistLogEntry(@Nonnull LogEntry logEntry) {
             recordCall();
         }
 

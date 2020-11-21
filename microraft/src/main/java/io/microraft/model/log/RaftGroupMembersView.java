@@ -14,26 +14,20 @@
  * limitations under the License.
  */
 
-package io.microraft.report;
+package io.microraft.model.log;
 
 import io.microraft.RaftEndpoint;
-import io.microraft.RaftRole;
+import io.microraft.model.RaftModel;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
 
 /**
- * Represents member list of a Raft group with an index identifying on which log index the given member list is appended to the
- * Raft log.
- * <p>
- * The initial member list of a Raft group has log index of 0.
+ * Represents the member list of a Raft group with an index identifying on which log index the given member list is appended to
+ * the Raft log.
  */
-public interface RaftGroupMembers {
-
-    /**
-     * The maximum number of {@link RaftRole#LEARNER} members allowed in the Raft group member list.
-     */
-    int MAX_LEARNER_COUNT = 2;
+public interface RaftGroupMembersView
+        extends RaftModel {
 
     /**
      * Returns the Raft log index that contains this Raft group member list.
@@ -56,11 +50,16 @@ public interface RaftGroupMembers {
      */
     @Nonnull Collection<RaftEndpoint> getVotingMembers();
 
-    /**
-     * Returns the majority quorum size of the Raft group member list.
-     *
-     * @return the majority quorum size of the Raft group member list
-     */
-    int getMajorityQuorumSize();
+    interface RaftGroupMembersViewBuilder {
+
+        @Nonnull RaftGroupMembersViewBuilder setLogIndex(long logIndex);
+
+        @Nonnull RaftGroupMembersViewBuilder setMembers(@Nonnull Collection<RaftEndpoint> members);
+
+        @Nonnull RaftGroupMembersViewBuilder setVotingMembers(@Nonnull Collection<RaftEndpoint> votingMembers);
+
+        @Nonnull RaftGroupMembersView build();
+
+    }
 
 }

@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 
+import static io.microraft.RaftRole.LEARNER;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -67,15 +68,22 @@ public class TriggerLeaderElectionHandler
         if (!(entry.getIndex() == request.getLastLogIndex() && entry.getTerm() == request.getLastLogTerm())) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("{} Could not accept leadership transfer because local Raft log is not same with the current "
-                                     + "leader. " + "Last log entry: {}, request: {}", localEndpointStr(), entry, request);
+                             + "leader. Last log entry: {}, request: {}", localEndpointStr(), entry, request);
             }
 
             return;
         }
 
+        if (state.role() == LEARNER) {
+            // this should not happen!
+            LOGGER.error("{} Could start leader election because the role is: {}. You should not see this log!",
+                         localEndpointStr(), LEARNER);
+            return;
+        }
+
         // I will send a non-sticky VoteRequest to bypass leader stickiness
         LOGGER.info("{} Starting a new leader election since the current leader: {} in term: {} asked for a "
-                            + "leadership transfer!", localEndpointStr(), request.getSender().getId(), request.getTerm());
+                    + "leadership transfer!", localEndpointStr(), request.getSender().getId(), request.getTerm());
         node.leader(null);
         new LeaderElectionTask(node, false).run();
     }

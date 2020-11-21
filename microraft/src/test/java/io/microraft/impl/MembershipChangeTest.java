@@ -38,14 +38,16 @@ import org.junit.After;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
-import static io.microraft.MembershipChangeMode.ADD;
-import static io.microraft.MembershipChangeMode.REMOVE;
+import static io.microraft.MembershipChangeMode.ADD_LEARNER;
+import static io.microraft.MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER;
+import static io.microraft.MembershipChangeMode.REMOVE_MEMBER;
 import static io.microraft.RaftNodeStatus.ACTIVE;
 import static io.microraft.RaftNodeStatus.TERMINATED;
+import static io.microraft.RaftRole.FOLLOWER;
+import static io.microraft.RaftRole.LEARNER;
 import static io.microraft.impl.local.SimpleStateMachine.applyValue;
 import static io.microraft.test.util.AssertionUtils.allTheTime;
 import static io.microraft.test.util.AssertionUtils.eventually;
@@ -54,10 +56,13 @@ import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
 import static io.microraft.test.util.RaftTestUtils.getCommittedGroupMembers;
 import static io.microraft.test.util.RaftTestUtils.getEffectiveGroupMembers;
 import static io.microraft.test.util.RaftTestUtils.getLastLogOrSnapshotEntry;
+import static io.microraft.test.util.RaftTestUtils.getRole;
 import static io.microraft.test.util.RaftTestUtils.getSnapshotEntry;
 import static io.microraft.test.util.RaftTestUtils.getStatus;
+import static io.microraft.test.util.RaftTestUtils.majority;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 public class MembershipChangeTest
@@ -65,35 +70,41 @@ public class MembershipChangeTest
 
     private LocalRaftGroup group;
 
-    @After
-    public void destroy() {
+    @After public void destroy() {
         if (group != null) {
             group.destroy();
         }
     }
 
-    @Test(timeout = 300_000)
-    public void when_newRaftNodeJoins_then_itAppendsMissingEntries()
-            throws Exception {
-        group = LocalRaftGroup.start(3);
+    @Test(timeout = 300_000) public void when_newNodeJoinsAsFollower_then_itAppendsMissingEntries() {
+        int initialMemberCount = 3;
+        group = LocalRaftGroup.start(initialMemberCount);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
-        leader.replicate(applyValue("val")).get();
+        leader.replicate(applyValue("val")).join();
 
         RaftGroupMembersState initialMembers = leader.getInitialMembers();
 
-        RaftNodeImpl newRaftNode = group.createNewNode();
+        RaftNodeImpl newNode = group.createNewNode();
 
-        Ordered<RaftGroupMembers> result = leader.changeMembership(newRaftNode.getLocalEndpoint(), ADD, 0).get();
+        Ordered<RaftGroupMembers> result = leader.changeMembership(newNode.getLocalEndpoint(), ADD_OR_PROMOTE_TO_FOLLOWER, 0)
+                                                 .join();
 
         assertThat(result.getCommitIndex()).isEqualTo(getCommitIndex(leader));
-        assertThat(result.getResult().getMembers()).contains(newRaftNode.getLocalEndpoint());
+
+        for (RaftGroupMembers groupMembers : asList(result.getResult(), leader.getCommittedMembers(),
+                                                    leader.getEffectiveMembers())) {
+            assertThat(groupMembers.getMembers()).contains(newNode.getLocalEndpoint());
+            assertThat(groupMembers.getVotingMembers()).contains(newNode.getLocalEndpoint());
+            assertThat(groupMembers.getMajorityQuorumSize()).isEqualTo(1 + majority(initialMemberCount));
+        }
+
         assertThat(leader.getInitialMembers().getMembers()).isEqualTo(initialMembers.getMembers());
-        assertThat(leader.getCommittedMembers().isKnownMember(newRaftNode.getLocalEndpoint())).isTrue();
-        assertThat(leader.getEffectiveMembers().isKnownMember(newRaftNode.getLocalEndpoint())).isTrue();
 
         long commitIndex = getCommitIndex(leader);
-        eventually(() -> assertThat(getCommitIndex(newRaftNode)).isEqualTo(commitIndex));
+        eventually(() -> assertThat(getCommitIndex(newNode)).isEqualTo(commitIndex));
+
+        assertThat(getRole(newNode)).isEqualTo(FOLLOWER);
 
         RaftGroupMembersState effectiveGroupMembers = getEffectiveGroupMembers(leader);
         eventually(() -> {
@@ -106,20 +117,496 @@ public class MembershipChangeTest
             }
         });
 
-        SimpleStateMachine stateMachine = group.getStateMachine(newRaftNode.getLocalEndpoint());
+        SimpleStateMachine stateMachine = group.getStateMachine(newNode.getLocalEndpoint());
         assertThat(stateMachine.size()).isEqualTo(1);
         assertThat(stateMachine.valueSet()).contains("val");
 
-        assertThat(newRaftNode.getInitialMembers().getMembers()).isEqualTo(initialMembers.getMembers());
-        assertThat(newRaftNode.getCommittedMembers().getMembers()).isEqualTo(leader.getCommittedMembers().getMembers());
-        assertThat(newRaftNode.getCommittedMembers().getLogIndex()).isEqualTo(leader.getCommittedMembers().getLogIndex());
-        assertThat(newRaftNode.getEffectiveMembers().getMembers()).isEqualTo(leader.getEffectiveMembers().getMembers());
-        assertThat(newRaftNode.getEffectiveMembers().getLogIndex()).isEqualTo(leader.getEffectiveMembers().getLogIndex());
+        assertThat(newNode.getInitialMembers().getMembers()).isEqualTo(initialMembers.getMembers());
+        assertThat(newNode.getCommittedMembers().getMembers()).isEqualTo(leader.getCommittedMembers().getMembers());
+        assertThat(newNode.getCommittedMembers().getLogIndex()).isEqualTo(leader.getCommittedMembers().getLogIndex());
+        assertThat(newNode.getCommittedMembers().getMajorityQuorumSize()).isEqualTo(1 + majority(initialMemberCount));
+        assertThat(newNode.getEffectiveMembers().getMembers()).isEqualTo(leader.getEffectiveMembers().getMembers());
+        assertThat(newNode.getEffectiveMembers().getLogIndex()).isEqualTo(leader.getEffectiveMembers().getLogIndex());
+        assertThat(newNode.getEffectiveMembers().getMajorityQuorumSize()).isEqualTo(1 + majority(initialMemberCount));
+    }
+
+    @Test(timeout = 300_000) public void when_newNodeJoinsAsLearner_then_itAppendsMissingEntries() {
+        int initialMemberCount = 3;
+        group = LocalRaftGroup.start(initialMemberCount);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        leader.replicate(applyValue("val")).join();
+
+        RaftGroupMembersState initialMembers = leader.getInitialMembers();
+
+        RaftNodeImpl newNode = group.createNewNode();
+
+        Ordered<RaftGroupMembers> result = leader.changeMembership(newNode.getLocalEndpoint(), ADD_LEARNER, 0).join();
+
+        assertThat(result.getCommitIndex()).isEqualTo(getCommitIndex(leader));
+
+        for (RaftGroupMembers groupMembers : asList(result.getResult(), leader.getCommittedMembers(),
+                                                    leader.getEffectiveMembers())) {
+            assertThat(groupMembers.getMembers()).contains(newNode.getLocalEndpoint());
+            assertThat(groupMembers.getVotingMembers()).doesNotContain(newNode.getLocalEndpoint());
+            assertThat(groupMembers.getMajorityQuorumSize()).isEqualTo(majority(initialMemberCount));
+        }
+
+        assertThat(leader.getInitialMembers().getMembers()).isEqualTo(initialMembers.getMembers());
+
+        long commitIndex = getCommitIndex(leader);
+        eventually(() -> assertThat(getCommitIndex(newNode)).isEqualTo(commitIndex));
+
+        assertThat(getRole(newNode)).isEqualTo(LEARNER);
+
+        RaftGroupMembersState effectiveGroupMembers = getEffectiveGroupMembers(leader);
+        eventually(() -> {
+            for (RaftNodeImpl node : group.getNodes()) {
+                assertThat(getStatus(node)).isEqualTo(ACTIVE);
+                assertThat(getEffectiveGroupMembers(node).getMembers()).isEqualTo(effectiveGroupMembers.getMembers());
+                assertThat(getEffectiveGroupMembers(node).getLogIndex()).isEqualTo(effectiveGroupMembers.getLogIndex());
+                assertThat(getCommittedGroupMembers(node).getMembers()).isEqualTo(effectiveGroupMembers.getMembers());
+                assertThat(getCommittedGroupMembers(node).getLogIndex()).isEqualTo(effectiveGroupMembers.getLogIndex());
+            }
+        });
+
+        SimpleStateMachine stateMachine = group.getStateMachine(newNode.getLocalEndpoint());
+        assertThat(stateMachine.size()).isEqualTo(1);
+        assertThat(stateMachine.valueSet()).contains("val");
+
+        assertThat(newNode.getInitialMembers().getMembers()).isEqualTo(initialMembers.getMembers());
+        assertThat(newNode.getCommittedMembers().getMembers()).isEqualTo(leader.getCommittedMembers().getMembers());
+        assertThat(newNode.getCommittedMembers().getLogIndex()).isEqualTo(leader.getCommittedMembers().getLogIndex());
+        assertThat(newNode.getCommittedMembers().getMajorityQuorumSize()).isEqualTo(majority(initialMemberCount));
+        assertThat(newNode.getEffectiveMembers().getMembers()).isEqualTo(leader.getEffectiveMembers().getMembers());
+        assertThat(newNode.getEffectiveMembers().getLogIndex()).isEqualTo(leader.getEffectiveMembers().getLogIndex());
+        assertThat(newNode.getEffectiveMembers().getMajorityQuorumSize()).isEqualTo(majority(initialMemberCount));
+    }
+
+    @Test(timeout = 300_000) public void when_thereIsSingleLearner_then_followerIsAdded() {
+        int initialMemberCount = 3;
+        group = LocalRaftGroup.start(initialMemberCount);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        leader.replicate(applyValue("val")).join();
+
+        RaftGroupMembersState initialMembers = leader.getInitialMembers();
+
+        RaftNodeImpl newNode1 = group.createNewNode();
+
+        Ordered<RaftGroupMembers> result1 = leader.changeMembership(newNode1.getLocalEndpoint(), ADD_LEARNER, 0).join();
+
+        assertThat(result1.getCommitIndex()).isEqualTo(getCommitIndex(leader));
+
+        for (RaftGroupMembers groupMembers : asList(result1.getResult(), leader.getCommittedMembers(),
+                                                    leader.getEffectiveMembers())) {
+            assertThat(groupMembers.getMembers()).contains(newNode1.getLocalEndpoint());
+            assertThat(groupMembers.getVotingMembers()).doesNotContain(newNode1.getLocalEndpoint());
+            assertThat(groupMembers.getMajorityQuorumSize()).isEqualTo(majority(initialMemberCount));
+        }
+
+        assertThat(result1.getResult().getMembers()).contains(newNode1.getLocalEndpoint());
+
+        RaftNodeImpl newNode2 = group.createNewNode();
+
+        Ordered<RaftGroupMembers> result2 = leader.changeMembership(newNode2.getLocalEndpoint(), ADD_OR_PROMOTE_TO_FOLLOWER,
+                                                                    result1.getCommitIndex()).join();
+
+        assertThat(result2.getCommitIndex()).isEqualTo(getCommitIndex(leader));
+
+        for (RaftGroupMembers groupMembers : asList(result2.getResult(), leader.getCommittedMembers(),
+                                                    leader.getEffectiveMembers())) {
+            assertThat(groupMembers.getMembers()).contains(newNode1.getLocalEndpoint());
+            assertThat(groupMembers.getMembers()).contains(newNode2.getLocalEndpoint());
+            assertThat(groupMembers.getVotingMembers()).doesNotContain(newNode1.getLocalEndpoint());
+            assertThat(groupMembers.getVotingMembers()).contains(newNode2.getLocalEndpoint());
+            assertThat(groupMembers.getMajorityQuorumSize()).isEqualTo(1 + majority(initialMemberCount));
+        }
+
+        long commitIndex = getCommitIndex(leader);
+        eventually(() -> assertThat(getCommitIndex(newNode1)).isEqualTo(commitIndex));
+        eventually(() -> assertThat(getCommitIndex(newNode2)).isEqualTo(commitIndex));
+
+        assertThat(newNode1.getReport().join().getResult().getRole()).isEqualTo(LEARNER);
+        assertThat(newNode2.getReport().join().getResult().getRole()).isEqualTo(FOLLOWER);
+
+        RaftGroupMembersState effectiveGroupMembers = getEffectiveGroupMembers(leader);
+        eventually(() -> {
+            for (RaftNodeImpl node : group.getNodes()) {
+                assertThat(getStatus(node)).isEqualTo(ACTIVE);
+                assertThat(getEffectiveGroupMembers(node).getMembers()).isEqualTo(effectiveGroupMembers.getMembers());
+                assertThat(getEffectiveGroupMembers(node).getLogIndex()).isEqualTo(effectiveGroupMembers.getLogIndex());
+                assertThat(getCommittedGroupMembers(node).getMembers()).isEqualTo(effectiveGroupMembers.getMembers());
+                assertThat(getCommittedGroupMembers(node).getLogIndex()).isEqualTo(effectiveGroupMembers.getLogIndex());
+            }
+        });
+
+        for (RaftNodeImpl newNode : asList(newNode1, newNode2)) {
+            SimpleStateMachine stateMachine = group.getStateMachine(newNode.getLocalEndpoint());
+            assertThat(stateMachine.size()).isEqualTo(1);
+            assertThat(stateMachine.valueSet()).contains("val");
+
+            assertThat(newNode.getInitialMembers().getMembers()).isEqualTo(initialMembers.getMembers());
+            assertThat(newNode.getCommittedMembers().getMembers()).isEqualTo(leader.getCommittedMembers().getMembers());
+            assertThat(newNode.getCommittedMembers().getLogIndex()).isEqualTo(leader.getCommittedMembers().getLogIndex());
+            assertThat(newNode.getEffectiveMembers().getMembers()).isEqualTo(leader.getEffectiveMembers().getMembers());
+            assertThat(newNode.getEffectiveMembers().getLogIndex()).isEqualTo(leader.getEffectiveMembers().getLogIndex());
+        }
+    }
+
+    @Test(timeout = 300_000) public void when_thereIsSingleLearner_then_secondLearnerIsAdded() {
+        int initialMemberCount = 3;
+        group = LocalRaftGroup.start(initialMemberCount);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        leader.replicate(applyValue("val")).join();
+
+        RaftGroupMembersState initialMembers = leader.getInitialMembers();
+
+        RaftNodeImpl newNode1 = group.createNewNode();
+
+        Ordered<RaftGroupMembers> result1 = leader.changeMembership(newNode1.getLocalEndpoint(), ADD_LEARNER, 0).join();
+
+        assertThat(result1.getCommitIndex()).isEqualTo(getCommitIndex(leader));
+
+        for (RaftGroupMembers groupMembers : asList(result1.getResult(), leader.getCommittedMembers(),
+                                                    leader.getEffectiveMembers())) {
+            assertThat(groupMembers.getMembers()).contains(newNode1.getLocalEndpoint());
+            assertThat(groupMembers.getVotingMembers()).doesNotContain(newNode1.getLocalEndpoint());
+            assertThat(groupMembers.getMajorityQuorumSize()).isEqualTo(majority(initialMemberCount));
+        }
+
+        assertThat(result1.getResult().getMembers()).contains(newNode1.getLocalEndpoint());
+
+        RaftNodeImpl newNode2 = group.createNewNode();
+
+        Ordered<RaftGroupMembers> result2 = leader.changeMembership(newNode2.getLocalEndpoint(), ADD_LEARNER,
+                                                                    result1.getCommitIndex()).join();
+
+        assertThat(result2.getCommitIndex()).isEqualTo(getCommitIndex(leader));
+
+        for (RaftGroupMembers groupMembers : asList(result2.getResult(), leader.getCommittedMembers(),
+                                                    leader.getEffectiveMembers())) {
+            assertThat(groupMembers.getMembers()).contains(newNode1.getLocalEndpoint());
+            assertThat(groupMembers.getMembers()).contains(newNode2.getLocalEndpoint());
+            assertThat(groupMembers.getVotingMembers()).doesNotContain(newNode1.getLocalEndpoint());
+            assertThat(groupMembers.getVotingMembers()).doesNotContain(newNode2.getLocalEndpoint());
+            assertThat(groupMembers.getMajorityQuorumSize()).isEqualTo(majority(initialMemberCount));
+        }
+
+        long commitIndex = getCommitIndex(leader);
+        eventually(() -> assertThat(getCommitIndex(newNode1)).isEqualTo(commitIndex));
+        eventually(() -> assertThat(getCommitIndex(newNode2)).isEqualTo(commitIndex));
+
+        assertThat(newNode1.getReport().join().getResult().getRole()).isEqualTo(LEARNER);
+        assertThat(newNode2.getReport().join().getResult().getRole()).isEqualTo(LEARNER);
+
+        RaftGroupMembersState effectiveGroupMembers = getEffectiveGroupMembers(leader);
+        eventually(() -> {
+            for (RaftNodeImpl node : group.getNodes()) {
+                assertThat(getStatus(node)).isEqualTo(ACTIVE);
+                assertThat(getEffectiveGroupMembers(node).getMembers()).isEqualTo(effectiveGroupMembers.getMembers());
+                assertThat(getEffectiveGroupMembers(node).getLogIndex()).isEqualTo(effectiveGroupMembers.getLogIndex());
+                assertThat(getCommittedGroupMembers(node).getMembers()).isEqualTo(effectiveGroupMembers.getMembers());
+                assertThat(getCommittedGroupMembers(node).getLogIndex()).isEqualTo(effectiveGroupMembers.getLogIndex());
+            }
+        });
+
+        for (RaftNodeImpl newNode : asList(newNode1, newNode2)) {
+            SimpleStateMachine stateMachine = group.getStateMachine(newNode.getLocalEndpoint());
+            assertThat(stateMachine.size()).isEqualTo(1);
+            assertThat(stateMachine.valueSet()).contains("val");
+
+            assertThat(newNode.getInitialMembers().getMembers()).isEqualTo(initialMembers.getMembers());
+            assertThat(newNode.getCommittedMembers().getMembers()).isEqualTo(leader.getCommittedMembers().getMembers());
+            assertThat(newNode.getCommittedMembers().getLogIndex()).isEqualTo(leader.getCommittedMembers().getLogIndex());
+            assertThat(newNode.getEffectiveMembers().getMembers()).isEqualTo(leader.getEffectiveMembers().getMembers());
+            assertThat(newNode.getEffectiveMembers().getLogIndex()).isEqualTo(leader.getEffectiveMembers().getLogIndex());
+        }
+    }
+
+    @Test(timeout = 300_000) public void when_thereAreTwoLearners_then_followerIsAdded() {
+        int initialMemberCount = 3;
+        group = LocalRaftGroup.start(initialMemberCount);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        leader.replicate(applyValue("val")).join();
+
+        RaftNodeImpl newNode1 = group.createNewNode();
+
+        Ordered<RaftGroupMembers> result1 = leader.changeMembership(newNode1.getLocalEndpoint(), ADD_LEARNER, 0).join();
+
+        RaftNodeImpl newNode2 = group.createNewNode();
+
+        Ordered<RaftGroupMembers> result2 = leader.changeMembership(newNode2.getLocalEndpoint(), ADD_LEARNER,
+                                                                    result1.getCommitIndex()).join();
+
+        RaftNodeImpl newNode3 = group.createNewNode();
+
+        Ordered<RaftGroupMembers> result3 = leader.changeMembership(newNode3.getLocalEndpoint(), ADD_OR_PROMOTE_TO_FOLLOWER,
+                                                                    result2.getCommitIndex()).join();
+
+        assertThat(result3.getCommitIndex()).isEqualTo(getCommitIndex(leader));
+
+        for (RaftGroupMembers groupMembers : asList(result3.getResult(), leader.getCommittedMembers(),
+                                                    leader.getEffectiveMembers())) {
+            assertThat(groupMembers.getMembers()).contains(newNode1.getLocalEndpoint());
+            assertThat(groupMembers.getMembers()).contains(newNode2.getLocalEndpoint());
+            assertThat(groupMembers.getMembers()).contains(newNode3.getLocalEndpoint());
+            assertThat(groupMembers.getVotingMembers()).doesNotContain(newNode1.getLocalEndpoint());
+            assertThat(groupMembers.getVotingMembers()).doesNotContain(newNode2.getLocalEndpoint());
+            assertThat(groupMembers.getVotingMembers()).contains(newNode3.getLocalEndpoint());
+            assertThat(groupMembers.getMajorityQuorumSize()).isEqualTo(1 + majority(initialMemberCount));
+        }
+
+        long commitIndex = getCommitIndex(leader);
+        eventually(() -> assertThat(getCommitIndex(newNode1)).isEqualTo(commitIndex));
+        eventually(() -> assertThat(getCommitIndex(newNode2)).isEqualTo(commitIndex));
+        eventually(() -> assertThat(getCommitIndex(newNode3)).isEqualTo(commitIndex));
+
+        assertThat(newNode1.getReport().join().getResult().getRole()).isEqualTo(LEARNER);
+        assertThat(newNode2.getReport().join().getResult().getRole()).isEqualTo(LEARNER);
+        assertThat(newNode3.getReport().join().getResult().getRole()).isEqualTo(FOLLOWER);
+
+        RaftGroupMembersState effectiveGroupMembers = getEffectiveGroupMembers(leader);
+        eventually(() -> {
+            for (RaftNodeImpl node : group.getNodes()) {
+                assertThat(getStatus(node)).isEqualTo(ACTIVE);
+                assertThat(getEffectiveGroupMembers(node).getMembers()).isEqualTo(effectiveGroupMembers.getMembers());
+                assertThat(getEffectiveGroupMembers(node).getLogIndex()).isEqualTo(effectiveGroupMembers.getLogIndex());
+                assertThat(getCommittedGroupMembers(node).getMembers()).isEqualTo(effectiveGroupMembers.getMembers());
+                assertThat(getCommittedGroupMembers(node).getLogIndex()).isEqualTo(effectiveGroupMembers.getLogIndex());
+            }
+        });
+
+        for (RaftNodeImpl newNode : asList(newNode1, newNode2, newNode3)) {
+            SimpleStateMachine stateMachine = group.getStateMachine(newNode.getLocalEndpoint());
+            assertThat(stateMachine.size()).isEqualTo(1);
+            assertThat(stateMachine.valueSet()).contains("val");
+
+            assertThat(newNode.getCommittedMembers().getMembers()).isEqualTo(leader.getCommittedMembers().getMembers());
+            assertThat(newNode.getCommittedMembers().getLogIndex()).isEqualTo(leader.getCommittedMembers().getLogIndex());
+            assertThat(newNode.getEffectiveMembers().getMembers()).isEqualTo(leader.getEffectiveMembers().getMembers());
+            assertThat(newNode.getEffectiveMembers().getLogIndex()).isEqualTo(leader.getEffectiveMembers().getLogIndex());
+        }
+    }
+
+    @Test(timeout = 300_000) public void when_thereAreTwoLearners_then_thirdLearnerCannotBeAdded() {
+        int initialMemberCount = 3;
+        group = LocalRaftGroup.start(initialMemberCount);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        leader.replicate(applyValue("val")).join();
+
+        RaftNodeImpl newNode1 = group.createNewNode();
+
+        Ordered<RaftGroupMembers> result1 = leader.changeMembership(newNode1.getLocalEndpoint(), ADD_LEARNER, 0).join();
+
+        RaftNodeImpl newNode2 = group.createNewNode();
+
+        Ordered<RaftGroupMembers> result2 = leader.changeMembership(newNode2.getLocalEndpoint(), ADD_LEARNER,
+                                                                    result1.getCommitIndex()).join();
+
+        RaftNodeImpl newNode3 = group.createNewNode();
+
+        try {
+            leader.changeMembership(newNode3.getLocalEndpoint(), ADD_LEARNER, result2.getCommitIndex()).join();
+            fail();
+        } catch (CompletionException e) {
+            assertThat(e).hasCauseInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
+    @Test(timeout = 300_000) public void when_learnerIsPromoted_then_majorityIsUpdated() {
+        int initialMemberCount = 3;
+        group = LocalRaftGroup.start(initialMemberCount);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        leader.replicate(applyValue("val")).join();
+
+        RaftNodeImpl newNode = group.createNewNode();
+
+        Ordered<RaftGroupMembers> result1 = leader.changeMembership(newNode.getLocalEndpoint(), ADD_LEARNER, 0).join();
+
+        Ordered<RaftGroupMembers> result2 = leader.changeMembership(newNode.getLocalEndpoint(), ADD_OR_PROMOTE_TO_FOLLOWER,
+                                                                    result1.getCommitIndex()).join();
+
+        int newMajority = 1 + majority(initialMemberCount);
+
+        for (RaftGroupMembers groupMembers : asList(result2.getResult(), leader.getCommittedMembers(),
+                                                    leader.getEffectiveMembers())) {
+            assertThat(groupMembers.getMembers()).contains(newNode.getLocalEndpoint());
+            assertThat(groupMembers.getVotingMembers()).contains(newNode.getLocalEndpoint());
+            assertThat(groupMembers.getMajorityQuorumSize()).isEqualTo(newMajority);
+        }
+
+        eventually(() -> assertThat(getCommitIndex(newNode)).isEqualTo(getCommitIndex(leader)));
+        assertThat(getRole(newNode)).isEqualTo(FOLLOWER);
+    }
+
+    @Test(timeout = 300_000) public void when_learnerIsPromoted_then_newLearnerCanBeAdded() {
+        int initialMemberCount = 3;
+        group = LocalRaftGroup.start(initialMemberCount);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        leader.replicate(applyValue("val")).join();
+
+        RaftNodeImpl newNode1 = group.createNewNode();
+
+        Ordered<RaftGroupMembers> result1 = leader.changeMembership(newNode1.getLocalEndpoint(), ADD_LEARNER, 0).join();
+
+        Ordered<RaftGroupMembers> result2 = leader.changeMembership(newNode1.getLocalEndpoint(), ADD_OR_PROMOTE_TO_FOLLOWER,
+                                                                    result1.getCommitIndex()).join();
+
+        int newMajority = 1 + majority(initialMemberCount);
+
+        RaftNodeImpl newNode2 = group.createNewNode();
+
+        Ordered<RaftGroupMembers> result3 = leader.changeMembership(newNode2.getLocalEndpoint(), ADD_LEARNER,
+                                                                    result2.getCommitIndex()).join();
+
+        for (RaftGroupMembers groupMembers : asList(result3.getResult(), leader.getCommittedMembers(),
+                                                    leader.getEffectiveMembers())) {
+            assertThat(groupMembers.getMembers()).contains(newNode1.getLocalEndpoint());
+            assertThat(groupMembers.getMembers()).contains(newNode2.getLocalEndpoint());
+            assertThat(groupMembers.getVotingMembers()).contains(newNode1.getLocalEndpoint());
+            assertThat(groupMembers.getVotingMembers()).doesNotContain(newNode2.getLocalEndpoint());
+            assertThat(groupMembers.getMajorityQuorumSize()).isEqualTo(newMajority);
+        }
+
+        eventually(() -> assertThat(getCommitIndex(newNode2)).isEqualTo(getCommitIndex(leader)));
+        assertThat(getRole(newNode2)).isEqualTo(LEARNER);
+    }
+
+    @Test(timeout = 300_000) public void when_secondLearnerIsPromoted_then_majorityDoesNotChange() {
+        int initialMemberCount = 3;
+        group = LocalRaftGroup.start(initialMemberCount);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        leader.replicate(applyValue("val")).join();
+
+        RaftNodeImpl newNode1 = group.createNewNode();
+
+        Ordered<RaftGroupMembers> result1 = leader.changeMembership(newNode1.getLocalEndpoint(), ADD_LEARNER, 0).join();
+
+        RaftNodeImpl newNode2 = group.createNewNode();
+
+        Ordered<RaftGroupMembers> result2 = leader.changeMembership(newNode2.getLocalEndpoint(), ADD_LEARNER,
+                                                                    result1.getCommitIndex()).join();
+
+        Ordered<RaftGroupMembers> result3 = leader.changeMembership(newNode1.getLocalEndpoint(), ADD_OR_PROMOTE_TO_FOLLOWER,
+                                                                    result2.getCommitIndex()).join();
+
+        Ordered<RaftGroupMembers> result4 = leader.changeMembership(newNode2.getLocalEndpoint(), ADD_OR_PROMOTE_TO_FOLLOWER,
+                                                                    result3.getCommitIndex()).join();
+
+        int newMajority = majority(initialMemberCount + 2);
+
+        for (RaftGroupMembers groupMembers : asList(result4.getResult(), leader.getCommittedMembers(),
+                                                    leader.getEffectiveMembers())) {
+            assertThat(groupMembers.getMembers()).contains(newNode1.getLocalEndpoint());
+            assertThat(groupMembers.getVotingMembers()).contains(newNode1.getLocalEndpoint());
+            assertThat(groupMembers.getMembers()).contains(newNode2.getLocalEndpoint());
+            assertThat(groupMembers.getVotingMembers()).contains(newNode2.getLocalEndpoint());
+            assertThat(groupMembers.getMajorityQuorumSize()).isEqualTo(newMajority);
+        }
+
+        eventually(() -> assertThat(getCommitIndex(newNode1)).isEqualTo(getCommitIndex(leader)));
+        eventually(() -> assertThat(getCommitIndex(newNode2)).isEqualTo(getCommitIndex(leader)));
+        assertThat(getRole(newNode1)).isEqualTo(FOLLOWER);
+        assertThat(getRole(newNode2)).isEqualTo(FOLLOWER);
+    }
+
+    @Test(timeout = 300_000) public void when_followerIsPromoted_then_promotionFails() {
+        int initialMemberCount = 3;
+        group = LocalRaftGroup.start(initialMemberCount);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+
+        try {
+            leader.changeMembership(leader.getLocalEndpoint(), ADD_OR_PROMOTE_TO_FOLLOWER, 0).join();
+            fail();
+        } catch (CompletionException e) {
+            assertThat(e).hasCauseInstanceOf(IllegalArgumentException.class);
+        }
     }
 
     @Test(timeout = 300_000)
-    public void when_followerLeaves_then_itIsRemovedFromTheGroupMembers()
-            throws Exception {
+    public void when_leaderFailsBeforeCommittingPromotion_then_followersElectNewLeaderViaGettingVoteFromLearner() {
+        int initialMemberCount = 3;
+        group = LocalRaftGroup.newBuilder(initialMemberCount)
+                              .enableNewTermOperation()
+                              .setConfig(RaftConfig.newBuilder()
+                                                   .setLeaderHeartbeatTimeoutSecs(3)
+                                                   .setLeaderHeartbeatPeriodSecs(1)
+                                                   .build())
+                              .start();
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+
+        List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
+
+        RaftNodeImpl newNode = group.createNewNode();
+
+        Ordered<RaftGroupMembers> result = leader.changeMembership(newNode.getLocalEndpoint(), ADD_LEARNER, 0).join();
+
+        eventually(() -> {
+            for (RaftNodeImpl node : group.getNodes()) {
+                assertThat(getCommitIndex(node)).isEqualTo(getCommitIndex(leader));
+            }
+        });
+
+        for (RaftNodeImpl follower : followers) {
+            group.dropMessagesTo(follower.getLocalEndpoint(), leader.getLocalEndpoint(), AppendEntriesSuccessResponse.class);
+            group.dropMessagesTo(follower.getLocalEndpoint(), leader.getLocalEndpoint(), AppendEntriesFailureResponse.class);
+        }
+
+        group.dropMessagesTo(leader.getLocalEndpoint(), newNode.getLocalEndpoint(), AppendEntriesRequest.class);
+
+        leader.changeMembership(newNode.getLocalEndpoint(), ADD_OR_PROMOTE_TO_FOLLOWER, result.getCommitIndex());
+
+        eventually(() -> {
+            assertThat(leader.getEffectiveMembers().getVotingMembers()).contains(newNode.getLocalEndpoint());
+            for (RaftNodeImpl follower : followers) {
+                assertThat(follower.getEffectiveMembers().getVotingMembers()).contains(newNode.getLocalEndpoint());
+            }
+        });
+
+        group.terminateNode(leader.getLocalEndpoint());
+
+        group.waitUntilLeaderElected();
+
+        eventually(() -> {
+            for (RaftNodeImpl node : group.getNodes()) {
+                assertThat(node.getEffectiveMembers().getLogIndex()).isEqualTo(node.getCommittedMembers().getLogIndex());
+                assertThat(node.getEffectiveMembers().getVotingMembers()).contains(newNode.getLocalEndpoint());
+            }
+        });
+
+        assertThat(getRole(newNode)).isEqualTo(FOLLOWER);
+    }
+
+    @Test(timeout = 300_000) public void when_initialMemberIsRemoved_then_itCannotBeAddedAgain() {
+        group = LocalRaftGroup.start(3);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        RaftNodeImpl leavingFollower = group.getAnyNodeExcept(leader.getLocalEndpoint());
+
+        leader.replicate(applyValue("val")).join();
+
+        Ordered<RaftGroupMembers> result = leader.changeMembership(leavingFollower.getLocalEndpoint(), REMOVE_MEMBER, 0).join();
+
+        group.terminateNode(leavingFollower.getLocalEndpoint());
+
+        try {
+            leader.changeMembership(leavingFollower.getLocalEndpoint(), ADD_LEARNER, result.getCommitIndex()).join();
+            fail();
+        } catch (CompletionException e) {
+            assertThat(e).hasCauseInstanceOf(IllegalArgumentException.class);
+        }
+    }
+
+    @Test(timeout = 300_000) public void when_followerLeaves_then_itIsRemovedFromTheGroupMembers() {
         group = LocalRaftGroup.start(3);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -127,9 +614,9 @@ public class MembershipChangeTest
         RaftNodeImpl leavingFollower = followers.get(0);
         RaftNodeImpl stayingFollower = followers.get(1);
 
-        leader.replicate(applyValue("val")).get();
+        leader.replicate(applyValue("val")).join();
 
-        Ordered<RaftGroupMembers> result = leader.changeMembership(leavingFollower.getLocalEndpoint(), REMOVE, 0).get();
+        Ordered<RaftGroupMembers> result = leader.changeMembership(leavingFollower.getLocalEndpoint(), REMOVE_MEMBER, 0).join();
 
         assertThat(result.getResult().getMembers()).doesNotContain(leavingFollower.getLocalEndpoint());
 
@@ -143,31 +630,30 @@ public class MembershipChangeTest
         group.terminateNode(leavingFollower.getLocalEndpoint());
     }
 
-    @Test(timeout = 300_000)
-    public void when_newRaftNodeJoinsAfterAnotherNodeLeaves_then_itAppendsMissingEntries()
-            throws Exception {
+    @Test(timeout = 300_000) public void when_newNodeJoinsAfterAnotherNodeLeaves_then_itAppendsMissingEntries() {
         group = LocalRaftGroup.start(3);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
-        leader.replicate(applyValue("val")).get();
+        leader.replicate(applyValue("val")).join();
 
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
         RaftNodeImpl leavingFollower = followers.get(0);
         RaftNodeImpl stayingFollower = followers.get(1);
 
-        long newMembersCommitIndex = leader.changeMembership(leavingFollower.getLocalEndpoint(), REMOVE, 0).get()
+        long newMembersCommitIndex = leader.changeMembership(leavingFollower.getLocalEndpoint(), REMOVE_MEMBER, 0)
+                                           .join()
                                            .getCommitIndex();
 
-        RaftNodeImpl newRaftNode = group.createNewNode();
+        RaftNodeImpl newNode = group.createNewNode();
 
-        leader.changeMembership(newRaftNode.getLocalEndpoint(), ADD, newMembersCommitIndex).get();
+        leader.changeMembership(newNode.getLocalEndpoint(), ADD_LEARNER, newMembersCommitIndex).join();
 
         long commitIndex = getCommitIndex(leader);
-        eventually(() -> assertThat(getCommitIndex(newRaftNode)).isEqualTo(commitIndex));
+        eventually(() -> assertThat(getCommitIndex(newNode)).isEqualTo(commitIndex));
 
         RaftGroupMembersState effectiveGroupMembers = getEffectiveGroupMembers(leader);
         eventually(() -> {
-            for (RaftNodeImpl node : asList(leader, stayingFollower, newRaftNode)) {
+            for (RaftNodeImpl node : asList(leader, stayingFollower, newNode)) {
                 assertThat(getStatus(node)).isEqualTo(ACTIVE);
                 assertThat(getEffectiveGroupMembers(node).getMembers()).isEqualTo(effectiveGroupMembers.getMembers());
                 assertThat(getEffectiveGroupMembers(node).getLogIndex()).isEqualTo(effectiveGroupMembers.getLogIndex());
@@ -178,44 +664,45 @@ public class MembershipChangeTest
             }
         });
 
-        SimpleStateMachine stateMachine = group.getStateMachine(newRaftNode.getLocalEndpoint());
+        SimpleStateMachine stateMachine = group.getStateMachine(newNode.getLocalEndpoint());
         assertThat(stateMachine.size()).isEqualTo(1);
         assertThat(stateMachine.valueSet()).contains("val");
     }
 
     @Test(timeout = 300_000)
-    public void when_newRaftNodeJoinsAfterAnotherNodeLeavesAndSnapshotIsTaken_then_itAppendsMissingEntries()
-            throws Exception {
+    public void when_newNodeJoinsAfterAnotherNodeLeavesAndSnapshotIsTaken_then_itAppendsMissingEntries() {
         int commitCountToTakeSnapshot = 10;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(commitCountToTakeSnapshot).build();
         group = LocalRaftGroup.start(3, config);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
-        leader.replicate(applyValue("val")).get();
+        leader.replicate(applyValue("val")).join();
 
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
         RaftNodeImpl leavingFollower = followers.get(0);
         RaftNodeImpl stayingFollower = followers.get(1);
 
-        long newMembersIndex = leader.changeMembership(leavingFollower.getLocalEndpoint(), REMOVE, 0).get().getCommitIndex();
+        long newMembersIndex = leader.changeMembership(leavingFollower.getLocalEndpoint(), REMOVE_MEMBER, 0)
+                                     .join()
+                                     .getCommitIndex();
 
         for (int i = 0; i < commitCountToTakeSnapshot; i++) {
-            leader.replicate(applyValue("val" + i)).get();
+            leader.replicate(applyValue("val" + i)).join();
         }
 
         eventually(() -> assertThat(getSnapshotEntry(leader).getIndex()).isGreaterThan(0));
 
-        RaftNodeImpl newRaftNode = group.createNewNode();
+        RaftNodeImpl newNode = group.createNewNode();
 
-        leader.changeMembership(newRaftNode.getLocalEndpoint(), ADD, newMembersIndex).get();
+        leader.changeMembership(newNode.getLocalEndpoint(), ADD_LEARNER, newMembersIndex).join();
 
         long commitIndex = getCommitIndex(leader);
-        eventually(() -> assertThat(getCommitIndex(newRaftNode)).isEqualTo(commitIndex));
+        eventually(() -> assertThat(getCommitIndex(newNode)).isEqualTo(commitIndex));
 
         RaftGroupMembersState effectiveGroupMembers = getEffectiveGroupMembers(leader);
         eventually(() -> {
-            for (RaftNodeImpl node : asList(leader, stayingFollower, newRaftNode)) {
+            for (RaftNodeImpl node : asList(leader, stayingFollower, newNode)) {
                 assertThat(getStatus(node)).isEqualTo(ACTIVE);
                 assertThat(getEffectiveGroupMembers(node).getMembers()).isEqualTo(effectiveGroupMembers.getMembers());
                 assertThat(getEffectiveGroupMembers(node).getLogIndex()).isEqualTo(effectiveGroupMembers.getLogIndex());
@@ -226,7 +713,7 @@ public class MembershipChangeTest
             }
         });
 
-        SimpleStateMachine stateMachine = group.getStateMachine(newRaftNode.getLocalEndpoint());
+        SimpleStateMachine stateMachine = group.getStateMachine(newNode.getLocalEndpoint());
         assertThat(stateMachine.size()).isEqualTo(commitCountToTakeSnapshot + 1);
         assertThat(stateMachine.valueSet()).contains("val");
         for (int i = 0; i < commitCountToTakeSnapshot; i++) {
@@ -234,15 +721,13 @@ public class MembershipChangeTest
         }
     }
 
-    @Test(timeout = 300_000)
-    public void when_leaderLeaves_then_itIsRemovedFromTheGroupMembers()
-            throws Exception {
+    @Test(timeout = 300_000) public void when_leaderLeaves_then_itIsRemovedFromTheGroupMembers() {
         group = LocalRaftGroup.start(3);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
-        leader.replicate(applyValue("val")).get();
-        leader.changeMembership(leader.getLocalEndpoint(), REMOVE, 0).get();
+        leader.replicate(applyValue("val")).join();
+        leader.changeMembership(leader.getLocalEndpoint(), REMOVE_MEMBER, 0).join();
 
         assertThat(leader.getStatus()).isEqualTo(TERMINATED);
 
@@ -254,33 +739,29 @@ public class MembershipChangeTest
         });
     }
 
-    @Test(timeout = 300_000)
-    public void when_leaderLeaves_then_itCannotVoteForCommitOfMemberChange()
-            throws Exception {
+    @Test(timeout = 300_000) public void when_leaderLeaves_then_itCannotVoteForCommitOfMemberChange() {
         RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).build();
         group = LocalRaftGroup.start(3, config);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
-        RaftNodeImpl follower = group.getAnyFollower();
+        RaftNodeImpl follower = group.getAnyNodeExcept(leader.getLocalEndpoint());
 
         group.dropMessagesTo(follower.getLocalEndpoint(), leader.getLocalEndpoint(), AppendEntriesSuccessResponse.class);
-        leader.replicate(applyValue("val")).get();
+        leader.replicate(applyValue("val")).join();
 
-        leader.changeMembership(leader.getLocalEndpoint(), REMOVE, 0);
+        leader.changeMembership(leader.getLocalEndpoint(), REMOVE_MEMBER, 0);
 
         allTheTime(() -> assertThat(getCommitIndex(leader)).isEqualTo(1), 5);
     }
 
-    @Test(timeout = 300_000)
-    public void when_leaderLeaves_then_followersElectNewLeader()
-            throws Exception {
+    @Test(timeout = 300_000) public void when_leaderLeaves_then_followersElectNewLeader() {
         group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
 
-        leader.replicate(applyValue("val")).get();
-        leader.changeMembership(leader.getLocalEndpoint(), REMOVE, 0).get();
+        leader.replicate(applyValue("val")).join();
+        leader.changeMembership(leader.getLocalEndpoint(), REMOVE_MEMBER, 0).join();
 
         eventually(() -> {
             for (RaftNodeImpl node : followers) {
@@ -299,13 +780,11 @@ public class MembershipChangeTest
         });
     }
 
-    @Test(timeout = 300_000)
-    public void when_membershipChangeRequestIsMadeWithWrongType_then_membershipChangeFails()
-            throws Exception {
+    @Test(timeout = 300_000) public void when_membershipChangeRequestIsMadeWithInvalidType_then_membershipChangeFails() {
         group = LocalRaftGroup.start(3);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
-        leader.replicate(applyValue("val")).get();
+        leader.replicate(applyValue("val")).join();
 
         try {
             leader.changeMembership(leader.getLocalEndpoint(), null, 0);
@@ -314,45 +793,41 @@ public class MembershipChangeTest
         }
     }
 
-    @Test(timeout = 300_000)
-    public void when_nonExistingEndpointIsRemoved_then_membershipChangeFails()
-            throws Exception {
+    @Test(timeout = 300_000) public void when_nonExistingEndpointIsRemoved_then_membershipChangeFails() {
         group = LocalRaftGroup.start(3);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
-        RaftNodeImpl leavingFollower = group.getAnyFollower();
+        RaftNodeImpl leavingFollower = group.getAnyNodeExcept(leader.getLocalEndpoint());
 
-        leader.replicate(applyValue("val")).get();
-        long newMembersIndex = leader.changeMembership(leavingFollower.getLocalEndpoint(), REMOVE, 0).get().getCommitIndex();
+        leader.replicate(applyValue("val")).join();
+        long newMembersIndex = leader.changeMembership(leavingFollower.getLocalEndpoint(), REMOVE_MEMBER, 0)
+                                     .join()
+                                     .getCommitIndex();
 
         try {
-            leader.changeMembership(leavingFollower.getLocalEndpoint(), REMOVE, newMembersIndex).get();
+            leader.changeMembership(leavingFollower.getLocalEndpoint(), REMOVE_MEMBER, newMembersIndex).join();
             fail();
-        } catch (ExecutionException e) {
+        } catch (CompletionException e) {
             assertThat(e).hasCauseInstanceOf(IllegalArgumentException.class);
         }
     }
 
-    @Test(timeout = 300_000)
-    public void when_existingEndpointIsAdded_then_membershipChangeFails()
-            throws Exception {
+    @Test(timeout = 300_000) public void when_existingEndpointIsAdded_then_membershipChangeFails() {
         group = LocalRaftGroup.start(3);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
-        leader.replicate(applyValue("val")).get();
+        leader.replicate(applyValue("val")).join();
 
         try {
-            leader.changeMembership(leader.getLocalEndpoint(), ADD, 0).get();
+            leader.changeMembership(leader.getLocalEndpoint(), ADD_LEARNER, 0).join();
             fail();
-        } catch (ExecutionException e) {
+        } catch (CompletionException e) {
             assertThat(e).hasCauseInstanceOf(IllegalArgumentException.class);
         }
     }
 
-    @Test(timeout = 300_000)
-    public void when_thereIsNoCommitInTheCurrentTerm_then_cannotMakeMemberChange()
-            throws InterruptedException {
+    @Test(timeout = 300_000) public void when_thereIsNoCommitInTheCurrentTerm_then_cannotMakeMemberChange() {
         // https://groups.google.com/forum/#!msg/raft-dev/t4xj6dJTP6E/d2D9LrWRza8J
 
         group = LocalRaftGroup.start(3);
@@ -360,9 +835,9 @@ public class MembershipChangeTest
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
         try {
-            leader.changeMembership(leader.getLocalEndpoint(), REMOVE, 0).get();
+            leader.changeMembership(leader.getLocalEndpoint(), REMOVE_MEMBER, 0).join();
             fail();
-        } catch (ExecutionException e) {
+        } catch (CompletionException e) {
             assertThat(e).hasCauseInstanceOf(CannotReplicateException.class);
         }
     }
@@ -378,8 +853,8 @@ public class MembershipChangeTest
         eventually(() -> {
             // may fail until nop-entry is committed
             try {
-                leader.changeMembership(leader.getLocalEndpoint(), REMOVE, 0).get();
-            } catch (ExecutionException e) {
+                leader.changeMembership(leader.getLocalEndpoint(), REMOVE_MEMBER, 0).join();
+            } catch (CompletionException e) {
                 if (e.getCause() instanceof CannotReplicateException) {
                     fail();
                 }
@@ -389,54 +864,48 @@ public class MembershipChangeTest
         });
     }
 
-    @Test(timeout = 300_000)
-    public void when_newJoiningNodeFirstReceivesSnapshot_then_itInstallsSnapshot()
-            throws Exception {
+    @Test(timeout = 300_000) public void when_newJoiningNodeFirstReceivesSnapshot_then_itInstallsSnapshot() {
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(5).build();
         group = LocalRaftGroup.start(3, config);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         for (int i = 0; i < 4; i++) {
-            leader.replicate(applyValue("val" + i)).get();
+            leader.replicate(applyValue("val" + i)).join();
         }
 
-        RaftNodeImpl newRaftNode = group.createNewNode();
+        RaftNodeImpl newNode = group.createNewNode();
 
-        group.dropMessagesTo(leader.getLocalEndpoint(), newRaftNode.getLocalEndpoint(), AppendEntriesRequest.class);
+        group.dropMessagesTo(leader.getLocalEndpoint(), newNode.getLocalEndpoint(), AppendEntriesRequest.class);
 
-        leader.changeMembership(newRaftNode.getLocalEndpoint(), ADD, 0).get();
+        leader.changeMembership(newNode.getLocalEndpoint(), ADD_LEARNER, 0).join();
 
         eventually(() -> assertThat(getSnapshotEntry(leader).getIndex()).isGreaterThan(0));
 
         group.resetAllRulesFrom(leader.getLocalEndpoint());
 
         eventually(() -> {
-            assertThat(getCommitIndex(newRaftNode)).isEqualTo(getCommitIndex(leader));
-            assertThat(getEffectiveGroupMembers(newRaftNode).getMembers())
-                    .isEqualTo(getEffectiveGroupMembers(leader).getMembers());
-            assertThat(getCommittedGroupMembers(newRaftNode).getMembers())
-                    .isEqualTo(getEffectiveGroupMembers(leader).getMembers());
-            SimpleStateMachine stateMachine = group.getStateMachine(newRaftNode.getLocalEndpoint());
+            assertThat(getCommitIndex(newNode)).isEqualTo(getCommitIndex(leader));
+            assertThat(getEffectiveGroupMembers(newNode).getMembers()).isEqualTo(getEffectiveGroupMembers(leader).getMembers());
+            assertThat(getCommittedGroupMembers(newNode).getMembers()).isEqualTo(getEffectiveGroupMembers(leader).getMembers());
+            SimpleStateMachine stateMachine = group.getStateMachine(newNode.getLocalEndpoint());
             assertThat(stateMachine.size()).isEqualTo(4);
         });
     }
 
-    @Test(timeout = 300_000)
-    public void when_leaderFailsWhileLeavingRaftGroup_othersCommitTheMembershipChange()
-            throws Exception {
+    @Test(timeout = 300_000) public void when_leaderFailsWhileLeavingRaftGroup_othersCommitTheMembershipChange() {
         group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
 
-        leader.replicate(applyValue("val")).get();
+        leader.replicate(applyValue("val")).join();
 
         for (RaftNodeImpl follower : followers) {
             group.dropMessagesTo(follower.getLocalEndpoint(), leader.getLocalEndpoint(), AppendEntriesSuccessResponse.class);
             group.dropMessagesTo(follower.getLocalEndpoint(), leader.getLocalEndpoint(), AppendEntriesFailureResponse.class);
         }
 
-        leader.changeMembership(leader.getLocalEndpoint(), REMOVE, 0);
+        leader.changeMembership(leader.getLocalEndpoint(), REMOVE_MEMBER, 0);
 
         eventually(() -> {
             for (RaftNodeImpl follower : followers) {
@@ -463,16 +932,14 @@ public class MembershipChangeTest
         });
     }
 
-    @Test(timeout = 300_000)
-    public void when_followerAppendsMultipleMembershipChangesAtOnce_then_itCommitsThemCorrectly()
-            throws Exception {
+    @Test(timeout = 300_000) public void when_followerAppendsMultipleMembershipChangesAtOnce_then_itCommitsThemCorrectly() {
         RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).build();
         group = LocalRaftGroup.start(5, config);
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
 
-        leader.replicate(applyValue("val")).get();
+        leader.replicate(applyValue("val")).join();
 
         eventually(() -> {
             for (RaftNodeImpl follower : followers) {
@@ -491,9 +958,9 @@ public class MembershipChangeTest
             }
         }
 
-        RaftNodeImpl newRaftNode1 = group.createNewNode();
-        group.dropMessagesTo(leader.getLocalEndpoint(), newRaftNode1.getLocalEndpoint(), AppendEntriesRequest.class);
-        Future<Ordered<RaftGroupMembers>> f1 = leader.changeMembership(newRaftNode1.getLocalEndpoint(), ADD, 0);
+        RaftNodeImpl newNode1 = group.createNewNode();
+        group.dropMessagesTo(leader.getLocalEndpoint(), newNode1.getLocalEndpoint(), AppendEntriesRequest.class);
+        CompletableFuture<Ordered<RaftGroupMembers>> f1 = leader.changeMembership(newNode1.getLocalEndpoint(), ADD_LEARNER, 0);
 
         eventually(() -> {
             for (RaftNodeImpl follower : followers) {
@@ -509,7 +976,7 @@ public class MembershipChangeTest
             }
         }
 
-        long newMembersIndex = f1.get().getCommitIndex();
+        long newMembersIndex = f1.join().getCommitIndex();
         eventually(() -> {
             for (RaftNodeImpl follower : followers) {
                 if (follower != slowFollower) {
@@ -521,24 +988,22 @@ public class MembershipChangeTest
             }
         });
 
-        RaftNodeImpl newRaftNode2 = group.createNewNode();
-        leader.changeMembership(newRaftNode2.getLocalEndpoint(), ADD, newMembersIndex).get();
+        RaftNodeImpl newNode2 = group.createNewNode();
+        leader.changeMembership(newNode2.getLocalEndpoint(), ADD_LEARNER, newMembersIndex).join();
 
         group.allowAllMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint());
         group.allowAllMessagesTo(slowFollower.getLocalEndpoint(), leader.getLocalEndpoint());
-        group.allowAllMessagesTo(leader.getLocalEndpoint(), newRaftNode1.getLocalEndpoint());
+        group.allowAllMessagesTo(leader.getLocalEndpoint(), newNode1.getLocalEndpoint());
 
         RaftGroupMembersState leaderCommittedGroupMembers = getCommittedGroupMembers(leader);
         eventually(() -> {
             assertThat(getCommittedGroupMembers(slowFollower).getLogIndex()).isEqualTo(leaderCommittedGroupMembers.getLogIndex());
-            assertThat(getCommittedGroupMembers(newRaftNode1).getLogIndex()).isEqualTo(leaderCommittedGroupMembers.getLogIndex());
-            assertThat(getCommittedGroupMembers(newRaftNode2).getLogIndex()).isEqualTo(leaderCommittedGroupMembers.getLogIndex());
+            assertThat(getCommittedGroupMembers(newNode1).getLogIndex()).isEqualTo(leaderCommittedGroupMembers.getLogIndex());
+            assertThat(getCommittedGroupMembers(newNode2).getLogIndex()).isEqualTo(leaderCommittedGroupMembers.getLogIndex());
         });
     }
 
-    @Test(timeout = 300_000)
-    public void when_leaderIsSteppingDown_then_itDoesNotAcceptNewAppends()
-            throws InterruptedException {
+    @Test(timeout = 300_000) public void when_leaderIsSteppingDown_then_itDoesNotAcceptNewAppends() {
         group = LocalRaftGroup.newBuilder(3).enableNewTermOperation().start();
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -546,29 +1011,27 @@ public class MembershipChangeTest
         group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(0).getLocalEndpoint(), AppendEntriesRequest.class);
         group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint(), AppendEntriesRequest.class);
 
-        Future<Ordered<RaftGroupMembers>> f1 = leader.changeMembership(leader.getLocalEndpoint(), REMOVE, 0);
-        Future<Ordered<Object>> f2 = leader.replicate(applyValue("1"));
+        CompletableFuture<Ordered<RaftGroupMembers>> f1 = leader.changeMembership(leader.getLocalEndpoint(), REMOVE_MEMBER, 0);
+        CompletableFuture<Ordered<Object>> f2 = leader.replicate(applyValue("1"));
 
         assertThat(f1).isNotDone();
         eventually(() -> assertThat(f2).isDone());
 
         try {
-            f2.get();
+            f2.join();
             fail();
-        } catch (ExecutionException e) {
+        } catch (CompletionException e) {
             assertThat(e).hasCauseInstanceOf(CannotReplicateException.class);
         }
     }
 
-    @Test(timeout = 300_000)
-    public void when_replicatedMembershipChangeIsReverted_then_itCanBeCommittedOnSecondReplicate()
-            throws Exception {
+    @Test(timeout = 300_000) public void when_replicatedMembershipChangeIsReverted_then_itCanBeCommittedOnSecondReplicate() {
         group = LocalRaftGroup.newBuilder(3).setConfig(TEST_RAFT_CONFIG).enableNewTermOperation().start();
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
 
-        leader.replicate(applyValue("val1")).get();
+        leader.replicate(applyValue("val1")).join();
         long oldLeaderCommitIndexBeforeMembershipChange = getCommitIndex(leader);
 
         eventually(() -> {
@@ -580,18 +1043,18 @@ public class MembershipChangeTest
         group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(0).getLocalEndpoint(), AppendEntriesRequest.class);
         group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint(), AppendEntriesRequest.class);
 
-        RaftNodeImpl newRaftNode = group.createNewNode();
+        RaftNodeImpl newNode = group.createNewNode();
 
-        leader.changeMembership(newRaftNode.getLocalEndpoint(), ADD, 0);
+        leader.changeMembership(newNode.getLocalEndpoint(), ADD_LEARNER, 0);
 
         eventually(() -> {
             long leaderLastLogIndex = getLastLogOrSnapshotEntry(leader).getIndex();
             assertThat(leaderLastLogIndex).isGreaterThan(oldLeaderCommitIndexBeforeMembershipChange)
-                                          .isEqualTo(getLastLogOrSnapshotEntry(newRaftNode).getIndex());
+                                          .isEqualTo(getLastLogOrSnapshotEntry(newNode).getIndex());
         });
 
-        group.dropMessagesToAll(newRaftNode.getLocalEndpoint(), PreVoteRequest.class);
-        group.dropMessagesToAll(newRaftNode.getLocalEndpoint(), VoteRequest.class);
+        group.dropMessagesToAll(newNode.getLocalEndpoint(), PreVoteRequest.class);
+        group.dropMessagesToAll(newNode.getLocalEndpoint(), VoteRequest.class);
 
         group.terminateNode(leader.getLocalEndpoint());
 
@@ -603,13 +1066,13 @@ public class MembershipChangeTest
         });
 
         RaftNodeImpl newLeader = group.getNode(followers.get(0).getLeaderEndpoint());
-        newLeader.replicate(applyValue("val1")).get();
-        newLeader.changeMembership(newRaftNode.getLocalEndpoint(), ADD, 0).get();
+        newLeader.replicate(applyValue("val1")).join();
+        newLeader.changeMembership(newNode.getLocalEndpoint(), ADD_LEARNER, 0).join();
 
         eventually(() -> {
-            assertThat(getCommitIndex(newRaftNode)).isEqualTo(getCommitIndex(newLeader));
-            assertThat(getCommittedGroupMembers(newRaftNode).getLogIndex())
-                    .isEqualTo(getCommittedGroupMembers(newLeader).getLogIndex());
+            assertThat(getCommitIndex(newNode)).isEqualTo(getCommitIndex(newLeader));
+            assertThat(getCommittedGroupMembers(newNode).getLogIndex()).isEqualTo(
+                    getCommittedGroupMembers(newLeader).getLogIndex());
         });
     }
 
@@ -620,7 +1083,8 @@ public class MembershipChangeTest
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
         RaftNodeImpl newNode = group.createNewNode();
-        leader.changeMembership(newNode.getLocalEndpoint(), ADD, 0).join();
+        Ordered<RaftGroupMembers> result = leader.changeMembership(newNode.getLocalEndpoint(), ADD_LEARNER, 0).join();
+        leader.changeMembership(newNode.getLocalEndpoint(), ADD_OR_PROMOTE_TO_FOLLOWER, result.getCommitIndex()).join();
 
         eventually(() -> assertThat(newNode.getLeaderEndpoint()).isEqualTo(leader.getLocalEndpoint()));
 
@@ -642,16 +1106,65 @@ public class MembershipChangeTest
 
         RaftNodeImpl newNode = group.createNewNode();
         try {
-            leader.changeMembership(newNode.getLocalEndpoint(), ADD, 0).join();
+            leader.changeMembership(newNode.getLocalEndpoint(), ADD_LEARNER, 0).join();
             fail();
         } catch (CompletionException e) {
-            assertThat(e).satisfiesAnyOf(e2 -> {
-                assertThat(e2).hasCauseInstanceOf(IndeterminateStateException.class);
-            }, e2 -> {
-                assertThat(e2).hasCauseInstanceOf(NotLeaderException.class);
-            });
+            assertThat(e).satisfiesAnyOf(e2 -> assertThat(e2).hasCauseInstanceOf(IndeterminateStateException.class),
+                                         e2 -> assertThat(e2).hasCauseInstanceOf(NotLeaderException.class));
 
         }
+    }
+
+    @Test(timeout = 300_000) public void when_thereIsSingleVotingMember_then_learnerCanBeRemoved() {
+        group = LocalRaftGroup.newBuilder(2, 1).setConfig(TEST_RAFT_CONFIG).enableNewTermOperation().start();
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        RaftNodeImpl learner = group.getAnyNodeExcept(leader.getLocalEndpoint());
+
+        Ordered<RaftGroupMembers> result = leader.changeMembership(learner.getLocalEndpoint(), REMOVE_MEMBER, 0).join();
+
+        assertThat(result.getResult().getMembers()).contains(leader.getLocalEndpoint());
+        assertThat(result.getResult().getMembers()).doesNotContain(learner.getLocalEndpoint());
+        assertThat(result.getResult().getVotingMembers()).contains(leader.getLocalEndpoint());
+        assertThat(result.getResult().getVotingMembers()).doesNotContain(learner.getLocalEndpoint());
+    }
+
+    @Test(timeout = 300_000) public void when_thereIsSingleVotingMember_then_votingMemberCannotBeRemoved() {
+        group = LocalRaftGroup.newBuilder(2, 1).setConfig(TEST_RAFT_CONFIG).enableNewTermOperation().start();
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+
+        try {
+            leader.changeMembership(leader.getLocalEndpoint(), REMOVE_MEMBER, 0).join();
+            fail();
+        } catch (CompletionException e) {
+            assertThat(e).hasCauseInstanceOf(IllegalStateException.class);
+        }
+    }
+
+    @Test(timeout = 300_000)
+    public void when_leaderCrashesWhileLeavingRaftGroup_then_remainingVotingMemberCommitsMembershipChange() {
+        group = LocalRaftGroup.newBuilder(3, 2).setConfig(TEST_RAFT_CONFIG).enableNewTermOperation().start();
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        RaftNodeImpl follower = null;
+        for (RaftNodeImpl node : group.<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint())) {
+            if (getRole(node) == FOLLOWER) {
+                follower = node;
+                break;
+            }
+        }
+        assertNotNull(follower);
+
+        group.dropMessagesTo(follower.getLocalEndpoint(), leader.getLocalEndpoint(), AppendEntriesSuccessResponse.class);
+
+        leader.changeMembership(leader.getLocalEndpoint(), REMOVE_MEMBER, 0);
+
+        RaftNodeImpl node = follower;
+        eventually(() -> assertThat(getEffectiveGroupMembers(node).getLogIndex()).isGreaterThan(0));
+
+        leader.terminate();
+
+        eventually(() -> assertThat(node.getLeaderEndpoint()).isEqualTo(node.getLocalEndpoint()));
+
+        assertThat(getCommittedGroupMembers(follower).getMembers()).doesNotContain(leader.getLocalEndpoint());
     }
 
 }

@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 
-import static io.microraft.RaftRole.FOLLOWER;
+import static io.microraft.RaftRole.LEARNER;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -92,13 +92,8 @@ public class VoteRequestHandler
 
         if (state.term() < candidateTerm) {
             // If the request term is greater than the local term, update the local term and convert to follower (§5.1)
-            if (state.role() != FOLLOWER) {
-                LOGGER.info("{} Demoting to FOLLOWER after {} since current term: {} is smaller.", localEndpointStr(), request,
-                            state.term());
-            } else {
-                LOGGER.info("{} Moving to new term: {} from current term: {} after {}", localEndpointStr(), candidateTerm,
-                            state.term(), request);
-            }
+            LOGGER.info("{} Moving to new term: {} from current term: {} after {}", localEndpointStr(), candidateTerm,
+                        state.term(), request);
 
             node.toFollower(candidateTerm);
         }
@@ -135,6 +130,10 @@ public class VoteRequestHandler
                         lastLogEntry.getIndex());
             node.send(candidate, responseBuilder.setTerm(candidateTerm).setGranted(false).build());
             return;
+        }
+
+        if (state.role() == LEARNER) {
+            LOGGER.info("{} is {} but {} asked for vote.", localEndpointStr(), LEARNER, candidate.getId());
         }
 
         LOGGER.info("{} Granted vote for {}", localEndpointStr(), request);

@@ -78,13 +78,13 @@ public final class LocalRaftGroup {
     private final Map<RaftEndpoint, RaftNodeContext> nodeContexts = new HashMap<>();
     private final BiFunction<RaftEndpoint, RaftConfig, RaftStore> raftStoreFactory;
 
-    private LocalRaftGroup(int size, RaftConfig config, boolean newTermEntryEnabled,
+    private LocalRaftGroup(int groupSize, int votingMemberCount, RaftConfig config, boolean newTermEntryEnabled,
                            BiFunction<RaftEndpoint, RaftConfig, RaftStore> raftStoreFactory) {
         this.config = config;
         this.newTermEntryEnabled = newTermEntryEnabled;
         this.raftStoreFactory = raftStoreFactory;
 
-        createNodes(size, config, raftStoreFactory);
+        createNodes(groupSize, votingMemberCount, config, raftStoreFactory);
     }
 
     /**
@@ -97,6 +97,13 @@ public final class LocalRaftGroup {
      */
     public static LocalRaftGroup start(int groupSize) {
         LocalRaftGroup group = new LocalRaftGroupBuilder(groupSize).build();
+        group.start();
+
+        return group;
+    }
+
+    public static LocalRaftGroup start(int groupSize, int votingMemberCount) {
+        LocalRaftGroup group = new LocalRaftGroupBuilder(groupSize, votingMemberCount).build();
         group.start();
 
         return group;
@@ -119,6 +126,13 @@ public final class LocalRaftGroup {
         return group;
     }
 
+    public static LocalRaftGroup start(int groupSize, int votingMemberCount, RaftConfig config) {
+        LocalRaftGroup group = new LocalRaftGroupBuilder(groupSize, votingMemberCount).setConfig(config).build();
+        group.start();
+
+        return group;
+    }
+
     /**
      * Returns a new Raft group builder object
      *
@@ -131,19 +145,30 @@ public final class LocalRaftGroup {
         return new LocalRaftGroupBuilder(groupSize);
     }
 
-    private void createNodes(int size, RaftConfig config, BiFunction<RaftEndpoint, RaftConfig, RaftStore> raftStoreFactory) {
-        for (int i = 0; i < size; i++) {
+    public static LocalRaftGroupBuilder newBuilder(int groupSize, int votingMemberCount) {
+        return new LocalRaftGroupBuilder(groupSize, votingMemberCount);
+    }
+
+    private void createNodes(int groupSize, int votingMemberCount, RaftConfig config,
+                             BiFunction<RaftEndpoint, RaftConfig, RaftStore> raftStoreFactory) {
+        for (int i = 0; i < groupSize; i++) {
             RaftEndpoint endpoint = LocalRaftEndpoint.newEndpoint();
             initialMembers.add(endpoint);
         }
 
-        for (int i = 0; i < size; i++) {
+        List<RaftEndpoint> initialVotingMembers = initialMembers.subList(0, votingMemberCount);
+
+        for (int i = 0; i < groupSize; i++) {
             RaftEndpoint endpoint = initialMembers.get(i);
             LocalTransport transport = new LocalTransport(endpoint);
             SimpleStateMachine stateMachine = new SimpleStateMachine(newTermEntryEnabled);
-            RaftNodeBuilder nodeBuilder = RaftNode.newBuilder().setGroupId("default").setLocalEndpoint(endpoint)
-                                                  .setInitialGroupMembers(initialMembers).setConfig(config)
-                                                  .setTransport(transport).setStateMachine(stateMachine);
+            RaftNodeBuilder nodeBuilder = RaftNode.newBuilder()
+                                                  .setGroupId("default")
+                                                  .setLocalEndpoint(endpoint)
+                                                  .setInitialGroupMembers(initialMembers, initialVotingMembers)
+                                                  .setConfig(config)
+                                                  .setTransport(transport)
+                                                  .setStateMachine(stateMachine);
             if (raftStoreFactory != null) {
                 nodeBuilder.setStore(raftStoreFactory.apply(endpoint, config));
             }
@@ -419,26 +444,6 @@ public final class LocalRaftGroup {
         }
 
         throw new IllegalArgumentException("Unknown endpoint: " + endpoint);
-    }
-
-    /**
-     * Returns a random follower Raft node.
-     * <p>
-     * If no leader is found, then this method fails with
-     * {@link AssertionError}.
-     *
-     * @return a random follower Raft node
-     *
-     * @throws AssertionError
-     *         if no leader is found
-     */
-    public <T extends RaftNode> T getAnyFollower() {
-        RaftEndpoint leaderEndpoint = getLeaderEndpoint();
-        if (leaderEndpoint == null) {
-            throw new AssertionError("Group doesn't have a leader yet!");
-        }
-
-        return getAnyNodeExcept(leaderEndpoint);
     }
 
     /**
@@ -731,15 +736,29 @@ public final class LocalRaftGroup {
     public static final class LocalRaftGroupBuilder {
 
         private final int groupSize;
+        private final int votingMemberCount;
         private RaftConfig config = DEFAULT_RAFT_CONFIG;
         private boolean newTermOperationEnabled;
         private BiFunction<RaftEndpoint, RaftConfig, RaftStore> raftStoreFactory;
 
         private LocalRaftGroupBuilder(int groupSize) {
             if (groupSize < 1) {
-                throw new IllegalArgumentException("Raft groups must have at least 2 Raft nodes!");
+                throw new IllegalArgumentException("Raft groups must have at least 1 Raft node!");
             }
             this.groupSize = groupSize;
+            this.votingMemberCount = groupSize;
+        }
+
+        private LocalRaftGroupBuilder(int groupSize, int votingMemberCount) {
+            if (groupSize < 1) {
+                throw new IllegalArgumentException("Raft groups must have at least 1 Raft node!");
+            } else if (votingMemberCount < 1) {
+                throw new IllegalArgumentException("Raft groups must have at least 1 voting Raft node!");
+            } else if (votingMemberCount > groupSize) {
+                throw new IllegalArgumentException("Raft group size must be greater than or equal to voting member count!");
+            }
+            this.groupSize = groupSize;
+            this.votingMemberCount = votingMemberCount;
         }
 
         /**
@@ -788,7 +807,7 @@ public final class LocalRaftGroup {
          * @return the created local Raft group
          */
         public LocalRaftGroup build() {
-            return new LocalRaftGroup(groupSize, config, newTermOperationEnabled, raftStoreFactory);
+            return new LocalRaftGroup(groupSize, votingMemberCount, config, newTermOperationEnabled, raftStoreFactory);
         }
 
         /**
@@ -797,7 +816,8 @@ public final class LocalRaftGroup {
          * @return the created and started local Raft group
          */
         public LocalRaftGroup start() {
-            LocalRaftGroup group = new LocalRaftGroup(groupSize, config, newTermOperationEnabled, raftStoreFactory);
+            LocalRaftGroup group = new LocalRaftGroup(groupSize, votingMemberCount, config, newTermOperationEnabled,
+                                                      raftStoreFactory);
             group.start();
 
             return group;

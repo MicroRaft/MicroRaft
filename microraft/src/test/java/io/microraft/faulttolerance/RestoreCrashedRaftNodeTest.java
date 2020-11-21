@@ -59,7 +59,7 @@ public class RestoreCrashedRaftNodeTest {
     public void testRestoreCrashedRaftNode() {
         group = LocalRaftGroup.newBuilder(3).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
         RaftNode leader = group.waitUntilLeaderElected();
-        RaftNode crashedFollower = group.getAnyFollower();
+        RaftNode crashedFollower = group.getAnyNodeExcept(leader.getLocalEndpoint());
 
         String value = "value";
         Ordered<Object> replicateResult = leader.replicate(SimpleStateMachine.applyValue(value)).join();

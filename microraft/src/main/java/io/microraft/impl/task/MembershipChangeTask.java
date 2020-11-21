@@ -37,23 +37,22 @@ import java.util.LinkedHashSet;
 import static io.microraft.RaftNodeStatus.INITIAL;
 import static io.microraft.RaftNodeStatus.isTerminal;
 import static io.microraft.RaftRole.LEADER;
+import static io.microraft.RaftRole.LEARNER;
+import static io.microraft.report.RaftGroupMembers.MAX_LEARNER_COUNT;
 import static java.util.stream.Collectors.toList;
 
 /**
  * Executed to add or remove a member to the Raft group.
  * <p>
- * If the membership change mode is {@link MembershipChangeMode#ADD} but
- * the given member already exists in the group, then the future is notified
- * with {@link IllegalStateException}.
+ * If the membership change mode is {@link MembershipChangeMode#ADD_LEARNER} but the given member already exists in the Raft
+ * group, or the membership change mode is {@link MembershipChangeMode#ADD_OR_PROMOTE_TO_FOLLOWER} but the given member already
+ * exists in the Raft group as a voting member, then the future is notified with {@link IllegalArgumentException}.
  * <p>
- * If the membership change mode is {@link MembershipChangeMode#REMOVE} but
- * the member does not exist in the Raft group, then the future is notified
- * with {@link IllegalStateException}.
+ * If the membership change mode is {@link MembershipChangeMode#REMOVE_MEMBER} but the member does not exist in the Raft group,
+ * then the future is notified with {@link IllegalStateException}.
  * <p>
- * This task creates an instance of {@link UpdateRaftGroupMembersOp} that
- * includes the requested membership change and the new member list of the Raft
- * group, and replicates this operation to the Raft group via passing it to
- * {@link ReplicateTask}.
+ * This task creates an instance of {@link UpdateRaftGroupMembersOp} that includes the requested membership change and the new
+ * member list of the Raft group, and replicates this operation to the Raft group via passing it to {@link ReplicateTask}.
  *
  * @see MembershipChangeMode
  */
@@ -79,56 +78,84 @@ public final class MembershipChangeTask
         this.membershipChangeMode = membershipChangeMode;
     }
 
-    @Override
-    public void run() {
+    @Override public void run() {
         try {
             if (!verifyRaftNodeStatus()) {
                 return;
             } else if (state.role() != LEADER) {
                 future.fail(raftNode.newNotLeaderException());
                 return;
-            } else if (!verifyGroupMemberCommitIndex()) {
+            } else if (!verifyGroupMembersCommitIndex()) {
                 return;
-            }
-
-            Collection<RaftEndpoint> members = new LinkedHashSet<>(state.members());
-            boolean memberExists = members.contains(endpoint);
-
-            if (membershipChangeMode == null) {
+            } else if (membershipChangeMode == null) {
                 future.fail(new IllegalArgumentException("Null membership change mode!"));
                 return;
             }
 
+            RaftGroupMembersState effectiveMembers = state.effectiveGroupMembers();
+            Collection<RaftEndpoint> members = new LinkedHashSet<>(effectiveMembers.getMembers());
+            Collection<RaftEndpoint> votingMembers = new LinkedHashSet<>(effectiveMembers.getVotingMembers());
+
             switch (membershipChangeMode) {
-                case ADD:
-                    if (memberExists) {
+                case ADD_LEARNER:
+                    if (members.contains(endpoint)) {
                         String msg = endpoint + " already exists in " + members + " of group " + raftNode.getGroupId();
                         future.fail(new IllegalArgumentException(msg));
                         return;
+                    } else if (members.size() - votingMembers.size() == MAX_LEARNER_COUNT) {
+                        String msg = "Cannot add " + endpoint + " to group " + raftNode.getGroupId() + " as 3rd " + LEARNER;
+                        future.fail(new IllegalArgumentException(msg));
+                        return;
+                    } else if (state.initialMembers().isKnownMember(endpoint)) {
+                        String msg = endpoint + " already exists in the initial member list: " + members + " of group " + raftNode
+                                .getGroupId();
+                        future.fail(new IllegalArgumentException(msg));
+                        return;
                     }
+
                     members.add(endpoint);
                     break;
-                case REMOVE:
-                    if (!memberExists) {
+                case ADD_OR_PROMOTE_TO_FOLLOWER:
+                    if (votingMembers.contains(endpoint)) {
+                        String msg = endpoint + " is already a voting member in group " + raftNode.getGroupId();
+                        future.fail(new IllegalArgumentException(msg));
+                        return;
+                    }
+
+                    members.add(endpoint);
+                    votingMembers.add(endpoint);
+                    break;
+                case REMOVE_MEMBER:
+                    if (!members.contains(endpoint)) {
                         String msg = endpoint + " does not exist in " + members + " of group " + raftNode.getGroupId();
                         future.fail(new IllegalArgumentException(msg));
                         return;
-                    } else if (members.size() == 1) {
+                    } else if (votingMembers.size() == 1 && votingMembers.contains(state.localEndpoint()) && endpoint.equals(
+                            state.localEndpoint())) {
                         String msg = "Cannot remove " + endpoint + " from singleton group " + raftNode.getGroupId();
                         future.fail(new IllegalStateException(msg));
                         return;
                     }
+
                     members.remove(endpoint);
+                    votingMembers.remove(endpoint);
                     break;
                 default:
                     future.fail(new IllegalArgumentException("Unknown membership change mode: " + membershipChangeMode));
                     return;
             }
 
-            LOGGER.info("{} New group members after {} of {} -> {}", raftNode.localEndpointStr(), membershipChangeMode,
-                        endpoint.getId(), members.stream().map(RaftEndpoint::getId).collect(toList()));
-            RaftGroupOp operation = raftNode.getModelFactory().createUpdateRaftGroupMembersOpBuilder().setMembers(members)
-                                            .setEndpoint(endpoint).setMode(membershipChangeMode).build();
+            LOGGER.info("{} New group members after {} of {}: {}, voting members: {}", raftNode.localEndpointStr(),
+                        membershipChangeMode, endpoint.getId(), members.stream().map(RaftEndpoint::getId).collect(toList()),
+                        votingMembers.stream().map(RaftEndpoint::getId).collect(toList()));
+
+            RaftGroupOp operation = raftNode.getModelFactory()
+                                            .createUpdateRaftGroupMembersOpBuilder()
+                                            .setMembers(members)
+                                            .setVotingMembers(votingMembers)
+                                            .setEndpoint(endpoint)
+                                            .setMode(membershipChangeMode)
+                                            .build();
             new ReplicateTask(raftNode, operation, future).run();
         } catch (Throwable t) {
             LOGGER.error(raftNode.localEndpointStr() + " " + this + " failed.", t);
@@ -153,11 +180,11 @@ public final class MembershipChangeTask
         return true;
     }
 
-    private boolean verifyGroupMemberCommitIndex() {
+    private boolean verifyGroupMembersCommitIndex() {
         RaftGroupMembersState groupMembers = state.committedGroupMembers();
         if (groupMembers.getLogIndex() != groupMembersCommitIndex) {
             LOGGER.error("{} Cannot {} {} because expected members commit index: {} is different than group members commit"
-                                 + " index: {}", raftNode.localEndpointStr(), membershipChangeMode, endpoint.getId(),
+                         + " index: {}", raftNode.localEndpointStr(), membershipChangeMode, endpoint.getId(),
                          groupMembersCommitIndex, groupMembers.getLogIndex());
             Throwable t = new MismatchingRaftGroupMembersCommitIndexException(groupMembers.getLogIndex(),
                                                                               groupMembers.getMembers());
@@ -168,10 +195,9 @@ public final class MembershipChangeTask
         return true;
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         return "MembershipChangeTask{" + "groupMembersCommitIndex=" + groupMembersCommitIndex + ", member=" + endpoint
-                + ", membershipChangeMode=" + membershipChangeMode + '}';
+               + ", membershipChangeMode=" + membershipChangeMode + '}';
     }
 
 }

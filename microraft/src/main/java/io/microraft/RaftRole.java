@@ -20,28 +20,33 @@ package io.microraft;
 /**
  * The roles of Raft nodes as defined in the Raft consensus algorithm.
  * <p>
- * At any given time each Raft node is in one of three roles: {@link #LEADER},
- * {@link #FOLLOWER}, or {@link #CANDIDATE}.
+ * At any given time each Raft node is in one of roles defined here.
  */
 public enum RaftRole {
 
     /**
-     * Followers are passive. They issue no requests on their own
-     * and they just respond to requests sent by leaders and candidates.
-     * They can also handle queries if the {@link QueryPolicy#ANY_LOCAL} policy
-     * is used.
+     * A leader handles client requests, commit operations and orchestrates a Raft group.
      */
-    FOLLOWER,
+    LEADER,
 
     /**
-     * When a follower starts a new leader election, it first turns into
-     * a candidate. A candidate becomes leader if it wins the majority votes.
+     * When a follower starts a new leader election, it first turns into a candidate. A candidate becomes leader if it wins the
+     * majority votes.
      */
     CANDIDATE,
 
     /**
-     * A leader handles client requests, commit operations and orchestrates
-     * a Raft group.
+     * Followers issue no requests on their own. They respond to append-entries requests sent by leaders. Followers are also
+     * voting members. They respond to vote requests sent by candidates. They can also run queries if {@link
+     * QueryPolicy#ANY_LOCAL} is used.
      */
-    LEADER
+    FOLLOWER,
+
+    /**
+     * Learners issue no requests on their own. They only respond to append-entries requests sent by leaders. Learners are
+     * non-voting members. They do not turn into candidates and do not receive vote requests from other candidates during leader
+     * election rounds.
+     */
+    LEARNER
+
 }

@@ -21,6 +21,7 @@ import io.microraft.lifecycle.RaftNodeLifecycleAware;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp.UpdateRaftGroupMembersOpBuilder;
 import io.microraft.model.impl.DefaultRaftModelFactory;
 import io.microraft.model.log.LogEntry.LogEntryBuilder;
+import io.microraft.model.log.RaftGroupMembersView.RaftGroupMembersViewBuilder;
 import io.microraft.model.log.SnapshotChunk.SnapshotChunkBuilder;
 import io.microraft.model.log.SnapshotEntry.SnapshotEntryBuilder;
 import io.microraft.model.message.AppendEntriesFailureResponse.AppendEntriesFailureResponseBuilder;
@@ -89,13 +90,12 @@ public interface RaftModelFactory {
     @Nonnull
     TriggerLeaderElectionRequestBuilder createTriggerLeaderElectionRequestBuilder();
 
-    @Nonnull
-    VoteRequestBuilder createVoteRequestBuilder();
+    @Nonnull VoteRequestBuilder createVoteRequestBuilder();
 
-    @Nonnull
-    VoteResponseBuilder createVoteResponseBuilder();
+    @Nonnull VoteResponseBuilder createVoteResponseBuilder();
 
-    @Nonnull
-    UpdateRaftGroupMembersOpBuilder createUpdateRaftGroupMembersOpBuilder();
+    @Nonnull UpdateRaftGroupMembersOpBuilder createUpdateRaftGroupMembersOpBuilder();
+
+    @Nonnull RaftGroupMembersViewBuilder createRaftGroupMembersViewBuilder();
 
 }

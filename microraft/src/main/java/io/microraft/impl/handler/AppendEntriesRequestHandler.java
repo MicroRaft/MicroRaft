@@ -38,6 +38,7 @@ import java.util.Map.Entry;
 import static io.microraft.RaftNodeStatus.ACTIVE;
 import static io.microraft.RaftNodeStatus.UPDATING_RAFT_GROUP_MEMBER_LIST;
 import static io.microraft.RaftRole.FOLLOWER;
+import static io.microraft.RaftRole.LEARNER;
 import static java.lang.Math.min;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
@@ -87,10 +88,10 @@ public class AppendEntriesRequestHandler
         RaftLog log = state.log();
 
         // Transform into follower if a newer term is seen or another node wins the election of the current term
-        if (request.getTerm() > state.term() || state.role() != FOLLOWER) {
+        if (request.getTerm() > state.term() || (state.role() != FOLLOWER && state.role() != LEARNER)) {
             // If the request term is greater than the local term, update the local term and convert to follower (§5.1)
-            LOGGER.info("{} Demoting to FOLLOWER from current role: {}, term: {} to new term: {} and leader: {}",
-                        localEndpointStr(), state.role(), state.term(), request.getTerm(), leader.getId());
+            LOGGER.info("{} Moving to new term: {} and leader: {} from current term: {}.", localEndpointStr(), request.getTerm(),
+                        leader.getId(), state.term());
             node.toFollower(request.getTerm());
         }
 
@@ -253,7 +254,8 @@ public class AppendEntriesRequestHandler
             Object operation = logEntry.getOperation();
             if (operation instanceof UpdateRaftGroupMembersOp) {
                 node.setStatus(UPDATING_RAFT_GROUP_MEMBER_LIST);
-                node.updateGroupMembers(logEntry.getIndex(), ((UpdateRaftGroupMembersOp) operation).getMembers());
+                UpdateRaftGroupMembersOp groupOp = (UpdateRaftGroupMembersOp) operation;
+                node.updateGroupMembers(logEntry.getIndex(), groupOp.getMembers(), groupOp.getVotingMembers());
             } else {
                 assert false : "Invalid Raft group operation: " + operation + " in " + node.getGroupId();
             }

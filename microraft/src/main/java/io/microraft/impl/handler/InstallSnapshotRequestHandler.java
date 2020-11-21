@@ -38,6 +38,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import static io.microraft.RaftRole.FOLLOWER;
+import static io.microraft.RaftRole.LEARNER;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
@@ -121,10 +122,10 @@ public class InstallSnapshotRequestHandler
         }
 
         // Transform into follower if a newer term is seen or another node wins the election of the current term
-        if (request.getTerm() > state.term() || state.role() != FOLLOWER) {
+        if (request.getTerm() > state.term() || (state.role() != FOLLOWER && state.role() != LEARNER)) {
             // If the request term is greater than the local term, update the local term and convert to follower (§5.1)
-            LOGGER.info("{} Demoting to FOLLOWER from current role: {}, term: {} to new term: {} and sender: {}",
-                        localEndpointStr(), state.role(), state.term(), request.getTerm(), sender.getId());
+            LOGGER.info("{} Moving to new term: {} from current term: {} and sender: {}", localEndpointStr(), request.getTerm(),
+                        state.term(), sender.getId());
 
             node.toFollower(request.getTerm());
 
@@ -151,7 +152,7 @@ public class InstallSnapshotRequestHandler
             SnapshotEntryBuilder snapshotEntryBuilder = node.getModelFactory().createSnapshotEntryBuilder();
             node.installSnapshot(snapshotChunkCollector.buildSnapshotEntry(snapshotEntryBuilder));
             sendAppendEntriesSuccessResponse(request);
-            // TODO [basri] maybe flush here? no need for safety but does it help to perf?
+            // TODO(basri): maybe flush here? no need for safety but does it help to perf?
         } else {
             requestMissingSnapshotChunks(request, snapshotChunkCollector);
         }
@@ -315,9 +316,14 @@ public class InstallSnapshotRequestHandler
 
         for (Entry<RaftEndpoint, Integer> e : requestedSnapshotChunkIndices.entrySet()) {
             RaftEndpoint target = e.getKey();
-            RaftMessage response = node.getModelFactory().createInstallSnapshotResponseBuilder().setGroupId(node.getGroupId())
-                                       .setSender(localEndpoint()).setTerm(state.term()).setSnapshotIndex(snapshotIndex)
-                                       .setRequestedSnapshotChunkIndex(e.getValue()).setQuerySequenceNumber(0)
+            RaftMessage response = node.getModelFactory()
+                                       .createInstallSnapshotResponseBuilder()
+                                       .setGroupId(node.getGroupId())
+                                       .setSender(localEndpoint())
+                                       .setTerm(state.term())
+                                       .setSnapshotIndex(snapshotIndex)
+                                       .setRequestedSnapshotChunkIndex(e.getValue())
+                                       .setQuerySequenceNumber(0)
                                        .setFlowControlSequenceNumber(0)
                                        .build();
 

@@ -33,31 +33,28 @@ import java.util.Collection;
 public interface UpdateRaftGroupMembersOp
         extends RaftGroupOp {
 
-    @Nonnull
-    Collection<RaftEndpoint> getMembers();
+    @Nonnull Collection<RaftEndpoint> getMembers();
 
-    @Nonnull
-    RaftEndpoint getEndpoint();
+    @Nonnull Collection<RaftEndpoint> getVotingMembers();
 
-    @Nonnull
-    MembershipChangeMode getMode();
+    @Nonnull RaftEndpoint getEndpoint();
+
+    @Nonnull MembershipChangeMode getMode();
 
     /**
      * The builder interface for {@link UpdateRaftGroupMembersOp}.
      */
     interface UpdateRaftGroupMembersOpBuilder {
 
-        @Nonnull
-        UpdateRaftGroupMembersOpBuilder setMembers(@Nonnull Collection<RaftEndpoint> members);
+        @Nonnull UpdateRaftGroupMembersOpBuilder setMembers(@Nonnull Collection<RaftEndpoint> members);
 
-        @Nonnull
-        UpdateRaftGroupMembersOpBuilder setEndpoint(@Nonnull RaftEndpoint endpoint);
+        @Nonnull UpdateRaftGroupMembersOpBuilder setVotingMembers(@Nonnull Collection<RaftEndpoint> votingMembers);
 
-        @Nonnull
-        UpdateRaftGroupMembersOpBuilder setMode(@Nonnull MembershipChangeMode mode);
+        @Nonnull UpdateRaftGroupMembersOpBuilder setEndpoint(@Nonnull RaftEndpoint endpoint);
 
-        @Nonnull
-        UpdateRaftGroupMembersOp build();
+        @Nonnull UpdateRaftGroupMembersOpBuilder setMode(@Nonnull MembershipChangeMode mode);
+
+        @Nonnull UpdateRaftGroupMembersOp build();
 
     }
 

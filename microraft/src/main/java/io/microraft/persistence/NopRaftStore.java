@@ -19,11 +19,11 @@ package io.microraft.persistence;
 
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.LogEntry;
+import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
 
 /**
  * Used when a Raft node works transiently (its state is not persisted).
@@ -31,20 +31,20 @@ import java.util.Collection;
 public class NopRaftStore
         implements RaftStore {
 
-    @Override
-    public void persistInitialMembers(@Nonnull RaftEndpoint localEndpoint, @Nonnull Collection<RaftEndpoint> initialMembers) {
+    @Override public void persistAndFlushLocalEndpoint(RaftEndpoint localEndpoint, boolean localEndpointVoting) {
+
     }
 
-    @Override
-    public void persistTerm(int term, @Nullable RaftEndpoint votedFor) {
+    @Override public void persistAndFlushInitialGroupMembers(@Nonnull RaftGroupMembersView initialGroupMembers) {
     }
 
-    @Override
-    public void persistLogEntry(@Nonnull LogEntry logEntry) {
+    @Override public void persistAndFlushTerm(int term, @Nullable RaftEndpoint votedFor) {
     }
 
-    @Override
-    public void persistSnapshotChunk(@Nonnull SnapshotChunk snapshotChunk) {
+    @Override public void persistLogEntry(@Nonnull LogEntry logEntry) {
+    }
+
+    @Override public void persistSnapshotChunk(@Nonnull SnapshotChunk snapshotChunk) {
     }
 
     @Override

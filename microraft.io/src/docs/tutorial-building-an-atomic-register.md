@@ -531,7 +531,7 @@ target="_blank">MicroRaft Github repository</a>.
 
 -----
 
-## 5. Operating the Raft group
+## 5. Extending the Raft group
 
 Ok. We covered a lot of topics up until this part. There are only a few things
 left to discuss. In this part, we will see how we can perform changes in Raft
@@ -582,8 +582,8 @@ group in the following lines:
 ~~~~{.java}
 RaftEndpoint endpoint4 = LocalRaftEndpoint.newEndpoint();
 // group members commit index of the initial Raft group members is 0.
-RaftGroupMembers newMemberList1 = leader.changeMembership(endpoint4, MembershipChangeMode.ADD, 0).join().getResult();
-System.out.println("New member list: " + newMemberList1.getMembers() + ", majority: " + newMemberList1.getMajority()
+RaftGroupMembers newMemberList1 = leader.changeMembership(endpoint4, MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER, 0).join().getResult();
+System.out.println("New member list: " + newMemberList1.getMembers() + ", majority: " + newMemberList1.getMajorityQuorumSize()
                            + ", commit index: " + newMemberList1.getLogIndex());
 
 // endpoint4 is now part of the member list. Let's start its Raft node
@@ -609,10 +609,10 @@ handle failure of only 1 Raft node. Since we want to achieve better
 availability, we will add one more Raft node to our Raft group.
 
 So we create another Raft endpoint, `endpoint5`, add it to the Raft group, and
-start its Raft node. But this time, as the *group members commit index*
-parameter, we pass `newMemberList1.getLogIndex()` which is the log index
-`endpoint4` is added to the Raft group. Please note that we could also get the
-current Raft group members commit index via `RaftNode.getCommittedMembers()`.
+start its Raft node. However, as the *group members commit index* parameter, we 
+pass `newMemberList1.getLogIndex()` which is the log index `endpoint4` is added 
+to the Raft group. Please note that we could also get the current Raft group
+members commit index via `RaftNode.getCommittedMembers()`.
 
 Our second `sysout` line prints the following:
 
@@ -620,9 +620,25 @@ Our second `sysout` line prints the following:
 New member list: [LocalRaftEndpoint{id=node1}, LocalRaftEndpoint{id=node2}, LocalRaftEndpoint{id=node3}, LocalRaftEndpoint{id=node4}, LocalRaftEndpoint{id=node5}], majority: 3, commit index: 5
 ~~~~
 
-Now we have 5 nodes in our Raft group and the majority quorum size is still 3.
-It means that now our Raft group can tolerate failure of 2 Raft nodes and still
+Now we have 5 nodes in our Raft group with the majority quorum size of 3. It 
+means that now our Raft group can tolerate failure of 2 Raft nodes and still
 remain operational. Voila!
+
+In this example, for the sake of simplicity, we add new Raft nodes to the Raft 
+group with `MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER`. With this mode,
+the Raft node is directly added as a _follower_, and the majority quorum size 
+of the Raft group increases to 3. However, in real life use cases, Raft nodes
+can contain large state, and it may take some time until the new Raft node 
+catches up with the leader. Because of this, increasing the majority quorum 
+size may cause availability gaps if failures occur before the new Raft node
+catches up. To prevent this, MicroRaft offers another membership change mode,
+`MembershipChangeMode.ADD_LEARNER`, to add new Raft nodes. With this mode, the
+new Raft node is added with the _learner_ role. Learner Raft nodes are excluded
+in majority calculations, hence adding a new learner Raft node to the Raft 
+group does not change the majority quorum size. Once the new learner Raft node
+catches up, it can be promoted to the _follower_ role by triggering another 
+membership change: `MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER`.
+
 
 -----
 

@@ -16,12 +16,10 @@
 
 package io.microraft.model.log;
 
-import io.microraft.RaftEndpoint;
 import io.microraft.statemachine.StateMachine;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -44,10 +42,7 @@ public interface SnapshotEntry
 
     int getSnapshotChunkCount();
 
-    long getGroupMembersLogIndex();
-
-    @Nonnull
-    Collection<RaftEndpoint> getGroupMembers();
+    @Nonnull RaftGroupMembersView getGroupMembersView();
 
     /**
      * The builder interface for {@link SnapshotEntry}.
@@ -63,11 +58,7 @@ public interface SnapshotEntry
         @Nonnull
         SnapshotEntryBuilder setSnapshotChunks(@Nonnull List<SnapshotChunk> snapshotChunks);
 
-        @Nonnull
-        SnapshotEntryBuilder setGroupMembersLogIndex(long groupMembersLogIndex);
-
-        @Nonnull
-        SnapshotEntryBuilder setGroupMembers(@Nonnull Collection<RaftEndpoint> groupMembers);
+        @Nonnull SnapshotEntryBuilder setGroupMembersView(@Nonnull RaftGroupMembersView groupMembersView);
 
         @Nonnull
         SnapshotEntry build();

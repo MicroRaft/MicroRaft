@@ -20,10 +20,13 @@ import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.RaftNode.RaftNodeBuilder;
+import io.microraft.RaftRole;
 import io.microraft.executor.RaftNodeExecutor;
 import io.microraft.executor.impl.DefaultRaftNodeExecutor;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.model.impl.DefaultRaftModelFactory;
+import io.microraft.model.impl.log.DefaultRaftGroupMembersViewOrBuilder;
+import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.persistence.NopRaftStore;
 import io.microraft.persistence.RaftStore;
 import io.microraft.persistence.RestoredRaftState;
@@ -33,8 +36,10 @@ import io.microraft.transport.Transport;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 
 import static io.microraft.RaftConfig.DEFAULT_RAFT_CONFIG;
+import static io.microraft.report.RaftGroupMembers.MAX_LEARNER_COUNT;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -46,6 +51,7 @@ public class RaftNodeBuilderImpl
     private Object groupId;
     private RaftEndpoint localEndpoint;
     private Collection<RaftEndpoint> initialGroupMembers;
+    private Collection<RaftEndpoint> initialVotingGroupMembers;
     private RestoredRaftState restoredState;
     private RaftConfig config = DEFAULT_RAFT_CONFIG;
     private RaftNodeExecutor executor = new DefaultRaftNodeExecutor();
@@ -75,20 +81,27 @@ public class RaftNodeBuilderImpl
         return this;
     }
 
-    @Nonnull
-    @Override
-    public RaftNodeBuilder setInitialGroupMembers(@Nonnull Collection<RaftEndpoint> initialGroupMembers) {
+    @Nonnull @Override public RaftNodeBuilder setInitialGroupMembers(@Nonnull Collection<RaftEndpoint> initialGroupMembers) {
         if (this.restoredState != null) {
             throw new IllegalStateException("Initial group members cannot be set when restored Raft state is provided!");
         }
 
-        this.initialGroupMembers = requireNonNull(initialGroupMembers);
+        this.initialGroupMembers = new LinkedHashSet<>(requireNonNull(initialGroupMembers));
+        this.initialVotingGroupMembers = new LinkedHashSet<>(this.initialGroupMembers);
         return this;
     }
 
-    @Nonnull
-    @Override
-    public RaftNodeBuilder setRestoredState(@Nonnull RestoredRaftState restoredState) {
+    @Nonnull @Override
+    public RaftNodeBuilder setInitialGroupMembers(@Nonnull Collection<RaftEndpoint> initialGroupMembers,
+                                                  @Nonnull Collection<RaftEndpoint> initialVotingGroupMembers) {
+        this.initialGroupMembers = new LinkedHashSet<>(requireNonNull(initialGroupMembers));
+        Collection<RaftEndpoint> votingMembers = new LinkedHashSet<>(initialGroupMembers);
+        votingMembers.retainAll(requireNonNull(initialVotingGroupMembers));
+        this.initialVotingGroupMembers = votingMembers;
+        return this;
+    }
+
+    @Nonnull @Override public RaftNodeBuilder setRestoredState(@Nonnull RestoredRaftState restoredState) {
         if (this.localEndpoint != null || this.initialGroupMembers != null) {
             throw new IllegalStateException(
                     "Restored state cannot be set when either local member or initial group members is provided!");
@@ -154,10 +167,13 @@ public class RaftNodeBuilderImpl
             throw new IllegalStateException("Raft node is already built!");
         }
 
-        if (!((localEndpoint != null && initialGroupMembers != null && !initialGroupMembers.isEmpty())
-                || restoredState != null)) {
-            throw new IllegalStateException(
-                    "Either local Raft endpoint and initial Raft group members, or restored state must be provided!");
+        if (!((localEndpoint != null && initialGroupMembers != null && !initialGroupMembers.isEmpty()
+               && !initialVotingGroupMembers.isEmpty()
+               && initialGroupMembers.size() - initialVotingGroupMembers.size() <= MAX_LEARNER_COUNT) || restoredState != null)) {
+            String message =
+                    "Either local Raft endpoint and initial Raft group members, or restored state must be provided! In addition, "
+                    + "there can be at most " + MAX_LEARNER_COUNT + " " + RaftRole.LEARNER + "s";
+            throw new IllegalStateException(message);
         }
 
         done = true;
@@ -165,8 +181,14 @@ public class RaftNodeBuilderImpl
             return new RaftNodeImpl(groupId, restoredState, config, executor, stateMachine, transport, modelFactory, store,
                                     listener);
         } else {
-            return new RaftNodeImpl(groupId, localEndpoint, initialGroupMembers, config, executor, stateMachine, transport,
-                                    modelFactory, store, listener);
+            // this groupMembers object does not hit network or disk.
+            RaftGroupMembersView groupMembers = new DefaultRaftGroupMembersViewOrBuilder().setLogIndex(0)
+                                                                                          .setMembers(initialGroupMembers)
+                                                                                          .setVotingMembers(
+                                                                                                  initialVotingGroupMembers)
+                                                                                          .build();
+            return new RaftNodeImpl(groupId, localEndpoint, groupMembers, config, executor, stateMachine, transport, modelFactory,
+                                    store, listener);
         }
     }
 

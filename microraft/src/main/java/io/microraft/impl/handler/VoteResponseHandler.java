@@ -65,8 +65,8 @@ public class VoteResponseHandler
             return;
         } else if (response.getTerm() > state.term()) {
             // If the response term is greater than the local term, update the local term and convert to follower (§5.1)
-            LOGGER.info("{} Demoting to FOLLOWER from current term: {} to new term: {} after {}", localEndpointStr(),
-                        state.term(), response.getTerm(), response);
+            LOGGER.info("{} Moving to new term: {} from current term: {} after {}", localEndpointStr(), response.getTerm(),
+                        state.term(), response);
             node.toFollower(response.getTerm());
             return;
         } else if (response.getTerm() < state.term()) {

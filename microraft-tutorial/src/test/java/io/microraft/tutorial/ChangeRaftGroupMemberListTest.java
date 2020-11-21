@@ -60,9 +60,12 @@ public class ChangeRaftGroupMemberListTest
         // group, then start its RaftNode instance.
         RaftEndpoint endpoint4 = LocalRaftEndpoint.newEndpoint();
         // group members commit index of the initial Raft group members is 0.
-        RaftGroupMembers newMemberList1 = leader.changeMembership(endpoint4, MembershipChangeMode.ADD, 0).join().getResult();
-        System.out.println("New member list: " + newMemberList1.getMembers() + ", majority: " + newMemberList1.getMajority()
-                                   + ", commit index: " + newMemberList1.getLogIndex());
+        RaftGroupMembers newMemberList1 = leader.changeMembership(endpoint4, MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER, 0)
+                                                .join()
+                                                .getResult();
+        System.out.println(
+                "New member list: " + newMemberList1.getMembers() + ", majority: " + newMemberList1.getMajorityQuorumSize()
+                + ", commit index: " + newMemberList1.getLogIndex());
 
         // endpoint4 is now part of the member list. Let's start its Raft node
         RaftNode raftNode4 = createRaftNode(endpoint4);
@@ -75,10 +78,11 @@ public class ChangeRaftGroupMemberListTest
         // we need the commit index of the current Raft group member list for
         // adding endpoint5. We can get it either from
         // newMemberList1.getCommitIndex() or leader.getCommittedMembers().
-        RaftGroupMembers newMemberList2 = leader
-                .changeMembership(endpoint5, MembershipChangeMode.ADD, newMemberList1.getLogIndex()).join().getResult();
-        System.out.println("New member list: " + newMemberList2.getMembers() + ", majority: " + newMemberList2.getMajority()
-                                   + ", commit index: " + newMemberList2.getLogIndex());
+        RaftGroupMembers newMemberList2 = leader.changeMembership(endpoint5, MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER,
+                                                                  newMemberList1.getLogIndex()).join().getResult();
+        System.out.println(
+                "New member list: " + newMemberList2.getMembers() + ", majority: " + newMemberList2.getMajorityQuorumSize()
+                + ", commit index: " + newMemberList2.getLogIndex());
 
         // endpoint5 is also part of the member list now. Let's start its Raft node
         RaftNode raftNode5 = createRaftNode(endpoint5);

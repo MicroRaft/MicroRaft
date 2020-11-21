@@ -20,6 +20,7 @@ package io.microraft.impl.log;
 import io.microraft.RaftEndpoint;
 import io.microraft.impl.handler.InstallSnapshotRequestHandler;
 import io.microraft.impl.handler.InstallSnapshotResponseHandler;
+import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotEntry;
 import io.microraft.model.log.SnapshotEntry.SnapshotEntryBuilder;
@@ -59,25 +60,22 @@ public final class SnapshotChunkCollector {
     private final Collection<RaftEndpoint> snapshottedMembers = new HashSet<>();
     private final List<SnapshotChunk> chunks = new ArrayList<>();
     private final Set<Integer> missingChunkIndices = new LinkedHashSet<>();
-    private long groupMembersLogIndex;
-    private Collection<RaftEndpoint> groupMembers;
-    private Map<RaftEndpoint, Integer> requestedMembers = new HashMap<>();
-    private Set<RaftEndpoint> unresponsiveMembers = new HashSet<>();
+    private final RaftGroupMembersView groupMembersView;
+    private final Map<RaftEndpoint, Integer> requestedMembers = new HashMap<>();
+    private final Set<RaftEndpoint> unresponsiveMembers = new HashSet<>();
 
     public SnapshotChunkCollector(InstallSnapshotRequest request) {
         this(request.getSnapshotIndex(), request.getSnapshotTerm(), request.getTotalSnapshotChunkCount(),
-             request.getSnapshottedMembers(), request.getGroupMembersLogIndex(), request.getGroupMembers());
+             request.getSnapshottedMembers(), request.getGroupMembersView());
     }
 
     private SnapshotChunkCollector(long snapshotIndex, int snapshotTerm, int chunkCount,
-                                   Collection<RaftEndpoint> snapshottedMembers, long groupMembersLogIndex,
-                                   Collection<RaftEndpoint> groupMembers) {
+                                   Collection<RaftEndpoint> snapshottedMembers, RaftGroupMembersView groupMembersView) {
         this.snapshotIndex = snapshotIndex;
         this.snapshotTerm = snapshotTerm;
         this.chunkCount = chunkCount;
         this.snapshottedMembers.addAll(snapshottedMembers);
-        this.groupMembersLogIndex = groupMembersLogIndex;
-        this.groupMembers = groupMembers;
+        this.groupMembersView = groupMembersView;
         IntStream.range(0, chunkCount).forEach(missingChunkIndices::add);
     }
 
@@ -100,7 +98,7 @@ public final class SnapshotChunkCollector {
                             + this.snapshotIndex);
         }
 
-        // TODO [basri] exponential backoff maybe?
+        // TODO(basri): exponential backoff maybe?
 
         // Un-mark the unresponsive endpoint even if the given chunk is already here
         unresponsiveMembers.remove(endpoint);
@@ -172,14 +170,6 @@ public final class SnapshotChunkCollector {
         return snapshotTerm;
     }
 
-    public long getGroupMembersLogIndex() {
-        return groupMembersLogIndex;
-    }
-
-    public Collection<RaftEndpoint> getGroupMembers() {
-        return groupMembers;
-    }
-
     public List<SnapshotChunk> getChunks() {
         return chunks;
     }
@@ -188,17 +178,20 @@ public final class SnapshotChunkCollector {
         if (missingChunkIndices.size() > 0) {
             throw new IllegalStateException(
                     "Cannot build snapshot entry because there are missing snapshot chunks: " + missingChunkIndices
-                            + " for snapshot index: " + snapshotIndex + " and snapshot chunk count: " + chunkCount);
+                    + " for snapshot index: " + snapshotIndex + " and snapshot chunk count: " + chunkCount);
         }
 
-        return builder.setTerm(snapshotTerm).setIndex(snapshotIndex).setGroupMembersLogIndex(groupMembersLogIndex)
-                      .setGroupMembers(groupMembers).setSnapshotChunks(chunks).build();
+        return builder.setTerm(snapshotTerm)
+                      .setIndex(snapshotIndex)
+                      .setGroupMembersView(groupMembersView)
+                      .setSnapshotChunks(chunks)
+                      .build();
     }
 
     // for testing
     public SnapshotChunkCollector copy() {
         SnapshotChunkCollector copy = new SnapshotChunkCollector(snapshotIndex, snapshotTerm, chunkCount, snapshottedMembers,
-                                                                 groupMembersLogIndex, groupMembers);
+                                                                 groupMembersView);
         copy.chunks.addAll(chunks);
         copy.missingChunkIndices.addAll(missingChunkIndices);
         copy.unresponsiveMembers.addAll(unresponsiveMembers);

@@ -28,6 +28,7 @@ import javax.annotation.Nonnull;
 
 import static io.microraft.RaftRole.FOLLOWER;
 import static io.microraft.RaftRole.LEADER;
+import static io.microraft.RaftRole.LEARNER;
 
 /**
  * Handles an {@link InstallSnapshotResponse} sent by a Raft follower and
@@ -72,11 +73,11 @@ public class InstallSnapshotResponseHandler
             if (state.role() == LEADER) {
                 LOGGER.warn("{} Ignored invalid response {} for current term: {}", localEndpointStr(), response, state.term());
                 return;
-            } else if (state.role() != FOLLOWER) {
+            } else if (state.role() != FOLLOWER && state.role() != LEARNER) {
                 // If the request term is greater than the local term,
                 // update the local term and convert to follower (§5.1)
-                LOGGER.info("{} Demoting to FOLLOWER from current role: {}, term: {} to new term: {} and sender: {}",
-                            localEndpointStr(), state.role(), state.term(), response.getTerm(), response.getSender().getId());
+                LOGGER.info("{} Moving to new term: {} from current term: {} and sender: {}", localEndpointStr(),
+                            response.getTerm(), state.term(), response.getSender().getId());
 
                 node.toFollower(response.getTerm());
             }

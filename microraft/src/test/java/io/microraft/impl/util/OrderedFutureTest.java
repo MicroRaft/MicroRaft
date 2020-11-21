@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.junit.Assert.fail;
 
 public class OrderedFutureTest
         extends BaseTest {
@@ -64,6 +64,7 @@ public class OrderedFutureTest
         assertThat(future).isCompletedExceptionally();
         try {
             future.join();
+            fail();
         } catch (CompletionException e) {
             assertThat(e).hasCauseInstanceOf(NullPointerException.class);
         }

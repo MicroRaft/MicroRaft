@@ -37,13 +37,11 @@ import static io.microraft.RaftNodeStatus.isTerminal;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
- * Triggers the leadership transfer process for the given Raft endpoint.
- * If the local Raft node is not leader, or there is an ongoing membership
- * change, or the target Raft endpoint is not in the committed raft group
- * members, the leadership transfer process immediately fails.
+ * Triggers the leadership transfer process for the given Raft endpoint. If the local Raft node is not leader, or there is an
+ * ongoing membership change, or the target Raft endpoint is not in the committed raft group members, the leadership transfer
+ * process immediately fails.
  * <p>
- * New appends are temporarily rejected until the leadership transfer process
- * completes.
+ * New appends are temporarily rejected until the leadership transfer process completes.
  */
 public class TransferLeadershipTask
         implements Runnable {
@@ -60,8 +58,7 @@ public class TransferLeadershipTask
         this.future = future;
     }
 
-    @Override
-    public void run() {
+    @Override public void run() {
         RaftState state = node.state();
 
         if (checkLeadershipTransfer(state)) {
@@ -86,9 +83,9 @@ public class TransferLeadershipTask
             return true;
         }
 
-        if (!node.getCommittedMembers().getMembers().contains(targetEndpoint)) {
+        if (!node.getCommittedMembers().getVotingMembers().contains(targetEndpoint)) {
             future.fail(new IllegalArgumentException("Cannot transfer leadership to " + targetEndpoint
-                                                             + " because it is not in the committed group member list!"));
+                                                     + " because it is not in the committed voting group members!"));
             return true;
         }
 
@@ -151,9 +148,14 @@ public class TransferLeadershipTask
         node.sendAppendEntriesRequest(targetEndpoint);
 
         BaseLogEntry entry = state.log().lastLogOrSnapshotEntry();
-        RaftMessage request = node.getModelFactory().createTriggerLeaderElectionRequestBuilder().setGroupId(node.getGroupId())
-                                  .setSender(node.getLocalEndpoint()).setTerm(state.term()).setLastLogTerm(entry.getTerm())
-                                  .setLastLogIndex(entry.getIndex()).build();
+        RaftMessage request = node.getModelFactory()
+                                  .createTriggerLeaderElectionRequestBuilder()
+                                  .setGroupId(node.getGroupId())
+                                  .setSender(node.getLocalEndpoint())
+                                  .setTerm(state.term())
+                                  .setLastLogTerm(entry.getTerm())
+                                  .setLastLogIndex(entry.getIndex())
+                                  .build();
         node.send(targetEndpoint, request);
         scheduleRetry(state);
     }

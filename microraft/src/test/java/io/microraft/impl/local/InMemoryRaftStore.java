@@ -21,6 +21,7 @@ import io.microraft.RaftEndpoint;
 import io.microraft.impl.log.RaftLog;
 import io.microraft.model.impl.log.DefaultSnapshotEntryOrBuilder;
 import io.microraft.model.log.LogEntry;
+import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotEntry;
 import io.microraft.persistence.RaftStore;
@@ -29,10 +30,10 @@ import io.microraft.persistence.RestoredRaftState;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+
+import static java.util.Comparator.comparingInt;
 
 /**
  * A very simple in-memory {@link RaftStore} implementation used for testing.
@@ -41,7 +42,8 @@ public final class InMemoryRaftStore
         implements RaftStore {
 
     private RaftEndpoint localEndpoint;
-    private Collection<RaftEndpoint> initialMembers;
+    private boolean localEndpointVoting;
+    private RaftGroupMembersView initialGroupMembers;
     private int term;
     private RaftEndpoint votedFor;
     private RaftLog raftLog;
@@ -51,21 +53,21 @@ public final class InMemoryRaftStore
         this.raftLog = RaftLog.create(logCapacity);
     }
 
-    @Override
-    public synchronized void persistInitialMembers(@Nonnull RaftEndpoint localEndpoint,
-                                                   @Nonnull Collection<RaftEndpoint> initialMembers) {
+    @Override public void persistAndFlushLocalEndpoint(RaftEndpoint localEndpoint, boolean localEndpointVoting) {
         this.localEndpoint = localEndpoint;
-        this.initialMembers = initialMembers;
+        this.localEndpointVoting = localEndpointVoting;
     }
 
-    @Override
-    public synchronized void persistTerm(int term, @Nullable RaftEndpoint votedFor) {
+    @Override public synchronized void persistAndFlushInitialGroupMembers(@Nonnull RaftGroupMembersView initialGroupMembers) {
+        this.initialGroupMembers = initialGroupMembers;
+    }
+
+    @Override public synchronized void persistAndFlushTerm(int term, @Nullable RaftEndpoint votedFor) {
         this.term = term;
         this.votedFor = votedFor;
     }
 
-    @Override
-    public synchronized void persistLogEntry(@Nonnull LogEntry logEntry) {
+    @Override public synchronized void persistLogEntry(@Nonnull LogEntry logEntry) {
         raftLog.appendEntry(logEntry);
     }
 
@@ -74,13 +76,12 @@ public final class InMemoryRaftStore
         snapshotChunks.add(snapshotChunk);
 
         if (snapshotChunk.getSnapshotChunkCount() == snapshotChunks.size()) {
-            snapshotChunks.sort(Comparator.comparingInt(SnapshotChunk::getSnapshotChunkIndex));
+            snapshotChunks.sort(comparingInt(SnapshotChunk::getSnapshotChunkIndex));
             SnapshotEntry snapshotEntry = new DefaultSnapshotEntryOrBuilder().setTerm(snapshotChunk.getTerm())
                                                                              .setIndex(snapshotChunk.getIndex())
                                                                              .setSnapshotChunks(snapshotChunks)
-                                                                             .setGroupMembersLogIndex(
-                                                                                     snapshotChunk.getGroupMembersLogIndex())
-                                                                             .setGroupMembers(snapshotChunk.getGroupMembers())
+                                                                             .setGroupMembersView(
+                                                                                     snapshotChunk.getGroupMembersView())
                                                                              .build();
             raftLog.setSnapshot(snapshotEntry);
             snapshotChunks = new ArrayList<>();
@@ -109,7 +110,8 @@ public final class InMemoryRaftStore
             entries = Collections.emptyList();
         }
 
-        return new RestoredRaftState(localEndpoint, initialMembers, term, votedFor, raftLog.snapshotEntry(), entries);
+        return new RestoredRaftState(localEndpoint, localEndpointVoting, initialGroupMembers, term, votedFor,
+                                     raftLog.snapshotEntry(), entries);
     }
 
 }

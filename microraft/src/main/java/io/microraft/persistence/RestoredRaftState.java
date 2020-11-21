@@ -20,54 +20,56 @@ package io.microraft.persistence;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.model.log.LogEntry;
+import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotEntry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.List;
 
 /**
- * Contains restored state of a {@link RaftNode}. All the fields in this class
- * are persisted via {@link RaftStore}.
+ * Contains restored state of a {@link RaftNode}. All the fields in this class are persisted via {@link RaftStore}.
  */
-public class RestoredRaftState {
+public final class RestoredRaftState {
 
     private final RaftEndpoint localEndpoint;
-    private final Collection<RaftEndpoint> initialMembers;
+    private final boolean localEndpointVoting;
+    private final RaftGroupMembersView initialGroupMembers;
     private final int term;
-    private final RaftEndpoint votedEndpoint;
+    private final RaftEndpoint votedMember;
     private final SnapshotEntry snapshotEntry;
     private final List<LogEntry> entries;
 
-    public RestoredRaftState(@Nonnull RaftEndpoint localEndpoint, @Nonnull Collection<RaftEndpoint> initialMembers, int term,
-                             @Nullable RaftEndpoint votedEndpoint, @Nullable SnapshotEntry snapshotEntry,
-                             @Nonnull List<LogEntry> entries) {
+    public RestoredRaftState(@Nonnull RaftEndpoint localEndpoint, boolean localEndpointVoting,
+                             @Nonnull RaftGroupMembersView initialGroupMembers, int term, @Nullable RaftEndpoint votedMember,
+                             @Nullable SnapshotEntry snapshotEntry, @Nonnull List<LogEntry> entries) {
         this.localEndpoint = localEndpoint;
-        this.initialMembers = initialMembers;
+        this.localEndpointVoting = localEndpointVoting;
+        this.initialGroupMembers = initialGroupMembers;
         this.term = term;
-        this.votedEndpoint = votedEndpoint;
+        this.votedMember = votedMember;
         this.snapshotEntry = snapshotEntry;
         this.entries = entries;
     }
 
-    @Nonnull
-    public RaftEndpoint getLocalEndpoint() {
+    @Nonnull public RaftEndpoint getLocalEndpoint() {
         return localEndpoint;
     }
 
-    @Nonnull
-    public Collection<RaftEndpoint> getInitialMembers() {
-        return initialMembers;
+    public boolean isLocalEndpointVoting() {
+        return localEndpointVoting;
+    }
+
+    @Nonnull public RaftGroupMembersView getInitialGroupMembers() {
+        return initialGroupMembers;
     }
 
     public int getTerm() {
         return term;
     }
 
-    @Nullable
-    public RaftEndpoint getVotedEndpoint() {
-        return votedEndpoint;
+    @Nullable public RaftEndpoint getVotedMember() {
+        return votedMember;
     }
 
     @Nullable

@@ -63,7 +63,8 @@ public class AppendEntriesFailureResponseHandler
 
         if (response.getTerm() > state.term()) {
             // If the response term is greater than the local term, update the local term and convert to follower (§5.1)
-            LOGGER.info("{} Demoting to FOLLOWER after {} from current term: {}", localEndpointStr(), response, state.term());
+            LOGGER.info("{} Switching to term: {} after {} from current term: {}", localEndpointStr(), response.getTerm(),
+                        response, state.term());
             node.toFollower(response.getTerm());
             return;
         }
@@ -80,7 +81,12 @@ public class AppendEntriesFailureResponseHandler
     private boolean updateNextIndex(AppendEntriesFailureResponse response) {
         RaftEndpoint follower = response.getSender();
         LeaderState leaderState = state.leaderState();
-        FollowerState followerState = leaderState.getFollowerState(follower);
+        FollowerState followerState = leaderState.getFollowerStateOrNull(follower);
+
+        if (followerState == null) {
+            LOGGER.warn("{} follower/learner: {} not found for {}.", localEndpointStr(), follower.getId(), response);
+            return false;
+        }
 
         long nextIndex = followerState.nextIndex();
         long matchIndex = followerState.matchIndex();

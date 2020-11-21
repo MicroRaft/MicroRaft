@@ -37,18 +37,14 @@ import static io.microraft.RaftNodeStatus.isTerminal;
 import static io.microraft.RaftRole.LEADER;
 
 /**
- * Appends the given operation to the log of the given leader Raft node and
- * replicates the new entry to the followers.
+ * Appends the given operation to the log of the given leader Raft node and replicates the new entry to the followers.
  * <p>
- * Scheduled by {@link RaftNode#replicate(Object)},
- * or {@link MembershipChangeTask} for membership changes.
+ * Scheduled by {@link RaftNode#replicate(Object)}, or {@link MembershipChangeTask} for membership changes.
  * <p>
- * If the given Raft node is not the leader, the future is notified with
- * {@link NotLeaderException}.
+ * If the given Raft node is not the leader, the future is notified with {@link NotLeaderException}.
  * <p>
- * If the given operation could not be appended to the Raft log at the moment,
- * (see {@link RaftNodeImpl#canReplicateNewOperation(Object)}), the future is
- * notified with {@link CannotReplicateException}.
+ * If the given operation could not be appended to the Raft log at the moment, (see {@link
+ * RaftNodeImpl#canReplicateNewOperation(Object)}), the future is notified with {@link CannotReplicateException}.
  */
 public final class ReplicateTask
         implements Runnable {
@@ -67,8 +63,7 @@ public final class ReplicateTask
         this.future = future;
     }
 
-    @Override
-    public void run() {
+    @Override public void run() {
         try {
             if (!verifyRaftNodeStatus()) {
                 return;
@@ -93,8 +88,12 @@ public final class ReplicateTask
 
             long newEntryLogIndex = log.lastLogOrSnapshotIndex() + 1;
             raftNode.registerFuture(newEntryLogIndex, future);
-            LogEntry entry = raftNode.getModelFactory().createLogEntryBuilder().setTerm(state.term()).setIndex(newEntryLogIndex)
-                                     .setOperation(operation).build();
+            LogEntry entry = raftNode.getModelFactory()
+                                     .createLogEntryBuilder()
+                                     .setTerm(state.term())
+                                     .setIndex(newEntryLogIndex)
+                                     .setOperation(operation)
+                                     .build();
             log.appendEntry(entry);
 
             prepareGroupOp(newEntryLogIndex, operation);
@@ -108,8 +107,8 @@ public final class ReplicateTask
                 raftNode.tryAdvanceCommitIndex();
             }
         } catch (Throwable t) {
-            LOGGER.error(raftNode.localEndpointStr() + " " + operation + " could not be replicated to leader: " + raftNode
-                    .getLocalEndpoint(), t);
+            LOGGER.error(raftNode.localEndpointStr() + " " + operation + " could not be replicated to leader: "
+                         + raftNode.getLocalEndpoint(), t);
             future.fail(new RaftException("Internal failure", raftNode.getLeaderEndpoint(), t));
         }
     }
@@ -132,7 +131,8 @@ public final class ReplicateTask
     private void prepareGroupOp(long logIndex, Object operation) {
         if (operation instanceof UpdateRaftGroupMembersOp) {
             raftNode.setStatus(UPDATING_RAFT_GROUP_MEMBER_LIST);
-            raftNode.updateGroupMembers(logIndex, ((UpdateRaftGroupMembersOp) operation).getMembers());
+            UpdateRaftGroupMembersOp groupOp = (UpdateRaftGroupMembersOp) operation;
+            raftNode.updateGroupMembers(logIndex, groupOp.getMembers(), groupOp.getVotingMembers());
         }
     }
 

@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 
+import static io.microraft.RaftRole.LEARNER;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -98,6 +99,10 @@ public class PreVoteRequestHandler
                         lastLogEntry.getIndex());
             node.send(candidate, responseBuilder.setTerm(nextTerm).setGranted(false).build());
             return;
+        }
+
+        if (state.role() == LEARNER) {
+            LOGGER.info("{} is {} but {} asked for pre-vote.", localEndpointStr(), LEARNER, candidate.getId());
         }
 
         LOGGER.info("{} Granted pre-vote for {}", localEndpointStr(), request);

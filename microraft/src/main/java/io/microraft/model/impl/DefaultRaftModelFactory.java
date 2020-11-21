@@ -21,6 +21,7 @@ import io.microraft.model.RaftModelFactory;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp.UpdateRaftGroupMembersOpBuilder;
 import io.microraft.model.impl.groupop.DefaultUpdateRaftGroupMembersOpOrBuilder;
 import io.microraft.model.impl.log.DefaultLogEntryOrBuilder;
+import io.microraft.model.impl.log.DefaultRaftGroupMembersViewOrBuilder;
 import io.microraft.model.impl.log.DefaultSnapshotChunkOrBuilder;
 import io.microraft.model.impl.log.DefaultSnapshotEntryOrBuilder;
 import io.microraft.model.impl.message.DefaultAppendEntriesFailureResponseOrBuilder;
@@ -34,6 +35,7 @@ import io.microraft.model.impl.message.DefaultTriggerLeaderElectionRequestOrBuil
 import io.microraft.model.impl.message.DefaultVoteRequestOrBuilder;
 import io.microraft.model.impl.message.DefaultVoteResponseOrBuilder;
 import io.microraft.model.log.LogEntry.LogEntryBuilder;
+import io.microraft.model.log.RaftGroupMembersView.RaftGroupMembersViewBuilder;
 import io.microraft.model.log.SnapshotChunk.SnapshotChunkBuilder;
 import io.microraft.model.log.SnapshotEntry.SnapshotEntryBuilder;
 import io.microraft.model.message.AppendEntriesFailureResponse.AppendEntriesFailureResponseBuilder;
@@ -130,15 +132,16 @@ public class DefaultRaftModelFactory
     }
 
     @Nonnull
-    @Override
-    public VoteResponseBuilder createVoteResponseBuilder() {
+    @Override public VoteResponseBuilder createVoteResponseBuilder() {
         return new DefaultVoteResponseOrBuilder();
     }
 
-    @Nonnull
-    @Override
-    public UpdateRaftGroupMembersOpBuilder createUpdateRaftGroupMembersOpBuilder() {
+    @Nonnull @Override public UpdateRaftGroupMembersOpBuilder createUpdateRaftGroupMembersOpBuilder() {
         return new DefaultUpdateRaftGroupMembersOpOrBuilder();
+    }
+
+    @Nonnull @Override public RaftGroupMembersViewBuilder createRaftGroupMembersViewBuilder() {
+        return new DefaultRaftGroupMembersViewOrBuilder();
     }
 
 }

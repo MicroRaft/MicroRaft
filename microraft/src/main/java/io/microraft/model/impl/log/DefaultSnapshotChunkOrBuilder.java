@@ -16,12 +16,11 @@
 
 package io.microraft.model.impl.log;
 
-import io.microraft.RaftEndpoint;
+import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotChunk.SnapshotChunkBuilder;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
 
 import static java.util.Objects.requireNonNull;
 
@@ -43,8 +42,7 @@ public class DefaultSnapshotChunkOrBuilder
     private Object operation;
     private int snapshotChunkIndex;
     private int snapshotChunkCount;
-    private long groupMembersLogIndex;
-    private Collection<RaftEndpoint> groupMembers;
+    private RaftGroupMembersView groupMembersView;
     private DefaultSnapshotChunkOrBuilder builder = this;
 
     @Override
@@ -73,15 +71,8 @@ public class DefaultSnapshotChunkOrBuilder
         return snapshotChunkCount;
     }
 
-    @Override
-    public long getGroupMembersLogIndex() {
-        return groupMembersLogIndex;
-    }
-
-    @Nonnull
-    @Override
-    public Collection<RaftEndpoint> getGroupMembers() {
-        return groupMembers;
+    @Nonnull @Override public RaftGroupMembersView getGroupMembersView() {
+        return groupMembersView;
     }
 
     @Nonnull
@@ -119,17 +110,8 @@ public class DefaultSnapshotChunkOrBuilder
         return this;
     }
 
-    @Nonnull
-    @Override
-    public SnapshotChunkBuilder setGroupMembersLogIndex(long groupMembersLogIndex) {
-        builder.groupMembersLogIndex = groupMembersLogIndex;
-        return this;
-    }
-
-    @Nonnull
-    @Override
-    public SnapshotChunkBuilder setGroupMembers(@Nonnull Collection<RaftEndpoint> groupMembers) {
-        builder.groupMembers = groupMembers;
+    @Nonnull @Override public SnapshotChunkBuilder setGroupMembersView(@Nonnull RaftGroupMembersView groupMembersView) {
+        builder.groupMembersView = groupMembersView;
         return this;
     }
 
@@ -145,8 +127,7 @@ public class DefaultSnapshotChunkOrBuilder
     public String toString() {
         String header = builder != null ? "SnapshotChunkBuilder" : "SnapshotChunk";
         return header + "{" + "term=" + term + ", index=" + index + ", operation=" + operation + ", chunkIndex="
-                + snapshotChunkIndex + ", chunkCount=" + snapshotChunkCount + ", groupMembersLogIndex=" + groupMembersLogIndex
-                + ", groupMembers=" + groupMembers + '}';
+               + snapshotChunkIndex + ", chunkCount=" + snapshotChunkCount + ", groupMembers=" + groupMembersView + '}';
     }
 
 }

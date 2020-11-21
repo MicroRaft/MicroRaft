@@ -16,13 +16,12 @@
 
 package io.microraft.model.impl.log;
 
-import io.microraft.RaftEndpoint;
+import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotEntry;
 import io.microraft.model.log.SnapshotEntry.SnapshotEntryBuilder;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
@@ -41,8 +40,7 @@ public class DefaultSnapshotEntryOrBuilder
         extends DefaultAbstractLogEntry
         implements SnapshotEntry, SnapshotEntryBuilder {
 
-    private long groupMembersLogIndex;
-    private Collection<RaftEndpoint> groupMembers;
+    private RaftGroupMembersView groupMembersView;
     private DefaultSnapshotEntryOrBuilder builder = this;
 
     @Override
@@ -50,15 +48,8 @@ public class DefaultSnapshotEntryOrBuilder
         return ((List<SnapshotChunk>) getOperation()).size();
     }
 
-    @Override
-    public long getGroupMembersLogIndex() {
-        return groupMembersLogIndex;
-    }
-
-    @Nonnull
-    @Override
-    public Collection<RaftEndpoint> getGroupMembers() {
-        return groupMembers;
+    @Nonnull @Override public RaftGroupMembersView getGroupMembersView() {
+        return groupMembersView;
     }
 
     @Nonnull
@@ -82,17 +73,8 @@ public class DefaultSnapshotEntryOrBuilder
         return this;
     }
 
-    @Nonnull
-    @Override
-    public SnapshotEntryBuilder setGroupMembersLogIndex(long groupMembersLogIndex) {
-        builder.groupMembersLogIndex = groupMembersLogIndex;
-        return this;
-    }
-
-    @Nonnull
-    @Override
-    public SnapshotEntryBuilder setGroupMembers(@Nonnull Collection<RaftEndpoint> groupMembers) {
-        builder.groupMembers = groupMembers;
+    @Nonnull @Override public SnapshotEntryBuilder setGroupMembersView(@Nonnull RaftGroupMembersView groupMembersView) {
+        builder.groupMembersView = groupMembersView;
         return this;
     }
 
@@ -106,8 +88,9 @@ public class DefaultSnapshotEntryOrBuilder
 
     @Override
     public String toString() {
-        return "DefaultSnapshotEntryOrBuilder{" + "term=" + term + ", index=" + index + ", operation=" + operation
-                + ", groupMembersLogIndex=" + groupMembersLogIndex + ", groupMembers=" + groupMembers + '}';
+        String header = builder != null ? "SnapshotEntryBuilder" : "SnapshotEntry";
+        return header + "{" + "term=" + term + ", index=" + index + ", operation=" + operation + ", groupMembers="
+               + groupMembersView + '}';
     }
 
 }

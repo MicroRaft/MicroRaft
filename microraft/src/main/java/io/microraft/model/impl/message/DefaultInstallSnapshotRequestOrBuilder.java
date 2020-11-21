@@ -17,6 +17,7 @@
 package io.microraft.model.impl.message;
 
 import io.microraft.RaftEndpoint;
+import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.message.InstallSnapshotRequest;
 import io.microraft.model.message.InstallSnapshotRequest.InstallSnapshotRequestBuilder;
@@ -49,8 +50,7 @@ public class DefaultInstallSnapshotRequestOrBuilder
     private int totalSnapshotChunkCount;
     private SnapshotChunk snapshotChunk;
     private Collection<RaftEndpoint> snapshottedMembers;
-    private long groupMembersLogIndex;
-    private Collection<RaftEndpoint> groupMembers;
+    private RaftGroupMembersView groupMembersView;
     private long querySequenceNumber;
     private long flowControlSequenceNumber;
     private DefaultInstallSnapshotRequestOrBuilder builder = this;
@@ -103,15 +103,8 @@ public class DefaultInstallSnapshotRequestOrBuilder
         return snapshottedMembers;
     }
 
-    @Override
-    public long getGroupMembersLogIndex() {
-        return groupMembersLogIndex;
-    }
-
-    @Nonnull
-    @Override
-    public Collection<RaftEndpoint> getGroupMembers() {
-        return groupMembers;
+    @Nonnull @Override public RaftGroupMembersView getGroupMembersView() {
+        return groupMembersView;
     }
 
     @Override
@@ -187,17 +180,8 @@ public class DefaultInstallSnapshotRequestOrBuilder
         return this;
     }
 
-    @Nonnull
-    @Override
-    public InstallSnapshotRequestBuilder setGroupMembersLogIndex(long groupMembersLogIndex) {
-        builder.groupMembersLogIndex = groupMembersLogIndex;
-        return this;
-    }
-
-    @Nonnull
-    @Override
-    public InstallSnapshotRequestBuilder setGroupMembers(@Nonnull Collection<RaftEndpoint> groupMembers) {
-        builder.groupMembers = groupMembers;
+    @Nonnull @Override public InstallSnapshotRequestBuilder setGroupMembersView(@Nonnull RaftGroupMembersView groupMembersView) {
+        builder.groupMembersView = groupMembersView;
         return this;
     }
 
@@ -227,10 +211,10 @@ public class DefaultInstallSnapshotRequestOrBuilder
     public String toString() {
         String header = builder != null ? "InstallSnapshotRequestBuilder" : "InstallSnapshotRequest";
         return header + "{" + "groupId=" + groupId + ", sender=" + sender + ", term=" + term + ", leader=" + leader
-                + ", snapshotTerm=" + snapshotTerm + ", snapshotIndex=" + snapshotIndex + ", chunkCount="
-                + totalSnapshotChunkCount + ", snapshotChunk=" + snapshotChunk + ", snapshottedMembers=" + snapshottedMembers
-                + ", groupMembersLogIndex=" + groupMembersLogIndex + ", groupMembers=" + groupMembers + ", querySequenceNumber="
-                + querySequenceNumber + ", flowControlSequenceNumber=" + flowControlSequenceNumber + '}';
+               + ", snapshotTerm=" + snapshotTerm + ", snapshotIndex=" + snapshotIndex + ", chunkCount=" + totalSnapshotChunkCount
+               + ", snapshotChunk=" + snapshotChunk + ", snapshottedMembers=" + snapshottedMembers + ", groupMembers="
+               + groupMembersView + ", querySequenceNumber=" + querySequenceNumber + ", flowControlSequenceNumber="
+               + flowControlSequenceNumber + '}';
     }
 
 }

@@ -18,9 +18,12 @@
 package io.microraft.impl.state;
 
 import io.microraft.RaftEndpoint;
+import io.microraft.model.log.RaftGroupMembersView;
+import io.microraft.model.log.RaftGroupMembersView.RaftGroupMembersViewBuilder;
 import io.microraft.report.RaftGroupMembers;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -36,25 +39,39 @@ public final class RaftGroupMembersState
 
     private final long index;
     private final Collection<RaftEndpoint> members;
+    private final Collection<RaftEndpoint> votingMembers;
     private final Collection<RaftEndpoint> remoteMembers;
+    private final Collection<RaftEndpoint> remoteVotingMembers;
     private final int majority;
 
-    public RaftGroupMembersState(long index, Collection<RaftEndpoint> members, RaftEndpoint localMember) {
-        requireNonNull(members);
+    public RaftGroupMembersState(long index, Collection<RaftEndpoint> members, Collection<RaftEndpoint> votingMembers,
+                                 RaftEndpoint localMember) {
+        if (index < 0) {
+            throw new IllegalArgumentException("Invalid Raft group members log index: " + index);
+        }
         requireNonNull(localMember);
         this.index = index;
-        this.members = unmodifiableSet(new LinkedHashSet<>(members));
-        this.majority = members.size() / 2 + 1;
+        this.members = unmodifiableSet(new LinkedHashSet<>(requireNonNull(members)));
+        Set<RaftEndpoint> voting = new LinkedHashSet<>(members);
+        voting.retainAll(requireNonNull(votingMembers));
+        if (voting.isEmpty()) {
+            throw new IllegalArgumentException("Cannot have empty voting members!");
+        }
+        this.votingMembers = unmodifiableSet(voting);
+        this.majority = votingMembers.size() / 2 + 1;
         Set<RaftEndpoint> remoteMembers = new LinkedHashSet<>(members);
         remoteMembers.remove(localMember);
+        Set<RaftEndpoint> remoteVotingMembers = new LinkedHashSet<>(votingMembers);
+        remoteVotingMembers.remove(localMember);
+        remoteVotingMembers.retainAll(votingMembers);
         this.remoteMembers = unmodifiableSet(remoteMembers);
+        this.remoteVotingMembers = unmodifiableSet(remoteVotingMembers);
     }
 
     /**
      * Returns index in the Raft log into which this member list is appended.
      */
-    @Override
-    public long getLogIndex() {
+    @Override public long getLogIndex() {
         return index;
     }
 
@@ -63,10 +80,20 @@ public final class RaftGroupMembersState
      *
      * @see #remoteMembers()
      */
-    @Nonnull
-    @Override
-    public Collection<RaftEndpoint> getMembers() {
+    @Nonnull @Override public Collection<RaftEndpoint> getMembers() {
         return members;
+    }
+
+    public Collection<RaftEndpoint> getMembersList() {
+        return new ArrayList<>(members);
+    }
+
+    @Nonnull @Override public Collection<RaftEndpoint> getVotingMembers() {
+        return votingMembers;
+    }
+
+    public Collection<RaftEndpoint> getVotingMembersList() {
+        return new ArrayList<>(votingMembers);
     }
 
     /**
@@ -77,6 +104,13 @@ public final class RaftGroupMembersState
     }
 
     /**
+     * Returns the number of voting members in the Raft group.
+     */
+    public int votingMemberCount() {
+        return votingMembers.size();
+    }
+
+    /**
      * Returns the members in the Raft group, excluding the local endpoint.
      */
     public Collection<RaftEndpoint> remoteMembers() {
@@ -84,23 +118,31 @@ public final class RaftGroupMembersState
     }
 
     /**
+     * Returns the list of voting members in the Raft group member list, excluding the local endpoint.
+     */
+    public Collection<RaftEndpoint> remoteVotingMembers() {
+        return remoteVotingMembers;
+    }
+
+    /**
      * Returns the majority number of the Raft group member list.
      */
-    @Override
-    public int getMajority() {
+    @Override public int getMajorityQuorumSize() {
         return majority;
     }
 
     /**
-     * Returns true if the given endpoint is a member of the Raft group,
-     * false otherwise.
+     * Returns true if the given endpoint is a member of the Raft group, false otherwise.
      */
     public boolean isKnownMember(RaftEndpoint endpoint) {
         return members.contains(endpoint);
     }
 
-    @Override
-    public String toString() {
+    public RaftGroupMembersView populate(RaftGroupMembersViewBuilder builder) {
+        return builder.setLogIndex(index).setMembers(members).setVotingMembers(votingMembers).build();
+    }
+
+    @Override public String toString() {
         return "RaftGroupMembers{" + "index=" + index + ", members=" + members + '}';
     }
 

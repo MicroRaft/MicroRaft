@@ -17,6 +17,7 @@
 package io.microraft.model.message;
 
 import io.microraft.RaftEndpoint;
+import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
 
 import javax.annotation.Nonnull;
@@ -53,10 +54,7 @@ public interface InstallSnapshotRequest
     @Nonnull
     Collection<RaftEndpoint> getSnapshottedMembers();
 
-    long getGroupMembersLogIndex();
-
-    @Nonnull
-    Collection<RaftEndpoint> getGroupMembers();
+    @Nonnull RaftGroupMembersView getGroupMembersView();
 
     long getQuerySequenceNumber();
 
@@ -95,11 +93,7 @@ public interface InstallSnapshotRequest
         @Nonnull
         InstallSnapshotRequestBuilder setSnapshottedMembers(@Nonnull Collection<RaftEndpoint> snapshottedMembers);
 
-        @Nonnull
-        InstallSnapshotRequestBuilder setGroupMembersLogIndex(long groupMembersLogIndex);
-
-        @Nonnull
-        InstallSnapshotRequestBuilder setGroupMembers(@Nonnull Collection<RaftEndpoint> groupMembers);
+        @Nonnull InstallSnapshotRequestBuilder setGroupMembersView(@Nonnull RaftGroupMembersView groupMembersView);
 
         @Nonnull
         InstallSnapshotRequestBuilder setQuerySequenceNumber(long querySequenceNumber);

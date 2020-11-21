@@ -18,31 +18,28 @@
 package io.microraft.impl.state;
 
 import io.microraft.RaftEndpoint;
-import io.microraft.impl.local.LocalRaftEndpoint;
 import io.microraft.impl.util.RandomPicker;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
+import static io.microraft.impl.local.LocalRaftEndpoint.newEndpoint;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class LeaderStateTest {
 
     private LeaderState state;
-    private Set<RaftEndpoint> remoteEndpoints;
+    private List<RaftEndpoint> remoteEndpoints;
     private int lastLogIndex;
 
     @Before
     public void setUp() {
         lastLogIndex = 123;
-        remoteEndpoints = new HashSet<>(
-                asList(LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint(),
-                       LocalRaftEndpoint.newEndpoint()));
+        remoteEndpoints = asList(newEndpoint(), newEndpoint(), newEndpoint(), newEndpoint());
         state = new LeaderState(remoteEndpoints, lastLogIndex);
     }
 
@@ -55,7 +52,7 @@ public class LeaderStateTest {
             assertThat(followerState.nextIndex()).isEqualTo(lastLogIndex + 1);
         }
 
-        long[] matchIndices = state.matchIndices();
+        long[] matchIndices = state.matchIndices(remoteEndpoints);
         assertThat(matchIndices.length).isEqualTo(remoteEndpoints.size() + 1);
 
         for (long index : matchIndices) {
@@ -92,13 +89,29 @@ public class LeaderStateTest {
             assertThat(state.getFollowerState(endpoint).matchIndex()).isEqualTo(index);
         }
 
-        long[] matchIndices = state.matchIndices();
+        long[] matchIndices = state.matchIndices(remoteEndpoints);
         assertThat(matchIndices.length).isEqualTo(indices.size() + 1);
 
         for (int i = 0; i < matchIndices.length - 1; i++) {
             long index = matchIndices[i];
             assertThat(indices.containsValue(index)).isTrue();
         }
+    }
+
+    @Test public void test_matchIndex_nonVotingMembers() {
+        int logIndex = 10;
+        for (RaftEndpoint endpoint : remoteEndpoints) {
+            state.getFollowerState(endpoint).matchIndex(++logIndex);
+        }
+
+        long[] indices = state.matchIndices(remoteEndpoints.subList(0, remoteEndpoints.size() - 1));
+
+        assertThat(indices).hasSize(remoteEndpoints.size());
+        for (long index : indices) {
+            assertThat(index).isLessThan(logIndex);
+        }
+
+        assertThat(indices[indices.length - 1]).isEqualTo(0);
     }
 
 }

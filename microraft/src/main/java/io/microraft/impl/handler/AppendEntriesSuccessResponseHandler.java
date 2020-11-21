@@ -85,13 +85,19 @@ public class AppendEntriesSuccessResponseHandler
 
         LeaderState leaderState = state.leaderState();
         RaftEndpoint follower = response.getSender();
-        FollowerState followerState = leaderState.getFollowerState(follower);
+        FollowerState followerState = leaderState.getFollowerStateOrNull(follower);
+
+        if (followerState == null) {
+            LOGGER.warn("{} follower/learner: {} not found for {}.", localEndpointStr(), follower.getId(), response);
+            return false;
+        }
+
         QueryState queryState = leaderState.queryState();
 
         if (queryState.tryAck(response.getQuerySequenceNumber(), follower)) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(localEndpointStr() + " ack from " + follower.getId() + " for query sequence number: " + response
-                        .getQuerySequenceNumber());
+                LOGGER.debug(localEndpointStr() + " ack from " + follower.getId() + " for query sequence number: "
+                             + response.getQuerySequenceNumber());
             }
         }
 

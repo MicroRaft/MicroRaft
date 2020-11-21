@@ -20,6 +20,7 @@ package io.microraft.impl;
 import io.microraft.Ordered;
 import io.microraft.RaftConfig;
 import io.microraft.RaftNode;
+import io.microraft.RaftRole;
 import io.microraft.exception.IndeterminateStateException;
 import io.microraft.impl.local.LocalRaftGroup;
 import io.microraft.impl.local.SimpleStateMachine;
@@ -45,7 +46,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 
-import static io.microraft.MembershipChangeMode.ADD;
+import static io.microraft.MembershipChangeMode.ADD_LEARNER;
+import static io.microraft.MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER;
 import static io.microraft.RaftNodeStatus.ACTIVE;
 import static io.microraft.impl.local.SimpleStateMachine.applyValue;
 import static io.microraft.test.util.AssertionUtils.eventually;
@@ -53,6 +55,7 @@ import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
 import static io.microraft.test.util.RaftTestUtils.getCommittedGroupMembers;
 import static io.microraft.test.util.RaftTestUtils.getLastLogOrSnapshotEntry;
 import static io.microraft.test.util.RaftTestUtils.getMatchIndex;
+import static io.microraft.test.util.RaftTestUtils.getRole;
 import static io.microraft.test.util.RaftTestUtils.getSnapshotChunkCollector;
 import static io.microraft.test.util.RaftTestUtils.getSnapshotEntry;
 import static io.microraft.test.util.RaftTestUtils.getStatus;
@@ -319,7 +322,7 @@ public class SnapshotTest
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
-        RaftNodeImpl slowFollower = group.getAnyFollower();
+        RaftNodeImpl slowFollower = group.getAnyNodeExcept(leader.getLocalEndpoint());
 
         // the leader cannot send AppendEntriesRPC to the follower
         group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), AppendEntriesRequest.class);
@@ -377,7 +380,7 @@ public class SnapshotTest
 
         leader.replicate(applyValue("val0")).join();
 
-        RaftNodeImpl slowFollower = group.getAnyFollower();
+        RaftNodeImpl slowFollower = group.getAnyNodeExcept(leader.getLocalEndpoint());
 
         group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), AppendEntriesRequest.class);
         group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), InstallSnapshotRequest.class);
@@ -468,7 +471,7 @@ public class SnapshotTest
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
-        RaftNodeImpl slowFollower = group.getAnyFollower();
+        RaftNodeImpl slowFollower = group.getAnyNodeExcept(leader.getLocalEndpoint());
 
         for (int i = 0; i < entryCount - 1; i++) {
             leader.replicate(applyValue("val" + i)).join();
@@ -514,7 +517,7 @@ public class SnapshotTest
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
-        RaftNodeImpl slowFollower = group.getAnyFollower();
+        RaftNodeImpl slowFollower = group.getAnyNodeExcept(leader.getLocalEndpoint());
 
         for (int i = 0; i < entryCount - missingEntryCountOnSlowFollower; i++) {
             leader.replicate(applyValue("val" + i)).join();
@@ -654,7 +657,8 @@ public class SnapshotTest
         }
 
         RaftNodeImpl newRaftNode1 = group.createNewNode();
-        CompletableFuture<Ordered<RaftGroupMembers>> f1 = leader.changeMembership(newRaftNode1.getLocalEndpoint(), ADD, 0);
+        CompletableFuture<Ordered<RaftGroupMembers>> f1 = leader.changeMembership(newRaftNode1.getLocalEndpoint(), ADD_LEARNER,
+                                                                                  0);
 
         eventually(() -> {
             for (RaftNodeImpl follower : followers) {
@@ -777,7 +781,7 @@ public class SnapshotTest
 
         long lastLogIndex1 = getLastLogOrSnapshotEntry(leader).getIndex();
 
-        leader.changeMembership(newRaftNode.getLocalEndpoint(), ADD, 0);
+        leader.changeMembership(newRaftNode.getLocalEndpoint(), ADD_LEARNER, 0);
 
         // When the membership change entry is appended, the leader's log will be as following:
         // LOG: [ <46 - 49>, <50>, <51 - 99 (committed)>, <100 - 108 (uncommitted)>, <109 (membership change)> ],
@@ -1014,6 +1018,7 @@ public class SnapshotTest
         }
 
         RaftNodeImpl newLeader = group.getLeaderNode();
+        assertThat(newLeader).isNotNull();
         newLeader.replicate(applyValue("newLeaderVal")).join();
 
         group.allowMessagesTo(newLeader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), InstallSnapshotRequest.class);
@@ -1030,6 +1035,41 @@ public class SnapshotTest
 
         eventually(() -> assertThat(getCommitIndex(slowFollower)).isEqualTo(getCommitIndex(newLeader)));
         assertThat(getSnapshotChunkCollector(slowFollower)).isNull();
+    }
+
+    @Test(timeout = 300_000)
+    public void when_promotionCommitFallsIntoSnapshot_then_promotedMemberTurnsIntoVotingMemberByInstallingSnapshot() {
+        int entryCount = 50;
+        RaftConfig config = RaftConfig.newBuilder()
+                                      .setCommitCountToTakeSnapshot(entryCount)
+                                      .setLeaderHeartbeatPeriodSecs(1)
+                                      .setLeaderHeartbeatTimeoutSecs(5)
+                                      .build();
+        group = LocalRaftGroup.newBuilder(3).enableNewTermOperation().setConfig(config).build();
+        group.start();
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+
+        RaftNodeImpl newNode = group.createNewNode();
+
+        Ordered<RaftGroupMembers> membershipChangeResult = leader.changeMembership(newNode.getLocalEndpoint(), ADD_LEARNER, 0)
+                                                                 .join();
+
+        eventually(() -> assertThat(getCommitIndex(newNode)).isEqualTo(getCommitIndex(leader)));
+
+        group.dropMessagesTo(leader.getLocalEndpoint(), newNode.getLocalEndpoint(), AppendEntriesRequest.class);
+
+        leader.changeMembership(newNode.getLocalEndpoint(), ADD_OR_PROMOTE_TO_FOLLOWER, membershipChangeResult.getCommitIndex())
+              .join();
+
+        while (getSnapshotEntry(leader).getIndex() == 0) {
+            leader.replicate(applyValue("val")).join();
+        }
+
+        eventually(() -> {
+            assertThat(getCommitIndex(newNode)).isEqualTo(getCommitIndex(leader));
+            assertThat(getRole(newNode)).isEqualTo(RaftRole.FOLLOWER);
+        });
     }
 
 }

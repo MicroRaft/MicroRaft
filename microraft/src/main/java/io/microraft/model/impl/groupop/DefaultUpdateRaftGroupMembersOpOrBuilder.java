@@ -40,44 +40,43 @@ public class DefaultUpdateRaftGroupMembersOpOrBuilder
         implements UpdateRaftGroupMembersOp, UpdateRaftGroupMembersOpBuilder {
 
     private Collection<RaftEndpoint> members;
+    private Collection<RaftEndpoint> votingMembers;
     private RaftEndpoint endpoint;
     private MembershipChangeMode mode;
     private DefaultUpdateRaftGroupMembersOpOrBuilder builder = this;
 
-    @Nonnull
-    @Override
-    public Collection<RaftEndpoint> getMembers() {
+    @Nonnull @Override public Collection<RaftEndpoint> getMembers() {
         return members;
     }
 
-    @Nonnull
-    @Override
-    public RaftEndpoint getEndpoint() {
+    @Nonnull @Override public Collection<RaftEndpoint> getVotingMembers() {
+        return votingMembers;
+    }
+
+    @Nonnull @Override public RaftEndpoint getEndpoint() {
         return endpoint;
     }
 
-    @Nonnull
-    @Override
-    public MembershipChangeMode getMode() {
+    @Nonnull @Override public MembershipChangeMode getMode() {
         return mode;
     }
 
-    @Nonnull
-    @Override
-    public UpdateRaftGroupMembersOpBuilder setMembers(@Nonnull Collection<RaftEndpoint> members) {
+    @Nonnull @Override public UpdateRaftGroupMembersOpBuilder setMembers(@Nonnull Collection<RaftEndpoint> members) {
         builder.members = members;
         return this;
     }
 
-    @Nonnull
-    @Override
-    public UpdateRaftGroupMembersOpBuilder setEndpoint(@Nonnull RaftEndpoint endpoint) {
+    @Nonnull @Override public UpdateRaftGroupMembersOpBuilder setVotingMembers(@Nonnull Collection<RaftEndpoint> votingMembers) {
+        builder.votingMembers = votingMembers;
+        return this;
+    }
+
+    @Nonnull @Override public UpdateRaftGroupMembersOpBuilder setEndpoint(@Nonnull RaftEndpoint endpoint) {
         builder.endpoint = endpoint;
         return this;
     }
 
-    @Nonnull
-    @Override
+    @Nonnull @Override
     public UpdateRaftGroupMembersOpBuilder setMode(@Nonnull MembershipChangeMode mode) {
         builder.mode = mode;
         return this;
@@ -94,7 +93,8 @@ public class DefaultUpdateRaftGroupMembersOpOrBuilder
     @Override
     public String toString() {
         String header = builder != null ? "UpdateRaftGroupMembersOpBuilder" : "UpdateRaftGroupMembersOp";
-        return header + "{" + "members=" + members + ", endpoint=" + endpoint + ", mode=" + mode + '}';
+        return header + "{" + "members=" + members + ", votingMembers=" + votingMembers + ", endpoint=" + endpoint + ", mode="
+               + mode + '}';
     }
 
 }

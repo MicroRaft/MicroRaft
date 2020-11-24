@@ -332,7 +332,7 @@ public interface RaftNode {
      * The returned future can be notified with {@link NotLeaderException} if this Raft node is not leader, {@link
      * IllegalStateException} if the Raft node status is not {@link RaftNodeStatus#ACTIVE}, {@link IllegalArgumentException} if
      * the given endpoint is not a voting member in the committed Raft group member list, and {@link TimeoutException} if the
-     * leadership transfer process has timed out.
+     * leadership transfer process has timed out w.r.t {@link RaftConfig#getLeaderHeartbeatTimeoutSecs()}.
      *
      * @param endpoint
      *         the Raft endpoint to which the leadership will be transferred

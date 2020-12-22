@@ -268,7 +268,9 @@ public interface RaftNode {
      * committed.
      * <p>
      * The majority quorum size of the Raft group can increase or decrease by 1 if the membership change updates the number of the
-     * voting members.
+     * voting members. Relatedly, since adding a new voting member increases the majority quorum size, if there are already failed
+     * Raft endpoints in the Raft group, it is recommended to remove them first before adding a new voting member in order to
+     * avoid availability issues.
      * <p>
      * A new Raft endpoint can be added to the Raft group as a {@link RaftRole#LEARNER} via {@link
      * MembershipChangeMode#ADD_LEARNER}. In this case, the quorum size of the Raft group does not change. In addition, a new Raft

@@ -82,8 +82,8 @@ public class HeartbeatTask
         if (state.leaderElectionQuorumSize() > 1) {
             node.runPreVote();
         } else if (state.effectiveGroupMembers().getVotingMembers().contains(localEndpoint())) {
-            // we can encounter this case if the leader crashes while it is
-            // leaving but could not commit the replicated membership change.
+            // we can encounter this case if the leader crashes before it
+            // commit the replicated membership change while it is leaving.
             LOGGER.info("{} is the single voting member left in the Raft group.", localEndpointStr());
             node.toSingletonLeader();
         }

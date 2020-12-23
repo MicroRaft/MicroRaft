@@ -93,8 +93,8 @@ public final class RaftConfig
     private final long leaderHeartbeatTimeoutSecs;
     /**
      * Duration in seconds for a Raft leader node to send periodic heartbeat requests to its followers in order to denote its
-     * liveliness. Periodic heartbeat requests are actually append entries requests and can contain log entries. A heartbeat
-     * request is not sent to a follower if an append entries request has been sent to that follower recently.
+     * liveliness. Periodic heartbeat requests are actually append entries requests and can contain log entries. A periodic
+     * heartbeat request is not sent to a follower if an append entries request has been sent to that follower recently.
      */
     private final long leaderHeartbeatPeriodSecs;
     /**

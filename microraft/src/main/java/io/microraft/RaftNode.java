@@ -272,6 +272,11 @@ public interface RaftNode {
      * Raft endpoints in the Raft group, it is recommended to remove them first before adding a new voting member in order to
      * avoid availability issues.
      * <p>
+     * The current leader Raft node can be removed from the Raft group member list safely without requiring a leadership transfer.
+     * The leader Raft node commits the membership change without its own vote, and the followers trigger a new leader election
+     * round on the next periodic heartbeat tick. Please note that in this scenario there is a short availability gap which is
+     * equal to the leader heartbeat period duration.
+     * <p>
      * A new Raft endpoint can be added to the Raft group as a {@link RaftRole#LEARNER} via {@link
      * MembershipChangeMode#ADD_LEARNER}. In this case, the quorum size of the Raft group does not change. In addition, a new Raft
      * endpoint can be added to the Raft group as a {@link RaftRole#FOLLOWER}, or an existing {@link RaftRole#LEARNER} Raft

@@ -8,7 +8,7 @@ to external monitoring systems via
 <dependency>
 	<groupId>io.microraft</groupId>
 	<artifactId>microraft-metrics</artifactId>
-	<version>1.0</version>
+	<version>0.1</version>
 </dependency>
 ~~~~
 

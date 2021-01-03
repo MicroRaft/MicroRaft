@@ -67,14 +67,12 @@ parsing HOCON and YAML files to start Raft nodes.
 `microraft-metrics` module contains the integration with the Micrometer library
 for publishing MicroRaft metrics to external systems.
 
-`microraft-io` contains the source files of 
-the [microraft.io](https://microraft.io) website.
+`site-src` contains the source files of [microraft.io](https://microraft.io).
 
 
 ## Contributing to MicroRaft
 
-MicroRaft is a new open source project with tons of work to do! You can see 
-[this guide](CONTRIBUTING.md) for contributing to MicroRaft.
+You can see [this guide](CONTRIBUTING.md) for contributing to MicroRaft.
 
 
 ## License

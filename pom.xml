@@ -4,7 +4,7 @@
     <groupId>io.microraft</groupId>
     <artifactId>microraft-root</artifactId>
     <packaging>pom</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1</version>
 
     <name>MicroRaft Root</name>
     <url>https://microraft.io</url>
@@ -26,8 +26,7 @@
         <developer>
             <id>mdogan</id>
             <name>Mehmet Dogan</name>
-            <organization>Hazelcast</organization>
-            <email>mehmet@hazelcast.com</email>
+            <email>mehmet@dogan.io</email>
         </developer>
     </developers>
 
@@ -219,6 +218,8 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <source>${jdk.version}</source>
                     <excludePackageNames>io.microraft.impl.*</excludePackageNames>
                 </configuration>
             </plugin>

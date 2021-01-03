@@ -9,7 +9,7 @@ using Maven, just add the following lines to the `dependencies` section in your
 <dependency>
     <groupId>io.microraft</groupId>
     <artifactId>microraft</artifactId>
-    <version>1.0</version>
+    <version>0.1</version>
 </dependency>
 ~~~~
 
@@ -20,7 +20,7 @@ dependencies provide parsers to configure MicroRaft from HOCON and YAML files:
 <dependency>
 	<groupId>io.microraft</groupId>
 	<artifactId>microraft-hocon</artifactId>
-	<version>1.0</version>
+	<version>0.1</version>
 </dependency>
 ~~~~
 
@@ -28,7 +28,7 @@ dependencies provide parsers to configure MicroRaft from HOCON and YAML files:
 <dependency>
 	<groupId>io.microraft</groupId>
 	<artifactId>microraft-yaml</artifactId>
-	<version>1.0</version>
+	<version>0.1</version>
 </dependency>
 ~~~~
 

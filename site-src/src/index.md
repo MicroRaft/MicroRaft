@@ -6,9 +6,9 @@ title: 'Home'
 
 ![](img/microraft-logo.png){: style="height:192px;width:192px;float:right;"}
 
-MicroRaft is a feature-complete, stable and production-grade open-source
-implementation of the Raft consensus algorithm in Java. It is released with <a
-href="https://github.com/MicroRaft/MicroRaft/blob/master/LICENSE"
+MicroRaft is a feature-complete and stable open-source implementation of the
+Raft consensus algorithm in Java. It is released with
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/LICENSE"
 target="_blank">the Apache 2 license</a>.
 
 MicroRaft works on top of a minimalistic and modular design. __It is a single
@@ -19,6 +19,9 @@ distributed environment. These interfaces surround the Raft consensus algorithm,
 and abstract away the concerns of persistence, thread-safety, serialization,
 networking and actual state machine logic. Developers are required to implement
 these interfaces to build *CP* distributed systems on top of MicroRaft.
+
+You can read the [public announcement](blog/2021-01-18-introducing-microraft.md)
+here.
 
 ## Features
 
@@ -79,16 +82,10 @@ register on top of MicroRaft.
 
 ## Getting involved
 
-MicroRaft is a new open-source library and there are a lot of work to do! So
-any kind of contribution and feedback is welcome! You can improve the source
-code, add new tests, create issues or feature requests, or just ask questions!
-
-The development happens on <a href="https://github.com/MicroRaft/MicroRaft"
-target="_blank">Github</a>. There is also a <a
-href="https://join.slack.com/t/microraft/shared_invite/zt-dc6utpfk-84P0VbK7EcrD3lIme2IaaQ"
-target="_blank">Slack group</a> for discussions and questions. Last, you can
-follow <a href="https://twitter.com/microraft" target="_blank">@MicroRaft</a> on
-Twitter for announcements.
+MicroRaft is a new open-source library. Your contribution and feedback is 
+welcome! The development happens on <a href="https://github.com/MicroRaft/MicroRaft"
+target="_blank">Github</a>. You can follow <a href="https://twitter.com/microraft" 
+target="_blank">@MicroRaft</a> on Twitter for announcements.
 
 ## What is consensus?
 

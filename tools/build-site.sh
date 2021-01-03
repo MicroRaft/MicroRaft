@@ -12,7 +12,7 @@ try() { "$@" || die "cannot $*"; }
 MICRORAFT_VERSION=$1
 POM_FILE=pom.xml
 JAVADOC_SOURCE=microraft/target/site/apidocs
-SITE_FILES_DIR=microraft.io
+SITE_FILES_DIR=site-src
 SITE_DIR=${SITE_FILES_DIR}/site
 JAVADOC_TARGET=${SITE_DIR}/javadoc/${MICRORAFT_VERSION}
 [[ -z "${MKDOCS_ENV}" ]] && MKDOCS_CMD='mkdocs' || MKDOCS_CMD="${MKDOCS_ENV}"

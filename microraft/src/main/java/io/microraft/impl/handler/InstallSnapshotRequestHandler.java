@@ -79,7 +79,8 @@ public class InstallSnapshotRequestHandler
         super(raftNode, request);
     }
 
-    @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity"}) @Override protected void handle(@Nonnull InstallSnapshotRequest request) {
+    @Override @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity"})
+    protected void handle(@Nonnull InstallSnapshotRequest request) {
         requireNonNull(request);
 
         RaftEndpoint sender = request.getSender();

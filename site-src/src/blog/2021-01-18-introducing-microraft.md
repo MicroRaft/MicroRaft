@@ -1,18 +1,18 @@
 
 # Introducing MicroRaft
 
-July 31, 2020 | Ensar Basri Kahveci
+January 18, 2021 | Ensar Basri Kahveci
 
 ___Disclaimer: MicroRaft is a project I develop in my free time. It is not
 affiliated, associated, endorsed by, or in any way officially connected with my
 current employer Facebook, or any of its subsidiaries or its affiliates.___
 
 I am pleased to announce the first public release of MicroRaft! MicroRaft is a
-feature-complete, stable, production-grade and, most importantly, open-source
-implementation of the <a href="https://raft.github.io/" target="_blank">Raft
-consensus algorithm</a> in Java. You can use MicroRaft to build highly available
-and strongly consistent data, metadata and coordination services. The source
-code is available at <a href="https://github.com/MicroRaft/MicroRaft">Github</a>
+feature-complete, stable, and, most importantly, open-source implementation of 
+the <a href="https://raft.github.io/" target="_blank">Raft consensus 
+algorithm</a> in Java. You can use MicroRaft to build highly available and
+strongly consistent data, metadata and coordination services. The source code
+is available at <a href="https://github.com/MicroRaft/MicroRaft">Github</a>
 with the Apache 2 License.
 
 MicroRaft is a complete implementation of the Raft consensus algorithm. It
@@ -65,7 +65,7 @@ an atomic register or a key-value store, and execute operations on them. If it
 is a key-value store, then clients can replicate operations like `get`, `set`,
 `delete`, etc. Once a log entry is committed, i.e, successfully replicated to
 the majority of the Raft group, the operation it contains is passed to
-`StateMachine` for execution andthe leader `RaftNode` returns the output of the
+`StateMachine` for execution and the leader `RaftNode` returns the output of the
 execution to the client.
 
 ![Architectural overview of a Raft group](/img/microraft_architectural_overview.png){: style="height:592px;width:800px"}
@@ -91,32 +91,30 @@ source. MicroRaft originates from [the Raft
 implementation](https://github.com/hazelcast/hazelcast/tree/master/hazelcast/src/main/java/com/hazelcast/cp/internal/raft)
 that powers Hazelcast IMDG's CP Subsystem module. I was one of the main
 contributors of the CP Subsystem and was thinking about converting its Raft code
-into a separate library back in 2019. However, we were very busy with developing
-new features and I didn't have the time to try my idea. I left Hazelcast in
-February, 2020. My plan was to chill for a couple of weeks before I start my new
-job at Facebook in April, 2020. However, life happened and I had to push back my
-relocation to London because of the global Covid-19 crisis. I started to think
-about some side projects to amuse myself during my time at home and decided to
-give this project a try.
+into a separate library back in 2019, but didn't have the time to try my idea
+before leaving Hazelcast in February 2020. I decided to give this project a try
+to amuse myself during the lockdown while I was still in Turkey. After I
+relocated to London, I was too busy with everything related to starting a new
+life and a new job in a new country, so I needed a few more months to find some
+free time and make the project ready for release.
 
 <a href="https://twitter.com/mmdogan" target="_blank">Mehmet Dogan</a> and I
-developed Hazelcast CP Subsystem's Raft code inside Hazelcast codebase, but we
-isolated it from the rest of the Hazelcast code. It depends on Hazelcast for
-networking, logging and testing. So I started by moving out the Raft code and
-defining abstractions for the parts depending on Hazelcast. Then I implemented a
-number of enhancements and improvements that you can see at the <a
-href="https://github.com/MicroRaft/MicroRaft/commits/master"
+developed the original Raft code inside Hazelcast codebase, but we isolated it 
+from the rest of the Hazelcast code. It depends on Hazelcast for networking,
+logging and testing. So I started by moving out the Raft code and defining
+abstractions for the parts depending on Hazelcast. Then I implemented several
+significant enhancements and improvements that you can see at the
+<a href="https://github.com/MicroRaft/MicroRaft/commits/master"
 target="_blank">commit history</a>.
 
-MicroRaft carries on Hazelcast's heritage and is released with the Apache 2
-License.
+MicroRaft proudly carries on Hazelcast's open-source heritage and is released 
+with the Apache 2 License.
 
 ## What is next
 
 I wrote down <a href="https://microraft.io/docs/roadmap/" target="_blank">a list
 of future work</a> on MicroRaft. I am planning to work on them in my free time.
-The list is tentative. I can change it based on the feedback and engagement of
-developers who want to use MicroRaft.
+The list is tentative and there is nothing urgent at the moment.
 
 MicroRaft is a new open source project. Any kind of contribution and feedback is
 welcome! The development happens on <a

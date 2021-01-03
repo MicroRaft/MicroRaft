@@ -141,7 +141,8 @@ public class DefaultInstallSnapshotRequestOrBuilder
         return this;
     }
 
-    @Nonnull @Override public InstallSnapshotRequestBuilder setSnapshottedMembers(@Nonnull Collection<RaftEndpoint> snapshottedMembers) {
+    @Nonnull @Override
+    public InstallSnapshotRequestBuilder setSnapshottedMembers(@Nonnull Collection<RaftEndpoint> snapshottedMembers) {
         builder.snapshottedMembers = snapshottedMembers;
         return this;
     }

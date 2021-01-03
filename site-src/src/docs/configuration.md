@@ -112,7 +112,7 @@ state. `RaftNodeReport` objects can be used for monitoring a running Raft group.
 <dependency>
 	<groupId>io.microraft</groupId>
 	<artifactId>microraft-hocon</artifactId>
-	<version>1.0</version>
+	<version>0.1</version>
 </dependency>
 ~~~~
 
@@ -154,7 +154,7 @@ add the `microraft-yaml` dependency to your classpath.
 <dependency>
 	<groupId>io.microraft</groupId>
 	<artifactId>microraft-yaml</artifactId>
-	<version>1.0</version>
+	<version>0.1</version>
 </dependency>
 ~~~~
 

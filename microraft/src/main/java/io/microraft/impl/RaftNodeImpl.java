@@ -264,6 +264,11 @@ public final class RaftNodeImpl
      * in the current term yet.</li>
      * </ul>
      *
+     * @param operation
+     *         the operation to check for replication
+     *
+     * @return true if the given operation can be replicated, false otherwise
+     *
      * @see RaftNodeStatus
      * @see RaftGroupOp
      * @see RaftConfig#getMaxPendingLogEntryCount()
@@ -307,6 +312,8 @@ public final class RaftNodeImpl
      * See Section 6.4 of Raft Dissertation.</li>
      * <li>There are already a lot of queries waiting to be executed.</li>
      * </ul>
+     *
+     * @return true if a new query can be executed with the linearizability guarantee without appending an entry to the Raft log.
      *
      * @see RaftNodeStatus
      * @see RaftConfig#getMaxPendingLogEntryCount()
@@ -426,6 +433,9 @@ public final class RaftNodeImpl
 
     /**
      * Updates status of the Raft node with the given status.
+     *
+     * @param newStatus
+     *         the new status to set on the local Raft node
      */
     public void setStatus(RaftNodeStatus newStatus) {
         if (isTerminal(status)) {
@@ -638,14 +648,16 @@ public final class RaftNodeImpl
         return executeIfRunning(new ReplicateTask(this, requireNonNull(operation), future), future);
     }
 
-    @Nonnull @Override public <T> CompletableFuture<Ordered<T>> query(@Nonnull Object operation, @Nonnull QueryPolicy queryPolicy,
+    @Nonnull @Override
+    public <T> CompletableFuture<Ordered<T>> query(@Nonnull Object operation, @Nonnull QueryPolicy queryPolicy,
                                                    long minCommitIndex) {
         OrderedFuture<T> future = new OrderedFuture<>();
         Runnable task = new QueryTask(this, requireNonNull(operation), queryPolicy, minCommitIndex, future);
         return executeIfRunning(task, future);
     }
 
-    @Nonnull @Override public CompletableFuture<Ordered<RaftGroupMembers>> changeMembership(@Nonnull RaftEndpoint endpoint,
+    @Nonnull @Override
+    public CompletableFuture<Ordered<RaftGroupMembers>> changeMembership(@Nonnull RaftEndpoint endpoint,
                                                                          @Nonnull MembershipChangeMode mode,
                                                                          long expectedGroupMembersCommitIndex) {
         OrderedFuture<RaftGroupMembers> future = new OrderedFuture<>();
@@ -708,6 +720,11 @@ public final class RaftNodeImpl
         return new NotLeaderException(getLocalEndpoint(), isTerminal(status) ? null : getLeaderEndpoint());
     }
 
+    /**
+     * Returns the leader Raft endpoint currently known by the local Raft node. The returned leader information might be stale.
+     *
+     * @return the leader Raft endpoint currently known by the local Raft node
+     */
     @Nullable public RaftEndpoint getLeaderEndpoint() {
         // volatile read
         return state.leader();
@@ -715,6 +732,9 @@ public final class RaftNodeImpl
 
     /**
      * Schedules a task to reset append entries request backoff periods, if not scheduled already.
+     *
+     * @param leaderState
+     *         the leader state to check and set the backoff task scheduling state.
      */
     public void scheduleLeaderRequestBackoffResetTask(LeaderState leaderState) {
         if (!leaderState.isRequestBackoffResetTaskScheduled()) {
@@ -831,7 +851,9 @@ public final class RaftNodeImpl
     }
 
     /**
-     * Returns the Raft state
+     * Returns the internal Raft state
+     *
+     * @return the internal Raft state
      */
     public RaftState state() {
         return state;
@@ -840,6 +862,11 @@ public final class RaftNodeImpl
     /**
      * Registers the given future with its {@code entryIndex}. This future will be notified when the corresponding operation is
      * committed or its log entry is reverted.
+     *
+     * @param entryIndex
+     *         the log index to register the given future
+     * @param future
+     *         the future object to register
      */
     public void registerFuture(long entryIndex, OrderedFuture future) {
         OrderedFuture f = futures.put(entryIndex, future);
@@ -860,6 +887,11 @@ public final class RaftNodeImpl
     /**
      * Completes futures with the given exception for indices greater than or equal to the given index. Note that the given index
      * is inclusive.
+     *
+     * @param startIndexInclusive
+     *         the (inclusive) starting log index to complete registered futures
+     * @param e
+     *         the RaftException object to complete registered futures
      */
     public void invalidateFuturesFrom(long startIndexInclusive, RaftException e) {
         int count = 0;
@@ -959,6 +991,9 @@ public final class RaftNodeImpl
 
     /**
      * Installs the snapshot sent by the leader if it's not already installed.
+     *
+     * @param snapshotEntry
+     *         the snapshot entry object to install to the local Raft node
      */
     public void installSnapshot(SnapshotEntry snapshotEntry) {
         long commitIndex = state.commitIndex();
@@ -1008,6 +1043,13 @@ public final class RaftNodeImpl
     /**
      * Updates Raft group members.
      *
+     * @param logIndex
+     *         the log index on which the given Raft group members are appended
+     * @param members
+     *         the list of all Raft endpoints in the Raft group
+     * @param votingMembers
+     *         the list of voting Raft endpoints in the Raft group (must be a subset of the "members" parameter)
+     *
      * @see RaftState#updateGroupMembers(long, Collection, Collection)
      */
     public void updateGroupMembers(long logIndex, Collection<RaftEndpoint> members, Collection<RaftEndpoint> votingMembers) {
@@ -1027,6 +1069,9 @@ public final class RaftNodeImpl
 
     /**
      * Publishes a new Raft node report for the given reason
+     *
+     * @param reason
+     *         the underlying reason that triggers this RaftNodeReport publish
      *
      * @see RaftNodeReport
      */
@@ -1116,18 +1161,21 @@ public final class RaftNodeImpl
      * <p>
      * If the leader doesn't know the given follower's matchIndex (i.e., its {@code matchIndex == 0}), then an empty append
      * entries request is sent to save bandwidth until the leader discovers the real matchIndex of the follower.
+     *
+     * @param target
+     *         the Raft endpoint to send the request
      */
     @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity", "checkstyle:methodlength"})
-    public void sendAppendEntriesRequest(RaftEndpoint follower) {
+    public void sendAppendEntriesRequest(RaftEndpoint target) {
         RaftLog log = state.log();
         LeaderState leaderState = state.leaderState();
-        FollowerState followerState = leaderState.getFollowerStateOrNull(follower);
+        FollowerState followerState = leaderState.getFollowerStateOrNull(target);
 
         if (followerState == null) {
-            LOGGER.warn("{} follower/learner: {} not found to send append entries request.", localEndpointStr, follower.getId());
+            LOGGER.warn("{} follower/learner: {} not found to send append entries request.", localEndpointStr, target.getId());
             return;
         } else if (followerState.isRequestBackoffSet()) {
-            // The follower still has not sent a response for the last append request.
+            // The target still has not sent a response for the last append request.
             // We will send a new append request either when the follower sends a response
             // or a back-off timeout occurs.
             return;
@@ -1139,7 +1187,7 @@ public final class RaftNodeImpl
         // if we still keep that log entry and its previous entry, we don't need to send a snapshot
         if (nextIndex <= log.snapshotIndex() && (!log.containsLogEntry(nextIndex) || (nextIndex > 1 && !log.containsLogEntry(
                 nextIndex - 1)))) {
-            // We send an empty request to notify the follower so that it could
+            // We send an empty request to notify the target so that it could
             // trigger the actual snapshot installation process...
             SnapshotEntry snapshotEntry = log.snapshotEntry();
             List<RaftEndpoint> snapshottedMembers = getSnapshottedMembers(leaderState, snapshotEntry);
@@ -1160,11 +1208,11 @@ public final class RaftNodeImpl
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(
-                        localEndpointStr + " Sending " + request + " to " + follower.getId() + " since next index: " + nextIndex
+                        localEndpointStr + " Sending " + request + " to " + target.getId() + " since next index: " + nextIndex
                         + " <= snapshot index: " + log.snapshotIndex());
             }
 
-            send(follower, request);
+            send(target, request);
             scheduleLeaderRequestBackoffResetTask(leaderState);
 
             return;
@@ -1191,7 +1239,7 @@ public final class RaftNodeImpl
 
             long matchIndex = followerState.matchIndex();
             if (matchIndex == 0) {
-                // Until the leader has discovered where it and the follower's logs match,
+                // Until the leader has discovered where it and the target's logs match,
                 // the leader can send AppendEntries with no entries (like heartbeats) to save bandwidth.
                 // We still need to enable append request backoff here because we do not want to bombard
                 // the follower before we learn its match index.
@@ -1201,13 +1249,13 @@ public final class RaftNodeImpl
                 // the leader should begin to send the actual entries.
                 entries = log.getLogEntriesBetween(nextIndex, min(nextIndex + appendEntriesRequestBatchSize, lastLogIndex));
             } else {
-                // The follower has caught up with the leader. Sending an empty append request as a heartbeat...
+                // The target has caught up with the leader. Sending an empty append request as a heartbeat...
                 entries = emptyList();
-                // amortize cost of multiple queries.
+                // amortize the cost of multiple queries.
                 backoff = leaderState.queryState().queryCount() > 0;
             }
         } else if (nextIndex == 1 && lastLogIndex > 0) {
-            // Entries will be sent to the follower for the first time...
+            // Entries will be sent to the target for the first time...
             entries = log.getLogEntriesBetween(nextIndex, min(nextIndex + appendEntriesRequestBatchSize, lastLogIndex));
         } else {
             // There is no entry in the Raft log. Sending an empty append request as a heartbeat...
@@ -1223,17 +1271,19 @@ public final class RaftNodeImpl
         RaftMessage request = requestBuilder.setLogEntries(entries).build();
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(localEndpointStr + " Sending " + request + " to " + follower.getId() + " with next index: " + nextIndex);
+            LOGGER.debug(localEndpointStr + " Sending " + request + " to " + target.getId() + " with next index: " + nextIndex);
         }
 
-        send(follower, request);
+        send(target, request);
 
         if (backoff) {
             scheduleLeaderRequestBackoffResetTask(leaderState);
         }
 
         if (entries.size() > 0 && entries.get(entries.size() - 1).getIndex() > leaderState.flushedLogIndex()) {
-            // If I am sending any non-flushed entry to the follower, I should
+            // TODO(basri): we can skip this if the target is a learner...
+
+            // If I am sending any non-flushed entry to the target, I should
             // trigger the flush task. I hope that I will flush before
             // receiving append entries responses from half of the followers...
             // This is a very critical optimization because it makes the leader
@@ -1268,6 +1318,11 @@ public final class RaftNodeImpl
 
     /**
      * Sends the given Raft message to the given Raft endpoint.
+     *
+     * @param target
+     *         the target Raft endpoint to send the given Raft message
+     * @param message
+     *         the Raft message to send
      */
     public void send(RaftEndpoint target, RaftMessage message) {
         try {
@@ -1284,6 +1339,11 @@ public final class RaftNodeImpl
     /**
      * Returns true if the leader flush task is submitted either by the current call or a previous call of this method. Returns
      * false if the leader flush task is not submitted, because this Raft node is created with {@link NopRaftStore}.
+     *
+     * @param leaderState
+     *         the leader state to set the flush task scheduling state
+     *
+     * @return true if the leader flush task is submitted either by the current call or a previous call of this method
      */
     public boolean submitLeaderFlushTask(LeaderState leaderState) {
         if (leaderFlushTask == null) {
@@ -1317,6 +1377,9 @@ public final class RaftNodeImpl
      * elections are sticky, meaning that leader stickiness will be considered by other Raft nodes when they receive vote
      * requests. A non-sticky leader election occurs when the current Raft group leader tries to transfer leadership to another
      * member.
+     *
+     * @param sticky
+     *         the parameter to pass on to the vote requests which are going to be sent to the followers.
      */
     public void toCandidate(boolean sticky) {
         state.toCandidate();
@@ -1344,7 +1407,9 @@ public final class RaftNodeImpl
     }
 
     /**
-     * Returns a randomized leader election timeout in milliseconds based on the leader election timeout configuration.
+     * Returns a the leader election timeout with a small and randomised extension.
+     *
+     * @return a the leader election timeout with a small and randomised extension.
      *
      * @see RaftConfig#getLeaderElectionTimeoutMillis()
      */
@@ -1475,6 +1540,8 @@ public final class RaftNodeImpl
 
     /**
      * Returns a short string that represents identity of the local Raft endpoint.
+     *
+     * @return a short string that represents identity of the local Raft endpoint
      */
     public String localEndpointStr() {
         return localEndpointStr;
@@ -1502,9 +1569,20 @@ public final class RaftNodeImpl
     }
 
     /**
-     * Executes the given query operation sets execution result to the future.
+     * Executes the given query operation and sets execution result to the future if the current commit index is greater than or
+     * equal to the given commit index.
      * <p>
      * Please note that the given operation must not make any mutation on the state machine.
+     *
+     * @param operation
+     *         the query object to be executed
+     * @param minCommitIndex
+     *         the minimum commit index that the local Raft node must satisfy
+     * @param future
+     *         the future object to notify with the result
+     *
+     * @throws LaggingCommitIndexException
+     *         if the current commit index is smaller than the given commit index
      */
     public void runQuery(Object operation, long minCommitIndex, OrderedFuture future) {
         try {

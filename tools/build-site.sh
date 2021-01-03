@@ -1,12 +1,15 @@
 #!/bin/bash
 
 if [ -z "$1" ]; then
-	echo "usage: build-site.sh microraft-version"
-	exit 1
+  echo "usage: build-site.sh microraft-version"
+  exit 1
 fi
 
 yell() { echo "$0: $*" >&2; }
-die() { yell "$*"; exit 1; }
+die() {
+  yell "$*"
+  exit 1
+}
 try() { "$@" || die "cannot $*"; }
 
 MICRORAFT_VERSION=$1

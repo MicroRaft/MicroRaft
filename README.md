@@ -47,7 +47,7 @@ enhancements:
 
 ## Getting Started
 
-See [the User Guide](https://microraft.io/user-guide/setup). 
+See [the User Guide](https://microraft.io/docs/setup). 
 
 
 ## Building from Source

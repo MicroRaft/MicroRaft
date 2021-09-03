@@ -1,6 +1,14 @@
 name: Java CI
 
-on: [push]
+on:
+  push:
+    paths:
+      - '**/src/**'
+      - '**/pom.xml'
+  pull_request:
+    paths:
+      - '**/src/**'
+      - '**/pom.xml'
 
 jobs:
   build:
@@ -13,5 +21,13 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
+
+    - name: Cache Maven dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-maven
+
     - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      run: mvn --no-transfer-progress -B package

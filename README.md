@@ -4,12 +4,12 @@
 
 ![](microraft.io/src/img/microraft-logo.png)
 
-MicroRaft is a feature-complete, stable and production-grade open-source 
-implementation of the Raft consensus algorithm in Java. __It is a single 
-lightweight JAR file of a few hundred KBs of size.__ It can be used for 
-building fault tolerant and strongly-consistent (CP) data, metadata and 
-coordination services. A few examples of possible use-cases are building
-distributed file systems, key-value stores, distributed lock services, etc.
+MicroRaft is a feature-complete and stable open-source implementation of the
+Raft consensus algorithm in Java. __It is a single lightweight JAR file of a few
+hundred KBs of size.__ It can be used for building fault tolerant and
+strongly-consistent (CP) data, metadata and coordination services. A few
+examples of possible use-cases are building distributed file systems, key-value
+stores, distributed lock services, etc.
 
 MicroRaft works on top of a minimalistic and modular design. __It is a single
 lightweight JAR with a few hundred KBs of size and only logging dependency.__

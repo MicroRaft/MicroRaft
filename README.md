@@ -33,7 +33,7 @@ MicroRaft implements the leader election, log replication, log compaction
 algorithm. Additionally, it offers a rich set of optimizations and 
 enhancements:
 
-* Pipelining and batching during log replication,
+* Adaptive batching during log replication,
 * Back pressure to prevent OOMEs on Raft leader and followers,
 * Parallel snapshot transfer from Raft leader and followers,
 * Pre-voting and leader stickiness ([Section 4.2.3 of the Raft dissertation](https://github.com/ongardie/dissertation) and [Four modifications of the Raft consensus algorithm](https://openlife.cc/system/files/4-modifications-for-Raft-consensus.pdf)),
@@ -43,6 +43,7 @@ enhancements:
 * Monotonic local queries on Raft followers [(Section 6.4.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
 * Parallel disk writes on Raft leader and followers [(Section 10.2.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
 * Leadership transfer [(Section 3.10 of the Raft dissertation)](https://github.com/ongardie/dissertation).
+* [Improved majority quorums](https://basri.dev/posts/2020-07-27-improved-majority-quorums-for-raft/)
 
 
 ## Getting Started

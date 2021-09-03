@@ -118,9 +118,6 @@ The list is tentative and there is nothing urgent at the moment.
 
 MicroRaft is a new open source project. Any kind of contribution and feedback is
 welcome! The development happens on <a
-href="https://github.com/MicroRaft/MicroRaft" target="_blank">Github</a>. There
-is also a <a
-href="https://join.slack.com/t/microraft/shared_invite/zt-dc6utpfk-84P0VbK7EcrD3lIme2IaaQ"
-target="_blank">Slack group</a> for discussions and questions. Last, you can
-follow <a href="https://twitter.com/microraft" target="_blank">@MicroRaft</a> on
-Twitter for announcements.
+href="https://github.com/MicroRaft/MicroRaft" target="_blank">Github</a>. Last,
+you can follow <a href="https://twitter.com/microraft"
+target="_blank">@MicroRaft</a> on Twitter for announcements.

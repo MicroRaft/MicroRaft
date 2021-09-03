@@ -131,6 +131,7 @@ buildNumber.properties
 ### mkdocs ###
 
 site-src/site
+site-src/microraft-site.zip
 
 .project
 .classpath

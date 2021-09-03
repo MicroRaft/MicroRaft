@@ -1,34 +1,23 @@
 
 # Setup
 
-MicroRaft JARs are available in the standard Maven repositories. If you are
-using Maven, just add the following lines to the `dependencies` section in your
-`pom.xml`:
+MicroRaft JARs are available via [Jitpack](https://jitpack.io/#MicroRaft/MicroRaft). If you are
+using Maven, just add the following lines to your your `pom.xml`:
 
 ~~~~{.xml}
-<dependency>
-    <groupId>io.microraft</groupId>
-    <artifactId>microraft</artifactId>
-    <version>0.1</version>
-</dependency>
-~~~~
-
-If you are using HOCON or YAML files for configuration, the following
-dependencies provide parsers to configure MicroRaft from HOCON and YAML files:
-
-~~~~{.xml}
-<dependency>
-	<groupId>io.microraft</groupId>
-	<artifactId>microraft-hocon</artifactId>
-	<version>0.1</version>
-</dependency>
+<repositories>
+	<repository>
+		<id>jitpack.io</id>
+		<url>https://jitpack.io</url>
+	</repository>
+</repositories>
 ~~~~
 
 ~~~~{.xml}
 <dependency>
-	<groupId>io.microraft</groupId>
-	<artifactId>microraft-yaml</artifactId>
-	<version>0.1</version>
+    <groupId>com.github.MicroRaft</groupId>
+	<artifactId>MicroRaft</artifactId>
+	<version>v0.1</version>
 </dependency>
 ~~~~
 

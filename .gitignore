@@ -130,7 +130,7 @@ buildNumber.properties
 
 ### mkdocs ###
 
-microraft.io/site
+site-src/site
 
 .project
 .classpath

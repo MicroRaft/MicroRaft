@@ -1,12 +1,12 @@
 site_name: MicroRaft
-site_description: 'MicroRaft: Java implementation of the Raft consensus algorithm'
+site_description: "MicroRaft: Java implementation of the Raft consensus algorithm"
 site_url: https://microraft.io
-site_author: 'Ensar Basri Kahveci'
-copyright: 'MicroRaft, 2020. Open-sourced by <a href="https://twitter.com/metanet" target="_blank">Ensar Basri Kahveci</a>.'
+site_author: "Ensar Basri Kahveci"
+copyright: 'MicroRaft, 2021. Open-sourced by <a href="https://twitter.com/metanet" target="_blank">Ensar Basri Kahveci</a>.'
 docs_dir: src
 use_directory_urls: true
 theme: flatly
-google_analytics: ['UA-485423-8', 'MicroRaft']
+google_analytics: ["UA-485423-8", "MicroRaft"]
 
 plugins:
   - search
@@ -16,18 +16,18 @@ markdown_extensions:
   - fenced_code
 
 nav:
-  - 'Docs':
-      - Setup: 'docs/setup.md'
-      - Main Abstractions: 'docs/main-abstractions.md'
-      - Configuration: 'docs/configuration.md'
-      - 'Tutorial: Building an Atomic Register': 'docs/tutorial-building-an-atomic-register.md'
-      - Resiliency and Fault Tolerance: 'docs/resiliency-and-fault-tolerance.md'
-      - Monitoring: 'docs/monitoring.md'
-      - 'Javadoc 0.1': 'javadoc/0.1/index.html'
-      - Release Notes: 'docs/release-notes.md'
-      - Roadmap: 'docs/roadmap.md'
-  - 'Blog':
-      - 'January 18, 2021 | Introducing MicroRaft': 'blog/2021-01-18-introducing-microraft.md'
-      - 'All Blog Posts': 'blog'
-  - 'Github': 'https://github.com/MicroRaft/MicroRaft'
-  - 'Twitter': 'https://twitter.com/MicroRaft'
+  - "Docs":
+      - Setup: "docs/setup.md"
+      - Main Abstractions: "docs/main-abstractions.md"
+      - Configuration: "docs/configuration.md"
+      - "Tutorial: Building an Atomic Register": "docs/tutorial-building-an-atomic-register.md"
+      - Resiliency and Fault Tolerance: "docs/resiliency-and-fault-tolerance.md"
+      - Monitoring: "docs/monitoring.md"
+      - "Javadoc 0.1": "javadoc/0.1/index.html"
+      - Release Notes: "docs/release-notes.md"
+      - Roadmap: "docs/roadmap.md"
+  - "Blog":
+      - "September 4, 2021 | Introducing MicroRaft": "blog/2021-09-04-introducing-microraft.md"
+      - "All Blog Posts": "blog"
+  - "Github": "https://github.com/MicroRaft/MicroRaft"
+  - "Twitter": "https://twitter.com/MicroRaft"

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="MicroRaft: Java implementation of the Raft consensus algorithm">
+        <meta name="author" content="Ensar Basri Kahveci">
+        <link rel="canonical" href="https://microraft.io/">
+        <link rel="shortcut icon" href="img/favicon.ico">
+        <title>MicroRaft</title>
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <link href="css/font-awesome.min.css" rel="stylesheet">
+        <link href="css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/docco.min.css">
+
+        <script src="js/jquery-1.10.2.min.js" defer></script>
+        <script src="js/bootstrap.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <script>
+            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+            })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+            ga('create', 'UA-485423-8', 'MicroRaft');
+            ga('send', 'pageview');
+        </script> 
+    </head>
+
+    <body class="homepage">
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href=".">MicroRaft</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Docs <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="docs/setup/" class="dropdown-item">Setup</a>
+</li>
+                                    
+<li>
+    <a href="docs/main-abstractions/" class="dropdown-item">Main Abstractions</a>
+</li>
+                                    
+<li>
+    <a href="docs/configuration/" class="dropdown-item">Configuration</a>
+</li>
+                                    
+<li>
+    <a href="docs/tutorial-building-an-atomic-register/" class="dropdown-item">Tutorial: Building an Atomic Register</a>
+</li>
+                                    
+<li>
+    <a href="docs/resiliency-and-fault-tolerance/" class="dropdown-item">Resiliency and Fault Tolerance</a>
+</li>
+                                    
+<li>
+    <a href="docs/monitoring/" class="dropdown-item">Monitoring</a>
+</li>
+                                    
+<li>
+    <a href="javadoc/0.1/index.html" class="dropdown-item">Javadoc 0.1</a>
+</li>
+                                    
+<li>
+    <a href="docs/release-notes/" class="dropdown-item">Release Notes</a>
+</li>
+                                    
+<li>
+    <a href="docs/roadmap/" class="dropdown-item">Roadmap</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Blog <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="blog/2021-01-18-introducing-microraft/" class="dropdown-item">January 18, 2021 | Introducing MicroRaft</a>
+</li>
+                                    
+<li>
+    <a href="blog" class="dropdown-item">All Blog Posts</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="navitem">
+                                <a href="https://github.com/MicroRaft/MicroRaft" class="nav-link">Github</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="https://twitter.com/MicroRaft" class="nav-link">Twitter</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#microraft" class="nav-link">MicroRaft</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#features" class="nav-link">Features</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#use-cases" class="nav-link">Use cases</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#getting-started" class="nav-link">Getting started</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#getting-involved" class="nav-link">Getting involved</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#what-is-consensus" class="nav-link">What is consensus?</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#acknowledgements" class="nav-link">Acknowledgements</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="microraft">MicroRaft</h1>
+<p><img alt="" src="img/microraft-logo.png" style="height:192px;width:192px;float:right;" /></p>
+<p>MicroRaft is a feature-complete and stable open-source implementation of the
+Raft consensus algorithm in Java. It is released with
+<a href="https://github.com/MicroRaft/MicroRaft/blob/master/LICENSE"
+target="_blank">the Apache 2 license</a>.</p>
+<p>MicroRaft works on top of a minimalistic and modular design. <strong>It is a single
+lightweight JAR with a few hundred KBs of size and only logging dependency</strong>. It
+contains an isolated implementation of the Raft consensus algorithm, and a set
+of accompanying interfaces to run the algorithm in a multi-threaded and
+distributed environment. These interfaces surround the Raft consensus algorithm,
+and abstract away the concerns of persistence, thread-safety, serialization,
+networking and actual state machine logic. Developers are required to implement
+these interfaces to build <em>CP</em> distributed systems on top of MicroRaft.</p>
+<p>You can read the <a href="blog/2021-01-18-introducing-microraft/">public announcement</a>
+here.</p>
+<h2 id="features">Features</h2>
+<p>MicroRaft is a complete implementation of the Raft consensus algorithm. It
+implements the leader election, log replication, log compaction (snapshotting),
+and cluster membership changes components. Additionally, it realizes a rich set
+of optimizations and enhancements, as listed below, to allow developers to run
+Raft clusters in a reliable and performant manner, and tune its behaviour based
+on their needs.</p>
+<ul>
+<li>Adaptive batching during log replication</li>
+<li>Back pressure to prevent OOMEs on Raft leader and followers</li>
+<li>Parallel snapshot transfer from Raft leader and followers</li>
+<li>Pre-voting and leader stickiness (<a href="https://github.com/ongardie/dissertation" target="_blank">§ 4.2.3 and 9.6 of the Raft dissertation</a>, and <a href="https://openlife.cc/system/files/4-modifications-for-Raft-consensus.pdf" target="_blank">4 Modifications for Raft Consensus</a>)</li>
+<li>Auto-demotion of Raft leader on loss of quorum heartbeats</li>
+<li>Linearizable quorum reads without appending log entries <a href="https://github.com/ongardie/dissertation" target="_blank">(§ 6.4 of the Raft dissertation)</a></li>
+<li>Lease-based local queries on Raft leader <a href="https://github.com/ongardie/dissertation" target="_blank">(§ 6.4.1 of the Raft dissertation)</a></li>
+<li>Monotonic local queries on Raft followers <a href="https://github.com/ongardie/dissertation" target="_blank">(§ 6.4.1 of the Raft dissertation)</a></li>
+<li>Parallel disk writes on Raft leader and followers <a href="https://github.com/ongardie/dissertation" target="_blank">(§ 10.2.1 of the Raft dissertation)</a></li>
+<li>Leadership transfer <a href="https://github.com/ongardie/dissertation" target="_blank">(§ 3.10 of the Raft dissertation)</a></li>
+<li><a href="https://basri.dev/posts/2020-07-27-improved-majority-quorums-for-raft/" target="_blank">Improved majority quorums</a></li>
+</ul>
+<h2 id="use-cases">Use cases</h2>
+<p>MicroRaft can be used for building highly available and strongly consistent
+data, metadata and coordination services.</p>
+<p>An example of data service is a distributed key-value store. You can build a
+distributed key-value store where each partition / shard is maintained by a
+separate Raft cluster (<em>Raft group</em> in MicroRaft terms).</p>
+<p>MicroRaft can be also used for building a control plane or coordination cluster.
+It can store the metadata of your large-scale data services. High-level APIs,
+such as leader election mechanisms, group membership management systems,
+distributed locks, distributed transaction managers, or distributed resource
+schedulers can be also built on top of MicroRaft.</p>
+<p><strong>Please note that MicroRaft is not a high-level solution like a distributed
+key-value store, or a distributed lock service. It is a library that offers a
+set of abstractions and functionalities to help you build such high-level
+systems without intertwining your system with Raft code.</strong></p>
+<h2 id="getting-started">Getting started</h2>
+<p>Just run the following command on your terminal for a sneak peek at MicroRaft.
+It starts a 3-node local Raft group, elects a leader, and commits a number of
+operations.</p>
+<pre><code class="bash">$ git clone https://github.com/MicroRaft/MicroRaft.git &amp;&amp; cd MicroRaft &amp;&amp; ./mvnw clean test -Dtest=io.microraft.tutorial.OperationCommitTest -DfailIfNoTests=false -Ptutorial
+</code></pre>
+
+<p>If you want to learn more about how to use MicroRaft for building a <em>CP</em>
+distributed system, you can check out the <a href="docs/main-abstractions/">Main
+Abstractions</a> section first, and then read the
+<a href="docs/tutorial-building-an-atomic-register/">tutorial</a> to build an atomic
+register on top of MicroRaft.</p>
+<h2 id="getting-involved">Getting involved</h2>
+<p>MicroRaft is a new open-source library. Your contribution and feedback is 
+welcome! The development happens on <a href="https://github.com/MicroRaft/MicroRaft"
+target="_blank">Github</a>. You can follow <a href="https://twitter.com/microraft" 
+target="_blank">@MicroRaft</a> on Twitter for announcements.</p>
+<h2 id="what-is-consensus">What is consensus?</h2>
+<p>Consensus is one of the fundamental problems in distributed systems. It involves
+multiple servers agree on a value. Once a value is decided, the decision is
+final. Consensus algorithms are very useful in a plethora of distributed systems
+that require high availability and strong consistency. Paxos, first introduced
+by Leslie Lamport, is probably the most widely known consensus algorithm.
+However, it has been also known as difficult to reason about and lacking details
+for building practical implementations. Raft was introduced in 2013 as a new
+consensus algorithm with the main goal of understandability. Ever since its
+introduction, Raft has received widespread adoption in the industry.</p>
+<p>Raft approaches the consensus problem in the context of replicated state
+machines, where a group of servers applies the same set of operations and
+computes identical copies of the same state. Raft's primary enabler of
+understandability is the problem decomposition technique. It divides the
+consensus problem into 3 pieces: leader election, log replication and safety,
+and solves each piece relatively independently. Raft starts by electing a
+leader. There is a single functional leader managing the servers, and upon its
+failure a new leader is elected. Each server keeps a local log. Clients send
+their requests to the leader. The leader appends incoming requests into its log
+and replicates them to the other servers. Each server appends the requests sent
+by the leader into its log. Once a request is appended to the local logs of
+sufficient number (i.e., more than half) of servers, the leader considers the
+request committed, hence executes it on its local state machine, also notifies
+other servers to do the same. Raft orders requests by the indices they are
+appended to the replicated log. In addition, Raft's leader election and log
+replication rules ensure that once a request is committed and executed at a
+given log index on one server, no other server can execute another request for
+the same log index, including the presence of non-Byzantine failures. This is
+basically Raft's safety property. Thanks to this property, each server executes
+the same sequence of requests. Once these requests are deterministic, servers
+compute identical copies of the same state and produce the same output values.</p>
+<p>For more details about Raft, please see the <a href="https://raft.github.io/raft.pdf">In Search of an Understandable
+Consensus Algorithm</a> paper by Diego Ongaro and
+John Ousterhout.  </p>
+<h2 id="acknowledgements">Acknowledgements</h2>
+<p>MicroRaft originates from Hazelcast IMDG's <a
+href="https://github.com/hazelcast/hazelcast/tree/master/hazelcast/src/main/java/com/hazelcast/cp/internal/raft"
+target="_blank">Raft implementation</a> and includes several significant
+improvements on the public APIs and internals.</p>
+<p>MicroRaft's logo is created by modifying <a
+href="https://github.com/raft/logo/tree/3d2c4d5ca0d9c4fb8d5c28a82c4a43e576673b06"
+target="_blank"> Raft's original logo</a>. Raft's logo was created by Andrea
+Ruygt and licensed under <a href="https://creativecommons.org/licenses/by/4.0/"
+target="_blank">the Creative Commons Attribution-4.0 International</a>.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+                <p>MicroRaft, 2020. Open-sourced by <a href="https://twitter.com/metanet" target="_blank">Ensar Basri Kahveci</a>.</p>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = ".",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="js/base.js" defer></script>
+        <script src="search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
+
+<!--
+MkDocs version : 1.1.2
+Build Date UTC : 2021-09-03 00:06:15.016637+00:00
+-->

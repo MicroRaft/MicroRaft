@@ -4,11 +4,6 @@ I am planning to work on the following tasks in the future, but have no strict
 plans about their timeline. If you have ideas, just [chime
 in](https://join.slack.com/t/microraft/shared_invite/zt-dc6utpfk-84P0VbK7EcrD3lIme2IaaQ)!
 
-- Learner nodes. When a new Raft node is added to a running Raft group, it can
-  start with the "learner" role. In this role, the new Raft node is excluded in
-  the quorum calculations to not to hurt availability of the Raft group until it
-  catches up with the Raft group leader.
-
 - Opt-in deduplication mechanism via implementation of the [Implementing
   Linearizability at Large Scale and Low
   Latency](https://dl.acm.org/doi/10.1145/2815400.2815416) paper. Currently, one

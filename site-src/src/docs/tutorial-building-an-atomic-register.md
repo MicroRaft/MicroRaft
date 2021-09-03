@@ -351,16 +351,20 @@ guarantee:
   dissertation</a> to preserve linearizability without growing the internal Raft
   log. We need to hit the leader Raft node to execute a linearizable query.
 
-* `QueryPolicy.LEADER_LOCAL`: We can run a query locally on the leader Raft node
+* `QueryPolicy.LEADER_LEASE`: We can run a query locally on the leader Raft node
   without talking to the majority. If the called Raft node is not the leader,
   the returned `CompletableFuture<Ordered>` object is notified with
   `NotLeaderException`.
 
-* `QueryPolicy.ANY_LOCAL`: We can use this policy to run a query locally on any
-  Raft node independent of its current role. This policy provides the weakest
-  consistency guarantee, but it can help us to distribute our query-workload by
-  utilizing followers. We can also utilize `Ordered` to preserve a monotonic
-  view of the Raft group state.
+* `QueryPolicy.BOUNDED_STALENESS` We can run a query locally on a follower or a
+  learner Raft node if it has received an AppendEntries RPC from the leader in the
+  last leader heartbeat timeout duration.
+
+* `QueryPolicy.EVENTUAL_CONSISTENCY`: We can use this policy to run a query
+  locally on any Raft node independent of its current role. This policy provides
+  the weakest consistency guarantee, but it can help us to distribute our
+  query-workload by utilizing followers. We can also utilize `Ordered` to
+  preserve a monotonic view of the Raft group state.
 
 MicroRaft also employs leader stickiness and auto-demotion of leaders on loss of
 majority heartbeats. Leader stickiness means that a follower does not vote for
@@ -368,18 +372,18 @@ another Raft node before the *leader heartbeat timeout* elapses after the last
 received *Append Entries* or *Install Snapshot* RPC. Dually, a leader Raft node
 automatically demotes itself to the follower role if it does not receive *Append
 Entries* RPC responses from the majority during the *leader heartbeat timeout*
-duration. Along with these techniques, `QueryPolicy.LEADER_LOCAL` can be used
+duration. Along with these techniques, `QueryPolicy.LEADER_LEASE` can be used
 for performing linearizable queries without talking to the majority if clock
 drifts and network delays are bounded. However, bounding clock drifts and
-network delays is not an easy task. Hence, `QueryPolicy.LEADER_LOCAL` may cause
+network delays is not an easy job. Hence, `QueryPolicy.LEADER_LEASE` may cause
 reading stale data if a Raft node still considers itself as the leader because
 of a clock drift, while the other Raft nodes have elected a new leader and
-committed new operations. Moreover, `QueryPolicy.LEADER_LOCAL` and
+committed new operations. Moreover, `QueryPolicy.LEADER_LEASE` and
 `QueryPolicy.LINEARIZABLE` have the same processing cost since only the leader
 Raft node runs a given query for both policies. `QueryPolicy.LINEARIZABLE`
 guarantees linearizability with an extra RTT latency overhead compared to
-`QueryPolicy.LEADER_LOCAL`. For these reasons, `QueryPolicy.LINEARIZABLE` is the
-recommended policy for linearizable queries, and `QueryPolicy.LEADER_LOCAL`
+`QueryPolicy.LEADER_LEASE`. For these reasons, `QueryPolicy.LINEARIZABLE` is the
+recommended policy for linearizable queries, and `QueryPolicy.LEADER_LEASE`
 should be used carefully.
 
 #### Linearizable queries
@@ -415,8 +419,9 @@ index. That is why both commit indices are the same in the output.
 
 #### Monotonic local queries
 
-`QueryPolicy.LEADER_LOCAL` and `QueryPolicy.ANY_LOCAL` can be easily used if
-monotonicity is sufficient for query results. This is where <a
+`QueryPolicy.LEADER_LEASE`, `QueryPolicy.BOUNDED_STALENESS` and
+`QueryPolicy.EVENTUAL_CONSISTENCY` can be easily used if monotonicity is
+sufficient for query results. This is where <a
 href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/Ordered.java"
 target="_blank">`Ordered`</a> comes in handy. A client can track commit indices
 observed via returned `Ordered` objects and use the greatest observed commit
@@ -428,8 +433,8 @@ href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java
 target="_blank">`LaggingCommitIndexException`</a>. This exception means that the
 state observed by the client is more up-to-date than the contacted Raft node's
 state. In this case, the client can retry its query on another Raft node. Please
-refer to <a href="https://github.com/ongardie/dissertation"
-target="_blank">§ 6.4.1 of the Raft dissertation</a> for more details.
+refer to <a href="https://github.com/ongardie/dissertation" target="_blank">§
+6.4.1 of the Raft dissertation</a> for more details.
 
 We will make a little trick to demonstrate how to maintain the monotonicity of
 the observed Raft group state for the *local query policies*. Recall that

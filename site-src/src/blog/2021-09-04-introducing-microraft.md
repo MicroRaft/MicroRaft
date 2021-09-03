@@ -1,19 +1,19 @@
 
 # Introducing MicroRaft
 
-January 18, 2021 | Ensar Basri Kahveci
+September 4, 2021 | Ensar Basri Kahveci
 
 ___Disclaimer: MicroRaft is a project I develop in my free time. It is not
 affiliated, associated, endorsed by, or in any way officially connected with my
 current employer Facebook, or any of its subsidiaries or its affiliates.___
 
-I am pleased to announce the first public release of MicroRaft! MicroRaft is a
-feature-complete, stable, and, most importantly, open-source implementation of 
-the <a href="https://raft.github.io/" target="_blank">Raft consensus 
-algorithm</a> in Java. You can use MicroRaft to build highly available and
-strongly consistent data, metadata and coordination services. The source code
-is available at <a href="https://github.com/MicroRaft/MicroRaft">Github</a>
-with the Apache 2 License.
+I am pleased to announce the first public release of MicroRaft! MicroRaft is an
+open-source implementation of the <a href="https://raft.github.io/"
+target="_blank">Raft consensus algorithm</a> in Java. You can use MicroRaft to
+build highly available and strongly consistent data, metadata and coordination
+services. The source code is available at <a
+href="https://github.com/MicroRaft/MicroRaft">Github</a> with the Apache 2
+License.
 
 MicroRaft is a complete implementation of the Raft consensus algorithm. It
 implements the leader election, log replication, log compaction (snapshotting),
@@ -95,8 +95,8 @@ into a separate library back in 2019, but didn't have the time to try my idea
 before leaving Hazelcast in February 2020. I decided to give this project a try
 to amuse myself during the lockdown while I was still in Turkey. After I
 relocated to London, I was too busy with everything related to starting a new
-life and a new job in a new country, so I needed a few more months to find some
-free time and make the project ready for release.
+life and a new job in a new country, so I needed a whole year to find some free
+time and make the project ready for release.
 
 <a href="https://twitter.com/mmdogan" target="_blank">Mehmet Dogan</a> and I
 developed the original Raft code inside Hazelcast codebase, but we isolated it 

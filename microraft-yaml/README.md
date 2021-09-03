@@ -23,5 +23,5 @@ a few other parsing methods.
 is the default MicroRaft YAML configuration file. 
 
 Please refer to 
-[MicroRaft documentation page](https://microraft.io/user-guide/configuration/) 
+[MicroRaft documentation page](https://microraft.io/docs/configuration/) 
 to learn more about configuration. 

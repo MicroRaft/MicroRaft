@@ -14,18 +14,10 @@ reproduce your issue. I would be grateful If you could include a unit or an
 integration test as a reproducer.
 
 
-## How to Discuss a Feature Request
+## How to Ask a Question or Discuss a Feature Request
 
-You can join our [Slack group](https://join.slack.com/t/microraft/shared_invite/zt-dc6utpfk-84P0VbK7EcrD3lIme2IaaQ) 
-to discuss your ideas or feature requests. You can also create a Github issue 
-to formalize your feature request.  
-
-
-## How to Ask a Question
-
-Similarly, you can join our [Slack group](https://join.slack.com/t/microraft/shared_invite/zt-dc6utpfk-84P0VbK7EcrD3lIme2IaaQ)
-to ask your questions.
-
+You can chime in to [Discussions](https://github.com/MicroRaft/MicroRaft/discussions) 
+for your questions, ideas or feature requests.
 
 ## How to Provide a Code Change
 

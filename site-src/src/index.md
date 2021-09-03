@@ -20,7 +20,7 @@ and abstract away the concerns of persistence, thread-safety, serialization,
 networking and actual state machine logic. Developers are required to implement
 these interfaces to build *CP* distributed systems on top of MicroRaft.
 
-You can read the [public announcement](blog/2021-01-18-introducing-microraft.md)
+You can read the [public announcement](blog/2021-09-03-introducing-microraft.md)
 here.
 
 ## Features

@@ -88,7 +88,7 @@
                                 <ul class="dropdown-menu">
                                     
 <li>
-    <a href="blog/2021-01-18-introducing-microraft/" class="dropdown-item">January 18, 2021 | Introducing MicroRaft</a>
+    <a href="blog/2021-09-03-introducing-microraft/" class="dropdown-item">September 3, 2021 | Introducing MicroRaft</a>
 </li>
                                     
 <li>
@@ -175,7 +175,7 @@ distributed environment. These interfaces surround the Raft consensus algorithm,
 and abstract away the concerns of persistence, thread-safety, serialization,
 networking and actual state machine logic. Developers are required to implement
 these interfaces to build <em>CP</em> distributed systems on top of MicroRaft.</p>
-<p>You can read the <a href="blog/2021-01-18-introducing-microraft/">public announcement</a>
+<p>You can read the <a href="blog/2021-09-03-introducing-microraft/">public announcement</a>
 here.</p>
 <h2 id="features">Features</h2>
 <p>MicroRaft is a complete implementation of the Raft consensus algorithm. It
@@ -216,7 +216,7 @@ systems without intertwining your system with Raft code.</strong></p>
 <p>Just run the following command on your terminal for a sneak peek at MicroRaft.
 It starts a 3-node local Raft group, elects a leader, and commits a number of
 operations.</p>
-<pre><code class="bash">$ git clone https://github.com/MicroRaft/MicroRaft.git &amp;&amp; cd MicroRaft &amp;&amp; ./mvnw clean test -Dtest=io.microraft.tutorial.OperationCommitTest -DfailIfNoTests=false -Ptutorial
+<pre><code class="bash">$ gh repo clone MicroRaft/MicroRaft &amp;&amp; cd MicroRaft &amp;&amp; ./mvnw clean test -Dtest=io.microraft.tutorial.OperationCommitTest -DfailIfNoTests=false -Ptutorial
 </code></pre>
 
 <p>If you want to learn more about how to use MicroRaft for building a <em>CP</em>
@@ -278,7 +278,7 @@ target="_blank">the Creative Commons Attribution-4.0 International</a>.</p></div
 
         <footer class="col-md-12">
             <hr>
-                <p>MicroRaft, 2020. Open-sourced by <a href="https://twitter.com/metanet" target="_blank">Ensar Basri Kahveci</a>.</p>
+                <p>MicroRaft, 2021. Open-sourced by <a href="https://twitter.com/metanet" target="_blank">Ensar Basri Kahveci</a>.\nMicroRaft is a project I develop in my free time. It is not affiliated, associated, endorsed by, or in any way officially connected with my current employer Facebook, or any of its subsidiaries or its affiliates.</p>
             <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
         </footer>
         <script>
@@ -357,5 +357,5 @@ target="_blank">the Creative Commons Attribution-4.0 International</a>.</p></div
 
 <!--
 MkDocs version : 1.1.2
-Build Date UTC : 2021-09-03 00:06:15.016637+00:00
+Build Date UTC : 2021-09-03 09:33:13.291504+00:00
 -->

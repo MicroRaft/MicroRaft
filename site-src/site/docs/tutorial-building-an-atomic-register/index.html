@@ -88,7 +88,7 @@
                                 <ul class="dropdown-menu">
                                     
 <li>
-    <a href="../../blog/2021-01-18-introducing-microraft/" class="dropdown-item">January 18, 2021 | Introducing MicroRaft</a>
+    <a href="../../blog/2021-09-03-introducing-microraft/" class="dropdown-item">September 3, 2021 | Introducing MicroRaft</a>
 </li>
                                     
 <li>
@@ -266,7 +266,7 @@ leader. Let's write our first test.</p>
 <script src="https://gist.github.com/metanet/7e0a3160192994373bec225cd351297d.js"></script>
 
 <p>To run this test on your machine, try the following:</p>
-<pre><code class="bash"> $ git clone https://github.com/MicroRaft/MicroRaft.git
+<pre><code class="bash"> $ gh repo clone MicroRaft/MicroRaft
  $ cd MicroRaft &amp;&amp; ./mvnw clean test -Dtest=io.microraft.tutorial.LeaderElectionTest -DfailIfNoTests=false -Ptutorial
 </code></pre>
 
@@ -405,7 +405,7 @@ operation at the end. After each operation, we verify that its commit index is
 greater than the commit index of the previous operation.  </p>
 <script src="https://gist.github.com/metanet/96fc904c59da940b7e6b92a6b9e20778.js"></script>
 
-<pre><code class="bash">$ git clone https://github.com/MicroRaft/MicroRaft.git
+<pre><code class="bash">$ gh repo clone MicroRaft/MicroRaft
 $ cd MicroRaft &amp;&amp; ./mvnw clean test -Dtest=io.microraft.tutorial.OperationCommitTest -DfailIfNoTests=false -Ptutorial
 </code></pre>
 
@@ -514,7 +514,7 @@ now. We will talk about it in a minute.</p>
 <script src="https://gist.github.com/metanet/4c3536653a2bd152899a41aa654b3f2d.js"></script>
 
 <p>To run this test on your machine, try the following:</p>
-<pre><code class="bash">$ git clone https://github.com/MicroRaft/MicroRaft.git
+<pre><code class="bash">$ gh repo clone MicroRaft/MicroRaft
 $ cd MicroRaft &amp;&amp; ./mvnw clean test -Dtest=io.microraft.tutorial.LinearizableQueryTest -DfailIfNoTests=false -Ptutorial
 </code></pre>
 
@@ -574,7 +574,7 @@ hence our query fails with <code>LaggingCommitIndexException</code>.</p>
 <script src="https://gist.github.com/metanet/020956b893d68f13aced8dfb911f2e81.js"></script>
 
 <p>To run this test on your machine, try the following:</p>
-<pre><code class="bash">$ git clone https://github.com/MicroRaft/MicroRaft.git
+<pre><code class="bash">$ gh repo clone MicroRaft/MicroRaft
 $ cd MicroRaft &amp;&amp; ./mvnw clean test -Dtest=io.microraft.tutorial.MonotonicLocalQueryTest -DfailIfNoTests=false -Ptutorial
 </code></pre>
 
@@ -622,7 +622,7 @@ transferring the snapshot.</p>
 <script src="https://gist.github.com/metanet/4565a0e995e64960f8f3248934d9c430.js"></script>
 
 <p>To run this test on your machine, try the following:</p>
-<pre><code class="bash">$ git clone https://github.com/MicroRaft/MicroRaft.git
+<pre><code class="bash">$ gh repo clone MicroRaft/MicroRaft
 $ cd MicroRaft &amp;&amp; ./mvnw clean test -Dtest=io.microraft.tutorial.SnapshotInstallationTest -DfailIfNoTests=false -Ptutorial
 </code></pre>
 
@@ -657,7 +657,7 @@ quorum size of 5 = 3).</p>
 <script src="https://gist.github.com/metanet/4f0ab94b78b369a1cc9ac58ef0e6f011.js"></script>
 
 <p>To run this test on your machine, try the following:</p>
-<pre><code class="bash">$ git clone https://github.com/MicroRaft/MicroRaft.git
+<pre><code class="bash">$ gh repo clone MicroRaft/MicroRaft
 $ cd MicroRaft &amp;&amp; ./mvnw clean test -Dtest=io.microraft.tutorial.ChangeRaftGroupMemberListTest -DfailIfNoTests=false -Ptutorial
 </code></pre>
 
@@ -725,7 +725,7 @@ calm and carry on</a>!</p></div>
 
         <footer class="col-md-12">
             <hr>
-                <p>MicroRaft, 2020. Open-sourced by <a href="https://twitter.com/metanet" target="_blank">Ensar Basri Kahveci</a>.</p>
+                <p>MicroRaft, 2021. Open-sourced by <a href="https://twitter.com/metanet" target="_blank">Ensar Basri Kahveci</a>.\nMicroRaft is a project I develop in my free time. It is not affiliated, associated, endorsed by, or in any way officially connected with my current employer Facebook, or any of its subsidiaries or its affiliates.</p>
             <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
         </footer>
         <script>

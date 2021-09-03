@@ -6,9 +6,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         
         <meta name="author" content="Ensar Basri Kahveci">
-        <link rel="canonical" href="https://microraft.io/blog/2021-01-18-introducing-microraft/">
+        <link rel="canonical" href="https://microraft.io/blog/2021-09-03-introducing-microraft/">
         <link rel="shortcut icon" href="../../img/favicon.ico">
-        <title>January 18, 2021 | Introducing MicroRaft - MicroRaft</title>
+        <title>September 3, 2021 | Introducing MicroRaft - MicroRaft</title>
         <link href="../../css/bootstrap.min.css" rel="stylesheet">
         <link href="../../css/font-awesome.min.css" rel="stylesheet">
         <link href="../../css/base.css" rel="stylesheet">
@@ -88,7 +88,7 @@
                                 <ul class="dropdown-menu">
                                     
 <li>
-    <a href="./" class="dropdown-item active">January 18, 2021 | Introducing MicroRaft</a>
+    <a href="./" class="dropdown-item active">September 3, 2021 | Introducing MicroRaft</a>
 </li>
                                     
 <li>
@@ -168,17 +168,17 @@
                     <div class="col-md-9" role="main">
 
 <h1 id="introducing-microraft">Introducing MicroRaft</h1>
-<p>January 18, 2021 | Ensar Basri Kahveci</p>
+<p>September 3, 2021 | Ensar Basri Kahveci</p>
 <p><strong><em>Disclaimer: MicroRaft is a project I develop in my free time. It is not
 affiliated, associated, endorsed by, or in any way officially connected with my
 current employer Facebook, or any of its subsidiaries or its affiliates.</em></strong></p>
-<p>I am pleased to announce the first public release of MicroRaft! MicroRaft is a
-feature-complete, stable, and, most importantly, open-source implementation of 
-the <a href="https://raft.github.io/" target="_blank">Raft consensus 
-algorithm</a> in Java. You can use MicroRaft to build highly available and
-strongly consistent data, metadata and coordination services. The source code
-is available at <a href="https://github.com/MicroRaft/MicroRaft">Github</a>
-with the Apache 2 License.</p>
+<p>I am pleased to announce the first public release of MicroRaft! MicroRaft is an
+open-source implementation of the <a href="https://raft.github.io/"
+target="_blank">Raft consensus algorithm</a> in Java. You can use MicroRaft to
+build highly available and strongly consistent data, metadata and coordination
+services. The source code is available at <a
+href="https://github.com/MicroRaft/MicroRaft">Github</a> with the Apache 2
+License.</p>
 <p>MicroRaft is a complete implementation of the Raft consensus algorithm. It
 implements the leader election, log replication, log compaction (snapshotting),
 and cluster membership change components. Additionally, it realizes <a
@@ -232,7 +232,7 @@ execution to the client.</p>
 <p>Run the following command on your terminal for a sneak peek at MicroRaft. It
 starts a 3-node local Raft group (a Raft cluster in MicroRaft terms), elects a
 leader, and commits a number of operations.</p>
-<pre><code class="shell">$ git clone https://github.com/MicroRaft/MicroRaft.git &amp;&amp; cd MicroRaft &amp;&amp; ./mvnw clean test -Dtest=io.microraft.tutorial.OperationCommitTest -DfailIfNoTests=false -Ptutorial
+<pre><code class="shell">$ gh repo clone MicroRaft/MicroRaft &amp;&amp; cd MicroRaft &amp;&amp; ./mvnw clean test -Dtest=io.microraft.tutorial.OperationCommitTest -DfailIfNoTests=false -Ptutorial
 </code></pre>
 
 <p>Follow the <a href="/docs/tutorial-building-an-atomic-register">tutorial</a> to learn how
@@ -248,8 +248,8 @@ into a separate library back in 2019, but didn't have the time to try my idea
 before leaving Hazelcast in February 2020. I decided to give this project a try
 to amuse myself during the lockdown while I was still in Turkey. After I
 relocated to London, I was too busy with everything related to starting a new
-life and a new job in a new country, so I needed a few more months to find some
-free time and make the project ready for release.</p>
+life and a new job in a new country, so I needed a whole year to find some free
+time and make the project ready for release.</p>
 <p><a href="https://twitter.com/mmdogan" target="_blank">Mehmet Dogan</a> and I
 developed the original Raft code inside Hazelcast codebase, but we isolated it 
 from the rest of the Hazelcast code. It depends on Hazelcast for networking,
@@ -277,7 +277,7 @@ Twitter for announcements.</p></div>
 
         <footer class="col-md-12">
             <hr>
-                <p>MicroRaft, 2020. Open-sourced by <a href="https://twitter.com/metanet" target="_blank">Ensar Basri Kahveci</a>.</p>
+                <p>MicroRaft, 2021. Open-sourced by <a href="https://twitter.com/metanet" target="_blank">Ensar Basri Kahveci</a>.\nMicroRaft is a project I develop in my free time. It is not affiliated, associated, endorsed by, or in any way officially connected with my current employer Facebook, or any of its subsidiaries or its affiliates.</p>
             <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
         </footer>
         <script>

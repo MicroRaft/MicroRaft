@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
    TO RUN THIS TEST ON YOUR MACHINE:
 
-   $ git clone https://github.com/MicroRaft/MicroRaft.git
+   $ gh repo clone MicroRaft/MicroRaft
    $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.LinearizableQueryTest -DfailIfNoTests=false -Ptutorial
 
    YOU CAN SEE THIS CLASS AT:

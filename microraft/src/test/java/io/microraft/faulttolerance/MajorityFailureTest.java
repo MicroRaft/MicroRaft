@@ -44,7 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
    TO RUN THIS TEST ON YOUR MACHINE:
 
-   $ git clone https://github.com/MicroRaft/MicroRaft.git
+   $ gh repo clone MicroRaft/MicroRaft
    $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.faulttolerance.MajorityFailureTest -DfailIfNoTests=false -Ptutorial
 
    YOU CAN SEE THIS CLASS AT:
@@ -65,8 +65,10 @@ public class MajorityFailureTest {
 
     @Test
     public void testMajorityFailure() {
-        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatTimeoutSecs(5).setLeaderHeartbeatPeriodSecs(1).build();
-        group = LocalRaftGroup.newBuilder(3).setConfig(config).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
+        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatTimeoutSecs(5).setLeaderHeartbeatPeriodSecs(1)
+                .build();
+        group = LocalRaftGroup.newBuilder(3).setConfig(config).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY)
+                .start();
         RaftNode leader = group.waitUntilLeaderElected();
         List<RaftNode> followers = group.getNodesExcept(leader.getLocalEndpoint());
 
@@ -111,8 +113,9 @@ public class MajorityFailureTest {
 
         // Our Raft group is unavailable for operations involving the majority
         // or a leader. However, we can still perform a local query with the
-        // QueryPolicy.ANY_LOCAL policy.
-        Ordered<String> queryResult = leader.<String>query(SimpleStateMachine.queryLastValue(), QueryPolicy.ANY_LOCAL, 0).join();
+        // QueryPolicy.EVENTUAL_CONSISTENCY policy.
+        Ordered<String> queryResult = leader
+                .<String>query(SimpleStateMachine.queryLastValue(), QueryPolicy.EVENTUAL_CONSISTENCY, 0).join();
         assertThat(queryResult.getCommitIndex()).isEqualTo(commitIndex1);
         assertThat(queryResult.getResult()).isEqualTo(value);
 

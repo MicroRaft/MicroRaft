@@ -50,7 +50,7 @@ requests to the leader. After some time, our requests fail with
 To run this test on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone https://github.com/MicroRaft/MicroRaft.git
+$ gh repo clone MicroRaft/MicroRaft
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.faulttolerance.HighLoadTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
@@ -96,7 +96,7 @@ crash-recovery testing. In the following code sample, we use this utility, i.e.,
 To run this test on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone https://github.com/MicroRaft/MicroRaft.git
+$ gh repo clone MicroRaft/MicroRaft
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.faulttolerance.RestoreCrashedRaftNodeTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
@@ -199,7 +199,7 @@ new leader, we see that there are 2 values applied to the state machine.
 To run this test on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone https://github.com/MicroRaft/MicroRaft.git
+$ gh repo clone MicroRaft/MicroRaft
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.faulttolerance.RaftLeaderFailureTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
@@ -288,7 +288,7 @@ availability as long as there is a leader Raft node taking to the majority
 To run this test on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone https://github.com/MicroRaft/MicroRaft.git
+$ gh repo clone MicroRaft/MicroRaft
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.faulttolerance.MajorityFailureTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
@@ -348,7 +348,7 @@ Phew!
 To run this test on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone https://github.com/MicroRaft/MicroRaft.git
+$ gh repo clone MicroRaft/MicroRaft
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.faulttolerance.NetworkPartitionTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 

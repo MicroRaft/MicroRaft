@@ -119,7 +119,7 @@ leader. Let's write our first test.
 To run this test on your machine, try the following:
 
 ~~~~{.bash}
- $ git clone https://github.com/MicroRaft/MicroRaft.git
+ $ gh repo clone MicroRaft/MicroRaft
  $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.LeaderElectionTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
@@ -278,7 +278,7 @@ greater than the commit index of the previous operation.
 <script src="https://gist.github.com/metanet/96fc904c59da940b7e6b92a6b9e20778.js"></script>
 
 ~~~~{.bash}
-$ git clone https://github.com/MicroRaft/MicroRaft.git
+$ gh repo clone MicroRaft/MicroRaft
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.OperationCommitTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
@@ -398,7 +398,7 @@ now. We will talk about it in a minute.
 To run this test on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone https://github.com/MicroRaft/MicroRaft.git
+$ gh repo clone MicroRaft/MicroRaft
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.LinearizableQueryTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
@@ -469,7 +469,7 @@ hence our query fails with `LaggingCommitIndexException`.
 To run this test on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone https://github.com/MicroRaft/MicroRaft.git
+$ gh repo clone MicroRaft/MicroRaft
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.MonotonicLocalQueryTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
@@ -526,7 +526,7 @@ transferring the snapshot.
 To run this test on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone https://github.com/MicroRaft/MicroRaft.git
+$ gh repo clone MicroRaft/MicroRaft
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.SnapshotInstallationTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
@@ -573,7 +573,7 @@ quorum size of 5 = 3).
 To run this test on your machine, try the following:
 
 ~~~~{.bash}
-$ git clone https://github.com/MicroRaft/MicroRaft.git
+$ gh repo clone MicroRaft/MicroRaft
 $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.ChangeRaftGroupMemberListTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 

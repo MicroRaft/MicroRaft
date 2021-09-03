@@ -25,27 +25,33 @@ package io.microraft;
 public enum RaftRole {
 
     /**
-     * A leader handles client requests, commit operations and orchestrates a Raft group.
+     * A leader handles client requests, commit operations and orchestrates a Raft
+     * group.
      */
     LEADER,
 
     /**
-     * When a follower starts a new leader election, it first turns into a candidate. A candidate becomes leader if it wins the
-     * majority votes.
+     * When a follower starts a new leader election, it first turns into a
+     * candidate. A candidate becomes leader if it wins the majority votes.
      */
     CANDIDATE,
 
     /**
-     * Followers issue no requests on their own. They respond to append-entries requests sent by leaders. Followers are also
-     * voting members. They respond to vote requests sent by candidates. They can also run queries if {@link
-     * QueryPolicy#ANY_LOCAL} is used.
+     * Followers issue no requests on their own. They respond to append-entries
+     * requests sent by leaders. Followers are also voting members. They respond to
+     * vote requests sent by candidates. They can also run queries if
+     * {@link QueryPolicy#EVENTUAL_CONSISTENCY} or
+     * {@link QueryPolicy#BOUNDED_STALENESS} is used.
      */
     FOLLOWER,
 
     /**
-     * Learners issue no requests on their own. They only respond to append-entries requests sent by leaders. Learners are
-     * non-voting members. They do not turn into candidates and do not receive vote requests from other candidates during leader
-     * election rounds.
+     * Learners issue no requests on their own. They only respond to append-entries
+     * requests sent by leaders. Learners are non-voting members. They do not turn
+     * into candidates and do not receive vote requests from other candidates during
+     * leader election rounds. They can also run queries if
+     * {@link QueryPolicy#EVENTUAL_CONSISTENCY} or
+     * {@link QueryPolicy#BOUNDED_STALENESS} is used.
      */
     LEARNER
 

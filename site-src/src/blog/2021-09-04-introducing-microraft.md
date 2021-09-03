@@ -77,7 +77,7 @@ starts a 3-node local Raft group (a Raft cluster in MicroRaft terms), elects a
 leader, and commits a number of operations.
 
 ```shell
-$ git clone https://github.com/MicroRaft/MicroRaft.git && cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.OperationCommitTest -DfailIfNoTests=false -Ptutorial
+$ gh repo clone MicroRaft/MicroRaft && cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.OperationCommitTest -DfailIfNoTests=false -Ptutorial
 ```
 
 Follow the [tutorial](/docs/tutorial-building-an-atomic-register) to learn how

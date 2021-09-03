@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
    TO RUN THIS TEST ON YOUR MACHINE:
 
-   $ git clone https://github.com/MicroRaft/MicroRaft.git
+   $ gh repo clone MicroRaft/MicroRaft
    $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.ChangeRaftGroupMemberListTest -DfailIfNoTests=false -Ptutorial
 
    YOU CAN SEE THIS CLASS AT:
@@ -41,8 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
    https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/test/java/io/microraft/tutorial/ChangeRaftGroupMemberListTest.java
 
  */
-public class ChangeRaftGroupMemberListTest
-        extends BaseLocalTest {
+public class ChangeRaftGroupMemberListTest extends BaseLocalTest {
 
     @Override
     protected StateMachine createStateMachine() {
@@ -60,12 +59,10 @@ public class ChangeRaftGroupMemberListTest
         // group, then start its RaftNode instance.
         RaftEndpoint endpoint4 = LocalRaftEndpoint.newEndpoint();
         // group members commit index of the initial Raft group members is 0.
-        RaftGroupMembers newMemberList1 = leader.changeMembership(endpoint4, MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER, 0)
-                                                .join()
-                                                .getResult();
-        System.out.println(
-                "New member list: " + newMemberList1.getMembers() + ", majority: " + newMemberList1.getMajorityQuorumSize()
-                + ", commit index: " + newMemberList1.getLogIndex());
+        RaftGroupMembers newMemberList1 = leader
+                .changeMembership(endpoint4, MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER, 0).join().getResult();
+        System.out.println("New member list: " + newMemberList1.getMembers() + ", majority: "
+                + newMemberList1.getMajorityQuorumSize() + ", commit index: " + newMemberList1.getLogIndex());
 
         // endpoint4 is now part of the member list. Let's start its Raft node
         RaftNode raftNode4 = createRaftNode(endpoint4);
@@ -78,11 +75,10 @@ public class ChangeRaftGroupMemberListTest
         // we need the commit index of the current Raft group member list for
         // adding endpoint5. We can get it either from
         // newMemberList1.getCommitIndex() or leader.getCommittedMembers().
-        RaftGroupMembers newMemberList2 = leader.changeMembership(endpoint5, MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER,
-                                                                  newMemberList1.getLogIndex()).join().getResult();
-        System.out.println(
-                "New member list: " + newMemberList2.getMembers() + ", majority: " + newMemberList2.getMajorityQuorumSize()
-                + ", commit index: " + newMemberList2.getLogIndex());
+        RaftGroupMembers newMemberList2 = leader.changeMembership(endpoint5,
+                MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER, newMemberList1.getLogIndex()).join().getResult();
+        System.out.println("New member list: " + newMemberList2.getMembers() + ", majority: "
+                + newMemberList2.getMajorityQuorumSize() + ", commit index: " + newMemberList2.getLogIndex());
 
         // endpoint5 is also part of the member list now. Let's start its Raft node
         RaftNode raftNode5 = createRaftNode(endpoint5);
@@ -102,7 +98,8 @@ public class ChangeRaftGroupMemberListTest
     }
 
     private Ordered<String> query(RaftNode raftNode) {
-        return raftNode.<String>query(OperableAtomicRegister.newGetOperation(), QueryPolicy.ANY_LOCAL, 0).join();
+        return raftNode.<String>query(OperableAtomicRegister.newGetOperation(), QueryPolicy.EVENTUAL_CONSISTENCY, 0)
+                .join();
     }
 
 }

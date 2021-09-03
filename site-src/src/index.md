@@ -71,7 +71,7 @@ It starts a 3-node local Raft group, elects a leader, and commits a number of
 operations.
 
 ~~~~{.bash}
-$ git clone https://github.com/MicroRaft/MicroRaft.git && cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.OperationCommitTest -DfailIfNoTests=false -Ptutorial
+$ gh repo clone MicroRaft/MicroRaft && cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.OperationCommitTest -DfailIfNoTests=false -Ptutorial
 ~~~~
 
 If you want to learn more about how to use MicroRaft for building a *CP*

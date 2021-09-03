@@ -39,7 +39,7 @@ import static org.assertj.core.api.Assertions.fail;
 
    TO RUN THIS TEST ON YOUR MACHINE:
 
-   $ git clone https://github.com/MicroRaft/MicroRaft.git
+   $ gh repo clone MicroRaft/MicroRaft
    $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.faulttolerance.NetworkPartitionTest -DfailIfNoTests=false -Ptutorial
 
    YOU CAN SEE THIS CLASS AT:
@@ -47,8 +47,7 @@ import static org.assertj.core.api.Assertions.fail;
    https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/test/java/io/microraft/faulttolerance/NetworkPartitionTest.java
 
  */
-public class NetworkPartitionTest
-        extends BaseTest {
+public class NetworkPartitionTest extends BaseTest {
 
     private LocalRaftGroup group;
 
@@ -61,7 +60,8 @@ public class NetworkPartitionTest
 
     @Test
     public void testNetworkPartition() {
-        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(5).build();
+        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(5)
+                .build();
         group = LocalRaftGroup.newBuilder(3).setConfig(config).start();
         RaftNode firstLeader = group.waitUntilLeaderElected();
         List<RaftNode> followers = group.getNodesExcept(firstLeader.getLocalEndpoint());
@@ -78,7 +78,8 @@ public class NetworkPartitionTest
 
         String value1 = "value1";
         try {
-            // we cannot commit an operation via the initial leader because it lost its leadership now.
+            // we cannot commit an operation via the initial leader because it lost its
+            // leadership now.
             firstLeader.replicate(SimpleStateMachine.applyValue(value1)).join();
             fail(firstLeader.getLocalEndpoint().getId() + " cannot replicate a new operation after losing leadership");
         } catch (CompletionException e) {
@@ -89,7 +90,8 @@ public class NetworkPartitionTest
         eventually(() -> {
             for (RaftNode node : followers) {
                 RaftNodeReport report = node.getReport().join().getResult();
-                assertThat(report.getTerm().getLeaderEndpoint()).isNotNull().isNotEqualTo(firstLeader.getLocalEndpoint());
+                assertThat(report.getTerm().getLeaderEndpoint()).isNotNull()
+                        .isNotEqualTo(firstLeader.getLocalEndpoint());
             }
         });
 
@@ -101,12 +103,14 @@ public class NetworkPartitionTest
         // let's resolve the network partition
         group.merge();
 
-        // our old leader will notice the new leader and get the new log entry in a second
+        // our old leader will notice the new leader and get the new log entry in a
+        // second
         eventually(() -> {
             assertThat(firstLeader.getTerm().getLeaderEndpoint()).isEqualTo(secondLeader.getLocalEndpoint());
 
-            String value = firstLeader.<String>query(SimpleStateMachine.queryLastValue(), QueryPolicy.ANY_LOCAL, 0).join()
-                                                                                                                   .getResult();
+            String value = firstLeader
+                    .<String>query(SimpleStateMachine.queryLastValue(), QueryPolicy.EVENTUAL_CONSISTENCY, 0).join()
+                    .getResult();
             assertThat(value).isEqualTo(value2);
         });
     }

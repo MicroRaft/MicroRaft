@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
    TO RUN THIS TEST ON YOUR MACHINE:
 
-   $ git clone https://github.com/MicroRaft/MicroRaft.git
+   $ gh repo clone MicroRaft/MicroRaft
    $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.faulttolerance.RaftLeaderFailureTest -DfailIfNoTests=false -Ptutorial
 
    YOU CAN SEE THIS CLASS AT:
@@ -45,8 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
    https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/test/java/io/microraft/faulttolerance/RaftLeaderFailureTest.java
 
  */
-public class RaftLeaderFailureTest
-        extends BaseTest {
+public class RaftLeaderFailureTest extends BaseTest {
 
     private LocalRaftGroup group;
 
@@ -59,7 +58,8 @@ public class RaftLeaderFailureTest
 
     @Test
     public void testRaftLeaderFailure() {
-        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatTimeoutSecs(1).setLeaderHeartbeatTimeoutSecs(5).build();
+        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatTimeoutSecs(1).setLeaderHeartbeatTimeoutSecs(5)
+                .build();
         group = LocalRaftGroup.newBuilder(3).setConfig(config).start();
         RaftNode leader = group.waitUntilLeaderElected();
 
@@ -68,7 +68,8 @@ public class RaftLeaderFailureTest
         // though it replicates our operation, it won't be able to commit it
         // and send us the response
         for (RaftNode follower : group.getNodesExcept(leader.getLocalEndpoint())) {
-            group.dropMessagesTo(follower.getLocalEndpoint(), leader.getLocalEndpoint(), AppendEntriesSuccessResponse.class);
+            group.dropMessagesTo(follower.getLocalEndpoint(), leader.getLocalEndpoint(),
+                    AppendEntriesSuccessResponse.class);
         }
 
         String value = "value";
@@ -97,8 +98,8 @@ public class RaftLeaderFailureTest
         // we replicate our operation again
         newLeader.replicate(SimpleStateMachine.applyValue(value)).join();
 
-        Ordered<List<String>> queryResult = newLeader.<List<String>>query(SimpleStateMachine.queryAllValues(),
-                                                                          QueryPolicy.LEADER_LOCAL, 0).join();
+        Ordered<List<String>> queryResult = newLeader
+                .<List<String>>query(SimpleStateMachine.queryAllValues(), QueryPolicy.LEADER_LEASE, 0).join();
 
         // it turns out that our operation is committed twice
         assertThat(queryResult.getResult()).hasSize(2);

@@ -27,11 +27,10 @@ import static io.microraft.RaftRole.LEARNER;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
- * Checks whether currently there is a known leader endpoint and triggers the pre-voting mechanism there is no known leader or the
- * leader has timed out.
+ * Checks whether currently there is a known leader endpoint and triggers the
+ * pre-voting mechanism there is no known leader or the leader has timed out.
  */
-public class HeartbeatTask
-        extends RaftNodeStatusAwareTask {
+public class HeartbeatTask extends RaftNodeStatusAwareTask {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HeartbeatTask.class);
 
@@ -39,12 +38,14 @@ public class HeartbeatTask
         super(node);
     }
 
-    @Override protected void doRun() {
+    @Override
+    protected void doRun() {
         try {
             if (state.leaderState() != null) {
                 if (!node.demoteToFollowerIfQuorumHeartbeatTimeoutElapsed()) {
                     node.broadcastAppendEntriesRequest();
-                    // TODO(basri) append no-op if snapshotIndex > 0 && snapshotIndex == lastLogIndex
+                    // TODO(basri) append no-op if snapshotIndex > 0 && snapshotIndex ==
+                    // lastLogIndex
                 }
 
                 return;
@@ -54,7 +55,7 @@ public class HeartbeatTask
             if (leader == null) {
                 if (state.role() == FOLLOWER && state.preCandidateState() == null) {
                     LOGGER.warn("{} We are FOLLOWER and there is no current leader. Will start new election round.",
-                                localEndpointStr());
+                            localEndpointStr());
                     resetLeaderAndTryTriggerPreVote(false);
                 }
             } else if (node.isLeaderHeartbeatTimeoutElapsed() && state.preCandidateState() == null) {

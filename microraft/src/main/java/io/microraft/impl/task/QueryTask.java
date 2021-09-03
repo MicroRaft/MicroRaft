@@ -35,12 +35,12 @@ import static io.microraft.RaftNodeStatus.isTerminal;
 import static io.microraft.RaftRole.LEADER;
 
 /**
- * Scheduled by {@link RaftNodeImpl#query(Object, QueryPolicy, long)} to perform a query on the {@link StateMachine}.
+ * Scheduled by {@link RaftNodeImpl#query(Object, QueryPolicy, long)} to perform
+ * a query on the {@link StateMachine}.
  *
  * @see QueryPolicy
  */
-public final class QueryTask
-        implements Runnable {
+public final class QueryTask implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(QueryTask.class);
 
@@ -51,7 +51,8 @@ public final class QueryTask
     private final long minCommitIndex;
     private final OrderedFuture future;
 
-    public QueryTask(RaftNodeImpl raftNode, Object operation, QueryPolicy policy, long minCommitIndex, OrderedFuture future) {
+    public QueryTask(RaftNodeImpl raftNode, Object operation, QueryPolicy policy, long minCommitIndex,
+            OrderedFuture future) {
         this.raftNode = raftNode;
         this.state = raftNode.state();
         this.operation = operation;
@@ -60,21 +61,25 @@ public final class QueryTask
         this.future = future;
     }
 
-    @Override public void run() {
+    @Override
+    public void run() {
         try {
             if (!verifyOperation() || !verifyRaftNodeStatus()) {
                 return;
             }
 
             switch (queryPolicy) {
-                case LEADER_LOCAL:
-                    handleLeaderLocalRead();
+                case EVENTUAL_CONSISTENCY:
+                    queryWithEventualConsistency();
                     break;
-                case ANY_LOCAL:
-                    handleAnyLocalRead();
+                case BOUNDED_STALENESS:
+                    queryWithBoundedStaleness();
+                    break;
+                case LEADER_LEASE:
+                    queryWithLeaderLease();
                     break;
                 case LINEARIZABLE:
-                    handleLinearizableRead();
+                    queryWithLinearizability();
                     break;
                 default:
                     future.fail(new IllegalArgumentException("Invalid query policy: " + queryPolicy));
@@ -85,24 +90,33 @@ public final class QueryTask
         }
     }
 
-    private void handleLeaderLocalRead() {
+    private void queryWithLeaderLease() {
         if (raftNode.demoteToFollowerIfQuorumHeartbeatTimeoutElapsed()) {
             future.fail(raftNode.newNotLeaderException());
         } else {
-            handleAnyLocalRead();
+            queryWithEventualConsistency();
         }
     }
 
-    private void handleAnyLocalRead() {
+    private void queryWithEventualConsistency() {
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(raftNode.localEndpointStr() + " Querying: " + operation + " with policy: " + queryPolicy + " in term: "
-                         + state.term());
+            LOGGER.debug(raftNode.localEndpointStr() + " Querying: " + operation + " with policy: " + queryPolicy
+                    + " in term: " + state.term());
         }
 
         raftNode.runQuery(operation, minCommitIndex, future);
     }
 
-    private void handleLinearizableRead() {
+    private void queryWithBoundedStaleness() {
+        if (state.leader() == null) {
+            future.fail(raftNode.newCannotReplicateException());
+            return;
+        }
+
+        raftNode.runQuery(operation, minCommitIndex, future);
+    }
+
+    private void queryWithLinearizability() {
         if (state.role() != LEADER) {
             future.fail(raftNode.newNotLeaderException());
             return;
@@ -122,14 +136,14 @@ public final class QueryTask
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(raftNode.localEndpointStr() + " Adding query at commit index: " + commitIndex
-                             + ", query sequence number: " + queryState.querySequenceNumber());
+                        + ", query sequence number: " + queryState.querySequenceNumber());
             }
 
             if (queryState.addQuery(commitIndex, operation, future)) {
                 raftNode.broadcastAppendEntriesRequest();
             }
         } else {
-            handleAnyLocalRead();
+            queryWithEventualConsistency();
         }
     }
 
@@ -145,13 +159,13 @@ public final class QueryTask
     private boolean verifyRaftNodeStatus() {
         RaftNodeStatus status = raftNode.getStatus();
         if (status == INITIAL) {
-            LOGGER.debug("{} Won't {} query {}, since Raft node is not started.", raftNode.localEndpointStr(), queryPolicy,
-                         operation);
+            LOGGER.debug("{} Won't {} query {}, since Raft node is not started.", raftNode.localEndpointStr(),
+                    queryPolicy, operation);
             future.fail(new IllegalStateException("Cannot query because Raft node not started"));
             return false;
         } else if (isTerminal(status)) {
-            LOGGER.debug("{} Won't {} query {}, since Raft node is {}.", raftNode.localEndpointStr(), queryPolicy, operation,
-                         status);
+            LOGGER.debug("{} Won't {} query {}, since Raft node is {}.", raftNode.localEndpointStr(), queryPolicy,
+                    operation, status);
             future.fail(raftNode.newNotLeaderException());
             return false;
         }

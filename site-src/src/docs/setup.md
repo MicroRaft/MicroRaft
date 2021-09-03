@@ -37,7 +37,7 @@ available in the MicroRaft repository. Just hit the following command on your
 terminal.
 
 ```
-git clone git@github.com:MicroRaft/MicroRaft.git && cd MicroRaft && ./mvnw clean package
+gh repo clone MicroRaft/MicroRaft && cd MicroRaft && ./mvnw clean package
 ``` 
 
 Then you can get the JARs from `microraft/target`, `microraft-hocon/target`, and

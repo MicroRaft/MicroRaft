@@ -17,7 +17,6 @@
 package io.microraft.tutorial;
 
 import io.microraft.Ordered;
-import io.microraft.QueryPolicy;
 import io.microraft.RaftConfig;
 import io.microraft.RaftNode;
 import io.microraft.report.RaftLogStats;
@@ -25,13 +24,14 @@ import io.microraft.statemachine.StateMachine;
 import io.microraft.tutorial.atomicregister.SnapshotableAtomicRegister;
 import org.junit.Test;
 
+import static io.microraft.QueryPolicy.EVENTUAL_CONSISTENCY;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /*
 
    TO RUN THIS TEST ON YOUR MACHINE:
 
-   $ git clone https://github.com/MicroRaft/MicroRaft.git
+   $ gh repo clone MicroRaft/MicroRaft
    $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.SnapshotInstallationTest -DfailIfNoTests=false -Ptutorial
 
    YOU CAN SEE THIS CLASS AT:
@@ -39,8 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
    https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/test/java/io/microraft/tutorial/SnapshotInstallationTest.java
 
  */
-public class SnapshotInstallationTest
-        extends BaseLocalTest {
+public class SnapshotInstallationTest extends BaseLocalTest {
 
     private static final int COMMIT_COUNT_TO_TAKE_SNAPSHOT = 100;
 
@@ -77,11 +76,11 @@ public class SnapshotInstallationTest
 
         eventually(() -> assertThat(getRaftLogStats(follower).getInstallSnapshotCount()).isEqualTo(1));
 
-        Ordered<String> leaderQueryResult = leader.<String>query(SnapshotableAtomicRegister.newGetOperation(),
-                                                                 QueryPolicy.ANY_LOCAL, 0).join();
+        Ordered<String> leaderQueryResult = leader
+                .<String>query(SnapshotableAtomicRegister.newGetOperation(), EVENTUAL_CONSISTENCY, 0).join();
 
-        Ordered<String> followerQueryResult = follower.<String>query(SnapshotableAtomicRegister.newGetOperation(),
-                                                                     QueryPolicy.ANY_LOCAL, 0).join();
+        Ordered<String> followerQueryResult = follower
+                .<String>query(SnapshotableAtomicRegister.newGetOperation(), EVENTUAL_CONSISTENCY, 0).join();
 
         assertThat(followerQueryResult.getCommitIndex()).isEqualTo(leaderQueryResult.getCommitIndex());
         assertThat(followerQueryResult.getResult()).isEqualTo(leaderQueryResult.getResult());

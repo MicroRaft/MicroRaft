@@ -33,16 +33,15 @@ import static org.assertj.core.api.Assertions.fail;
 
    TO RUN THIS TEST ON YOUR MACHINE:
 
-   $ git clone https://github.com/MicroRaft/MicroRaft.git
-   $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.examples.MonotonicLocalQueryTest -DfailIfNoTests=false -Pcode-sample
+   $ gh repo clone MicroRaft/MicroRaft
+   $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.tutorial.MonotonicLocalQueryTest -DfailIfNoTests=false -Ptutorial
 
    YOU CAN SEE THIS CLASS AT:
 
-   https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/test/java/io/microraft/examples/MonotonicLocalQueryTest.java
+   https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/test/java/io/microraft/tutorial/MonotonicLocalQueryTest.java
 
  */
-public class MonotonicLocalQueryTest
-        extends BaseLocalTest {
+public class MonotonicLocalQueryTest extends BaseLocalTest {
 
     @Override
     protected StateMachine createStateMachine() {
@@ -60,11 +59,12 @@ public class MonotonicLocalQueryTest
 
         leader.replicate(OperableAtomicRegister.newSetOperation("value2")).join();
 
-        Ordered<String> queryResult = leader.<String>query(OperableAtomicRegister.newGetOperation(), QueryPolicy.LINEARIZABLE, 0)
-                .join();
+        Ordered<String> queryResult = leader
+                .<String>query(OperableAtomicRegister.newGetOperation(), QueryPolicy.LINEARIZABLE, 0).join();
 
         try {
-            follower.query(OperableAtomicRegister.newGetOperation(), QueryPolicy.ANY_LOCAL, queryResult.getCommitIndex()).join();
+            follower.query(OperableAtomicRegister.newGetOperation(), QueryPolicy.EVENTUAL_CONSISTENCY,
+                    queryResult.getCommitIndex()).join();
             fail("non-monotonic query cannot succeed.");
         } catch (CompletionException e) {
             assertThat(e).hasCauseInstanceOf(LaggingCommitIndexException.class);

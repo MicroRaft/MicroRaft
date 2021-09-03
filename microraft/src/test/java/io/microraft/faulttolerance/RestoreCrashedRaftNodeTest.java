@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
    TO RUN THIS TEST ON YOUR MACHINE:
 
-   $ git clone https://github.com/MicroRaft/MicroRaft.git
+   $ gh repo clone MicroRaft/MicroRaft
    $ cd MicroRaft && ./mvnw clean test -Dtest=io.microraft.faulttolerance.RestoreCrashedRaftNodeTest -DfailIfNoTests=false -Ptutorial
 
    YOU CAN SEE THIS CLASS AT:
@@ -63,16 +63,16 @@ public class RestoreCrashedRaftNodeTest {
 
         String value = "value";
         Ordered<Object> replicateResult = leader.replicate(SimpleStateMachine.applyValue(value)).join();
-        System.out.println(
-                "replicate result: " + replicateResult.getResult() + ", commit index: " + replicateResult.getCommitIndex());
+        System.out.println("replicate result: " + replicateResult.getResult() + ", commit index: "
+                + replicateResult.getCommitIndex());
 
         eventually(() -> {
             Object queryOperation = SimpleStateMachine.queryLastValue();
-            Ordered<String> queryResult = crashedFollower.<String>query(queryOperation, QueryPolicy.ANY_LOCAL, 0).join();
+            Ordered<String> queryResult = crashedFollower
+                    .<String>query(queryOperation, QueryPolicy.EVENTUAL_CONSISTENCY, 0).join();
             assertThat(queryResult.getResult()).isEqualTo(value);
-            System.out.println(
-                    "monotonic local query successful on follower. query result: " + queryResult.getResult() + ", commit index: "
-                            + queryResult.getCommitIndex());
+            System.out.println("monotonic local query successful on follower. query result: " + queryResult.getResult()
+                    + ", commit index: " + queryResult.getCommitIndex());
         });
 
         RestoredRaftState restoredState = RaftTestUtils.getRestoredState(crashedFollower);
@@ -82,10 +82,11 @@ public class RestoreCrashedRaftNodeTest {
 
         eventually(() -> {
             Object queryOperation = SimpleStateMachine.queryLastValue();
-            Ordered<String> queryResult = restoredFollower.<String>query(queryOperation, QueryPolicy.ANY_LOCAL, 0).join();
+            Ordered<String> queryResult = restoredFollower
+                    .<String>query(queryOperation, QueryPolicy.EVENTUAL_CONSISTENCY, 0).join();
             assertThat(queryResult.getResult()).isEqualTo(value);
-            System.out.println("monotonic local query successful on restarted follower. query result: " + queryResult.getResult()
-                                       + ", commit index: " + queryResult.getCommitIndex());
+            System.out.println("monotonic local query successful on restarted follower. query result: "
+                    + queryResult.getResult() + ", commit index: " + queryResult.getCommitIndex());
         });
     }
 

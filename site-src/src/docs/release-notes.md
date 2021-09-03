@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.1 (January 18, 2021)
+## v0.1 (September 3, 2021)
 
-MicroRaft is released.
+[MicroRaft v0.1](https://github.com/MicroRaft/MicroRaft/releases/tag/v0.1) is released.
 

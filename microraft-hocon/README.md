@@ -25,5 +25,5 @@ object in any other way and then parse it via
 is the default MicroRaft HOCON configuration file. 
 
 Please refer to 
-[MicroRaft documentation page](https://microraft.io/user-guide/configuration/) 
+[MicroRaft documentation page](https://microraft.io/docs/configuration/) 
 to learn more about configuration. 

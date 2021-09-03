@@ -1,5 +1,5 @@
 
-![Java CI](https://github.com/MicroRaft/MicroRaft/workflows/Java%20CI/badge.svg) [![Integration](license-apache-2.svg)](https://github.com/MicroRaft/MicroRaft/blob/master/LICENSE)
+[![](https://jitci.com/gh/MicroRaft/MicroRaft/svg)](https://jitci.com/gh/MicroRaft/MicroRaft) [![Integration](license-apache-2.svg)](https://github.com/MicroRaft/MicroRaft/blob/master/LICENSE)
 
 
 ![](microraft.io/src/img/microraft-logo.png)

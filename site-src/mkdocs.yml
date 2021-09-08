@@ -27,6 +27,7 @@ nav:
       - Release Notes: "docs/release-notes.md"
       - Roadmap: "docs/roadmap.md"
   - "Blog":
+      - "September 8, 2021 | Today a Raft Follower, Tomorrow a Raft Leader": "blog/2021-09-08-today-a-raft-follower-tomorrow-a-raft-leader.md"
       - "September 3, 2021 | Introducing MicroRaft": "blog/2021-09-03-introducing-microraft.md"
       - "All Blog Posts": "blog"
   - "Github": "https://github.com/MicroRaft/MicroRaft"

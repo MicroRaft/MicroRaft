@@ -1,7 +1,7 @@
 
 # Introducing MicroRaft
 
-September 3, 2021 | Ensar Basri Kahveci
+_September 3, 2021 | Ensar Basri Kahveci_
 
 ___Disclaimer: MicroRaft is a project I develop in my free time. It is not
 affiliated, associated, endorsed by, or in any way officially connected with my

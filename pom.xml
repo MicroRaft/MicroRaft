@@ -67,7 +67,7 @@
         <redirect.test.output.to.file>true</redirect.test.output.to.file>
 
         <slf4j.api.version>1.7.32</slf4j.api.version>
-        <log4j.version>2.16.0</log4j.version>
+        <log4j.version>2.17.1</log4j.version>
         <junit.version>4.13.2</junit.version>
         <mockito.version>3.12.4</mockito.version>
         <assertj.version>3.20.2</assertj.version>

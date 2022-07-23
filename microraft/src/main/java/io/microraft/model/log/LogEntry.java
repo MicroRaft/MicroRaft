@@ -21,21 +21,24 @@ import javax.annotation.Nonnull;
 /**
  * Represents an entry in the Raft log.
  */
-public interface LogEntry
-        extends BaseLogEntry {
+public interface LogEntry extends BaseLogEntry {
 
     /**
      * The builder interface for {@link LogEntry}.
      */
     interface LogEntryBuilder {
 
-        @Nonnull LogEntryBuilder setIndex(long index);
+        @Nonnull
+        LogEntryBuilder setIndex(long index);
 
-        @Nonnull LogEntryBuilder setTerm(int term);
+        @Nonnull
+        LogEntryBuilder setTerm(int term);
 
-        @Nonnull LogEntryBuilder setOperation(@Nonnull Object operation);
+        @Nonnull
+        LogEntryBuilder setOperation(@Nonnull Object operation);
 
-        @Nonnull LogEntry build();
+        @Nonnull
+        LogEntry build();
 
     }
 

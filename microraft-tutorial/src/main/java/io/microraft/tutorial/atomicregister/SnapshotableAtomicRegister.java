@@ -29,9 +29,7 @@ import java.util.function.Consumer;
  * <p>
  * https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/atomicregister/SnapshotableAtomicRegister.java
  */
-public class SnapshotableAtomicRegister
-        extends OperableAtomicRegister
-        implements StateMachine {
+public class SnapshotableAtomicRegister extends OperableAtomicRegister implements StateMachine {
 
     @Override
     public void takeSnapshot(long commitIndex, Consumer<Object> snapshotChunkConsumer) {
@@ -43,7 +41,8 @@ public class SnapshotableAtomicRegister
     public void installSnapshot(long commitIndex, @Nonnull List<Object> snapshotChunks) {
         if (snapshotChunks.size() != 1) {
             // takeSnapshot() method returns a single snapshot chunk.
-            throw new IllegalArgumentException("Invalid snapshot chunks: " + snapshotChunks + " at commit index: " + commitIndex);
+            throw new IllegalArgumentException(
+                    "Invalid snapshot chunks: " + snapshotChunks + " at commit index: " + commitIndex);
         }
 
         // install the value of the atomic register from the snapshot chunk.

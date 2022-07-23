@@ -23,17 +23,18 @@ package io.microraft;
 public enum MembershipChangeMode {
 
     /**
-     * Denotes that a new Raft endpoint will be added to the Raft group as a {@link RaftRole#LEARNER}. The quorum size of the Raft
-     * group will not change after the new Raft endpoint is added, since the number of voting members stays the same. Once the new
-     * Raft endpoint catches up with the leader, it can be promoted to the voting member role via {@link
-     * #ADD_OR_PROMOTE_TO_FOLLOWER}.
+     * Denotes that a new Raft endpoint will be added to the Raft group as a {@link RaftRole#LEARNER}. The quorum size
+     * of the Raft group will not change after the new Raft endpoint is added, since the number of voting members stays
+     * the same. Once the new Raft endpoint catches up with the leader, it can be promoted to the voting member role via
+     * {@link #ADD_OR_PROMOTE_TO_FOLLOWER}.
      */
     ADD_LEARNER,
 
     /**
-     * Denotes that either a new Raft endpoint will be added to the Raft group as a {@link RaftRole#FOLLOWER}, or an existing
-     * (i.e., {@link RaftRole#LEARNER} Raft endpoint in the Raft group will be promoted to the {@link RaftRole#FOLLOWER} role. The
-     * quorum size of the Raft group is re-calculated based on the new number of voting members.
+     * Denotes that either a new Raft endpoint will be added to the Raft group as a {@link RaftRole#FOLLOWER}, or an
+     * existing (i.e., {@link RaftRole#LEARNER} Raft endpoint in the Raft group will be promoted to the
+     * {@link RaftRole#FOLLOWER} role. The quorum size of the Raft group is re-calculated based on the new number of
+     * voting members.
      */
     ADD_OR_PROMOTE_TO_FOLLOWER,
 

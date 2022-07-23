@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package io.microraft.impl.log;
 
 import io.microraft.RaftEndpoint;
@@ -66,11 +65,11 @@ public final class SnapshotChunkCollector {
 
     public SnapshotChunkCollector(InstallSnapshotRequest request) {
         this(request.getSnapshotIndex(), request.getSnapshotTerm(), request.getTotalSnapshotChunkCount(),
-             request.getSnapshottedMembers(), request.getGroupMembersView());
+                request.getSnapshottedMembers(), request.getGroupMembersView());
     }
 
     private SnapshotChunkCollector(long snapshotIndex, int snapshotTerm, int chunkCount,
-                                   Collection<RaftEndpoint> snapshottedMembers, RaftGroupMembersView groupMembersView) {
+            Collection<RaftEndpoint> snapshottedMembers, RaftGroupMembersView groupMembersView) {
         this.snapshotIndex = snapshotIndex;
         this.snapshotTerm = snapshotTerm;
         this.chunkCount = chunkCount;
@@ -93,9 +92,8 @@ public final class SnapshotChunkCollector {
     public boolean handleReceivedSnapshotChunk(RaftEndpoint endpoint, long snapshotIndex, SnapshotChunk snapshotChunk) {
         requireNonNull(endpoint);
         if (this.snapshotIndex != snapshotIndex) {
-            throw new IllegalArgumentException(
-                    "Invalid snapshot chunk at snapshot index: " + snapshotIndex + " current snapshot index: "
-                    + this.snapshotIndex);
+            throw new IllegalArgumentException("Invalid snapshot chunk at snapshot index: " + snapshotIndex
+                    + " current snapshot index: " + this.snapshotIndex);
         }
 
         // TODO(basri): exponential backoff maybe?
@@ -178,20 +176,17 @@ public final class SnapshotChunkCollector {
         if (missingChunkIndices.size() > 0) {
             throw new IllegalStateException(
                     "Cannot build snapshot entry because there are missing snapshot chunks: " + missingChunkIndices
-                    + " for snapshot index: " + snapshotIndex + " and snapshot chunk count: " + chunkCount);
+                            + " for snapshot index: " + snapshotIndex + " and snapshot chunk count: " + chunkCount);
         }
 
-        return builder.setTerm(snapshotTerm)
-                      .setIndex(snapshotIndex)
-                      .setGroupMembersView(groupMembersView)
-                      .setSnapshotChunks(chunks)
-                      .build();
+        return builder.setTerm(snapshotTerm).setIndex(snapshotIndex).setGroupMembersView(groupMembersView)
+                .setSnapshotChunks(chunks).build();
     }
 
     // for testing
     public SnapshotChunkCollector copy() {
-        SnapshotChunkCollector copy = new SnapshotChunkCollector(snapshotIndex, snapshotTerm, chunkCount, snapshottedMembers,
-                                                                 groupMembersView);
+        SnapshotChunkCollector copy = new SnapshotChunkCollector(snapshotIndex, snapshotTerm, chunkCount,
+                snapshottedMembers, groupMembersView);
         copy.chunks.addAll(chunks);
         copy.missingChunkIndices.addAll(missingChunkIndices);
         copy.unresponsiveMembers.addAll(unresponsiveMembers);

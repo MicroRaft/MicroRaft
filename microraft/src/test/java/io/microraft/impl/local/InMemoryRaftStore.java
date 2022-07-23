@@ -38,8 +38,7 @@ import static java.util.Comparator.comparingInt;
 /**
  * A very simple in-memory {@link RaftStore} implementation used for testing.
  */
-public final class InMemoryRaftStore
-        implements RaftStore {
+public final class InMemoryRaftStore implements RaftStore {
 
     private RaftEndpoint localEndpoint;
     private boolean localEndpointVoting;
@@ -53,21 +52,25 @@ public final class InMemoryRaftStore
         this.raftLog = RaftLog.create(logCapacity);
     }
 
-    @Override public void persistAndFlushLocalEndpoint(RaftEndpoint localEndpoint, boolean localEndpointVoting) {
+    @Override
+    public void persistAndFlushLocalEndpoint(RaftEndpoint localEndpoint, boolean localEndpointVoting) {
         this.localEndpoint = localEndpoint;
         this.localEndpointVoting = localEndpointVoting;
     }
 
-    @Override public synchronized void persistAndFlushInitialGroupMembers(@Nonnull RaftGroupMembersView initialGroupMembers) {
+    @Override
+    public synchronized void persistAndFlushInitialGroupMembers(@Nonnull RaftGroupMembersView initialGroupMembers) {
         this.initialGroupMembers = initialGroupMembers;
     }
 
-    @Override public synchronized void persistAndFlushTerm(int term, @Nullable RaftEndpoint votedFor) {
+    @Override
+    public synchronized void persistAndFlushTerm(int term, @Nullable RaftEndpoint votedFor) {
         this.term = term;
         this.votedFor = votedFor;
     }
 
-    @Override public synchronized void persistLogEntry(@Nonnull LogEntry logEntry) {
+    @Override
+    public synchronized void persistLogEntry(@Nonnull LogEntry logEntry) {
         raftLog.appendEntry(logEntry);
     }
 
@@ -78,11 +81,8 @@ public final class InMemoryRaftStore
         if (snapshotChunk.getSnapshotChunkCount() == snapshotChunks.size()) {
             snapshotChunks.sort(comparingInt(SnapshotChunk::getSnapshotChunkIndex));
             SnapshotEntry snapshotEntry = new DefaultSnapshotEntryOrBuilder().setTerm(snapshotChunk.getTerm())
-                                                                             .setIndex(snapshotChunk.getIndex())
-                                                                             .setSnapshotChunks(snapshotChunks)
-                                                                             .setGroupMembersView(
-                                                                                     snapshotChunk.getGroupMembersView())
-                                                                             .build();
+                    .setIndex(snapshotChunk.getIndex()).setSnapshotChunks(snapshotChunks)
+                    .setGroupMembersView(snapshotChunk.getGroupMembersView()).build();
             raftLog.setSnapshot(snapshotEntry);
             snapshotChunks = new ArrayList<>();
         }
@@ -111,7 +111,7 @@ public final class InMemoryRaftStore
         }
 
         return new RestoredRaftState(localEndpoint, localEndpointVoting, initialGroupMembers, term, votedFor,
-                                     raftLog.snapshotEntry(), entries);
+                raftLog.snapshotEntry(), entries);
     }
 
 }

@@ -26,14 +26,14 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 /**
  * Publishes a {@link RaftNodeReport} for the current state of the Raft node
  */
-public class RaftStateSummaryPublishTask
-        extends RaftNodeStatusAwareTask {
+public class RaftStateSummaryPublishTask extends RaftNodeStatusAwareTask {
 
     public RaftStateSummaryPublishTask(RaftNodeImpl node) {
         super(node);
     }
 
-    @Override protected void doRun() {
+    @Override
+    protected void doRun() {
         try {
             node.publishRaftNodeReport(RaftNodeReportReason.PERIODIC);
         } finally {

@@ -31,8 +31,7 @@ import java.util.concurrent.ConcurrentMap;
 import static io.microraft.RaftNodeStatus.TERMINATED;
 import static java.util.Objects.requireNonNull;
 
-public class LocalTransport
-        implements Transport {
+public class LocalTransport implements Transport {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LocalTransport.class);
 
@@ -59,7 +58,8 @@ public class LocalTransport
         try {
             RaftMessage maybeAlteredMessage = firewall.tryAlterMessage(target, message);
             if (maybeAlteredMessage == null) {
-                LOGGER.error(message + " sent from " + localEndpoint.getId() + " to " + target.getId() + " is altered to null!");
+                LOGGER.error(message + " sent from " + localEndpoint.getId() + " to " + target.getId()
+                        + " is altered to null!");
                 return;
             }
 
@@ -77,11 +77,10 @@ public class LocalTransport
     /**
      * Adds the given Raft node to the known Raft nodes map.
      * <p>
-     * After this call, Raft messages sent to the given Raft endpoint are
-     * are passed to its Raft node.
+     * After this call, Raft messages sent to the given Raft endpoint are are passed to its Raft node.
      *
      * @param node
-     *         the Raft node to be added to the known Raft nodes map
+     *            the Raft node to be added to the known Raft nodes map
      */
     public void discoverNode(RaftNode node) {
         RaftEndpoint endpoint = node.getLocalEndpoint();
@@ -98,11 +97,10 @@ public class LocalTransport
     /**
      * Removes the given Raft node from the known Raft nodes map.
      * <p>
-     * After this call, Raft messages sent to the given Raft endpoint
-     * are silently dropped.
+     * After this call, Raft messages sent to the given Raft endpoint are silently dropped.
      *
      * @param node
-     *         the Raft node to be removed from the known Raft nodes map
+     *            the Raft node to be removed from the known Raft nodes map
      */
     public void undiscoverNode(RaftNodeImpl node) {
         RaftEndpoint endpoint = node.getLocalEndpoint();

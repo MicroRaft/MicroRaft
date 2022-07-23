@@ -26,14 +26,13 @@ import java.util.function.Consumer;
  * <p>
  * Called when term, role, status, known leader, or member list of the Raft node changes.
  * <p>
- * A {@link RaftNodeReportListener} implementation can implement {@link RaftNodeLifecycleAware} to perform initialization and
- * clean up work during {@link RaftNode} startup and termination. {@link RaftNode} calls {@link
- * RaftNodeLifecycleAware#onRaftNodeStart()} before calling any other method on {@link RaftNodeReportListener}, and finally calls
- * {@link RaftNodeLifecycleAware#onRaftNodeTerminate()} on termination.
+ * A {@link RaftNodeReportListener} implementation can implement {@link RaftNodeLifecycleAware} to perform
+ * initialization and clean up work during {@link RaftNode} startup and termination. {@link RaftNode} calls
+ * {@link RaftNodeLifecycleAware#onRaftNodeStart()} before calling any other method on {@link RaftNodeReportListener},
+ * and finally calls {@link RaftNodeLifecycleAware#onRaftNodeTerminate()} on termination.
  *
  * @see RaftNodeReport
  * @see RaftNode
  */
-public interface RaftNodeReportListener
-        extends Consumer<RaftNodeReport> {
+public interface RaftNodeReportListener extends Consumer<RaftNodeReport> {
 }

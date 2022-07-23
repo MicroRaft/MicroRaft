@@ -33,16 +33,16 @@ import java.util.function.LongFunction;
 import static java.util.Objects.requireNonNull;
 
 /**
- * {@link java.util.Map} implementation specialised for {@code long} keys using open addressing and linear probing for cache
- * efficient access.
+ * {@link java.util.Map} implementation specialised for {@code long} keys using open addressing and linear probing for
+ * cache efficient access.
  * <p>
  * NOTE: This map doesn't support {@code null} keys and values.
  *
  * @param <V>
- *         values stored in the {@link java.util.Map}
+ *            values stored in the {@link java.util.Map}
  */
-@SuppressWarnings("checkstyle:magicnumber") public final class Long2ObjectHashMap<V>
-        implements Map<Long, V> {
+@SuppressWarnings("checkstyle:magicnumber")
+public final class Long2ObjectHashMap<V> implements Map<Long, V> {
 
     /**
      * The default load factor for constructors not explicitly supplying it
@@ -73,9 +73,9 @@ import static java.util.Objects.requireNonNull;
      * Construct a new map allowing a configuration for initial capacity and load factor.
      *
      * @param initialCapacity
-     *         for the backing array
+     *            for the backing array
      * @param loadFactor
-     *         limit for resizing on puts
+     *            limit for resizing on puts
      */
     public Long2ObjectHashMap(final int initialCapacity, final double loadFactor) {
         this.loadFactor = loadFactor;
@@ -126,7 +126,8 @@ import static java.util.Objects.requireNonNull;
     }
 
     /**
-     * Get the actual threshold which when reached the map resize. This is a function of the current capacity and load factor.
+     * Get the actual threshold which when reached the map resize. This is a function of the current capacity and load
+     * factor.
      *
      * @return the threshold when the map will resize.
      */
@@ -135,13 +136,13 @@ import static java.util.Objects.requireNonNull;
     }
 
     /**
-     * Get a value for a given key, or if it does ot exist then default the value via a {@link LongFunction} and put it in the
-     * map.
+     * Get a value for a given key, or if it does ot exist then default the value via a {@link LongFunction} and put it
+     * in the map.
      *
      * @param key
-     *         to search on.
+     *            to search on.
      * @param mappingFunction
-     *         to provide a value if the get returns null.
+     *            to provide a value if the get returns null.
      *
      * @return the value if found otherwise the default.
      */
@@ -158,23 +159,26 @@ import static java.util.Objects.requireNonNull;
     }
 
     /**
-     * Compact the {@link Map} backing arrays by rehashing with a capacity just larger than current size and giving consideration
-     * to the load factor.
+     * Compact the {@link Map} backing arrays by rehashing with a capacity just larger than current size and giving
+     * consideration to the load factor.
      */
     public void compact() {
         final int idealCapacity = (int) Math.round(size() * (1.0d / loadFactor));
         rehash(nextPowerOfTwo(idealCapacity));
     }
 
-    @Override public int size() {
+    @Override
+    public int size() {
         return size;
     }
 
-    @Override public boolean isEmpty() {
+    @Override
+    public boolean isEmpty() {
         return 0 == size;
     }
 
-    @Override public boolean containsKey(final Object key) {
+    @Override
+    public boolean containsKey(final Object key) {
         requireNonNull(key);
         return containsKey(((Long) key).longValue());
     }
@@ -183,7 +187,7 @@ import static java.util.Objects.requireNonNull;
      * Overloaded version of {@link Map#containsKey(Object)} that takes a primitive long key.
      *
      * @param key
-     *         for indexing the {@link Map}
+     *            for indexing the {@link Map}
      *
      * @return true if the key is found otherwise false.
      */
@@ -198,7 +202,8 @@ import static java.util.Objects.requireNonNull;
         return false;
     }
 
-    @Override public boolean containsValue(final Object value) {
+    @Override
+    public boolean containsValue(final Object value) {
         requireNonNull(value);
         for (final Object v : values) {
             if (value.equals(v)) {
@@ -208,7 +213,8 @@ import static java.util.Objects.requireNonNull;
         return false;
     }
 
-    @Override public V get(final Object key) {
+    @Override
+    public V get(final Object key) {
         return get(((Long) key).longValue());
     }
 
@@ -216,11 +222,12 @@ import static java.util.Objects.requireNonNull;
      * Overloaded version of {@link Map#get(Object)} that takes a primitive long key.
      *
      * @param key
-     *         for indexing the {@link Map}
+     *            for indexing the {@link Map}
      *
      * @return the value if found otherwise null
      */
-    @SuppressWarnings("unchecked") public V get(final long key) {
+    @SuppressWarnings("unchecked")
+    public V get(final long key) {
         int index = longHash(key, mask);
         Object value;
         while (null != (value = values[index])) {
@@ -232,7 +239,8 @@ import static java.util.Objects.requireNonNull;
         return null;
     }
 
-    @Override public V put(final Long key, final V value) {
+    @Override
+    public V put(final Long key, final V value) {
         return put(key.longValue(), value);
     }
 
@@ -240,13 +248,14 @@ import static java.util.Objects.requireNonNull;
      * Overloaded version of {@link Map#put(Object, Object)} that takes a primitive long key.
      *
      * @param key
-     *         for indexing the {@link Map}
+     *            for indexing the {@link Map}
      * @param value
-     *         to be inserted in the {@link Map}
+     *            to be inserted in the {@link Map}
      *
      * @return the previous value if found otherwise null
      */
-    @SuppressWarnings("unchecked") public V put(final long key, final V value) {
+    @SuppressWarnings("unchecked")
+    public V put(final long key, final V value) {
         requireNonNull(value);
         V oldValue = null;
         int index = longHash(key, mask);
@@ -276,7 +285,8 @@ import static java.util.Objects.requireNonNull;
         rehash(newCapacity);
     }
 
-    @Override public V remove(final Object key) {
+    @Override
+    public V remove(final Object key) {
         return remove(((Long) key).longValue());
     }
 
@@ -284,11 +294,12 @@ import static java.util.Objects.requireNonNull;
      * Overloaded version of {@link Map#remove(Object)} that takes a primitive long key.
      *
      * @param key
-     *         for indexing the {@link Map}
+     *            for indexing the {@link Map}
      *
      * @return the value if found otherwise null
      */
-    @SuppressWarnings("unchecked") public V remove(final long key) {
+    @SuppressWarnings("unchecked")
+    public V remove(final long key) {
         int index = longHash(key, mask);
         Object value;
         while (null != (value = values[index])) {
@@ -311,8 +322,8 @@ import static java.util.Objects.requireNonNull;
                 return;
             }
             final int hash = longHash(keys[index], mask);
-            if ((index < hash && (hash <= deleteIndex || deleteIndex <= index)) || (hash <= deleteIndex
-                                                                                    && deleteIndex <= index)) {
+            if ((index < hash && (hash <= deleteIndex || deleteIndex <= index))
+                    || (hash <= deleteIndex && deleteIndex <= index)) {
                 keys[deleteIndex] = keys[index];
                 values[deleteIndex] = values[index];
                 values[index] = null;
@@ -321,22 +332,26 @@ import static java.util.Objects.requireNonNull;
         }
     }
 
-    @Override public void putAll(final Map<? extends Long, ? extends V> map) {
+    @Override
+    public void putAll(final Map<? extends Long, ? extends V> map) {
         for (final Entry<? extends Long, ? extends V> entry : map.entrySet()) {
             put(entry.getKey(), entry.getValue());
         }
     }
 
-    @Override public void clear() {
+    @Override
+    public void clear() {
         size = 0;
         Arrays.fill(values, null);
     }
 
-    @Override public KeySet keySet() {
+    @Override
+    public KeySet keySet() {
         return keySet;
     }
 
-    @Override public Collection<V> values() {
+    @Override
+    public Collection<V> values() {
         return valueCollection;
     }
 
@@ -345,11 +360,12 @@ import static java.util.Objects.requireNonNull;
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
-     * {@inheritDoc} This set's iterator also implements <code>Map.Entry</code> so the <code>next()</code> method can just return
-     * the iterator instance itself with no heap allocation. This characteristic makes the set unusable wherever the returned
-     * entries are retained (such as <code>coll.addAll(entrySet)</code>.
+     * {@inheritDoc} This set's iterator also implements <code>Map.Entry</code> so the <code>next()</code> method can
+     * just return the iterator instance itself with no heap allocation. This characteristic makes the set unusable
+     * wherever the returned entries are retained (such as <code>coll.addAll(entrySet)</code>.
      */
-    @Override public Set<Entry<Long, V>> entrySet() {
+    @Override
+    public Set<Entry<Long, V>> entrySet() {
         return entrySet;
     }
 
@@ -401,8 +417,7 @@ import static java.util.Objects.requireNonNull;
     /**
      * Adds non-boxing methods to the standard Set interface.
      */
-    public class KeySet
-            extends AbstractSet<Long> {
+    public class KeySet extends AbstractSet<Long> {
 
         /**
          * Non-boxing variant of contains().
@@ -411,27 +426,33 @@ import static java.util.Objects.requireNonNull;
             return Long2ObjectHashMap.this.containsKey(key);
         }
 
-        @Override public KeyIterator iterator() {
+        @Override
+        public KeyIterator iterator() {
             return new KeyIterator();
         }
 
-        @Override public int size() {
+        @Override
+        public int size() {
             return Long2ObjectHashMap.this.size();
         }
 
-        @Override public boolean isEmpty() {
+        @Override
+        public boolean isEmpty() {
             return Long2ObjectHashMap.this.isEmpty();
         }
 
-        @Override public boolean contains(final Object o) {
+        @Override
+        public boolean contains(final Object o) {
             return Long2ObjectHashMap.this.containsKey(o);
         }
 
-        @Override public boolean remove(final Object o) {
+        @Override
+        public boolean remove(final Object o) {
             return null != Long2ObjectHashMap.this.remove(o);
         }
 
-        @Override public void clear() {
+        @Override
+        public void clear() {
             Long2ObjectHashMap.this.clear();
         }
 
@@ -444,54 +465,60 @@ import static java.util.Objects.requireNonNull;
 
     }
 
-    private class ValueCollection
-            extends AbstractCollection<V> {
+    private class ValueCollection extends AbstractCollection<V> {
 
-        @Override public Iterator<V> iterator() {
+        @Override
+        public Iterator<V> iterator() {
             return new ValueIterator<>();
         }
 
-        @Override public int size() {
+        @Override
+        public int size() {
             return Long2ObjectHashMap.this.size();
         }
 
-        @Override public boolean isEmpty() {
+        @Override
+        public boolean isEmpty() {
             return Long2ObjectHashMap.this.isEmpty();
         }
 
-        @Override public boolean contains(final Object o) {
+        @Override
+        public boolean contains(final Object o) {
             return Long2ObjectHashMap.this.containsValue(o);
         }
 
-        @Override public void clear() {
+        @Override
+        public void clear() {
             Long2ObjectHashMap.this.clear();
         }
 
     }
 
-    private class EntrySet
-            extends AbstractSet<Entry<Long, V>> {
+    private class EntrySet extends AbstractSet<Entry<Long, V>> {
 
-        @Override public Iterator<Entry<Long, V>> iterator() {
+        @Override
+        public Iterator<Entry<Long, V>> iterator() {
             return new EntryIterator();
         }
 
-        @Override public int size() {
+        @Override
+        public int size() {
             return Long2ObjectHashMap.this.size();
         }
 
-        @Override public boolean isEmpty() {
+        @Override
+        public boolean isEmpty() {
             return Long2ObjectHashMap.this.isEmpty();
         }
 
-        @Override public void clear() {
+        @Override
+        public void clear() {
             Long2ObjectHashMap.this.clear();
         }
 
     }
 
-    private abstract class AbstractIterator<T>
-            implements Iterator<T> {
+    private abstract class AbstractIterator<T> implements Iterator<T> {
 
         protected final long[] keys = Long2ObjectHashMap.this.keys;
         protected final Object[] values = Long2ObjectHashMap.this.values;
@@ -513,7 +540,8 @@ import static java.util.Objects.requireNonNull;
             posCounter = i + capacity;
         }
 
-        @Override public boolean hasNext() {
+        @Override
+        public boolean hasNext() {
             for (int i = posCounter - 1; i >= stopCounter; i--) {
                 final int index = i & mask;
                 if (null != values[index]) {
@@ -523,9 +551,11 @@ import static java.util.Objects.requireNonNull;
             return false;
         }
 
-        @Override public abstract T next();
+        @Override
+        public abstract T next();
 
-        @Override public void remove() {
+        @Override
+        public void remove() {
             if (isPositionValid) {
                 final int position = getPosition();
                 values[position] = null;
@@ -556,9 +586,10 @@ import static java.util.Objects.requireNonNull;
 
     }
 
-    private class ValueIterator<T>
-            extends AbstractIterator<T> {
-        @Override @SuppressWarnings("unchecked") public T next() {
+    private class ValueIterator<T> extends AbstractIterator<T> {
+        @Override
+        @SuppressWarnings("unchecked")
+        public T next() {
             findNext();
             return (T) values[getPosition()];
         }
@@ -568,10 +599,10 @@ import static java.util.Objects.requireNonNull;
     /**
      * Adds an unboxed next() method to the standard Iterator interface.
      */
-    public class KeyIterator
-            extends AbstractIterator<Long> {
+    public class KeyIterator extends AbstractIterator<Long> {
 
-        @Override public Long next() {
+        @Override
+        public Long next() {
             return nextLong();
         }
 
@@ -585,24 +616,27 @@ import static java.util.Objects.requireNonNull;
 
     }
 
-    @SuppressFBWarnings(value = "PZ_DONT_REUSE_ENTRY_OBJECTS_IN_ITERATORS") private class EntryIterator
-            extends AbstractIterator<Entry<Long, V>>
-            implements Entry<Long, V> {
+    @SuppressFBWarnings(value = "PZ_DONT_REUSE_ENTRY_OBJECTS_IN_ITERATORS")
+    private class EntryIterator extends AbstractIterator<Entry<Long, V>> implements Entry<Long, V> {
 
-        @Override public Entry<Long, V> next() {
+        @Override
+        public Entry<Long, V> next() {
             findNext();
             return this;
         }
 
-        @Override public Long getKey() {
+        @Override
+        public Long getKey() {
             return keys[getPosition()];
         }
 
-        @Override public V getValue() {
+        @Override
+        public V getValue() {
             return (V) values[getPosition()];
         }
 
-        @Override public V setValue(final V value) {
+        @Override
+        public V setValue(final V value) {
             requireNonNull(value);
             final int pos = getPosition();
             final Object oldValue = values[pos];

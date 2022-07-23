@@ -23,14 +23,12 @@ import javax.annotation.Nonnull;
 /**
  * Raft message for the VoteRequest RPC.
  * <p>
- * See <i>5.2 Leader election</i> section of
- * <i>In Search of an Understandable Consensus Algorithm</i>
- * paper by <i>Diego Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>5.2 Leader election</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
+ * Ongaro</i> and <i>John Ousterhout</i>.
  * <p>
  * Invoked by candidates to gather votes (§5.2).
  */
-public interface VoteRequest
-        extends RaftMessage {
+public interface VoteRequest extends RaftMessage {
 
     int getLastLogTerm();
 
@@ -41,20 +39,25 @@ public interface VoteRequest
     /**
      * The builder interface for {@link VoteRequest}.
      */
-    interface VoteRequestBuilder
-            extends RaftMessageBuilder<VoteRequest> {
+    interface VoteRequestBuilder extends RaftMessageBuilder<VoteRequest> {
 
-        @Nonnull VoteRequestBuilder setGroupId(@Nonnull Object groupId);
+        @Nonnull
+        VoteRequestBuilder setGroupId(@Nonnull Object groupId);
 
-        @Nonnull VoteRequestBuilder setSender(@Nonnull RaftEndpoint sender);
+        @Nonnull
+        VoteRequestBuilder setSender(@Nonnull RaftEndpoint sender);
 
-        @Nonnull VoteRequestBuilder setTerm(int term);
+        @Nonnull
+        VoteRequestBuilder setTerm(int term);
 
-        @Nonnull VoteRequestBuilder setLastLogTerm(int lastLogTerm);
+        @Nonnull
+        VoteRequestBuilder setLastLogTerm(int lastLogTerm);
 
-        @Nonnull VoteRequestBuilder setLastLogIndex(long lastLogIndex);
+        @Nonnull
+        VoteRequestBuilder setLastLogIndex(long lastLogIndex);
 
-        @Nonnull VoteRequestBuilder setSticky(boolean sticky);
+        @Nonnull
+        VoteRequestBuilder setSticky(boolean sticky);
 
     }
 

@@ -39,16 +39,14 @@ import static io.microraft.RaftRole.LEADER;
  * <p>
  * Advances {@link RaftState#commitIndex()} according to the match indices of the Raft group members.
  * <p>
- * See <i>5.3 Log replication</i> section of
- * <i>In Search of an Understandable Consensus Algorithm</i>
- * paper by <i>Diego Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>5.3 Log replication</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
+ * Ongaro</i> and <i>John Ousterhout</i>.
  *
  * @see AppendEntriesRequest
  * @see AppendEntriesSuccessResponse
  * @see AppendEntriesFailureResponse
  */
-public class AppendEntriesSuccessResponseHandler
-        extends AbstractResponseHandler<AppendEntriesSuccessResponse> {
+public class AppendEntriesSuccessResponseHandler extends AbstractResponseHandler<AppendEntriesSuccessResponse> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AppendEntriesSuccessResponseHandler.class);
 
@@ -56,12 +54,14 @@ public class AppendEntriesSuccessResponseHandler
         super(raftNode, response);
     }
 
-    @Override protected void handleResponse(@Nonnull AppendEntriesSuccessResponse response) {
+    @Override
+    protected void handleResponse(@Nonnull AppendEntriesSuccessResponse response) {
         if (state.role() != LEADER) {
             LOGGER.warn("{} Ignored {}. We are not LEADER anymore.", localEndpointStr(), response);
             return;
         } else if (response.getTerm() > state.term()) {
-            LOGGER.warn("{} Ignored invalid response {} for current term: {}", localEndpointStr(), response, state.term());
+            LOGGER.warn("{} Ignored invalid response {} for current term: {}", localEndpointStr(), response,
+                    state.term());
             return;
         }
 
@@ -95,7 +95,7 @@ public class AppendEntriesSuccessResponseHandler
         if (queryState.tryAck(response.getQuerySequenceNumber(), follower)) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(localEndpointStr() + " ack from " + follower.getId() + " for query sequence number: "
-                             + response.getQuerySequenceNumber());
+                        + response.getQuerySequenceNumber());
             }
         }
 
@@ -110,15 +110,14 @@ public class AppendEntriesSuccessResponseHandler
             followerState.nextIndex(newNextIndex);
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(
-                        localEndpointStr() + " Updated match index: " + followerLastLogIndex + " and next index: " + newNextIndex
-                        + " for follower: " + follower.getId());
+                LOGGER.debug(localEndpointStr() + " Updated match index: " + followerLastLogIndex + " and next index: "
+                        + newNextIndex + " for follower: " + follower.getId());
             }
 
             return true;
         } else if (followerLastLogIndex < matchIndex && LOGGER.isDebugEnabled()) {
             LOGGER.debug(localEndpointStr() + " Will not update match index for follower: " + follower.getId()
-                         + ". follower last log index: " + followerLastLogIndex + ", match index: " + matchIndex);
+                    + ". follower last log index: " + followerLastLogIndex + ", match index: " + matchIndex);
         }
 
         return false;
@@ -133,7 +132,8 @@ public class AppendEntriesSuccessResponseHandler
 
     private void trySendAppendRequest(AppendEntriesSuccessResponse response) {
         long followerLastLogIndex = response.getLastLogIndex();
-        if (state.log().lastLogOrSnapshotIndex() > followerLastLogIndex || state.commitIndex() == followerLastLogIndex) {
+        if (state.log().lastLogOrSnapshotIndex() > followerLastLogIndex
+                || state.commitIndex() == followerLastLogIndex) {
             // If the follower is still missing some log entries or has not learnt the latest commit index yet,
             // then send another append request.
             node.sendAppendEntriesRequest(response.getSender());

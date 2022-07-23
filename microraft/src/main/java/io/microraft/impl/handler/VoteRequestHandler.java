@@ -37,16 +37,14 @@ import static java.util.Objects.requireNonNull;
  * <p>
  * Leader election is initiated by {@link LeaderElectionTask}.
  * <p>
- * See <i>5.2 Leader election</i> section of
- * <i>In Search of an Understandable Consensus Algorithm</i>
- * paper by <i>Diego Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>5.2 Leader election</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
+ * Ongaro</i> and <i>John Ousterhout</i>.
  *
  * @see VoteRequest
  * @see VoteResponse
  * @see LeaderElectionTask
  */
-public class VoteRequestHandler
-        extends AbstractMessageHandler<VoteRequest> {
+public class VoteRequestHandler extends AbstractMessageHandler<VoteRequest> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VoteRequestHandler.class);
 
@@ -54,14 +52,14 @@ public class VoteRequestHandler
         super(raftNode, request);
     }
 
-    @Override @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity"})
+    @Override
+    @SuppressWarnings({ "checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity" })
     // Justification: It is easier to follow the RequestVoteRPC logic in a single method
     protected void handle(@Nonnull VoteRequest request) {
         requireNonNull(request);
 
-        VoteResponseBuilder responseBuilder = modelFactory.createVoteResponseBuilder()
-                                                          .setGroupId(node.getGroupId())
-                                                          .setSender(localEndpoint());
+        VoteResponseBuilder responseBuilder = modelFactory.createVoteResponseBuilder().setGroupId(node.getGroupId())
+                .setSender(localEndpoint());
 
         RaftEndpoint candidate = request.getSender();
         int candidateTerm = request.getTerm();
@@ -82,8 +80,8 @@ public class VoteRequestHandler
         // Those VoteRequest objects are marked as "non-sticky" to bypass leader stickiness.
         // Also if the request comes from the current leader, then the leader stickiness check is skipped.
         // Since the current leader may have restarted by recovering its persistent state.
-        if (request.isSticky() && (state.leaderState() != null || !node.isLeaderHeartbeatTimeoutElapsed()) && !candidate.equals(
-                state.leader())) {
+        if (request.isSticky() && (state.leaderState() != null || !node.isLeaderHeartbeatTimeoutElapsed())
+                && !candidate.equals(state.leader())) {
             LOGGER.info("{} Rejecting {} since the leader is still alive...", localEndpointStr(), request);
             node.send(candidate, responseBuilder.setTerm(state.term()).setGranted(false).build());
             return;
@@ -92,13 +90,14 @@ public class VoteRequestHandler
         if (state.term() < candidateTerm) {
             // If the request term is greater than the local term, update the local term and convert to follower (§5.1)
             LOGGER.info("{} Moving to new term: {} from current term: {} after {}", localEndpointStr(), candidateTerm,
-                        state.term(), request);
+                    state.term(), request);
 
             node.toFollower(candidateTerm);
         }
 
         if (state.leader() != null && !candidate.equals(state.leader())) {
-            LOGGER.warn("{} Rejecting {} since we have a leader: {}", localEndpointStr(), request, state.leader().getId());
+            LOGGER.warn("{} Rejecting {} since we have a leader: {}", localEndpointStr(), request,
+                    state.leader().getId());
             node.send(candidate, responseBuilder.setTerm(candidateTerm).setGranted(false).build());
 
             return;
@@ -110,7 +109,7 @@ public class VoteRequestHandler
                 LOGGER.debug("{} Vote granted for {} (duplicate)", localEndpointStr(), request);
             } else {
                 LOGGER.debug("{} no vote for {}. currently voted-for: {}", localEndpointStr(), request,
-                             state.votedEndpoint().getId());
+                        state.votedEndpoint().getId());
             }
             node.send(candidate, responseBuilder.setTerm(candidateTerm).setGranted(granted).build());
             return;
@@ -119,14 +118,14 @@ public class VoteRequestHandler
         BaseLogEntry lastLogEntry = state.log().lastLogOrSnapshotEntry();
         if (lastLogEntry.getTerm() > request.getLastLogTerm()) {
             LOGGER.info("{} Rejecting {} since our last log term: {} is greater.", localEndpointStr(), request,
-                        lastLogEntry.getTerm());
+                    lastLogEntry.getTerm());
             node.send(candidate, responseBuilder.setTerm(candidateTerm).setGranted(false).build());
             return;
         }
 
         if (lastLogEntry.getTerm() == request.getLastLogTerm() && lastLogEntry.getIndex() > request.getLastLogIndex()) {
             LOGGER.info("{} Rejecting {} since our last log index: {} is greater.", localEndpointStr(), request,
-                        lastLogEntry.getIndex());
+                    lastLogEntry.getIndex());
             node.send(candidate, responseBuilder.setTerm(candidateTerm).setGranted(false).build());
             return;
         }

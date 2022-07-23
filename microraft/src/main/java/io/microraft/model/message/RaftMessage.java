@@ -24,19 +24,18 @@ import io.microraft.model.RaftModelFactory;
 import javax.annotation.Nonnull;
 
 /**
- * Implemented by request and response classes of the Raft consensus algorithm RPCs. Raft messages are the objects that go back
- * and forth between Raft nodes.
+ * Implemented by request and response classes of the Raft consensus algorithm RPCs. Raft messages are the objects that
+ * go back and forth between Raft nodes.
  * <p>
- * Raft message implementations must be treated as immutable and once a Raft message object is created its contents must not be
- * mutated.
+ * Raft message implementations must be treated as immutable and once a Raft message object is created its contents must
+ * not be mutated.
  * <p>
  * {@link RaftMessage} objects are created by {@link RaftModelFactory}.
  *
  * @see RaftModel
  * @see RaftModelFactory
  */
-public interface RaftMessage
-        extends RaftModel {
+public interface RaftMessage extends RaftModel {
 
     /**
      * Returns the group id of the Raft node which created this message
@@ -50,7 +49,8 @@ public interface RaftMessage
      *
      * @return the endpoint of the Raft node which created this message
      */
-    @Nonnull RaftEndpoint getSender();
+    @Nonnull
+    RaftEndpoint getSender();
 
     /**
      * Returns the term at which the Raft node created this message
@@ -63,11 +63,12 @@ public interface RaftMessage
      * The base builder interface for Raft message classes
      *
      * @param <T>
-     *         the concrete type of the Raft message
+     *            the concrete type of the Raft message
      */
     interface RaftMessageBuilder<T extends RaftMessage> {
 
-        @Nonnull T build();
+        @Nonnull
+        T build();
 
     }
 

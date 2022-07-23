@@ -23,16 +23,14 @@ import javax.annotation.Nonnull;
 /**
  * Response for {@link InstallSnapshotRequest}.
  * <p>
- * See <i>7 Log compaction</i> section of
- * <i>In Search of an Understandable Consensus Algorithm</i>
- * paper by <i>Diego Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>7 Log compaction</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
+ * Ongaro</i> and <i>John Ousterhout</i>.
  * <p>
  * A follower can request the missing snapshot chunks in any order from the leader.
  *
  * @see InstallSnapshotRequest
  */
-public interface InstallSnapshotResponse
-        extends RaftMessage {
+public interface InstallSnapshotResponse extends RaftMessage {
 
     long getSnapshotIndex();
 
@@ -45,22 +43,28 @@ public interface InstallSnapshotResponse
     /**
      * The builder interface for {@link InstallSnapshotResponse}.
      */
-    interface InstallSnapshotResponseBuilder
-            extends RaftMessageBuilder<InstallSnapshotResponse> {
+    interface InstallSnapshotResponseBuilder extends RaftMessageBuilder<InstallSnapshotResponse> {
 
-        @Nonnull InstallSnapshotResponseBuilder setGroupId(@Nonnull Object groupId);
+        @Nonnull
+        InstallSnapshotResponseBuilder setGroupId(@Nonnull Object groupId);
 
-        @Nonnull InstallSnapshotResponseBuilder setSender(@Nonnull RaftEndpoint sender);
+        @Nonnull
+        InstallSnapshotResponseBuilder setSender(@Nonnull RaftEndpoint sender);
 
-        @Nonnull InstallSnapshotResponseBuilder setTerm(int term);
+        @Nonnull
+        InstallSnapshotResponseBuilder setTerm(int term);
 
-        @Nonnull InstallSnapshotResponseBuilder setSnapshotIndex(long snapshotIndex);
+        @Nonnull
+        InstallSnapshotResponseBuilder setSnapshotIndex(long snapshotIndex);
 
-        @Nonnull InstallSnapshotResponseBuilder setRequestedSnapshotChunkIndex(int requestedSnapshotChunkIndex);
+        @Nonnull
+        InstallSnapshotResponseBuilder setRequestedSnapshotChunkIndex(int requestedSnapshotChunkIndex);
 
-        @Nonnull InstallSnapshotResponseBuilder setQuerySequenceNumber(long querySequenceNumber);
+        @Nonnull
+        InstallSnapshotResponseBuilder setQuerySequenceNumber(long querySequenceNumber);
 
-        @Nonnull InstallSnapshotResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
+        @Nonnull
+        InstallSnapshotResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
 
     }
 

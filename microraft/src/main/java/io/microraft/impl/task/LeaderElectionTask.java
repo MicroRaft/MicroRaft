@@ -25,16 +25,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Scheduled when the current leader is null, unreachable, or unknown by {@link PreVoteResponseHandler} after a follower receives
- * votes from the majority. A Raft node becomes a candidate via {@link RaftState#toCandidate()} and sends {@link VoteRequest}s to
- * the other Raft group members.
+ * Scheduled when the current leader is null, unreachable, or unknown by {@link PreVoteResponseHandler} after a follower
+ * receives votes from the majority. A Raft node becomes a candidate via {@link RaftState#toCandidate()} and sends
+ * {@link VoteRequest}s to the other Raft group members.
  * <p>
- * Also a {@link LeaderElectionTimeoutTask} is scheduled with the {@link RaftNodeImpl#getLeaderElectionTimeoutMs()} delay to
- * trigger another round of leader election if a leader is not elected yet.
+ * Also a {@link LeaderElectionTimeoutTask} is scheduled with the {@link RaftNodeImpl#getLeaderElectionTimeoutMs()}
+ * delay to trigger another round of leader election if a leader is not elected yet.
  */
-public final class LeaderElectionTask
-        extends RaftNodeStatusAwareTask
-        implements Runnable {
+public final class LeaderElectionTask extends RaftNodeStatusAwareTask implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LeaderElectionTask.class);
 
@@ -45,9 +43,11 @@ public final class LeaderElectionTask
         this.sticky = sticky;
     }
 
-    @Override protected void doRun() {
+    @Override
+    protected void doRun() {
         if (state.leader() != null) {
-            LOGGER.warn("{} No new election round, we already have a LEADER: {}", localEndpointStr(), state.leader().getId());
+            LOGGER.warn("{} No new election round, we already have a LEADER: {}", localEndpointStr(),
+                    state.leader().getId());
             return;
         }
 

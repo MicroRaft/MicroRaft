@@ -24,15 +24,13 @@ import javax.annotation.Nonnull;
 /**
  * Response for a successful {@link AppendEntriesRequest}.
  * <p>
- * See <i>5.3 Log replication</i> section of
- * <i>In Search of an Understandable Consensus Algorithm</i>
- * paper by <i>Diego Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>5.3 Log replication</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
+ * Ongaro</i> and <i>John Ousterhout</i>.
  *
  * @see AppendEntriesRequest
  * @see AppendEntriesRequestHandler
  */
-public interface AppendEntriesSuccessResponse
-        extends RaftMessage {
+public interface AppendEntriesSuccessResponse extends RaftMessage {
 
     long getLastLogIndex();
 
@@ -43,20 +41,25 @@ public interface AppendEntriesSuccessResponse
     /**
      * The builder interface for {@link AppendEntriesSuccessResponse}.
      */
-    interface AppendEntriesSuccessResponseBuilder
-            extends RaftMessageBuilder<AppendEntriesSuccessResponse> {
+    interface AppendEntriesSuccessResponseBuilder extends RaftMessageBuilder<AppendEntriesSuccessResponse> {
 
-        @Nonnull AppendEntriesSuccessResponseBuilder setGroupId(@Nonnull Object groupId);
+        @Nonnull
+        AppendEntriesSuccessResponseBuilder setGroupId(@Nonnull Object groupId);
 
-        @Nonnull AppendEntriesSuccessResponseBuilder setSender(@Nonnull RaftEndpoint sender);
+        @Nonnull
+        AppendEntriesSuccessResponseBuilder setSender(@Nonnull RaftEndpoint sender);
 
-        @Nonnull AppendEntriesSuccessResponseBuilder setTerm(int term);
+        @Nonnull
+        AppendEntriesSuccessResponseBuilder setTerm(int term);
 
-        @Nonnull AppendEntriesSuccessResponseBuilder setLastLogIndex(long lastLogIndex);
+        @Nonnull
+        AppendEntriesSuccessResponseBuilder setLastLogIndex(long lastLogIndex);
 
-        @Nonnull AppendEntriesSuccessResponseBuilder setQuerySequenceNumber(long querySequenceNumber);
+        @Nonnull
+        AppendEntriesSuccessResponseBuilder setQuerySequenceNumber(long querySequenceNumber);
 
-        @Nonnull AppendEntriesSuccessResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
+        @Nonnull
+        AppendEntriesSuccessResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
 
     }
 

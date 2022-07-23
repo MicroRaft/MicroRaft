@@ -34,8 +34,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * Contains member list of a Raft group.
  **/
-public final class RaftGroupMembersState
-        implements RaftGroupMembers {
+public final class RaftGroupMembersState implements RaftGroupMembers {
 
     private final long index;
     private final Collection<RaftEndpoint> members;
@@ -45,7 +44,7 @@ public final class RaftGroupMembersState
     private final int majority;
 
     public RaftGroupMembersState(long index, Collection<RaftEndpoint> members, Collection<RaftEndpoint> votingMembers,
-                                 RaftEndpoint localMember) {
+            RaftEndpoint localMember) {
         if (index < 0) {
             throw new IllegalArgumentException("Invalid Raft group members log index: " + index);
         }
@@ -71,7 +70,8 @@ public final class RaftGroupMembersState
     /**
      * Returns index in the Raft log into which this member list is appended.
      */
-    @Override public long getLogIndex() {
+    @Override
+    public long getLogIndex() {
         return index;
     }
 
@@ -80,7 +80,9 @@ public final class RaftGroupMembersState
      *
      * @see #remoteMembers()
      */
-    @Nonnull @Override public Collection<RaftEndpoint> getMembers() {
+    @Nonnull
+    @Override
+    public Collection<RaftEndpoint> getMembers() {
         return members;
     }
 
@@ -88,7 +90,9 @@ public final class RaftGroupMembersState
         return new ArrayList<>(members);
     }
 
-    @Nonnull @Override public Collection<RaftEndpoint> getVotingMembers() {
+    @Nonnull
+    @Override
+    public Collection<RaftEndpoint> getVotingMembers() {
         return votingMembers;
     }
 
@@ -127,7 +131,8 @@ public final class RaftGroupMembersState
     /**
      * Returns the majority number of the Raft group member list.
      */
-    @Override public int getMajorityQuorumSize() {
+    @Override
+    public int getMajorityQuorumSize() {
         return majority;
     }
 
@@ -142,7 +147,8 @@ public final class RaftGroupMembersState
         return builder.setLogIndex(index).setMembers(members).setVotingMembers(votingMembers).build();
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return "RaftGroupMembers{" + "index=" + index + ", members=" + members + '}';
     }
 

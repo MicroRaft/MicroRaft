@@ -44,19 +44,17 @@ import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Handles an {@link AppendEntriesRequest} sent by the Raft group leader and responds with either an {@link
- * AppendEntriesSuccessResponse} or an {@link AppendEntriesFailureResponse}.
+ * Handles an {@link AppendEntriesRequest} sent by the Raft group leader and responds with either an
+ * {@link AppendEntriesSuccessResponse} or an {@link AppendEntriesFailureResponse}.
  * <p>
- * See <i>5.3 Log replication</i> section of
- * <i>In Search of an Understandable Consensus Algorithm</i>
- * paper by <i>Diego Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>5.3 Log replication</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
+ * Ongaro</i> and <i>John Ousterhout</i>.
  *
  * @see AppendEntriesRequest
  * @see AppendEntriesSuccessResponse
  * @see AppendEntriesFailureResponse
  */
-public class AppendEntriesRequestHandler
-        extends AbstractMessageHandler<AppendEntriesRequest> {
+public class AppendEntriesRequestHandler extends AbstractMessageHandler<AppendEntriesRequest> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AppendEntriesRequestHandler.class);
 
@@ -65,8 +63,8 @@ public class AppendEntriesRequestHandler
     }
 
     @Override
-    @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity", "checkstyle:methodlength",
-                       "checkstyle:nestedifdepth"})
+    @SuppressWarnings({ "checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity", "checkstyle:methodlength",
+            "checkstyle:nestedifdepth" })
     // Justification: It is easier to follow the AppendEntriesRPC logic in a single method
     protected void handle(@Nonnull AppendEntriesRequest request) {
         requireNonNull(request);
@@ -89,8 +87,8 @@ public class AppendEntriesRequestHandler
         // Transform into follower if a newer term is seen or another node wins the election of the current term
         if (request.getTerm() > state.term() || (state.role() != FOLLOWER && state.role() != LEARNER)) {
             // If the request term is greater than the local term, update the local term and convert to follower (§5.1)
-            LOGGER.info("{} Moving to new term: {} and leader: {} from current term: {}.", localEndpointStr(), request.getTerm(),
-                        leader.getId(), state.term());
+            LOGGER.info("{} Moving to new term: {} and leader: {} from current term: {}.", localEndpointStr(),
+                    request.getTerm(), leader.getId(), state.term());
             node.toFollower(request.getTerm());
         }
 
@@ -102,8 +100,8 @@ public class AppendEntriesRequestHandler
         node.leaderHeartbeatReceived();
 
         if (!verifyLastLogEntry(request, log)) {
-            RaftMessage response = createAppendEntriesFailureResponse(request.getTerm(), request.getQuerySequenceNumber(),
-                                                                      request.getFlowControlSequenceNumber());
+            RaftMessage response = createAppendEntriesFailureResponse(request.getTerm(),
+                    request.getQuerySequenceNumber(), request.getFlowControlSequenceNumber());
             node.send(leader, response);
             return;
         }
@@ -124,13 +122,9 @@ public class AppendEntriesRequestHandler
 
         try {
             RaftMessage response = modelFactory.createAppendEntriesSuccessResponseBuilder()
-                                               .setGroupId(node.getGroupId())
-                                               .setSender(localEndpoint())
-                                               .setTerm(state.term())
-                                               .setLastLogIndex(lastLogIndex)
-                                               .setQuerySequenceNumber(request.getQuerySequenceNumber())
-                                               .setFlowControlSequenceNumber(request.getFlowControlSequenceNumber())
-                                               .build();
+                    .setGroupId(node.getGroupId()).setSender(localEndpoint()).setTerm(state.term())
+                    .setLastLogIndex(lastLogIndex).setQuerySequenceNumber(request.getQuerySequenceNumber())
+                    .setFlowControlSequenceNumber(request.getFlowControlSequenceNumber()).build();
             node.send(leader, response);
         } finally {
             if (state.commitIndex() > oldCommitIndex) {
@@ -157,7 +151,7 @@ public class AppendEntriesRequestHandler
                 if (prevEntry == null) {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.warn(localEndpointStr() + " Failed to get previous log index for " + request + ", last"
-                                    + " log index: " + lastLogIndex);
+                                + " log index: " + lastLogIndex);
                     }
 
                     return false;
@@ -168,8 +162,8 @@ public class AppendEntriesRequestHandler
 
             if (request.getPreviousLogTerm() != prevLogTerm) {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.warn(
-                            localEndpointStr() + " Previous log term of " + request + " is different than ours: " + prevLogTerm);
+                    LOGGER.warn(localEndpointStr() + " Previous log term of " + request + " is different than ours: "
+                            + prevLogTerm);
                 }
 
                 return false;
@@ -196,20 +190,19 @@ public class AppendEntriesRequestHandler
 
                 LogEntry localEntry = log.getLogEntry(requestEntry.getIndex());
 
-                assert localEntry != null : localEndpointStr() + " Entry not found on log index: " + requestEntry.getIndex()
-                                            + " for " + request;
+                assert localEntry != null : localEndpointStr() + " Entry not found on log index: "
+                        + requestEntry.getIndex() + " for " + request;
 
                 // If an existing entry conflicts with a new one (same index but different terms),
                 // delete the existing entry and all that follow it (§5.3)
                 if (requestEntry.getTerm() != localEntry.getTerm()) {
                     List<LogEntry> truncatedEntries = log.truncateEntriesFrom(requestEntry.getIndex());
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.warn(
-                                localEndpointStr() + " Truncated " + truncatedEntries.size() + " entries from " + "entry index: "
-                                + requestEntry.getIndex() + " => " + truncatedEntries);
+                        LOGGER.warn(localEndpointStr() + " Truncated " + truncatedEntries.size() + " entries from "
+                                + "entry index: " + requestEntry.getIndex() + " => " + truncatedEntries);
                     } else {
-                        LOGGER.warn("{} Truncated {} entries from entry index: {}", localEndpointStr(), truncatedEntries.size(),
-                                    requestEntry.getIndex());
+                        LOGGER.warn("{} Truncated {} entries from entry index: {}", localEndpointStr(),
+                                truncatedEntries.size(), requestEntry.getIndex());
                     }
 
                     node.invalidateFuturesFrom(requestEntry.getIndex(), node.newNotLeaderException());
@@ -224,7 +217,7 @@ public class AppendEntriesRequestHandler
                 if (log.availableCapacity() < newLogEntries.size()) {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.warn(localEndpointStr() + " Truncating " + newLogEntries.size() + " entries to "
-                                    + log.availableCapacity() + " to fit into the available capacity of the Raft log");
+                                + log.availableCapacity() + " to fit into the available capacity of the Raft log");
                     }
 
                     truncatedRequestEntryCount = newLogEntries.size() - log.availableCapacity();
@@ -233,7 +226,8 @@ public class AppendEntriesRequestHandler
 
                 // Append any new entries not already in the log
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug(localEndpointStr() + " Appending " + newLogEntries.size() + " entries: " + newLogEntries);
+                    LOGGER.debug(
+                            localEndpointStr() + " Appending " + newLogEntries.size() + " entries: " + newLogEntries);
                 }
 
                 log.appendEntries(newLogEntries);
@@ -252,40 +246,35 @@ public class AppendEntriesRequestHandler
     private void prepareGroupOp(List<LogEntry> logEntries, long commitIndex) {
         // There can be at most one appended & not-committed group operation in the log
         logEntries.stream()
-                  .filter(logEntry -> logEntry.getIndex() > commitIndex && logEntry.getOperation() instanceof RaftGroupOp)
-                  .findFirst()
-                  .ifPresent(logEntry -> {
-                      Object operation = logEntry.getOperation();
-                      if (operation instanceof UpdateRaftGroupMembersOp) {
-                          node.setStatus(UPDATING_RAFT_GROUP_MEMBER_LIST);
-                          UpdateRaftGroupMembersOp groupOp = (UpdateRaftGroupMembersOp) operation;
-                          node.updateGroupMembers(logEntry.getIndex(), groupOp.getMembers(), groupOp.getVotingMembers());
-                      } else {
-                          assert false : "Invalid Raft group operation: " + operation + " in " + node.getGroupId();
-                      }
-                  });
+                .filter(logEntry -> logEntry.getIndex() > commitIndex && logEntry.getOperation() instanceof RaftGroupOp)
+                .findFirst().ifPresent(logEntry -> {
+                    Object operation = logEntry.getOperation();
+                    if (operation instanceof UpdateRaftGroupMembersOp) {
+                        node.setStatus(UPDATING_RAFT_GROUP_MEMBER_LIST);
+                        UpdateRaftGroupMembersOp groupOp = (UpdateRaftGroupMembersOp) operation;
+                        node.updateGroupMembers(logEntry.getIndex(), groupOp.getMembers(), groupOp.getVotingMembers());
+                    } else {
+                        assert false : "Invalid Raft group operation: " + operation + " in " + node.getGroupId();
+                    }
+                });
     }
 
     private void revertPreparedGroupOp(List<LogEntry> logEntries) {
         // Reverting inflight (i.e., appended but not-yet-committed) Raft group operations.
         // There can be at most 1 instance of such operation...
-        logEntries.stream().filter(logEntry -> logEntry.getOperation() instanceof RaftGroupOp).findFirst().ifPresent(logEntry -> {
-            node.setStatus(ACTIVE);
-            if (logEntry.getOperation() instanceof UpdateRaftGroupMembersOp) {
-                node.revertGroupMembers();
-            }
-        });
+        logEntries.stream().filter(logEntry -> logEntry.getOperation() instanceof RaftGroupOp).findFirst()
+                .ifPresent(logEntry -> {
+                    node.setStatus(ACTIVE);
+                    if (logEntry.getOperation() instanceof UpdateRaftGroupMembersOp) {
+                        node.revertGroupMembers();
+                    }
+                });
     }
 
     private RaftMessage createAppendEntriesFailureResponse(int term, long queryRound, long sequenceNumber) {
-        return modelFactory.createAppendEntriesFailureResponseBuilder()
-                           .setGroupId(node.getGroupId())
-                           .setSender(localEndpoint())
-                           .setTerm(term)
-                           .setExpectedNextIndex(message.getPreviousLogIndex() + 1)
-                           .setQuerySequenceNumber(queryRound)
-                           .setFlowControlSequenceNumber(sequenceNumber)
-                           .build();
+        return modelFactory.createAppendEntriesFailureResponseBuilder().setGroupId(node.getGroupId())
+                .setSender(localEndpoint()).setTerm(term).setExpectedNextIndex(message.getPreviousLogIndex() + 1)
+                .setQuerySequenceNumber(queryRound).setFlowControlSequenceNumber(sequenceNumber).build();
     }
 
 }

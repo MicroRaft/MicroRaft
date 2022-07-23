@@ -54,8 +54,7 @@ public class HighLoadTest {
     }
 
     @Test
-    public void testHighLoad()
-            throws InterruptedException {
+    public void testHighLoad() throws InterruptedException {
         RaftConfig config = RaftConfig.newBuilder().setMaxPendingLogEntryCount(10).build();
         group = LocalRaftGroup.newBuilder(3).setConfig(config).start();
         RaftNode leader = group.waitUntilLeaderElected();

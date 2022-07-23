@@ -45,22 +45,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class RaftStateTest {
 
-    @Rule public ExpectedException exception = ExpectedException.none();
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
 
     private LocalRaftEndpoint localEndpoint = newEndpoint();
     private Collection<RaftEndpoint> initialEndpoints = new LinkedHashSet<>(
             asList(localEndpoint, newEndpoint(), newEndpoint(), newEndpoint(), newEndpoint()));
     private RaftGroupMembersView groupMembers = new DefaultRaftGroupMembersViewOrBuilder().setLogIndex(0)
-                                                                                          .setMembers(initialEndpoints)
-                                                                                          .setVotingMembers(initialEndpoints)
-                                                                                          .build();
+            .setMembers(initialEndpoints).setVotingMembers(initialEndpoints).build();
     private RaftState state;
 
-    @Before public void setup() {
+    @Before
+    public void setup() {
         state = RaftState.create("default", localEndpoint, groupMembers, 100);
     }
 
-    @Test public void test_initialState() {
+    @Test
+    public void test_initialState() {
         assertThat(state.memberCount()).isEqualTo(initialEndpoints.size());
 
         assertThat(state.members()).isEqualTo(initialEndpoints);
@@ -212,10 +213,8 @@ public class RaftStateTest {
             initialEndpoints.add(newEndpoint());
         }
 
-        groupMembers = new DefaultRaftGroupMembersViewOrBuilder().setLogIndex(0)
-                                                                 .setMembers(initialEndpoints)
-                                                                 .setVotingMembers(initialEndpoints)
-                                                                 .build();
+        groupMembers = new DefaultRaftGroupMembersViewOrBuilder().setLogIndex(0).setMembers(initialEndpoints)
+                .setVotingMembers(initialEndpoints).build();
 
         state = RaftState.create("default", localEndpoint, groupMembers, 100);
 
@@ -234,10 +233,8 @@ public class RaftStateTest {
             initialEndpoints.add(newEndpoint());
         }
 
-        groupMembers = new DefaultRaftGroupMembersViewOrBuilder().setLogIndex(0)
-                                                                 .setMembers(initialEndpoints)
-                                                                 .setVotingMembers(initialEndpoints)
-                                                                 .build();
+        groupMembers = new DefaultRaftGroupMembersViewOrBuilder().setLogIndex(0).setMembers(initialEndpoints)
+                .setVotingMembers(initialEndpoints).build();
 
         state = RaftState.create("default", localEndpoint, groupMembers, 100);
 
@@ -246,7 +243,8 @@ public class RaftStateTest {
         assertThat(state.logReplicationQuorumSize()).isEqualTo(majorityQuorumSize - 1);
     }
 
-    @Test public void test_initialStateOfJoinedMember() {
+    @Test
+    public void test_initialStateOfJoinedMember() {
         localEndpoint = newEndpoint();
 
         state = RaftState.create("default", localEndpoint, groupMembers, 100);
@@ -275,7 +273,8 @@ public class RaftStateTest {
         assertThat(log.lastLogOrSnapshotIndex()).isEqualTo(0);
     }
 
-    @Test public void test_promotionToVotingMember() {
+    @Test
+    public void test_promotionToVotingMember() {
         localEndpoint = newEndpoint();
 
         state = RaftState.create("default", localEndpoint, groupMembers, 100);
@@ -289,7 +288,8 @@ public class RaftStateTest {
         assertThat(state.role()).isEqualTo(FOLLOWER);
     }
 
-    @Test public void test_revertVotingMemberPromotion() {
+    @Test
+    public void test_revertVotingMemberPromotion() {
         localEndpoint = newEndpoint();
 
         state = RaftState.create("default", localEndpoint, groupMembers, 100);
@@ -303,7 +303,8 @@ public class RaftStateTest {
         assertThat(state.role()).isEqualTo(LEARNER);
     }
 
-    @Test public void test_revertVotingMemberPromotionFailsWhileCandidate() {
+    @Test
+    public void test_revertVotingMemberPromotionFailsWhileCandidate() {
         localEndpoint = newEndpoint();
 
         state = RaftState.create("default", localEndpoint, groupMembers, 100);

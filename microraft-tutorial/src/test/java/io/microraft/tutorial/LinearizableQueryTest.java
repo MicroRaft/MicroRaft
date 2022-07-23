@@ -38,8 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
    https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/test/java/io/microraft/tutorial/LinearizableQueryTest.java
 
  */
-public class LinearizableQueryTest
-        extends BaseLocalTest {
+public class LinearizableQueryTest extends BaseLocalTest {
 
     @Override
     protected StateMachine createStateMachine() {
@@ -52,15 +51,15 @@ public class LinearizableQueryTest
 
         String value = "value";
         AtomicRegisterOperation operation1 = OperableAtomicRegister.newSetOperation(value);
-        Ordered<String> result1 = leader.<String>replicate(operation1).join();
+        Ordered<String> result1 = leader.<String> replicate(operation1).join();
 
         System.out.println("set operation commit index: " + result1.getCommitIndex());
 
         AtomicRegisterOperation operation2 = OperableAtomicRegister.newGetOperation();
-        Ordered<String> queryResult = leader.<String>query(operation2, QueryPolicy.LINEARIZABLE, 0).join();
+        Ordered<String> queryResult = leader.<String> query(operation2, QueryPolicy.LINEARIZABLE, 0).join();
 
-        System.out
-                .println("get operation result: " + queryResult.getResult() + ", commit index: " + queryResult.getCommitIndex());
+        System.out.println(
+                "get operation result: " + queryResult.getResult() + ", commit index: " + queryResult.getCommitIndex());
 
         assertThat(queryResult.getResult()).isEqualTo(value);
         assertThat(queryResult.getCommitIndex()).isEqualTo(result1.getCommitIndex());

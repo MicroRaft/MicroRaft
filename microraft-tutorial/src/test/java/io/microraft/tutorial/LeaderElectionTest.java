@@ -35,8 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
    https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/test/java/io/microraft/tutorial/LeaderElectionTest.java
 
  */
-public class LeaderElectionTest
-        extends BaseLocalTest {
+public class LeaderElectionTest extends BaseLocalTest {
 
     @Override
     protected StateMachine createStateMachine() {

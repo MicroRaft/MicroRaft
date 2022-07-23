@@ -33,15 +33,13 @@ import static java.util.Objects.requireNonNull;
 /**
  * A very simple {@link Transport} implementation used in the tutorial.
  * <p>
- * It uses a concurrent hash map to pass Raft message objects between Raft
- * nodes.
+ * It uses a concurrent hash map to pass Raft message objects between Raft nodes.
  * <p>
  * YOU CAN SEE THIS CLASS AT:
  * <p>
  * https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/LocalTransport.java
  */
-final class LocalTransport
-        implements Transport {
+final class LocalTransport implements Transport {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LocalTransport.class);
 
@@ -72,11 +70,10 @@ final class LocalTransport
     /**
      * Adds the given Raft node to the known Raft nodes map.
      * <p>
-     * After this call, Raft messages sent to the given Raft endpoint are
-     * are passed to its Raft node.
+     * After this call, Raft messages sent to the given Raft endpoint are are passed to its Raft node.
      *
      * @param node
-     *         the Raft node to be added to the known Raft nodes map
+     *            the Raft node to be added to the known Raft nodes map
      */
     public void discoverNode(RaftNode node) {
         RaftEndpoint endpoint = node.getLocalEndpoint();
@@ -93,11 +90,10 @@ final class LocalTransport
     /**
      * Removes the given Raft node from the known Raft nodes map.
      * <p>
-     * After this call, Raft messages sent to the given Raft endpoint
-     * are silently dropped.
+     * After this call, Raft messages sent to the given Raft endpoint are silently dropped.
      *
      * @param node
-     *         the Raft node to be removed from the known Raft nodes map
+     *            the Raft node to be removed from the known Raft nodes map
      */
     public void undiscoverNode(RaftNode node) {
         RaftEndpoint endpoint = node.getLocalEndpoint();

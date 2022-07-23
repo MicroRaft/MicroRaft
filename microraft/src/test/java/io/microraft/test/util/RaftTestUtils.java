@@ -45,8 +45,7 @@ import static org.junit.Assert.assertNotNull;
 public final class RaftTestUtils {
 
     public static final RaftConfig TEST_RAFT_CONFIG = RaftConfig.newBuilder().setLeaderElectionTimeoutMillis(2000)
-                                                                .setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(5)
-                                                                .build();
+            .setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(5).build();
 
     private RaftTestUtils() {
     }
@@ -87,8 +86,7 @@ public final class RaftTestUtils {
         }
     }
 
-    private static RaftNodeExecutor getExecutor(RaftNodeImpl node)
-            throws NoSuchFieldException, IllegalAccessException {
+    private static RaftNodeExecutor getExecutor(RaftNodeImpl node) throws NoSuchFieldException, IllegalAccessException {
         Field field = RaftNodeImpl.class.getDeclaredField("executor");
         field.setAccessible(true);
         return (RaftNodeExecutor) field.get(node);

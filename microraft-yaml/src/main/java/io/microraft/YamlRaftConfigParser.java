@@ -45,36 +45,30 @@ import static java.util.Objects.requireNonNull;
 public final class YamlRaftConfigParser {
 
     /*
-        A sample YAML string is below:
-        ---
-        raft:
-         leader-election-timeout-millis: 750
-         leader-heartbeat-period-secs: 15
-         leader-heartbeat-timeout-secs: 45
-         append-entries-request-batch-size: 750
-         commit-count-to-take-snapshot: 7500
-         max-uncommitted-log-entry-count: 1500
-         transfer-snapshots-from-followers-enabled: false
-         raft-node-report-publish-period-secs: 20
-
+     * A sample YAML string is below: --- raft: leader-election-timeout-millis: 750 leader-heartbeat-period-secs: 15
+     * leader-heartbeat-timeout-secs: 45 append-entries-request-batch-size: 750 commit-count-to-take-snapshot: 7500
+     * max-uncommitted-log-entry-count: 1500 transfer-snapshots-from-followers-enabled: false
+     * raft-node-report-publish-period-secs: 20
+     *
      */
     private YamlRaftConfigParser() {
     }
 
     /**
-     * Loads a parameter map from the yaml object with the given string and
-     * populates a {@link RaftConfig} object from the returned parameter map.
+     * Loads a parameter map from the yaml object with the given string and populates a {@link RaftConfig} object from
+     * the returned parameter map.
      *
      * @return the created RaftConfig object
      *
      * @throws NullPointerException
-     *         if no yaml object passed
+     *             if no yaml object passed
      * @throws NullPointerException
-     *         if no string passed
+     *             if no string passed
      * @throws NullPointerException
-     *         if no RaftConfig present in the string
+     *             if no RaftConfig present in the string
      * @throws ClassCastException
-     *         if a configuration value has wrong type
+     *             if a configuration value has wrong type
+     *
      * @see RaftConfig
      */
     public static RaftConfig parseString(Yaml yaml, String string) {
@@ -85,19 +79,20 @@ public final class YamlRaftConfigParser {
     }
 
     /**
-     * Loads a parameter map from the yaml object with the given reader and
-     * populates a {@link RaftConfig} object from the returned parameter map.
+     * Loads a parameter map from the yaml object with the given reader and populates a {@link RaftConfig} object from
+     * the returned parameter map.
      *
      * @return the created RaftConfig object
      *
      * @throws NullPointerException
-     *         if no yaml object passed
+     *             if no yaml object passed
      * @throws NullPointerException
-     *         if no reader passed
+     *             if no reader passed
      * @throws NullPointerException
-     *         if no RaftConfig present in the reader
+     *             if no RaftConfig present in the reader
      * @throws ClassCastException
-     *         if a configuration value has wrong type
+     *             if a configuration value has wrong type
+     *
      * @see RaftConfig
      */
     public static RaftConfig parseReader(Yaml yaml, Reader reader) {
@@ -109,48 +104,48 @@ public final class YamlRaftConfigParser {
     }
 
     /**
-     * Loads a parameter map from the yaml object with the given file and
-     * populates a {@link RaftConfig} object from the returned parameter map.
+     * Loads a parameter map from the yaml object with the given file and populates a {@link RaftConfig} object from the
+     * returned parameter map.
      *
      * @return the created RaftConfig object
      *
      * @throws IOException
-     *         if an error occurs during reading the file
+     *             if an error occurs during reading the file
      * @throws NullPointerException
-     *         if no yaml object passed
+     *             if no yaml object passed
      * @throws NullPointerException
-     *         if no reader passed
+     *             if no reader passed
      * @throws NullPointerException
-     *         if no RaftConfig present in the reader
+     *             if no RaftConfig present in the reader
      * @throws ClassCastException
-     *         if a configuration value has wrong type
+     *             if a configuration value has wrong type
+     *
      * @see RaftConfig
      */
-    public static RaftConfig parseFile(Yaml yaml, String filePath)
-            throws IOException {
+    public static RaftConfig parseFile(Yaml yaml, String filePath) throws IOException {
         return parseFile(yaml, new File(filePath));
     }
 
     /**
-     * Loads a parameter map from the yaml object with the given file and
-     * populates a {@link RaftConfig} object from the returned parameter map.
+     * Loads a parameter map from the yaml object with the given file and populates a {@link RaftConfig} object from the
+     * returned parameter map.
      *
      * @return the created RaftConfig object
      *
      * @throws IOException
-     *         if an error occurs during reading the file
+     *             if an error occurs during reading the file
      * @throws NullPointerException
-     *         if no yaml object passed
+     *             if no yaml object passed
      * @throws NullPointerException
-     *         if no reader passed
+     *             if no reader passed
      * @throws NullPointerException
-     *         if no RaftConfig present in the reader
+     *             if no RaftConfig present in the reader
      * @throws ClassCastException
-     *         if a configuration value has wrong type
+     *             if a configuration value has wrong type
+     *
      * @see RaftConfig
      */
-    public static RaftConfig parseFile(Yaml yaml, File file)
-            throws IOException {
+    public static RaftConfig parseFile(Yaml yaml, File file) throws IOException {
         requireNonNull(yaml, "No yaml object!");
         requireNonNull(file, "No file!");
 
@@ -160,19 +155,20 @@ public final class YamlRaftConfigParser {
     }
 
     /**
-     * Loads a parameter map from the yaml object with the given stream and
-     * populates a {@link RaftConfig} object from the returned parameter map.
+     * Loads a parameter map from the yaml object with the given stream and populates a {@link RaftConfig} object from
+     * the returned parameter map.
      *
      * @return the created RaftConfig object
      *
      * @throws NullPointerException
-     *         if no yaml object passed
+     *             if no yaml object passed
      * @throws NullPointerException
-     *         if no input stream passed
+     *             if no input stream passed
      * @throws NullPointerException
-     *         if no RaftConfig present in the stream
+     *             if no RaftConfig present in the stream
      * @throws ClassCastException
-     *         if a configuration value has wrong type
+     *             if a configuration value has wrong type
+     *
      * @see RaftConfig
      */
     public static RaftConfig parseInputStream(Yaml yaml, InputStream inputStream) {

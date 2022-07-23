@@ -33,8 +33,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-public class FirewallTest
-        extends BaseTest {
+public class FirewallTest extends BaseTest {
 
     private final Firewall firewall = new Firewall();
 
@@ -107,8 +106,10 @@ public class FirewallTest
     public void when_messageIsDroppedForAllEndpoints_then_messageIsNotSentToAnyEndpoint() {
         firewall.dropMessagesToAll(AppendEntriesRequest.class);
 
-        assertThat(firewall.shouldDropMessage(LocalRaftEndpoint.newEndpoint(), mock(AppendEntriesRequest.class))).isTrue();
-        assertThat(firewall.shouldDropMessage(LocalRaftEndpoint.newEndpoint(), mock(AppendEntriesRequest.class))).isTrue();
+        assertThat(firewall.shouldDropMessage(LocalRaftEndpoint.newEndpoint(), mock(AppendEntriesRequest.class)))
+                .isTrue();
+        assertThat(firewall.shouldDropMessage(LocalRaftEndpoint.newEndpoint(), mock(AppendEntriesRequest.class)))
+                .isTrue();
     }
 
     @Test

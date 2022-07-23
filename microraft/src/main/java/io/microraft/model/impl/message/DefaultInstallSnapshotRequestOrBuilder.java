@@ -29,15 +29,14 @@ import java.util.Collection;
 import static java.util.Objects.requireNonNull;
 
 /**
- * The default impl of the {@link InstallSnapshotRequest} and {@link InstallSnapshotRequestBuilder} interfaces. When an instance
- * of this class is created, it is in the builder mode and its state is populated. Once all fields are set, the object switches to
- * the DTO mode where it no longer allows mutations.
+ * The default impl of the {@link InstallSnapshotRequest} and {@link InstallSnapshotRequestBuilder} interfaces. When an
+ * instance of this class is created, it is in the builder mode and its state is populated. Once all fields are set, the
+ * object switches to the DTO mode where it no longer allows mutations.
  * <p>
- * Please note that {@link #build()} does not verify if all fields are set or not. It is up to the user to populate the DTO state
- * via the builder.
+ * Please note that {@link #build()} does not verify if all fields are set or not. It is up to the user to populate the
+ * DTO state via the builder.
  */
-public class DefaultInstallSnapshotRequestOrBuilder
-        implements InstallSnapshotRequest, InstallSnapshotRequestBuilder {
+public class DefaultInstallSnapshotRequestOrBuilder implements InstallSnapshotRequest, InstallSnapshotRequestBuilder {
 
     private Object groupId;
     private RaftEndpoint sender;
@@ -53,128 +52,170 @@ public class DefaultInstallSnapshotRequestOrBuilder
     private long flowControlSequenceNumber;
     private DefaultInstallSnapshotRequestOrBuilder builder = this;
 
-    @Override public Object getGroupId() {
+    @Override
+    public Object getGroupId() {
         return groupId;
     }
 
-    @Nonnull @Override public RaftEndpoint getSender() {
+    @Nonnull
+    @Override
+    public RaftEndpoint getSender() {
         return sender;
     }
 
-    @Override public int getTerm() {
+    @Override
+    public int getTerm() {
         return term;
     }
 
-    @Override public boolean isSenderLeader() {
+    @Override
+    public boolean isSenderLeader() {
         return leader;
     }
 
-    @Override public int getSnapshotTerm() {
+    @Override
+    public int getSnapshotTerm() {
         return snapshotTerm;
     }
 
-    @Override public long getSnapshotIndex() {
+    @Override
+    public long getSnapshotIndex() {
         return snapshotIndex;
     }
 
-    @Override public int getTotalSnapshotChunkCount() {
+    @Override
+    public int getTotalSnapshotChunkCount() {
         return totalSnapshotChunkCount;
     }
 
-    @Nullable @Override public SnapshotChunk getSnapshotChunk() {
+    @Nullable
+    @Override
+    public SnapshotChunk getSnapshotChunk() {
         return snapshotChunk;
     }
 
-    @Nonnull @Override public Collection<RaftEndpoint> getSnapshottedMembers() {
+    @Nonnull
+    @Override
+    public Collection<RaftEndpoint> getSnapshottedMembers() {
         return snapshottedMembers;
     }
 
-    @Nonnull @Override public RaftGroupMembersView getGroupMembersView() {
+    @Nonnull
+    @Override
+    public RaftGroupMembersView getGroupMembersView() {
         return groupMembersView;
     }
 
-    @Override public long getQuerySequenceNumber() {
+    @Override
+    public long getQuerySequenceNumber() {
         return querySequenceNumber;
     }
 
-    @Override public long getFlowControlSequenceNumber() {
+    @Override
+    public long getFlowControlSequenceNumber() {
         return flowControlSequenceNumber;
     }
 
-    @Nonnull @Override public InstallSnapshotRequestBuilder setGroupId(@Nonnull Object groupId) {
+    @Nonnull
+    @Override
+    public InstallSnapshotRequestBuilder setGroupId(@Nonnull Object groupId) {
         builder.groupId = groupId;
         return this;
     }
 
-    @Nonnull @Override public InstallSnapshotRequestBuilder setSender(@Nonnull RaftEndpoint sender) {
+    @Nonnull
+    @Override
+    public InstallSnapshotRequestBuilder setSender(@Nonnull RaftEndpoint sender) {
         builder.sender = sender;
         return this;
     }
 
-    @Nonnull @Override public InstallSnapshotRequestBuilder setTerm(int term) {
+    @Nonnull
+    @Override
+    public InstallSnapshotRequestBuilder setTerm(int term) {
         builder.term = term;
         return this;
     }
 
-    @Nonnull @Override public InstallSnapshotRequestBuilder setSenderLeader(boolean leader) {
+    @Nonnull
+    @Override
+    public InstallSnapshotRequestBuilder setSenderLeader(boolean leader) {
         builder.leader = leader;
         return this;
     }
 
-    @Nonnull @Override public InstallSnapshotRequestBuilder setSnapshotTerm(int snapshotTerm) {
+    @Nonnull
+    @Override
+    public InstallSnapshotRequestBuilder setSnapshotTerm(int snapshotTerm) {
         builder.snapshotTerm = snapshotTerm;
         return this;
     }
 
-    @Nonnull @Override public InstallSnapshotRequestBuilder setSnapshotIndex(long snapshotIndex) {
+    @Nonnull
+    @Override
+    public InstallSnapshotRequestBuilder setSnapshotIndex(long snapshotIndex) {
         builder.snapshotIndex = snapshotIndex;
         return this;
     }
 
-    @Nonnull @Override public InstallSnapshotRequestBuilder setTotalSnapshotChunkCount(int totalSnapshotChunkCount) {
+    @Nonnull
+    @Override
+    public InstallSnapshotRequestBuilder setTotalSnapshotChunkCount(int totalSnapshotChunkCount) {
         builder.totalSnapshotChunkCount = totalSnapshotChunkCount;
         return this;
     }
 
-    @Nonnull @Override public InstallSnapshotRequestBuilder setSnapshotChunk(@Nullable SnapshotChunk snapshotChunk) {
+    @Nonnull
+    @Override
+    public InstallSnapshotRequestBuilder setSnapshotChunk(@Nullable SnapshotChunk snapshotChunk) {
         builder.snapshotChunk = snapshotChunk;
         return this;
     }
 
-    @Nonnull @Override
+    @Nonnull
+    @Override
     public InstallSnapshotRequestBuilder setSnapshottedMembers(@Nonnull Collection<RaftEndpoint> snapshottedMembers) {
         builder.snapshottedMembers = snapshottedMembers;
         return this;
     }
 
-    @Nonnull @Override public InstallSnapshotRequestBuilder setGroupMembersView(@Nonnull RaftGroupMembersView groupMembersView) {
+    @Nonnull
+    @Override
+    public InstallSnapshotRequestBuilder setGroupMembersView(@Nonnull RaftGroupMembersView groupMembersView) {
         builder.groupMembersView = groupMembersView;
         return this;
     }
 
-    @Nonnull @Override public InstallSnapshotRequestBuilder setQuerySequenceNumber(long querySequenceNumber) {
+    @Nonnull
+    @Override
+    public InstallSnapshotRequestBuilder setQuerySequenceNumber(long querySequenceNumber) {
         builder.querySequenceNumber = querySequenceNumber;
         return this;
     }
 
-    @Nonnull @Override public InstallSnapshotRequestBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber) {
+    @Nonnull
+    @Override
+    public InstallSnapshotRequestBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber) {
         builder.flowControlSequenceNumber = flowControlSequenceNumber;
         return this;
     }
 
-    @Nonnull @Override public InstallSnapshotRequest build() {
+    @Nonnull
+    @Override
+    public InstallSnapshotRequest build() {
         requireNonNull(builder);
         builder = null;
         return this;
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         String header = builder != null ? "InstallSnapshotRequestBuilder" : "InstallSnapshotRequest";
         return header + "{" + "groupId=" + groupId + ", sender=" + sender + ", term=" + term + ", leader=" + leader
-               + ", snapshotTerm=" + snapshotTerm + ", snapshotIndex=" + snapshotIndex + ", chunkCount=" + totalSnapshotChunkCount
-               + ", snapshotChunk=" + snapshotChunk + ", snapshottedMembers=" + snapshottedMembers + ", groupMembers="
-               + groupMembersView + ", querySequenceNumber=" + querySequenceNumber + ", flowControlSequenceNumber="
-               + flowControlSequenceNumber + '}';
+                + ", snapshotTerm=" + snapshotTerm + ", snapshotIndex=" + snapshotIndex + ", chunkCount="
+                + totalSnapshotChunkCount + ", snapshotChunk=" + snapshotChunk + ", snapshottedMembers="
+                + snapshottedMembers + ", groupMembers=" + groupMembersView + ", querySequenceNumber="
+                + querySequenceNumber + ", flowControlSequenceNumber=" + flowControlSequenceNumber + '}';
     }
 
 }

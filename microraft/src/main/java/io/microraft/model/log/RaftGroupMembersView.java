@@ -23,11 +23,10 @@ import javax.annotation.Nonnull;
 import java.util.Collection;
 
 /**
- * Represents the member list of a Raft group with an index identifying on which log index the given member list is appended to
- * the Raft log.
+ * Represents the member list of a Raft group with an index identifying on which log index the given member list is
+ * appended to the Raft log.
  */
-public interface RaftGroupMembersView
-        extends RaftModel {
+public interface RaftGroupMembersView extends RaftModel {
 
     /**
      * Returns the Raft log index that contains this Raft group member list.
@@ -41,24 +40,30 @@ public interface RaftGroupMembersView
      *
      * @return the member list of the Raft group
      */
-    @Nonnull Collection<RaftEndpoint> getMembers();
+    @Nonnull
+    Collection<RaftEndpoint> getMembers();
 
     /**
      * Returns voting members in the Raft group member list.
      *
      * @return voting members in the Raft group member list
      */
-    @Nonnull Collection<RaftEndpoint> getVotingMembers();
+    @Nonnull
+    Collection<RaftEndpoint> getVotingMembers();
 
     interface RaftGroupMembersViewBuilder {
 
-        @Nonnull RaftGroupMembersViewBuilder setLogIndex(long logIndex);
+        @Nonnull
+        RaftGroupMembersViewBuilder setLogIndex(long logIndex);
 
-        @Nonnull RaftGroupMembersViewBuilder setMembers(@Nonnull Collection<RaftEndpoint> members);
+        @Nonnull
+        RaftGroupMembersViewBuilder setMembers(@Nonnull Collection<RaftEndpoint> members);
 
-        @Nonnull RaftGroupMembersViewBuilder setVotingMembers(@Nonnull Collection<RaftEndpoint> votingMembers);
+        @Nonnull
+        RaftGroupMembersViewBuilder setVotingMembers(@Nonnull Collection<RaftEndpoint> votingMembers);
 
-        @Nonnull RaftGroupMembersView build();
+        @Nonnull
+        RaftGroupMembersView build();
 
     }
 

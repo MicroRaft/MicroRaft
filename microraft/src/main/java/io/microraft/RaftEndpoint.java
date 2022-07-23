@@ -20,12 +20,12 @@ package io.microraft;
 import javax.annotation.Nonnull;
 
 /**
- * Represents an endpoint that participates to at least one Raft group and executes the Raft consensus algorithm with a {@link
- * RaftNode} instance.
+ * Represents an endpoint that participates to at least one Raft group and executes the Raft consensus algorithm with a
+ * {@link RaftNode} instance.
  * <p>
- * For the Raft algorithm implementation, it is sufficient to differentiate members of a Raft group with a unique id, and that is
- * why we only have a single method in this interface. It is users' responsibility to assign unique ids to different Raft
- * endpoints.
+ * For the Raft algorithm implementation, it is sufficient to differentiate members of a Raft group with a unique id,
+ * and that is why we only have a single method in this interface. It is users' responsibility to assign unique ids to
+ * different Raft endpoints.
  */
 public interface RaftEndpoint {
 
@@ -34,6 +34,7 @@ public interface RaftEndpoint {
      *
      * @return the unique identifier of the Raft endpoint
      */
-    @Nonnull Object getId();
+    @Nonnull
+    Object getId();
 
 }

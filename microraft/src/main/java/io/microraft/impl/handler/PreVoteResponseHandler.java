@@ -33,15 +33,14 @@ import static io.microraft.RaftRole.FOLLOWER;
 /**
  * Handles a {@link PreVoteResponse} sent for a {@link PreVoteRequest}.
  * <p>
- * Initiates a new leader election by executing {@link LeaderElectionTask} if the Raft group majority grants "pre-votes" for this
- * pre-voting term.
+ * Initiates a new leader election by executing {@link LeaderElectionTask} if the Raft group majority grants "pre-votes"
+ * for this pre-voting term.
  *
  * @see PreVoteResponse
  * @see PreVoteTask
  * @see LeaderElectionTask
  */
-public class PreVoteResponseHandler
-        extends AbstractResponseHandler<PreVoteResponse> {
+public class PreVoteResponseHandler extends AbstractResponseHandler<PreVoteResponse> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PreVoteResponseHandler.class);
 
@@ -49,7 +48,8 @@ public class PreVoteResponseHandler
         super(raftNode, response);
     }
 
-    @Override protected void handleResponse(@Nonnull PreVoteResponse response) {
+    @Override
+    protected void handleResponse(@Nonnull PreVoteResponse response) {
         LOGGER.debug("{} received {}.", localEndpointStr(), response);
 
         if (state.role() != FOLLOWER) {
@@ -69,13 +69,14 @@ public class PreVoteResponseHandler
         }
 
         if (response.isGranted() && preCandidateState.grantVote(response.getSender())) {
-            LOGGER.info("{} Pre-vote granted from {} for term: {}, number of votes: {}, majority: {}", localEndpointStr(),
-                        response.getSender().getId(), response.getTerm(), preCandidateState.voteCount(),
-                        preCandidateState.majority());
+            LOGGER.info("{} Pre-vote granted from {} for term: {}, number of votes: {}, majority: {}",
+                    localEndpointStr(), response.getSender().getId(), response.getTerm(), preCandidateState.voteCount(),
+                    preCandidateState.majority());
         }
 
         if (preCandidateState.isMajorityGranted()) {
-            LOGGER.info("{} We have the majority during pre-vote phase. Let's start real election!", localEndpointStr());
+            LOGGER.info("{} We have the majority during pre-vote phase. Let's start real election!",
+                    localEndpointStr());
             new LeaderElectionTask(node, true).run();
         }
     }

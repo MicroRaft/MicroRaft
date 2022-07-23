@@ -96,13 +96,14 @@ public final class FollowerState {
     }
 
     /**
-     * Starts a new request backoff period. No new append entries or install snapshot request will be sent to this follower either
-     * until it sends a response or the backoff timeout elapses.
+     * Starts a new request backoff period. No new append entries or install snapshot request will be sent to this
+     * follower either until it sends a response or the backoff timeout elapses.
      * <p>
-     * If the "extraRound" is true and the backoff state is initialized with only 1 round, one more backoff round is added.
+     * If the "extraRound" is true and the backoff state is initialized with only 1 round, one more backoff round is
+     * added.
      * <p>
-     * Returns the flow control sequence number to be put into the append entries or install snapshot request which is to be sent
-     * to the follower.
+     * Returns the flow control sequence number to be put into the append entries or install snapshot request which is
+     * to be sent to the follower.
      */
     public long setRequestBackoff(int minRounds, int maxRounds) {
         assert backoffRound == 0 : "backoff round: " + backoffRound;
@@ -122,8 +123,9 @@ public final class FollowerState {
     }
 
     /**
-     * Updates the timestamp of the last received append entries or install snapshot response. In addition, if the received flow
-     * control sequence number is equal to the last sent flow sequence number, the internal request backoff state is also reset.
+     * Updates the timestamp of the last received append entries or install snapshot response. In addition, if the
+     * received flow control sequence number is equal to the last sent flow sequence number, the internal request
+     * backoff state is also reset.
      */
     public boolean responseReceived(long flowControlSequenceNumber) {
         responseTimestamp = Math.max(responseTimestamp, System.currentTimeMillis());
@@ -158,10 +160,11 @@ public final class FollowerState {
         return flowControlSequenceNumber;
     }
 
-    @Override public String toString() {
-        return "FollowerState{" + "matchIndex=" + matchIndex + ", nextIndex=" + nextIndex + ", backoffRound=" + backoffRound
-               + ", nextBackoffPower=" + nextBackoffPower + ", responseTimestamp=" + responseTimestamp
-               + ", flowControlSequenceNumber=" + flowControlSequenceNumber + '}';
+    @Override
+    public String toString() {
+        return "FollowerState{" + "matchIndex=" + matchIndex + ", nextIndex=" + nextIndex + ", backoffRound="
+                + backoffRound + ", nextBackoffPower=" + nextBackoffPower + ", responseTimestamp=" + responseTimestamp
+                + ", flowControlSequenceNumber=" + flowControlSequenceNumber + '}';
     }
 
 }

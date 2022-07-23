@@ -41,8 +41,8 @@ public final class RestoredRaftState {
     private final List<LogEntry> entries;
 
     public RestoredRaftState(@Nonnull RaftEndpoint localEndpoint, boolean localEndpointVoting,
-                             @Nonnull RaftGroupMembersView initialGroupMembers, int term, @Nullable RaftEndpoint votedMember,
-                             @Nullable SnapshotEntry snapshotEntry, @Nonnull List<LogEntry> entries) {
+            @Nonnull RaftGroupMembersView initialGroupMembers, int term, @Nullable RaftEndpoint votedMember,
+            @Nullable SnapshotEntry snapshotEntry, @Nonnull List<LogEntry> entries) {
         this.localEndpoint = localEndpoint;
         this.localEndpointVoting = localEndpointVoting;
         this.initialGroupMembers = initialGroupMembers;
@@ -52,7 +52,8 @@ public final class RestoredRaftState {
         this.entries = entries;
     }
 
-    @Nonnull public RaftEndpoint getLocalEndpoint() {
+    @Nonnull
+    public RaftEndpoint getLocalEndpoint() {
         return localEndpoint;
     }
 
@@ -60,7 +61,8 @@ public final class RestoredRaftState {
         return localEndpointVoting;
     }
 
-    @Nonnull public RaftGroupMembersView getInitialGroupMembers() {
+    @Nonnull
+    public RaftGroupMembersView getInitialGroupMembers() {
         return initialGroupMembers;
     }
 
@@ -68,15 +70,18 @@ public final class RestoredRaftState {
         return term;
     }
 
-    @Nullable public RaftEndpoint getVotedMember() {
+    @Nullable
+    public RaftEndpoint getVotedMember() {
         return votedMember;
     }
 
-    @Nullable public SnapshotEntry getSnapshotEntry() {
+    @Nullable
+    public SnapshotEntry getSnapshotEntry() {
         return snapshotEntry;
     }
 
-    @Nonnull public List<LogEntry> getLogEntries() {
+    @Nonnull
+    public List<LogEntry> getLogEntries() {
         return entries;
     }
 

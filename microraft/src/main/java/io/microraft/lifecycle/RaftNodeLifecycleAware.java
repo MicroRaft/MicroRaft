@@ -25,12 +25,12 @@ import io.microraft.statemachine.StateMachine;
 import io.microraft.transport.Transport;
 
 /**
- * Used by {@link RaftNode} to notify its components for its lifecycle-related changes, such as startup and termination. These
- * components are {@link RaftNodeExecutor}, {@link StateMachine}, {@link RaftModelFactory}, {@link Transport}, {@link RaftStore},
- * and {@link RaftNodeReportListener}.
+ * Used by {@link RaftNode} to notify its components for its lifecycle-related changes, such as startup and termination.
+ * These components are {@link RaftNodeExecutor}, {@link StateMachine}, {@link RaftModelFactory}, {@link Transport},
+ * {@link RaftStore}, and {@link RaftNodeReportListener}.
  * <p>
- * {@link RaftNode} does not manage the lifecycle of the components provided to it during construction. It only notifies the
- * components that implement this interface.
+ * {@link RaftNode} does not manage the lifecycle of the components provided to it during construction. It only notifies
+ * the components that implement this interface.
  * <p>
  * {@link RaftNode} calls the lifecycle-aware components in random order.
  *

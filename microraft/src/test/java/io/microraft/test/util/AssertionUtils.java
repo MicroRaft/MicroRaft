@@ -93,8 +93,7 @@ public final class AssertionUtils {
 
     @FunctionalInterface
     public interface AssertTask {
-        void run()
-                throws Exception;
+        void run() throws Exception;
     }
 
     static {

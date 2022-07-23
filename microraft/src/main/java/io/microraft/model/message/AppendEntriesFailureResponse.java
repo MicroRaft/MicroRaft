@@ -24,15 +24,13 @@ import javax.annotation.Nonnull;
 /**
  * Response for a failed {@link AppendEntriesRequest}.
  * <p>
- * See <i>5.3 Log replication</i> section of
- * <i>In Search of an Understandable Consensus Algorithm</i>
- * paper by <i>Diego Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>5.3 Log replication</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
+ * Ongaro</i> and <i>John Ousterhout</i>.
  *
  * @see AppendEntriesRequest
  * @see AppendEntriesRequestHandler
  */
-public interface AppendEntriesFailureResponse
-        extends RaftMessage {
+public interface AppendEntriesFailureResponse extends RaftMessage {
 
     long getExpectedNextIndex();
 
@@ -43,20 +41,25 @@ public interface AppendEntriesFailureResponse
     /**
      * The builder interface for {@link AppendEntriesFailureResponse}.
      */
-    interface AppendEntriesFailureResponseBuilder
-            extends RaftMessageBuilder<AppendEntriesFailureResponse> {
+    interface AppendEntriesFailureResponseBuilder extends RaftMessageBuilder<AppendEntriesFailureResponse> {
 
-        @Nonnull AppendEntriesFailureResponseBuilder setGroupId(@Nonnull Object groupId);
+        @Nonnull
+        AppendEntriesFailureResponseBuilder setGroupId(@Nonnull Object groupId);
 
-        @Nonnull AppendEntriesFailureResponseBuilder setSender(@Nonnull RaftEndpoint sender);
+        @Nonnull
+        AppendEntriesFailureResponseBuilder setSender(@Nonnull RaftEndpoint sender);
 
-        @Nonnull AppendEntriesFailureResponseBuilder setTerm(int term);
+        @Nonnull
+        AppendEntriesFailureResponseBuilder setTerm(int term);
 
-        @Nonnull AppendEntriesFailureResponseBuilder setExpectedNextIndex(long expectedNextIndex);
+        @Nonnull
+        AppendEntriesFailureResponseBuilder setExpectedNextIndex(long expectedNextIndex);
 
-        @Nonnull AppendEntriesFailureResponseBuilder setQuerySequenceNumber(long querySequenceNumber);
+        @Nonnull
+        AppendEntriesFailureResponseBuilder setQuerySequenceNumber(long querySequenceNumber);
 
-        @Nonnull AppendEntriesFailureResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
+        @Nonnull
+        AppendEntriesFailureResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
 
     }
 

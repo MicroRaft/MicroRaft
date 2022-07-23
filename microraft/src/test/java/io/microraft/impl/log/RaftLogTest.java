@@ -43,21 +43,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class RaftLogTest {
 
-    @Rule public ExpectedException exception = ExpectedException.none();
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
 
     private final RaftLog log = RaftLog.create(100);
 
     private RaftGroupMembersView groupMembersView;
 
-    @Before public void setUp() {
+    @Before
+    public void setUp() {
         Collection<RaftEndpoint> groupMembers = unmodifiableList(asList(newEndpoint(), newEndpoint(), newEndpoint()));
-        groupMembersView = new DefaultRaftGroupMembersViewOrBuilder().setLogIndex(0)
-                                                                     .setMembers(groupMembers)
-                                                                     .setVotingMembers(groupMembers)
-                                                                     .build();
+        groupMembersView = new DefaultRaftGroupMembersViewOrBuilder().setLogIndex(0).setMembers(groupMembers)
+                .setVotingMembers(groupMembers).build();
     }
 
-    @Test public void test_initialState() {
+    @Test
+    public void test_initialState() {
         assertThat(log.lastLogOrSnapshotTerm()).isEqualTo(0);
         assertThat(log.lastLogOrSnapshotIndex()).isEqualTo(0);
     }
@@ -76,8 +77,8 @@ public class RaftLogTest {
     @Test
     public void test_appendEntries_withHigherTerms() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
         log.appendEntries(entries);
         LogEntry last = new DefaultLogEntryOrBuilder().setTerm(2).setIndex(4).build();
         log.appendEntry(last);
@@ -93,8 +94,8 @@ public class RaftLogTest {
     @Test
     public void test_appendEntries_withLowerTerm() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
+                new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
         log.appendEntries(entries);
 
         exception.expect(IllegalArgumentException.class);
@@ -104,8 +105,8 @@ public class RaftLogTest {
     @Test
     public void test_appendEntries_withLowerIndex() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
+                new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
         log.appendEntries(entries);
 
         exception.expect(IllegalArgumentException.class);
@@ -115,8 +116,8 @@ public class RaftLogTest {
     @Test
     public void test_appendEntries_withEqualIndex() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
+                new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
         log.appendEntries(entries);
 
         exception.expect(IllegalArgumentException.class);
@@ -126,8 +127,8 @@ public class RaftLogTest {
     @Test
     public void test_appendEntries_withGreaterIndex() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
+                new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
         log.appendEntries(entries);
 
         exception.expect(IllegalArgumentException.class);
@@ -137,10 +138,11 @@ public class RaftLogTest {
     @Test
     public void test_appendEntriesAfterSnapshot_withSameTerm() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
         log.appendEntries(entries);
-        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(3).setGroupMembersView(groupMembersView).build());
+        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(3).setGroupMembersView(groupMembersView)
+                .build());
 
         LogEntry last = new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build();
         log.appendEntry(last);
@@ -152,10 +154,11 @@ public class RaftLogTest {
     @Test
     public void test_appendEntriesAfterSnapshot_withHigherTerm() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
         log.appendEntries(entries);
-        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(3).setGroupMembersView(groupMembersView).build());
+        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(3).setGroupMembersView(groupMembersView)
+                .build());
 
         LogEntry last = new DefaultLogEntryOrBuilder().setTerm(2).setIndex(4).build();
         log.appendEntry(last);
@@ -167,10 +170,11 @@ public class RaftLogTest {
     @Test
     public void test_appendEntriesAfterSnapshot_withLowerTerm() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
+                new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
         log.appendEntries(entries);
-        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(2).setIndex(3).setGroupMembersView(groupMembersView).build());
+        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(2).setIndex(3).setGroupMembersView(groupMembersView)
+                .build());
 
         exception.expect(IllegalArgumentException.class);
         log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build());
@@ -179,10 +183,11 @@ public class RaftLogTest {
     @Test
     public void test_appendEntriesAfterSnapshot_withLowerIndex() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
+                new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
         log.appendEntries(entries);
-        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(2).setIndex(3).setGroupMembersView(groupMembersView).build());
+        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(2).setIndex(3).setGroupMembersView(groupMembersView)
+                .build());
 
         exception.expect(IllegalArgumentException.class);
         log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build());
@@ -191,10 +196,11 @@ public class RaftLogTest {
     @Test
     public void test_appendEntriesAfterSnapshot_withEqualIndex() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
+                new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
         log.appendEntries(entries);
-        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(2).setIndex(3).setGroupMembersView(groupMembersView).build());
+        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(2).setIndex(3).setGroupMembersView(groupMembersView)
+                .build());
 
         exception.expect(IllegalArgumentException.class);
         log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
@@ -203,10 +209,11 @@ public class RaftLogTest {
     @Test
     public void test_appendEntriesAfterSnapshot_withGreaterIndex() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
+                new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
         log.appendEntries(entries);
-        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(2).setIndex(3).setGroupMembersView(groupMembersView).build());
+        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(2).setIndex(3).setGroupMembersView(groupMembersView)
+                .build());
 
         exception.expect(IllegalArgumentException.class);
         log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(5).build());
@@ -215,8 +222,8 @@ public class RaftLogTest {
     @Test
     public void getEntry() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
         log.appendEntries(entries);
 
         for (int i = 1; i <= log.lastLogOrSnapshotIndex(); i++) {
@@ -229,10 +236,11 @@ public class RaftLogTest {
     @Test
     public void getEntryAfterSnapshot() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
         log.appendEntries(entries);
-        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(3).setGroupMembersView(groupMembersView).build());
+        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(3).setGroupMembersView(groupMembersView)
+                .build());
 
         log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build());
         log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(5).build());
@@ -262,8 +270,8 @@ public class RaftLogTest {
     @Test
     public void getEntriesBetween() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
         log.appendEntries(entries);
 
         List<LogEntry> result = log.getLogEntriesBetween(1, 3);
@@ -279,10 +287,11 @@ public class RaftLogTest {
     @Test
     public void getEntriesBetweenAfterSnapshot() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
         log.appendEntries(entries);
-        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(2).setGroupMembersView(groupMembersView).build());
+        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(2).setGroupMembersView(groupMembersView)
+                .build());
 
         List<LogEntry> result = log.getLogEntriesBetween(3, 3);
         assertThat(result).isEqualTo(entries.subList(2, 3));
@@ -291,10 +300,11 @@ public class RaftLogTest {
     @Test
     public void getEntriesBetweenBeforeSnapshotIndex() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
         log.appendEntries(entries);
-        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(2).setGroupMembersView(groupMembersView).build());
+        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(2).setGroupMembersView(groupMembersView)
+                .build());
 
         exception.expect(IllegalArgumentException.class);
         log.getLogEntriesBetween(2, 3);
@@ -303,9 +313,9 @@ public class RaftLogTest {
     @Test
     public void truncateEntriesFrom() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build());
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build());
         log.appendEntries(entries);
 
         List<LogEntry> truncated = log.truncateEntriesFrom(3);
@@ -322,11 +332,12 @@ public class RaftLogTest {
     @Test
     public void truncateEntriesFrom_afterSnapshot() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build());
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build());
         log.appendEntries(entries);
-        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(2).setGroupMembersView(groupMembersView).build());
+        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(2).setGroupMembersView(groupMembersView)
+                .build());
 
         List<LogEntry> truncated = log.truncateEntriesFrom(3);
         assertThat(truncated.size()).isEqualTo(2);
@@ -337,8 +348,8 @@ public class RaftLogTest {
     @Test
     public void truncateEntriesFrom_outOfRange() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
         log.appendEntries(entries);
 
         exception.expect(IllegalArgumentException.class);
@@ -348,10 +359,11 @@ public class RaftLogTest {
     @Test
     public void truncateEntriesFrom_beforeSnapshotIndex() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
         log.appendEntries(entries);
-        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(2).setGroupMembersView(groupMembersView).build());
+        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(2).setGroupMembersView(groupMembersView)
+                .build());
 
         exception.expect(IllegalArgumentException.class);
         log.truncateEntriesFrom(1);
@@ -361,19 +373,11 @@ public class RaftLogTest {
     public void setSnapshotAtLastLogIndex_forSingleEntryLog() {
         log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(1).build());
         Object chunkOperation = new Object();
-        SnapshotChunk snapshotChunk = new DefaultSnapshotChunkOrBuilder().setTerm(1)
-                                                                         .setIndex(1)
-                                                                         .setOperation(chunkOperation)
-                                                                         .setSnapshotChunkIndex(0)
-                                                                         .setSnapshotChunkCount(1)
-                                                                         .setGroupMembersView(groupMembersView)
-                                                                         .setGroupMembersView(groupMembersView)
-                                                                         .build();
-        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1)
-                                                           .setIndex(1)
-                                                           .setSnapshotChunks(singletonList(snapshotChunk))
-                                                           .setGroupMembersView(groupMembersView)
-                                                           .build());
+        SnapshotChunk snapshotChunk = new DefaultSnapshotChunkOrBuilder().setTerm(1).setIndex(1)
+                .setOperation(chunkOperation).setSnapshotChunkIndex(0).setSnapshotChunkCount(1)
+                .setGroupMembersView(groupMembersView).setGroupMembersView(groupMembersView).build();
+        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(1)
+                .setSnapshotChunks(singletonList(snapshotChunk)).setGroupMembersView(groupMembersView).build());
 
         BaseLogEntry lastLogEntry = log.lastLogOrSnapshotEntry();
         assertThat(lastLogEntry.getTerm()).isEqualTo(1);
@@ -391,13 +395,14 @@ public class RaftLogTest {
     @Test
     public void setSnapshotAtLastLogIndex_forMultiEntryLog() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(5).build());
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(5).build());
         log.appendEntries(entries);
 
-        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(5).setGroupMembersView(groupMembersView).build());
+        log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(5).setGroupMembersView(groupMembersView)
+                .build());
 
         BaseLogEntry lastLogEntry = log.lastLogOrSnapshotEntry();
         assertThat(lastLogEntry.getTerm()).isEqualTo(1);
@@ -414,14 +419,14 @@ public class RaftLogTest {
     @Test
     public void setSnapshot() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(5).build());
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(5).build());
         log.appendEntries(entries);
 
-        int truncated = log.setSnapshot(
-                new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(3).setGroupMembersView(groupMembersView).build());
+        int truncated = log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(3)
+                .setGroupMembersView(groupMembersView).build());
         assertThat(truncated).isEqualTo(3);
 
         for (int i = 1; i <= 3; i++) {
@@ -449,14 +454,14 @@ public class RaftLogTest {
     @Test
     public void setSnapshot_multipleTimes() {
         List<LogEntry> entries = asList(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(1).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build(),
-                                        new DefaultLogEntryOrBuilder().setTerm(1).setIndex(5).build());
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(5).build());
         log.appendEntries(entries);
 
-        int truncated = log.setSnapshot(
-                new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(2).setGroupMembersView(groupMembersView).build());
+        int truncated = log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(2)
+                .setGroupMembersView(groupMembersView).build());
         assertThat(truncated).isEqualTo(2);
 
         for (int i = 1; i <= 2; i++) {
@@ -469,18 +474,11 @@ public class RaftLogTest {
         }
 
         Object chunkOperation = new Object();
-        SnapshotChunk snapshotChunk = new DefaultSnapshotChunkOrBuilder().setTerm(1)
-                                                                         .setIndex(4)
-                                                                         .setOperation(chunkOperation)
-                                                                         .setSnapshotChunkIndex(0)
-                                                                         .setSnapshotChunkCount(1)
-                                                                         .setGroupMembersView(groupMembersView)
-                                                                         .build();
-        truncated = log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1)
-                                                                       .setIndex(4)
-                                                                       .setSnapshotChunks(singletonList(snapshotChunk))
-                                                                       .setGroupMembersView(groupMembersView)
-                                                                       .build());
+        SnapshotChunk snapshotChunk = new DefaultSnapshotChunkOrBuilder().setTerm(1).setIndex(4)
+                .setOperation(chunkOperation).setSnapshotChunkIndex(0).setSnapshotChunkCount(1)
+                .setGroupMembersView(groupMembersView).build();
+        truncated = log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(4)
+                .setSnapshotChunks(singletonList(snapshotChunk)).setGroupMembersView(groupMembersView).build());
         assertThat(truncated).isEqualTo(2);
 
         for (int i = 1; i <= 4; i++) {

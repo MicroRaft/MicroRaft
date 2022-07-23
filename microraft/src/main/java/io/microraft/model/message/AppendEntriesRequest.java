@@ -26,16 +26,14 @@ import java.util.List;
 /**
  * Raft message for the AppendEntries RPC.
  * <p>
- * See <i>5.3 Log replication</i> section of
- * <i>In Search of an Understandable Consensus Algorithm</i>
- * paper by <i>Diego Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>5.3 Log replication</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
+ * Ongaro</i> and <i>John Ousterhout</i>.
  * <p>
  * Invoked by leader to replicate log entries (§5.3); also used as heartbeat (§5.2).
  *
  * @see AppendEntriesRequestHandler
  */
-public interface AppendEntriesRequest
-        extends RaftMessage {
+public interface AppendEntriesRequest extends RaftMessage {
 
     int getPreviousLogTerm();
 
@@ -43,7 +41,8 @@ public interface AppendEntriesRequest
 
     long getCommitIndex();
 
-    @Nonnull List<LogEntry> getLogEntries();
+    @Nonnull
+    List<LogEntry> getLogEntries();
 
     long getQuerySequenceNumber();
 
@@ -52,26 +51,34 @@ public interface AppendEntriesRequest
     /**
      * The builder interface for {@link AppendEntriesRequest}.
      */
-    interface AppendEntriesRequestBuilder
-            extends RaftMessageBuilder<AppendEntriesRequest> {
+    interface AppendEntriesRequestBuilder extends RaftMessageBuilder<AppendEntriesRequest> {
 
-        @Nonnull AppendEntriesRequestBuilder setGroupId(@Nonnull Object groupId);
+        @Nonnull
+        AppendEntriesRequestBuilder setGroupId(@Nonnull Object groupId);
 
-        @Nonnull AppendEntriesRequestBuilder setSender(@Nonnull RaftEndpoint sender);
+        @Nonnull
+        AppendEntriesRequestBuilder setSender(@Nonnull RaftEndpoint sender);
 
-        @Nonnull AppendEntriesRequestBuilder setTerm(int term);
+        @Nonnull
+        AppendEntriesRequestBuilder setTerm(int term);
 
-        @Nonnull AppendEntriesRequestBuilder setPreviousLogTerm(int previousLogTerm);
+        @Nonnull
+        AppendEntriesRequestBuilder setPreviousLogTerm(int previousLogTerm);
 
-        @Nonnull AppendEntriesRequestBuilder setPreviousLogIndex(long previousLogIndex);
+        @Nonnull
+        AppendEntriesRequestBuilder setPreviousLogIndex(long previousLogIndex);
 
-        @Nonnull AppendEntriesRequestBuilder setCommitIndex(long commitIndex);
+        @Nonnull
+        AppendEntriesRequestBuilder setCommitIndex(long commitIndex);
 
-        @Nonnull AppendEntriesRequestBuilder setLogEntries(@Nonnull List<LogEntry> logEntries);
+        @Nonnull
+        AppendEntriesRequestBuilder setLogEntries(@Nonnull List<LogEntry> logEntries);
 
-        @Nonnull AppendEntriesRequestBuilder setQuerySequenceNumber(long querySequenceNumber);
+        @Nonnull
+        AppendEntriesRequestBuilder setQuerySequenceNumber(long querySequenceNumber);
 
-        @Nonnull AppendEntriesRequestBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
+        @Nonnull
+        AppendEntriesRequestBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
 
     }
 

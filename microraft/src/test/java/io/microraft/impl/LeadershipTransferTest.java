@@ -44,8 +44,7 @@ import static io.microraft.test.util.RaftTestUtils.getTerm;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
-public class LeadershipTransferTest
-        extends BaseTest {
+public class LeadershipTransferTest extends BaseTest {
 
     private LocalRaftGroup group;
 
@@ -56,7 +55,8 @@ public class LeadershipTransferTest
         }
     }
 
-    @Test(timeout = 300_000) public void when_leaderTransfersLeadershipToItself_then_leadershipTransferSucceeds() {
+    @Test(timeout = 300_000)
+    public void when_leaderTransfersLeadershipToItself_then_leadershipTransferSucceeds() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
@@ -75,7 +75,8 @@ public class LeadershipTransferTest
         }
     }
 
-    @Test(timeout = 300_000) public void when_leaderTransfersLeadershipToNonGroupMemberEndpoint_then_leadershipTransferFails() {
+    @Test(timeout = 300_000)
+    public void when_leaderTransfersLeadershipToNonGroupMemberEndpoint_then_leadershipTransferFails() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         RaftEndpoint invalidEndpoint = LocalRaftEndpoint.newEndpoint();
@@ -88,7 +89,8 @@ public class LeadershipTransferTest
         }
     }
 
-    @Test(timeout = 300_000) public void when_leaderTransfersLeadershipToNonVotingMember_then_leadershipTransferFails() {
+    @Test(timeout = 300_000)
+    public void when_leaderTransfersLeadershipToNonVotingMember_then_leadershipTransferFails() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         leader.replicate(applyValue("val")).join();
@@ -105,7 +107,8 @@ public class LeadershipTransferTest
         }
     }
 
-    @Test(timeout = 300_000) public void when_leadershipTransferTriggeredOnFollower_then_leadershipTransferFails() {
+    @Test(timeout = 300_000)
+    public void when_leadershipTransferTriggeredOnFollower_then_leadershipTransferFails() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         RaftNodeImpl follower = group.getAnyNodeExcept(leader.getLocalEndpoint());
@@ -118,16 +121,20 @@ public class LeadershipTransferTest
         }
     }
 
-    @Test(timeout = 300_000) public void when_leadershipTransferTriggeredDuringMembershipChange_then_leadershipTransferFails() {
-        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(30).setLeaderHeartbeatTimeoutSecs(30).build();
+    @Test(timeout = 300_000)
+    public void when_leadershipTransferTriggeredDuringMembershipChange_then_leadershipTransferFails() {
+        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(30).setLeaderHeartbeatTimeoutSecs(30)
+                .build();
         group = LocalRaftGroup.start(3, config);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
         leader.replicate(applyValue("val")).join();
 
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
-        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(0).getLocalEndpoint(), AppendEntriesRequest.class);
-        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint(), AppendEntriesRequest.class);
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(0).getLocalEndpoint(),
+                AppendEntriesRequest.class);
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint(),
+                AppendEntriesRequest.class);
 
         leader.changeMembership(followers.get(0).getLocalEndpoint(), REMOVE_MEMBER, 0);
 
@@ -174,7 +181,8 @@ public class LeadershipTransferTest
         assertThat(getRole(leader)).isEqualTo(FOLLOWER);
     }
 
-    @Test(timeout = 300_000) public void when_targetEndpointCannotCatchesUpTheLeaderInTime_then_leadershipTransferFails() {
+    @Test(timeout = 300_000)
+    public void when_targetEndpointCannotCatchesUpTheLeaderInTime_then_leadershipTransferFails() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
@@ -191,7 +199,8 @@ public class LeadershipTransferTest
         }
     }
 
-    @Test(timeout = 300_000) public void when_sameLeadershipTransferTriggeredMultipleTimes_then_leadershipTransferSucceeds() {
+    @Test(timeout = 300_000)
+    public void when_sameLeadershipTransferTriggeredMultipleTimes_then_leadershipTransferSucceeds() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         RaftNodeImpl follower = group.getAnyNodeExcept(leader.getLocalEndpoint());
@@ -230,7 +239,8 @@ public class LeadershipTransferTest
         }
     }
 
-    @Test(timeout = 300_000) public void when_newOperationIsReplicatedDuringLeadershipTransfer_then_replicateFails() {
+    @Test(timeout = 300_000)
+    public void when_newOperationIsReplicatedDuringLeadershipTransfer_then_replicateFails() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         RaftNodeImpl follower = group.getAnyNodeExcept(leader.getLocalEndpoint());
@@ -247,7 +257,8 @@ public class LeadershipTransferTest
         }
     }
 
-    @Test(timeout = 300_000) public void when_leadershipTransferCompleted_then_oldLeaderCannotReplicate() {
+    @Test(timeout = 300_000)
+    public void when_leadershipTransferCompleted_then_oldLeaderCannotReplicate() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         RaftNodeImpl follower = group.getAnyNodeExcept(leader.getLocalEndpoint());
@@ -265,7 +276,8 @@ public class LeadershipTransferTest
         }
     }
 
-    @Test(timeout = 300_000) public void when_leadershipTransferCompleted_then_newLeaderCanCommit() {
+    @Test(timeout = 300_000)
+    public void when_leadershipTransferCompleted_then_newLeaderCanCommit() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         RaftNodeImpl follower = group.getAnyNodeExcept(leader.getLocalEndpoint());
@@ -285,8 +297,10 @@ public class LeadershipTransferTest
 
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
 
-        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(0).getLocalEndpoint(), AppendEntriesRequest.class);
-        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint(), AppendEntriesRequest.class);
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(0).getLocalEndpoint(),
+                AppendEntriesRequest.class);
+        group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint(),
+                AppendEntriesRequest.class);
 
         CompletableFuture<Ordered<Object>> f1 = leader.replicate(applyValue("val"));
         CompletableFuture<Ordered<Object>> f2 = leader.transferLeadership(followers.get(0).getLocalEndpoint());

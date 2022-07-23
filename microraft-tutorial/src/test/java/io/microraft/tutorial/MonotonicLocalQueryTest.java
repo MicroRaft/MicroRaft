@@ -60,7 +60,7 @@ public class MonotonicLocalQueryTest extends BaseLocalTest {
         leader.replicate(OperableAtomicRegister.newSetOperation("value2")).join();
 
         Ordered<String> queryResult = leader
-                .<String>query(OperableAtomicRegister.newGetOperation(), QueryPolicy.LINEARIZABLE, 0).join();
+                .<String> query(OperableAtomicRegister.newGetOperation(), QueryPolicy.LINEARIZABLE, 0).join();
 
         try {
             follower.query(OperableAtomicRegister.newGetOperation(), QueryPolicy.EVENTUAL_CONSISTENCY,

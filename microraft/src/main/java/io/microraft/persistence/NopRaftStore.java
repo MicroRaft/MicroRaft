@@ -28,32 +28,39 @@ import javax.annotation.Nullable;
 /**
  * Used when a Raft node works transiently (its state is not persisted).
  */
-public class NopRaftStore
-        implements RaftStore {
+public class NopRaftStore implements RaftStore {
 
-    @Override public void persistAndFlushLocalEndpoint(RaftEndpoint localEndpoint, boolean localEndpointVoting) {
+    @Override
+    public void persistAndFlushLocalEndpoint(RaftEndpoint localEndpoint, boolean localEndpointVoting) {
 
     }
 
-    @Override public void persistAndFlushInitialGroupMembers(@Nonnull RaftGroupMembersView initialGroupMembers) {
+    @Override
+    public void persistAndFlushInitialGroupMembers(@Nonnull RaftGroupMembersView initialGroupMembers) {
     }
 
-    @Override public void persistAndFlushTerm(int term, @Nullable RaftEndpoint votedFor) {
+    @Override
+    public void persistAndFlushTerm(int term, @Nullable RaftEndpoint votedFor) {
     }
 
-    @Override public void persistLogEntry(@Nonnull LogEntry logEntry) {
+    @Override
+    public void persistLogEntry(@Nonnull LogEntry logEntry) {
     }
 
-    @Override public void persistSnapshotChunk(@Nonnull SnapshotChunk snapshotChunk) {
+    @Override
+    public void persistSnapshotChunk(@Nonnull SnapshotChunk snapshotChunk) {
     }
 
-    @Override public void truncateLogEntriesFrom(long logIndexInclusive) {
+    @Override
+    public void truncateLogEntriesFrom(long logIndexInclusive) {
     }
 
-    @Override public void truncateSnapshotChunksUntil(long logIndexInclusive) {
+    @Override
+    public void truncateSnapshotChunksUntil(long logIndexInclusive) {
     }
 
-    @Override public void flush() {
+    @Override
+    public void flush() {
     }
 
 }

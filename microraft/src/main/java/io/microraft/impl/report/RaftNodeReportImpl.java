@@ -31,8 +31,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * Contains a snapshot of a Raft node's internal state.
  */
-public final class RaftNodeReportImpl
-        implements RaftNodeReport {
+public final class RaftNodeReportImpl implements RaftNodeReport {
 
     private final RaftNodeReportReason reason;
     private final Object groupId;
@@ -46,9 +45,8 @@ public final class RaftNodeReportImpl
     private final RaftLogStats log;
 
     public RaftNodeReportImpl(RaftNodeReportReason reason, Object groupId, RaftEndpoint localEndpoint,
-                              RaftGroupMembers initialMembers, RaftGroupMembers committedMembers,
-                              RaftGroupMembers effectiveMembers, RaftRole role, RaftNodeStatus status, RaftTerm term,
-                              RaftLogStats log) {
+            RaftGroupMembers initialMembers, RaftGroupMembers committedMembers, RaftGroupMembers effectiveMembers,
+            RaftRole role, RaftNodeStatus status, RaftTerm term, RaftLogStats log) {
         this.reason = requireNonNull(reason);
         this.groupId = requireNonNull(groupId);
         this.localEndpoint = requireNonNull(localEndpoint);
@@ -61,50 +59,72 @@ public final class RaftNodeReportImpl
         this.log = requireNonNull(log);
     }
 
-    @Nonnull @Override public RaftNodeReportReason getReason() {
+    @Nonnull
+    @Override
+    public RaftNodeReportReason getReason() {
         return reason;
     }
 
-    @Nonnull @Override public Object getGroupId() {
+    @Nonnull
+    @Override
+    public Object getGroupId() {
         return groupId;
     }
 
-    @Nonnull @Override public RaftEndpoint getEndpoint() {
+    @Nonnull
+    @Override
+    public RaftEndpoint getEndpoint() {
         return localEndpoint;
     }
 
-    @Nonnull @Override public RaftGroupMembers getInitialMembers() {
+    @Nonnull
+    @Override
+    public RaftGroupMembers getInitialMembers() {
         return initialMembers;
     }
 
-    @Nonnull @Override public RaftGroupMembers getCommittedMembers() {
+    @Nonnull
+    @Override
+    public RaftGroupMembers getCommittedMembers() {
         return committedMembers;
     }
 
-    @Nonnull @Override public RaftGroupMembers getEffectiveMembers() {
+    @Nonnull
+    @Override
+    public RaftGroupMembers getEffectiveMembers() {
         return effectiveMembers;
     }
 
-    @Nonnull @Override public RaftRole getRole() {
+    @Nonnull
+    @Override
+    public RaftRole getRole() {
         return role;
     }
 
-    @Nonnull @Override public RaftNodeStatus getStatus() {
+    @Nonnull
+    @Override
+    public RaftNodeStatus getStatus() {
         return status;
     }
 
-    @Nonnull @Override public RaftTerm getTerm() {
+    @Nonnull
+    @Override
+    public RaftTerm getTerm() {
         return term;
     }
 
-    @Nonnull @Override public RaftLogStats getLog() {
+    @Nonnull
+    @Override
+    public RaftLogStats getLog() {
         return log;
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return "RaftNodeReport{" + "reason=" + reason + ", groupId=" + groupId + ", localEndpoint=" + localEndpoint
-               + ", initialMembers=" + initialMembers + ", committedMembers=" + committedMembers + ", effectiveMembers="
-               + effectiveMembers + ", role=" + role + ", status=" + status + ", term=" + term + ", log=" + log + '}';
+                + ", initialMembers=" + initialMembers + ", committedMembers=" + committedMembers
+                + ", effectiveMembers=" + effectiveMembers + ", role=" + role + ", status=" + status + ", term=" + term
+                + ", log=" + log + '}';
     }
 
 }

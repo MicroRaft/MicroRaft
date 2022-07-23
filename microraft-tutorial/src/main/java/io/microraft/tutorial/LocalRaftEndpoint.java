@@ -27,15 +27,13 @@ import static java.util.Objects.requireNonNull;
 /**
  * A very simple {@link RaftEndpoint} implementation used in the tutorial.
  * <p>
- * Unique Raft endpoints can be created
- * via {@link LocalRaftEndpoint#newEndpoint()}.
+ * Unique Raft endpoints can be created via {@link LocalRaftEndpoint#newEndpoint()}.
  * <p>
  * YOU CAN SEE THIS CLASS AT:
  * <p>
  * https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/LocalRaftEndpoint.java
  */
-final class LocalRaftEndpoint
-        implements RaftEndpoint {
+final class LocalRaftEndpoint implements RaftEndpoint {
 
     private static final AtomicInteger ID_GENERATOR = new AtomicInteger();
     private final String id;

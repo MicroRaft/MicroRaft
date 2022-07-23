@@ -23,30 +23,31 @@ import javax.annotation.Nonnull;
 /**
  * Response for {@link VoteRequest}.
  * <p>
- * See <i>5.2 Leader election</i> section of
- * <i>In Search of an Understandable Consensus Algorithm</i>
- * paper by <i>Diego Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>5.2 Leader election</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
+ * Ongaro</i> and <i>John Ousterhout</i>.
  *
  * @see VoteRequest
  */
-public interface VoteResponse
-        extends RaftMessage {
+public interface VoteResponse extends RaftMessage {
 
     boolean isGranted();
 
     /**
      * The builder interface for {@link VoteResponse}.
      */
-    interface VoteResponseBuilder
-            extends RaftMessageBuilder<VoteResponse> {
+    interface VoteResponseBuilder extends RaftMessageBuilder<VoteResponse> {
 
-        @Nonnull VoteResponseBuilder setGroupId(@Nonnull Object groupId);
+        @Nonnull
+        VoteResponseBuilder setGroupId(@Nonnull Object groupId);
 
-        @Nonnull VoteResponseBuilder setSender(@Nonnull RaftEndpoint sender);
+        @Nonnull
+        VoteResponseBuilder setSender(@Nonnull RaftEndpoint sender);
 
-        @Nonnull VoteResponseBuilder setTerm(int term);
+        @Nonnull
+        VoteResponseBuilder setTerm(int term);
 
-        @Nonnull VoteResponseBuilder setGranted(boolean granted);
+        @Nonnull
+        VoteResponseBuilder setGranted(boolean granted);
 
     }
 

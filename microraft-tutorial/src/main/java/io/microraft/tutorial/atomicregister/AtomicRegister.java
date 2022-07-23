@@ -24,20 +24,17 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * This is the base class for our atomic register implementation.
- * In this class, we only define a marker interface for the operations we will
- * commit on the atomic register state machine, and the "new term operation"
- * which will be committed after leader elections.
+ * This is the base class for our atomic register implementation. In this class, we only define a marker interface for
+ * the operations we will commit on the atomic register state machine, and the "new term operation" which will be
+ * committed after leader elections.
  * <p>
- * Subclasses are expected to implement operation execution and snapshotting
- * logic.
+ * Subclasses are expected to implement operation execution and snapshotting logic.
  * <p>
  * YOU CAN SEE THIS CLASS AT:
  * <p>
  * https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/atomicregister/AtomicRegister.java
  */
-public class AtomicRegister
-        implements StateMachine {
+public class AtomicRegister implements StateMachine {
 
     @Override
     public Object runOperation(long commitIndex, @Nonnull Object operation) {

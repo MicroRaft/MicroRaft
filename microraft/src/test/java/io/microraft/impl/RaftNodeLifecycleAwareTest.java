@@ -62,12 +62,11 @@ import java.util.function.Consumer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-public class RaftNodeLifecycleAwareTest
-        extends BaseTest {
+public class RaftNodeLifecycleAwareTest extends BaseTest {
 
     private final RaftEndpoint localEndpoint = LocalRaftEndpoint.newEndpoint();
-    private final List<RaftEndpoint> initialMembers = Arrays
-            .asList(localEndpoint, LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint());
+    private final List<RaftEndpoint> initialMembers = Arrays.asList(localEndpoint, LocalRaftEndpoint.newEndpoint(),
+            LocalRaftEndpoint.newEndpoint());
 
     private final DelegatingRaftNodeExecutor executor = new DelegatingRaftNodeExecutor();
     private final NopTransport transport = new NopTransport();
@@ -81,9 +80,9 @@ public class RaftNodeLifecycleAwareTest
     @Before
     public void init() {
         raftNode = RaftNode.newBuilder().setGroupId("default").setLocalEndpoint(localEndpoint)
-                           .setInitialGroupMembers(initialMembers).setExecutor(executor).setTransport(transport)
-                           .setStateMachine(stateMachine).setModelFactory(modelFactory).setRaftNodeReportListener(reportListener)
-                           .setStore(store).build();
+                .setInitialGroupMembers(initialMembers).setExecutor(executor).setTransport(transport)
+                .setStateMachine(stateMachine).setModelFactory(modelFactory).setRaftNodeReportListener(reportListener)
+                .setStore(store).build();
     }
 
     @After
@@ -276,8 +275,7 @@ public class RaftNodeLifecycleAwareTest
         }
     }
 
-    private static class NopTransport
-            implements Transport, RaftNodeLifecycleAware {
+    private static class NopTransport implements Transport, RaftNodeLifecycleAware {
         private volatile int startCall;
         private volatile int terminateCall;
         private volatile int sendCall;
@@ -312,8 +310,7 @@ public class RaftNodeLifecycleAwareTest
         }
     }
 
-    private static class NopStateMachine
-            implements StateMachine, RaftNodeLifecycleAware {
+    private static class NopStateMachine implements StateMachine, RaftNodeLifecycleAware {
         private volatile int startCall;
         private volatile int terminateCall;
         private volatile int callOrder;
@@ -360,9 +357,7 @@ public class RaftNodeLifecycleAwareTest
         }
     }
 
-    private static class DelegatingRaftNodeExecutor
-            extends DefaultRaftNodeExecutor
-            implements RaftNodeLifecycleAware {
+    private static class DelegatingRaftNodeExecutor extends DefaultRaftNodeExecutor implements RaftNodeLifecycleAware {
         private volatile int startCall;
         private volatile int terminateCall;
         private volatile int executeCall;
@@ -411,9 +406,7 @@ public class RaftNodeLifecycleAwareTest
         }
     }
 
-    public static class DelegatingRaftModelFactory
-            extends DefaultRaftModelFactory
-            implements RaftNodeLifecycleAware {
+    public static class DelegatingRaftModelFactory extends DefaultRaftModelFactory implements RaftNodeLifecycleAware {
         private volatile int startCall;
         private volatile int terminateCall;
         private volatile int createCall;
@@ -540,8 +533,7 @@ public class RaftNodeLifecycleAwareTest
         }
     }
 
-    private static class NopRaftNodeReportListener
-            implements RaftNodeReportListener, RaftNodeLifecycleAware {
+    private static class NopRaftNodeReportListener implements RaftNodeReportListener, RaftNodeLifecycleAware {
         private volatile int startCall;
         private volatile int terminateCall;
         private volatile int acceptCall;
@@ -571,8 +563,7 @@ public class RaftNodeLifecycleAwareTest
         }
     }
 
-    private static class NopRaftStore
-            implements RaftStore, RaftNodeLifecycleAware {
+    private static class NopRaftStore implements RaftStore, RaftNodeLifecycleAware {
         private volatile int startCall;
         private volatile int terminateCall;
         private volatile int persistCall;
@@ -586,25 +577,30 @@ public class RaftNodeLifecycleAwareTest
             }
         }
 
-        @Override public void onRaftNodeTerminate() {
+        @Override
+        public void onRaftNodeTerminate() {
             if (terminateCall == 0) {
                 terminateCall = ++callOrder;
             }
         }
 
-        @Override public void persistAndFlushLocalEndpoint(RaftEndpoint localEndpoint, boolean localEndpointVoting) {
+        @Override
+        public void persistAndFlushLocalEndpoint(RaftEndpoint localEndpoint, boolean localEndpointVoting) {
             recordCall();
         }
 
-        @Override public void persistAndFlushInitialGroupMembers(@Nonnull RaftGroupMembersView initialGroupMembers) {
+        @Override
+        public void persistAndFlushInitialGroupMembers(@Nonnull RaftGroupMembersView initialGroupMembers) {
             recordCall();
         }
 
-        @Override public void persistAndFlushTerm(int term, @Nullable RaftEndpoint votedFor) {
+        @Override
+        public void persistAndFlushTerm(int term, @Nullable RaftEndpoint votedFor) {
             recordCall();
         }
 
-        @Override public void persistLogEntry(@Nonnull LogEntry logEntry) {
+        @Override
+        public void persistLogEntry(@Nonnull LogEntry logEntry) {
             recordCall();
         }
 

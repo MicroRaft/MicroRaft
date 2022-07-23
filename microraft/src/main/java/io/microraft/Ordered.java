@@ -17,11 +17,11 @@
 package io.microraft;
 
 /**
- * Represents result of an operation that is triggered on a Raft node via one of the methods in the {@link RaftNode} interface,
- * along with at which commit index the given operation is executed / performed.
+ * Represents result of an operation that is triggered on a Raft node via one of the methods in the {@link RaftNode}
+ * interface, along with at which commit index the given operation is executed / performed.
  *
  * @param <T>
- *         type of the actual result object
+ *            type of the actual result object
  */
 public interface Ordered<T> {
 

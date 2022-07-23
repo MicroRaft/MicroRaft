@@ -29,31 +29,34 @@ import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 /**
  * The default implementation of {@link RaftNodeExecutor}.
  * <p>
- * Internally uses a single-threaded {@link ScheduledExecutorService} to execute tasks submitted and scheduled by {@link
- * RaftNode}.
+ * Internally uses a single-threaded {@link ScheduledExecutorService} to execute tasks submitted and scheduled by
+ * {@link RaftNode}.
  *
  * @see RaftNode
  * @see RaftNodeExecutor
  */
-public class DefaultRaftNodeExecutor
-        implements RaftNodeExecutor, RaftNodeLifecycleAware {
+public class DefaultRaftNodeExecutor implements RaftNodeExecutor, RaftNodeLifecycleAware {
 
     private final ThreadGroup threadGroup = new ThreadGroup("RaftThread");
     private final ScheduledExecutorService executor = newSingleThreadScheduledExecutor(r -> new Thread(threadGroup, r));
 
-    @Override public void execute(@Nonnull Runnable task) {
+    @Override
+    public void execute(@Nonnull Runnable task) {
         submit(task);
     }
 
-    @Override public void submit(@Nonnull Runnable task) {
+    @Override
+    public void submit(@Nonnull Runnable task) {
         executor.submit(task);
     }
 
-    @Override public void schedule(@Nonnull Runnable task, long delay, @Nonnull TimeUnit timeUnit) {
+    @Override
+    public void schedule(@Nonnull Runnable task, long delay, @Nonnull TimeUnit timeUnit) {
         executor.schedule(task, delay, timeUnit);
     }
 
-    @Override public void onRaftNodeTerminate() {
+    @Override
+    public void onRaftNodeTerminate() {
         executor.shutdown();
     }
 

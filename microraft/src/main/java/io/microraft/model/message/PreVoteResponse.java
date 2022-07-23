@@ -28,24 +28,26 @@ import javax.annotation.Nonnull;
  * @see PreVoteRequest
  * @see VoteResponse
  */
-public interface PreVoteResponse
-        extends RaftMessage {
+public interface PreVoteResponse extends RaftMessage {
 
     boolean isGranted();
 
     /**
      * The builder interface for {@link PreVoteResponse}.
      */
-    interface PreVoteResponseBuilder
-            extends RaftMessageBuilder<PreVoteResponse> {
+    interface PreVoteResponseBuilder extends RaftMessageBuilder<PreVoteResponse> {
 
-        @Nonnull PreVoteResponseBuilder setGroupId(@Nonnull Object groupId);
+        @Nonnull
+        PreVoteResponseBuilder setGroupId(@Nonnull Object groupId);
 
-        @Nonnull PreVoteResponseBuilder setSender(@Nonnull RaftEndpoint sender);
+        @Nonnull
+        PreVoteResponseBuilder setSender(@Nonnull RaftEndpoint sender);
 
-        @Nonnull PreVoteResponseBuilder setTerm(int term);
+        @Nonnull
+        PreVoteResponseBuilder setTerm(int term);
 
-        @Nonnull PreVoteResponseBuilder setGranted(boolean granted);
+        @Nonnull
+        PreVoteResponseBuilder setGranted(boolean granted);
 
     }
 

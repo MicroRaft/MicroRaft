@@ -109,7 +109,7 @@ public class NetworkPartitionTest extends BaseTest {
             assertThat(firstLeader.getTerm().getLeaderEndpoint()).isEqualTo(secondLeader.getLocalEndpoint());
 
             String value = firstLeader
-                    .<String>query(SimpleStateMachine.queryLastValue(), QueryPolicy.EVENTUAL_CONSISTENCY, 0).join()
+                    .<String> query(SimpleStateMachine.queryLastValue(), QueryPolicy.EVENTUAL_CONSISTENCY, 0).join()
                     .getResult();
             assertThat(value).isEqualTo(value2);
         });

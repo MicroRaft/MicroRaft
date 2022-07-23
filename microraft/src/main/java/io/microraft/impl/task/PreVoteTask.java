@@ -25,15 +25,13 @@ import org.slf4j.LoggerFactory;
 /**
  * Scheduled when the current leader is null, unreachable, or unknown.
  * <p>
- * It sends {@link PreVoteRequest}s to other Raft group members to make sure the current leader is considered to be unhealthy by
- * the majority and a new leader election round can be started.
+ * It sends {@link PreVoteRequest}s to other Raft group members to make sure the current leader is considered to be
+ * unhealthy by the majority and a new leader election round can be started.
  * <p>
- * Also a {@link PreVoteTimeoutTask} is scheduled with the {@link RaftNodeImpl#getLeaderElectionTimeoutMs()} delay to trigger
- * another round of pre-voting if a leader is not available yet.
+ * Also a {@link PreVoteTimeoutTask} is scheduled with the {@link RaftNodeImpl#getLeaderElectionTimeoutMs()} delay to
+ * trigger another round of pre-voting if a leader is not available yet.
  */
-public final class PreVoteTask
-        extends RaftNodeStatusAwareTask
-        implements Runnable {
+public final class PreVoteTask extends RaftNodeStatusAwareTask implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PreVoteTask.class);
 
@@ -44,12 +42,15 @@ public final class PreVoteTask
         this.term = term;
     }
 
-    @Override protected void doRun() {
+    @Override
+    protected void doRun() {
         if (state.leader() != null) {
-            LOGGER.debug("{} No new pre-vote phase, we already have a LEADER: {}", localEndpointStr(), state.leader().getId());
+            LOGGER.debug("{} No new pre-vote phase, we already have a LEADER: {}", localEndpointStr(),
+                    state.leader().getId());
             return;
         } else if (state.term() != term) {
-            LOGGER.debug("{} No new pre-vote phase for term: {} because of new term: {}", localEndpointStr(), term, state.term());
+            LOGGER.debug("{} No new pre-vote phase for term: {} because of new term: {}", localEndpointStr(), term,
+                    state.term());
             return;
         }
 

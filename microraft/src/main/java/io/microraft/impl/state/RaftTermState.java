@@ -24,8 +24,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * Contains a snapshot of a Raft node's current state in a term.
  */
-public final class RaftTermState
-        implements RaftTerm {
+public final class RaftTermState implements RaftTerm {
 
     public static final RaftTermState INITIAL = new RaftTermState(0, null, null);
     /**
@@ -57,15 +56,18 @@ public final class RaftTermState
         return new RaftTermState(term, null, votedEndpoint);
     }
 
-    @Override public int getTerm() {
+    @Override
+    public int getTerm() {
         return term;
     }
 
-    @Override public RaftEndpoint getLeaderEndpoint() {
+    @Override
+    public RaftEndpoint getLeaderEndpoint() {
         return leaderEndpoint;
     }
 
-    @Override public RaftEndpoint getVotedEndpoint() {
+    @Override
+    public RaftEndpoint getVotedEndpoint() {
         return votedEndpoint;
     }
 
@@ -79,24 +81,25 @@ public final class RaftTermState
 
     public RaftTermState grantVote(int term, RaftEndpoint votedEndpoint) {
         requireNonNull(votedEndpoint);
-        assert this.term == term : "current term: " + this.term + " voted term: " + term + " voted for: " + votedEndpoint;
+        assert this.term == term : "current term: " + this.term + " voted term: " + term + " voted for: "
+                + votedEndpoint;
         assert this.votedEndpoint == null : "current term: " + this.term + " already voted for: " + this.votedEndpoint
-                                            + " new vote to: " + votedEndpoint;
+                + " new vote to: " + votedEndpoint;
 
         return new RaftTermState(this.term, this.leaderEndpoint, votedEndpoint);
     }
 
     public RaftTermState withLeader(RaftEndpoint leaderEndpoint) {
-        assert this.leaderEndpoint == null || leaderEndpoint == null : "current term: " + this.term + " current " + "leader: "
-                                                                       + this.leaderEndpoint + " new " + "leader: "
-                                                                       + leaderEndpoint;
+        assert this.leaderEndpoint == null || leaderEndpoint == null : "current term: " + this.term + " current "
+                + "leader: " + this.leaderEndpoint + " new " + "leader: " + leaderEndpoint;
 
         return new RaftTermState(this.term, leaderEndpoint, this.votedEndpoint);
     }
 
-    @Override public String toString() {
-        return "RaftGroupTerm{" + "term=" + term + ", leaderEndpoint=" + leaderEndpoint + ", votedEndpoint=" + votedEndpoint
-               + '}';
+    @Override
+    public String toString() {
+        return "RaftGroupTerm{" + "term=" + term + ", leaderEndpoint=" + leaderEndpoint + ", votedEndpoint="
+                + votedEndpoint + '}';
     }
 
 }

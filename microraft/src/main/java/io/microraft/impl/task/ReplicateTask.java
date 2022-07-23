@@ -43,11 +43,10 @@ import static io.microraft.RaftRole.LEADER;
  * <p>
  * If the given Raft node is not the leader, the future is notified with {@link NotLeaderException}.
  * <p>
- * If the given operation could not be appended to the Raft log at the moment, (see {@link
- * RaftNodeImpl#canReplicateNewOperation(Object)}), the future is notified with {@link CannotReplicateException}.
+ * If the given operation could not be appended to the Raft log at the moment, (see
+ * {@link RaftNodeImpl#canReplicateNewOperation(Object)}), the future is notified with {@link CannotReplicateException}.
  */
-public final class ReplicateTask
-        implements Runnable {
+public final class ReplicateTask implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ReplicateTask.class);
 
@@ -63,7 +62,8 @@ public final class ReplicateTask
         this.future = future;
     }
 
-    @Override public void run() {
+    @Override
+    public void run() {
         try {
             if (!verifyRaftNodeStatus()) {
                 return;
@@ -88,12 +88,8 @@ public final class ReplicateTask
 
             long newEntryLogIndex = log.lastLogOrSnapshotIndex() + 1;
             raftNode.registerFuture(newEntryLogIndex, future);
-            LogEntry entry = raftNode.getModelFactory()
-                                     .createLogEntryBuilder()
-                                     .setTerm(state.term())
-                                     .setIndex(newEntryLogIndex)
-                                     .setOperation(operation)
-                                     .build();
+            LogEntry entry = raftNode.getModelFactory().createLogEntryBuilder().setTerm(state.term())
+                    .setIndex(newEntryLogIndex).setOperation(operation).build();
             log.appendEntry(entry);
 
             prepareGroupOp(newEntryLogIndex, operation);
@@ -108,7 +104,7 @@ public final class ReplicateTask
             }
         } catch (Throwable t) {
             LOGGER.error(raftNode.localEndpointStr() + " " + operation + " could not be replicated to leader: "
-                         + raftNode.getLocalEndpoint(), t);
+                    + raftNode.getLocalEndpoint(), t);
             future.fail(new RaftException("Internal failure", raftNode.getLeaderEndpoint(), t));
         }
     }

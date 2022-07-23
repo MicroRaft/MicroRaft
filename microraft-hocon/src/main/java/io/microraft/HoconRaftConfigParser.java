@@ -39,20 +39,12 @@ import static java.util.Objects.requireNonNull;
 public final class HoconRaftConfigParser {
 
     /*
-
-        A sample HOCON string is below:
-        ---
-        raft {
-          leader-election-timeout-millis: 1000
-          leader-heartbeat-timeout-secs: 10
-          leader-heartbeat-period-secs: 2
-          max-uncommitted-log-entry-count: 5000
-          append-entries-request-batch-size: 1000
-          commit-count-to-take-snapshot: 50000
-          transfer-snapshots-from-followers-enabled: false
-          raft-node-report-publish-period-secs: 10
-        }
-
+     *
+     * A sample HOCON string is below: --- raft { leader-election-timeout-millis: 1000 leader-heartbeat-timeout-secs: 10
+     * leader-heartbeat-period-secs: 2 max-uncommitted-log-entry-count: 5000 append-entries-request-batch-size: 1000
+     * commit-count-to-take-snapshot: 50000 transfer-snapshots-from-followers-enabled: false
+     * raft-node-report-publish-period-secs: 10 }
+     *
      */
     private HoconRaftConfigParser() {
     }
@@ -63,12 +55,11 @@ public final class HoconRaftConfigParser {
      * @return the created RaftConfig object
      *
      * @throws NullPointerException
-     *         if the given config object is null
+     *             if the given config object is null
      * @throws IllegalArgumentException
-     *         if the given config object has no
-     *         "raft.*" field
+     *             if the given config object has no "raft.*" field
      * @throws WrongType
-     *         if a configuration value has wrong type
+     *             if a configuration value has wrong type
      */
     @SuppressWarnings("checkstyle:npathcomplexity")
     public static RaftConfig parseConfig(@Nonnull Config config) {

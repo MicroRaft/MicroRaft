@@ -26,9 +26,7 @@ import static io.microraft.RaftRole.CANDIDATE;
 /**
  * Scheduled by {@link LeaderElectionTask} to trigger leader election again if a leader is not elected yet.
  */
-public final class LeaderElectionTimeoutTask
-        extends RaftNodeStatusAwareTask
-        implements Runnable {
+public final class LeaderElectionTimeoutTask extends RaftNodeStatusAwareTask implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LeaderElectionTimeoutTask.class);
 
@@ -36,7 +34,8 @@ public final class LeaderElectionTimeoutTask
         super(raftNode);
     }
 
-    @Override protected void doRun() {
+    @Override
+    protected void doRun() {
         if (state.role() != CANDIDATE) {
             return;
         }

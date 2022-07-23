@@ -87,7 +87,8 @@ public final class LeadershipTransferState {
                 return null;
             });
         } else {
-            otherFuture.fail(new IllegalStateException("There is an ongoing leadership transfer process to " + endpoint));
+            otherFuture
+                    .fail(new IllegalStateException("There is an ongoing leadership transfer process to " + endpoint));
         }
     }
 

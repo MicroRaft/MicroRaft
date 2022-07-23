@@ -21,21 +21,16 @@ import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
 
 /**
- * Thrown when an operation cannot be temporarily replicated. It can occur in
- * one of the following cases:
+ * Thrown when an operation cannot be temporarily replicated. It can occur in one of the following cases:
  * <ul>
- * <li>There are too many inflight (i.e., appended but not-yet-committed)
- * operations in the Raft group leader,</li>
- * <li>There are too many inflight (i.e., pending at the Raft leader to be
- * executed) queries,</li>
- * <li>A new membership change is attempted before an entry is committed
- * in the current term.</li>
+ * <li>There are too many inflight (i.e., appended but not-yet-committed) operations in the Raft group leader,</li>
+ * <li>There are too many inflight (i.e., pending at the Raft leader to be executed) queries,</li>
+ * <li>A new membership change is attempted before an entry is committed in the current term.</li>
  * </ul>
  *
  * @see RaftConfig#getMaxPendingLogEntryCount()
  */
-public class CannotReplicateException
-        extends RaftException {
+public class CannotReplicateException extends RaftException {
 
     private static final long serialVersionUID = 4407025930140337716L;
 
@@ -43,7 +38,8 @@ public class CannotReplicateException
         super("Cannot replicate new operations for now", leader);
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return "CannotReplicateException{leader=" + getLeader() + "}";
     }
 

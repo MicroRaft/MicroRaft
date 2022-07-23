@@ -7,8 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Objects.requireNonNull;
 
-public final class LocalRaftEndpoint
-        implements RaftEndpoint {
+public final class LocalRaftEndpoint implements RaftEndpoint {
 
     private static final AtomicInteger COUNTER = new AtomicInteger();
     private final String id;

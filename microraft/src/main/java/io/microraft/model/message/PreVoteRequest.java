@@ -27,8 +27,7 @@ import javax.annotation.Nonnull;
  *
  * @see VoteRequest
  */
-public interface PreVoteRequest
-        extends RaftMessage {
+public interface PreVoteRequest extends RaftMessage {
 
     int getLastLogTerm();
 
@@ -37,18 +36,22 @@ public interface PreVoteRequest
     /**
      * The builder interface for {@link PreVoteRequest}.
      */
-    interface PreVoteRequestBuilder
-            extends RaftMessageBuilder<PreVoteRequest> {
+    interface PreVoteRequestBuilder extends RaftMessageBuilder<PreVoteRequest> {
 
-        @Nonnull PreVoteRequestBuilder setGroupId(@Nonnull Object groupId);
+        @Nonnull
+        PreVoteRequestBuilder setGroupId(@Nonnull Object groupId);
 
-        @Nonnull PreVoteRequestBuilder setSender(@Nonnull RaftEndpoint sender);
+        @Nonnull
+        PreVoteRequestBuilder setSender(@Nonnull RaftEndpoint sender);
 
-        @Nonnull PreVoteRequestBuilder setTerm(int term);
+        @Nonnull
+        PreVoteRequestBuilder setTerm(int term);
 
-        @Nonnull PreVoteRequestBuilder setLastLogTerm(int lastLogTerm);
+        @Nonnull
+        PreVoteRequestBuilder setLastLogTerm(int lastLogTerm);
 
-        @Nonnull PreVoteRequestBuilder setLastLogIndex(long lastLogIndex);
+        @Nonnull
+        PreVoteRequestBuilder setLastLogIndex(long lastLogIndex);
 
     }
 

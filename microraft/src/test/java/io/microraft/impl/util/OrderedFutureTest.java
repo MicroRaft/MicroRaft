@@ -29,8 +29,7 @@ import java.util.concurrent.TimeoutException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
-public class OrderedFutureTest
-        extends BaseTest {
+public class OrderedFutureTest extends BaseTest {
 
     private final OrderedFuture<Object> future = new OrderedFuture<>();
 
@@ -40,8 +39,7 @@ public class OrderedFutureTest
     }
 
     @Test
-    public void testFutureCanCompleteAfterGetTimeout()
-            throws InterruptedException, ExecutionException {
+    public void testFutureCanCompleteAfterGetTimeout() throws InterruptedException, ExecutionException {
         try {
             future.get(1, TimeUnit.SECONDS);
             fail(".get() cannot succeed on uncompleted future");
@@ -86,8 +84,7 @@ public class OrderedFutureTest
     }
 
     @Test
-    public void testCompleteWithNullInternally()
-            throws ExecutionException, InterruptedException {
+    public void testCompleteWithNullInternally() throws ExecutionException, InterruptedException {
         long commitIndex = 1;
         future.completeNull(commitIndex);
 
@@ -99,8 +96,7 @@ public class OrderedFutureTest
     }
 
     @Test
-    public void testCompleteWithValueInternally()
-            throws ExecutionException, InterruptedException {
+    public void testCompleteWithValueInternally() throws ExecutionException, InterruptedException {
         long commitIndex = 1;
         Object result = new Object();
         future.complete(commitIndex, result);

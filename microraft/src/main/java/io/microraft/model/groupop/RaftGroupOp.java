@@ -24,6 +24,5 @@ import io.microraft.model.RaftModel;
  *
  * @see UpdateRaftGroupMembersOp
  */
-public interface RaftGroupOp
-        extends RaftModel {
+public interface RaftGroupOp extends RaftModel {
 }

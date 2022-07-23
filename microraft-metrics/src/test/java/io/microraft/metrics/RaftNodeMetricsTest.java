@@ -42,11 +42,10 @@ import java.util.concurrent.TimeUnit;
 
 import static io.microraft.test.util.AssertionUtils.sleepMillis;
 
-public class RaftNodeMetricsTest
-        extends BaseTest {
+public class RaftNodeMetricsTest extends BaseTest {
 
-    List<RaftEndpoint> initialMembers = Arrays
-            .asList(LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint());
+    List<RaftEndpoint> initialMembers = Arrays.asList(LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint(),
+            LocalRaftEndpoint.newEndpoint());
     List<LocalTransport> transports = new ArrayList<>();
     List<RaftNode> raftNodes = new ArrayList<>();
     List<RaftNodeMetrics> metricsList = new ArrayList<>();
@@ -91,14 +90,14 @@ public class RaftNodeMetricsTest
     }
 
     private void createRaftNode(RaftEndpoint endpoint) {
-        RaftConfig config = RaftConfig.newBuilder().setRaftNodeReportPublishPeriodSecs(1).setCommitCountToTakeSnapshot(5000)
-                                      .build();
+        RaftConfig config = RaftConfig.newBuilder().setRaftNodeReportPublishPeriodSecs(1)
+                .setCommitCountToTakeSnapshot(5000).build();
         LocalTransport transport = new LocalTransport(endpoint);
         StateMachine stateMachine = new SimpleStateMachine();
         RaftNodeMetrics metrics = new RaftNodeMetrics("default", endpoint.getId().toString());
         RaftNode raftNode = RaftNode.newBuilder().setGroupId("default").setLocalEndpoint(endpoint)
-                                    .setInitialGroupMembers(initialMembers).setConfig(config).setTransport(transport)
-                                    .setStateMachine(stateMachine).setRaftNodeReportListener(metrics).build();
+                .setInitialGroupMembers(initialMembers).setConfig(config).setTransport(transport)
+                .setStateMachine(stateMachine).setRaftNodeReportListener(metrics).build();
 
         raftNodes.add(raftNode);
         transports.add(transport);
@@ -122,7 +121,7 @@ public class RaftNodeMetricsTest
             RaftEndpoint leaderEndpoint = getLeaderEndpoint();
             if (leaderEndpoint != null) {
                 return raftNodes.stream().filter(node -> node.getLocalEndpoint().equals(leaderEndpoint)).findFirst()
-                                .orElseThrow(IllegalStateException::new);
+                        .orElseThrow(IllegalStateException::new);
             }
 
             sleepMillis(100);

@@ -35,8 +35,7 @@ import static io.microraft.RaftNodeStatus.isTerminal;
 import static io.microraft.RaftRole.LEADER;
 
 /**
- * Scheduled by {@link RaftNodeImpl#query(Object, QueryPolicy, long)} to perform
- * a query on the {@link StateMachine}.
+ * Scheduled by {@link RaftNodeImpl#query(Object, QueryPolicy, long)} to perform a query on the {@link StateMachine}.
  *
  * @see QueryPolicy
  */
@@ -69,20 +68,20 @@ public final class QueryTask implements Runnable {
             }
 
             switch (queryPolicy) {
-                case EVENTUAL_CONSISTENCY:
-                    queryWithEventualConsistency();
-                    break;
-                case BOUNDED_STALENESS:
-                    queryWithBoundedStaleness();
-                    break;
-                case LEADER_LEASE:
-                    queryWithLeaderLease();
-                    break;
-                case LINEARIZABLE:
-                    queryWithLinearizability();
-                    break;
-                default:
-                    future.fail(new IllegalArgumentException("Invalid query policy: " + queryPolicy));
+            case EVENTUAL_CONSISTENCY:
+                queryWithEventualConsistency();
+                break;
+            case BOUNDED_STALENESS:
+                queryWithBoundedStaleness();
+                break;
+            case LEADER_LEASE:
+                queryWithLeaderLease();
+                break;
+            case LINEARIZABLE:
+                queryWithLinearizability();
+                break;
+            default:
+                future.fail(new IllegalArgumentException("Invalid query policy: " + queryPolicy));
             }
         } catch (Throwable t) {
             LOGGER.error(raftNode.localEndpointStr() + queryPolicy + " query failed", t);

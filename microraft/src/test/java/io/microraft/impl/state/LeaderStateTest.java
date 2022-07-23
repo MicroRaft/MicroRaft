@@ -98,7 +98,8 @@ public class LeaderStateTest {
         }
     }
 
-    @Test public void test_matchIndex_nonVotingMembers() {
+    @Test
+    public void test_matchIndex_nonVotingMembers() {
         int logIndex = 10;
         for (RaftEndpoint endpoint : remoteEndpoints) {
             state.getFollowerState(endpoint).matchIndex(++logIndex);

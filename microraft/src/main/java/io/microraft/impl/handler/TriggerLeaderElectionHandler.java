@@ -30,13 +30,12 @@ import static io.microraft.RaftRole.LEARNER;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Handles a {@link TriggerLeaderElectionRequest} and initiates a new leader election round if this Raft node accepts the sender
- * as the leader and the local Raft log is up-to-date with the leader's Raft log.
+ * Handles a {@link TriggerLeaderElectionRequest} and initiates a new leader election round if this Raft node accepts
+ * the sender as the leader and the local Raft log is up-to-date with the leader's Raft log.
  *
  * @see TriggerLeaderElectionRequest
  */
-public class TriggerLeaderElectionHandler
-        extends AbstractMessageHandler<TriggerLeaderElectionRequest> {
+public class TriggerLeaderElectionHandler extends AbstractMessageHandler<TriggerLeaderElectionRequest> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TriggerLeaderElectionHandler.class);
 
@@ -44,7 +43,8 @@ public class TriggerLeaderElectionHandler
         super(raftNode, request);
     }
 
-    @Override protected void handle(@Nonnull TriggerLeaderElectionRequest request) {
+    @Override
+    protected void handle(@Nonnull TriggerLeaderElectionRequest request) {
         requireNonNull(request);
 
         LOGGER.debug("{} Received {}", localEndpointStr(), request);
@@ -56,7 +56,7 @@ public class TriggerLeaderElectionHandler
         // with the leader's log.
         if (!(request.getTerm() == state.term() && request.getSender().equals(state.leader()))) {
             LOGGER.debug("{} Ignoring {} since term: {} and leader: {}", localEndpointStr(), request, state.term(),
-                         state.leader() != null ? state.leader().getId() : "-");
+                    state.leader() != null ? state.leader().getId() : "-");
 
             return;
         }
@@ -65,8 +65,10 @@ public class TriggerLeaderElectionHandler
         BaseLogEntry entry = state.log().lastLogOrSnapshotEntry();
         if (!(entry.getIndex() == request.getLastLogIndex() && entry.getTerm() == request.getLastLogTerm())) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("{} Could not accept leadership transfer because local Raft log is not same with the current "
-                             + "leader. Last log entry: {}, request: {}", localEndpointStr(), entry, request);
+                LOGGER.debug(
+                        "{} Could not accept leadership transfer because local Raft log is not same with the current "
+                                + "leader. Last log entry: {}, request: {}",
+                        localEndpointStr(), entry, request);
             }
 
             return;
@@ -75,13 +77,13 @@ public class TriggerLeaderElectionHandler
         if (state.role() == LEARNER) {
             // this should not happen!
             LOGGER.error("{} Could start leader election because the role is: {}. You should not see this log!",
-                         localEndpointStr(), LEARNER);
+                    localEndpointStr(), LEARNER);
             return;
         }
 
         // I will send a non-sticky VoteRequest to bypass leader stickiness
         LOGGER.info("{} Starting a new leader election since the current leader: {} in term: {} asked for a "
-                    + "leadership transfer!", localEndpointStr(), request.getSender().getId(), request.getTerm());
+                + "leadership transfer!", localEndpointStr(), request.getSender().getId(), request.getTerm());
         node.leader(null);
         new LeaderElectionTask(node, false).run();
     }

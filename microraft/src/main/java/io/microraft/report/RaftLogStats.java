@@ -36,16 +36,17 @@ public interface RaftLogStats {
      * Returns the last term in the Raft log, either from the last log entry or from the last locally taken or installed
      * snapshot.
      *
-     * @return the last term in the Raft log, either from the last log entry or from the last locally taken or installed snapshot
+     * @return the last term in the Raft log, either from the last log entry or from the last locally taken or installed
+     *         snapshot
      */
     int getLastLogOrSnapshotTerm();
 
     /**
-     * Returns the last log entry index in the Raft log, either from the last log entry or from the last locally taken or
-     * installed snapshot.
+     * Returns the last log entry index in the Raft log, either from the last log entry or from the last locally taken
+     * or installed snapshot.
      *
-     * @return the last log entry index in the Raft log, either from the last log entry or from the last locally taken or
-     *         installed snapshot
+     * @return the last log entry index in the Raft log, either from the last log entry or from the last locally taken
+     *         or installed snapshot
      */
     long getLastLogOrSnapshotIndex();
 

@@ -59,8 +59,7 @@ public final class HoconRaftConfigFields {
     /**
      * Field name of {@link RaftConfig#isTransferSnapshotsFromFollowersEnabled()}
      */
-    public static final String TRANSFER_SNAPSHOTS_FROM_FOLLOWERS_ENABLED_FIELD_NAME
-            = "raft.transfer-snapshots-from-followers-enabled";
+    public static final String TRANSFER_SNAPSHOTS_FROM_FOLLOWERS_ENABLED_FIELD_NAME = "raft.transfer-snapshots-from-followers-enabled";
 
     /**
      * Field name of {@link RaftConfig#getRaftNodeReportPublishPeriodSecs()}

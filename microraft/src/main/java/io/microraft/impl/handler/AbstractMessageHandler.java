@@ -25,8 +25,7 @@ import javax.annotation.Nonnull;
 /**
  * Base class for {@link RaftMessage} handlers.
  */
-public abstract class AbstractMessageHandler<T extends RaftMessage>
-        extends RaftNodeStatusAwareTask {
+public abstract class AbstractMessageHandler<T extends RaftMessage> extends RaftNodeStatusAwareTask {
 
     protected final T message;
 
@@ -35,7 +34,8 @@ public abstract class AbstractMessageHandler<T extends RaftMessage>
         this.message = message;
     }
 
-    @Override protected final void doRun() {
+    @Override
+    protected final void doRun() {
         handle(message);
     }
 

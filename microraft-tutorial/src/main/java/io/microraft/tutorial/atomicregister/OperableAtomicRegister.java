@@ -33,18 +33,16 @@ import java.util.function.Consumer;
  * <p>
  * https://github.com/MicroRaft/MicroRaft/blob/master/microraft-tutorial/src/main/java/io/microraft/tutorial/atomicregister/OperableAtomicRegister.java
  */
-public class OperableAtomicRegister
-        extends AtomicRegister
-        implements StateMachine {
+public class OperableAtomicRegister extends AtomicRegister implements StateMachine {
 
     protected Object value;
 
     /**
-     * Returns a new operation to update the atomic register with the given
-     * value. The operation returns the previous value as response.
+     * Returns a new operation to update the atomic register with the given value. The operation returns the previous
+     * value as response.
      *
      * @param value
-     *         to update the atomic register
+     *            to update the atomic register
      *
      * @return the operation to update the atomic register value
      */
@@ -62,15 +60,14 @@ public class OperableAtomicRegister
     }
 
     /**
-     * Returns a compare-and-swap operation to update the atomic register with
-     * the given new value of only if its current value matches with the given
-     * current value. The operations returns true if the compare-and-swap
-     * operation is successful.
+     * Returns a compare-and-swap operation to update the atomic register with the given new value of only if its
+     * current value matches with the given current value. The operations returns true if the compare-and-swap operation
+     * is successful.
      *
      * @param currentValue
-     *         the current value of the atomic register for cas
+     *            the current value of the atomic register for cas
      * @param newValue
-     *         the new value for cas
+     *            the new value for cas
      *
      * @return the operation to perform cas on the atomic register
      */
@@ -110,14 +107,12 @@ public class OperableAtomicRegister
     }
 
     /**
-     * Marker interface for operations to be executed on the atomic register
-     * state machine.
+     * Marker interface for operations to be executed on the atomic register state machine.
      */
     public interface AtomicRegisterOperation {
     }
 
-    private static class SetOperation
-            implements AtomicRegisterOperation {
+    private static class SetOperation implements AtomicRegisterOperation {
         final Object value;
 
         SetOperation(Object value) {
@@ -130,16 +125,14 @@ public class OperableAtomicRegister
         }
     }
 
-    private static class GetOperation
-            implements AtomicRegisterOperation {
+    private static class GetOperation implements AtomicRegisterOperation {
         @Override
         public String toString() {
             return "GetOperation{}";
         }
     }
 
-    private static class CasOperation
-            implements AtomicRegisterOperation {
+    private static class CasOperation implements AtomicRegisterOperation {
         final Object currentValue;
         final Object newValue;
 

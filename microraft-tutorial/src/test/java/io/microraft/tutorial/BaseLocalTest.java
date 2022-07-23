@@ -36,8 +36,8 @@ import static org.junit.Assert.fail;
 
 public abstract class BaseLocalTest {
 
-    protected List<RaftEndpoint> initialMembers = Arrays
-            .asList(LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint());
+    protected List<RaftEndpoint> initialMembers = Arrays.asList(LocalRaftEndpoint.newEndpoint(),
+            LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint());
     protected List<LocalTransport> transports = new ArrayList<>();
     protected List<RaftNode> raftNodes = new ArrayList<>();
 
@@ -100,8 +100,8 @@ public abstract class BaseLocalTest {
         LocalTransport transport = new LocalTransport(endpoint);
         StateMachine stateMachine = createStateMachine();
         RaftNode raftNode = RaftNode.newBuilder().setGroupId("default").setLocalEndpoint(endpoint)
-                                    .setInitialGroupMembers(initialMembers).setConfig(config).setTransport(transport)
-                                    .setStateMachine(stateMachine).build();
+                .setInitialGroupMembers(initialMembers).setConfig(config).setTransport(transport)
+                .setStateMachine(stateMachine).build();
 
         raftNodes.add(raftNode);
         transports.add(transport);
@@ -126,7 +126,7 @@ public abstract class BaseLocalTest {
             RaftEndpoint leaderEndpoint = getLeaderEndpoint();
             if (leaderEndpoint != null) {
                 return raftNodes.stream().filter(node -> node.getLocalEndpoint().equals(leaderEndpoint)).findFirst()
-                                .orElseThrow(IllegalStateException::new);
+                        .orElseThrow(IllegalStateException::new);
             }
 
             sleepMillis(100);
@@ -165,7 +165,7 @@ public abstract class BaseLocalTest {
         requireNonNull(endpoint);
 
         return raftNodes.stream().filter(raftNode -> !raftNode.getLocalEndpoint().equals(endpoint)).findFirst()
-                        .orElseThrow(IllegalArgumentException::new);
+                .orElseThrow(IllegalArgumentException::new);
     }
 
     protected final void disconnect(RaftEndpoint endpoint1, RaftEndpoint endpoint2) {
@@ -188,20 +188,19 @@ public abstract class BaseLocalTest {
         requireNonNull(endpoint);
 
         return raftNodes.stream().filter(raftNode -> raftNode.getLocalEndpoint().equals(endpoint)).findFirst()
-                        .orElseThrow(IllegalArgumentException::new);
+                .orElseThrow(IllegalArgumentException::new);
     }
 
     private LocalTransport getTransport(RaftEndpoint endpoint) {
         requireNonNull(endpoint);
 
         return transports.stream().filter(transport -> transport.getLocalEndpoint().equals(endpoint)).findFirst()
-                         .orElseThrow(IllegalArgumentException::new);
+                .orElseThrow(IllegalArgumentException::new);
     }
 
     @FunctionalInterface
     public interface AssertTask {
-        void run()
-                throws Exception;
+        void run() throws Exception;
     }
 
 }

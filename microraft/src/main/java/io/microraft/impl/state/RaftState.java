@@ -44,7 +44,8 @@ import static java.util.Objects.requireNonNull;
 /**
  * State maintained by each Raft node.
  */
-@SuppressWarnings({"checkstyle:methodcount"}) public final class RaftState {
+@SuppressWarnings({ "checkstyle:methodcount" })
+public final class RaftState {
 
     /**
      * Unique ID of the Raft group that this Raft node belongs to
@@ -69,8 +70,8 @@ import static java.util.Objects.requireNonNull;
     private final RaftStore store;
 
     /**
-     * Raft log entries; each log entry contains command for state machine, and the term when entry was received by Raft group
-     * leader. First log index is 1.
+     * Raft log entries; each log entry contains command for state machine, and the term when entry was received by Raft
+     * group leader. First log index is 1.
      */
     private final RaftLog log;
 
@@ -80,8 +81,8 @@ import static java.util.Objects.requireNonNull;
     private volatile RaftGroupMembersState committedGroupMembers;
 
     /**
-     * Latest applied group members of the Raft group. This member may not be committed yet and can be reverted. (initially equal
-     * to {@link #committedGroupMembers})
+     * Latest applied group members of the Raft group. This member may not be committed yet and can be reverted.
+     * (initially equal to {@link #committedGroupMembers})
      */
     private volatile RaftGroupMembersState effectiveGroupMembers;
 
@@ -117,15 +118,15 @@ import static java.util.Objects.requireNonNull;
     private LeaderState leaderState;
 
     /**
-     * Candidate state maintained during the pre-voting step. Becomes null when pre-voting ends by one of {@link #toCandidate()},
-     * {@link #toLeader()} or {@link #toFollower(int)} methods is called.
+     * Candidate state maintained during the pre-voting step. Becomes null when pre-voting ends by one of
+     * {@link #toCandidate()}, {@link #toLeader()} or {@link #toFollower(int)} methods is called.
      */
     private CandidateState preCandidateState;
 
     /**
-     * Candidate state maintained during the leader election step. Initialized when this Raft node becomes a candidate via a
-     * {@link #toCandidate()} call and becomes null when the voting ends when {@link #toLeader()} or {@link #toFollower(int)} is
-     * called.
+     * Candidate state maintained during the leader election step. Initialized when this Raft node becomes a candidate
+     * via a {@link #toCandidate()} call and becomes null when the voting ends when {@link #toLeader()} or
+     * {@link #toFollower(int)} is called.
      */
     private CandidateState candidateState;
 
@@ -139,8 +140,8 @@ import static java.util.Objects.requireNonNull;
      */
     private SnapshotChunkCollector snapshotChunkCollector;
 
-    private RaftState(Object groupId, RaftEndpoint localEndpoint, RaftGroupMembersView initialGroupMembers, int logCapacity,
-                      RaftStore store) {
+    private RaftState(Object groupId, RaftEndpoint localEndpoint, RaftGroupMembersView initialGroupMembers,
+            int logCapacity, RaftStore store) {
         this.groupId = requireNonNull(groupId);
         this.localEndpoint = requireNonNull(localEndpoint);
         if (requireNonNull(initialGroupMembers).getLogIndex() != 0) {
@@ -149,7 +150,7 @@ import static java.util.Objects.requireNonNull;
         }
         this.role = initialGroupMembers.getVotingMembers().contains(this.localEndpoint) ? FOLLOWER : LEARNER;
         RaftGroupMembersState groupMembers = new RaftGroupMembersState(0, initialGroupMembers.getMembers(),
-                                                                       initialGroupMembers.getVotingMembers(), localEndpoint);
+                initialGroupMembers.getVotingMembers(), localEndpoint);
         this.initialGroupMembers = groupMembers;
         this.committedGroupMembers = groupMembers;
         this.effectiveGroupMembers = groupMembers;
@@ -168,7 +169,7 @@ import static java.util.Objects.requireNonNull;
                     "Invalid initial Raft group members log index: " + initialGroupMembers.getLogIndex());
         }
         this.initialGroupMembers = new RaftGroupMembersState(0, initialGroupMembers.getMembers(),
-                                                             initialGroupMembers.getVotingMembers(), this.localEndpoint);
+                initialGroupMembers.getVotingMembers(), this.localEndpoint);
         this.committedGroupMembers = this.initialGroupMembers;
         this.effectiveGroupMembers = this.committedGroupMembers;
         this.termState = RaftTermState.restore(restoredState.getTerm(), restoredState.getVotedMember());
@@ -185,12 +186,12 @@ import static java.util.Objects.requireNonNull;
     }
 
     public static RaftState create(Object groupId, RaftEndpoint localEndpoint, RaftGroupMembersView initialGroupMembers,
-                                   int logCapacity) {
+            int logCapacity) {
         return create(groupId, localEndpoint, initialGroupMembers, logCapacity, new NopRaftStore());
     }
 
     public static RaftState create(Object groupId, RaftEndpoint localEndpoint, RaftGroupMembersView initialGroupMembers,
-                                   int logCapacity, RaftStore store) {
+            int logCapacity, RaftStore store) {
         return new RaftState(groupId, localEndpoint, initialGroupMembers, logCapacity, store);
     }
 
@@ -311,7 +312,8 @@ import static java.util.Objects.requireNonNull;
      * Updates the commit index.
      */
     public void commitIndex(long index) {
-        assert index >= commitIndex : "new commit index: " + index + " is smaller than current commit index: " + commitIndex;
+        assert index >= commitIndex : "new commit index: " + index + " is smaller than current commit index: "
+                + commitIndex;
         commitIndex = index;
     }
 
@@ -326,7 +328,8 @@ import static java.util.Objects.requireNonNull;
      * Updates the last applied index
      */
     public void lastApplied(long index) {
-        assert index >= lastApplied : "new last applied: " + index + " is smaller than current last applied: " + lastApplied;
+        assert index >= lastApplied : "new last applied: " + index + " is smaller than current last applied: "
+                + lastApplied;
         lastApplied = index;
     }
 
@@ -355,15 +358,14 @@ import static java.util.Objects.requireNonNull;
      * Persists the initial member list to the Raft store
      *
      * @throws IOException
-     *         if an IO error occurs inside the store
+     *             if an IO error occurs inside the store
+     *
      * @see RaftStore#persistAndFlushInitialGroupMembers(RaftGroupMembersView)
      */
-    public void persistInitialState(RaftGroupMembersViewBuilder initialGroupMembersBuilder)
-            throws IOException {
+    public void persistInitialState(RaftGroupMembersViewBuilder initialGroupMembersBuilder) throws IOException {
         store.persistAndFlushLocalEndpoint(localEndpoint, role != LEARNER);
         initialGroupMembersBuilder.setLogIndex(initialGroupMembers.getLogIndex())
-                                  .setMembers(initialGroupMembers.getMembers())
-                                  .setVotingMembers(initialGroupMembers.getVotingMembers());
+                .setMembers(initialGroupMembers.getMembers()).setVotingMembers(initialGroupMembers.getVotingMembers());
         store.persistAndFlushInitialGroupMembers(initialGroupMembersBuilder.build());
     }
 
@@ -371,7 +373,7 @@ import static java.util.Objects.requireNonNull;
      * Switches this Raft node to follower role. Clears leader and (pre)candidate states, updates the term.
      *
      * @param term
-     *         current term
+     *            current term
      */
     public void toFollower(int term) {
         if (role != LEARNER) {
@@ -431,8 +433,8 @@ import static java.util.Objects.requireNonNull;
     }
 
     /**
-     * Switches this Raft node to candidate role. Clears pre-candidate and leader states. Initializes candidate state for the
-     * current majority and grants a vote for the local endpoint.
+     * Switches this Raft node to candidate role. Clears pre-candidate and leader states. Initializes candidate state
+     * for the current majority and grants a vote for the local endpoint.
      */
     public void toCandidate() {
         if (role == LEARNER) {
@@ -449,8 +451,7 @@ import static java.util.Objects.requireNonNull;
         grantVote(newTerm, localEndpoint);
     }
 
-    private void promoteToVotingMember()
-            throws IOException {
+    private void promoteToVotingMember() throws IOException {
         if (role == LEADER || role == CANDIDATE) {
             throw new IllegalStateException("Cannot promote to voting member while the role is " + role);
         } else if (role == LEARNER) {
@@ -459,8 +460,7 @@ import static java.util.Objects.requireNonNull;
         }
     }
 
-    private void demoteToNonVotingMember()
-            throws IOException {
+    private void demoteToNonVotingMember() throws IOException {
         if (role == LEADER) {
             throw new IllegalStateException("Cannot revert voting member promotion while the role is " + role);
         } else if (role != LEARNER) {
@@ -481,17 +481,14 @@ import static java.util.Objects.requireNonNull;
      */
     public int logReplicationQuorumSize() {
         /*
-          We use the improved majority quorums technique of FPaxos here.
-          In a cluster of size N * 2, we can commit log entries after collecting
-          acks from N nodes. Since leader elections are done with majority
-          quorums (N + 1), we still guarantee that a new leader will always
-          have all committed log entries.
+         * We use the improved majority quorums technique of FPaxos here. In a cluster of size N * 2, we can commit log
+         * entries after collecting acks from N nodes. Since leader elections are done with majority quorums (N + 1), we
+         * still guarantee that a new leader will always have all committed log entries.
          */
         int quorumSize = leaderElectionQuorumSize();
         return effectiveGroupMembers.votingMemberCount() % 2 != 0
-               || committedGroupMembers.getLogIndex() != effectiveGroupMembers.getLogIndex() || quorumSize == 2
-               ? quorumSize
-               : quorumSize - 1;
+                || committedGroupMembers.getLogIndex() != effectiveGroupMembers.getLogIndex() || quorumSize == 2
+                        ? quorumSize : quorumSize - 1;
     }
 
     /**
@@ -546,40 +543,37 @@ import static java.util.Objects.requireNonNull;
     /**
      * Initializes the effective members with the given members and the log index.
      * <p>
-     * This method expects that there's no pending membership changes and the committed members are the same as the effective
-     * members.
+     * This method expects that there's no pending membership changes and the committed members are the same as the
+     * effective members.
      * <p>
-     * The leader state is also updated for the members which don't exist in the committed members and the committed members that
-     * don't exist in the effective members are removed.
+     * The leader state is also updated for the members which don't exist in the committed members and the committed
+     * members that don't exist in the effective members are removed.
      *
      * @param logIndex
-     *         log index of membership change
+     *            log index of membership change
      * @param members
-     *         latest applied members
+     *            latest applied members
      */
-    public void updateGroupMembers(long logIndex, Collection<RaftEndpoint> members, Collection<RaftEndpoint> votingMembers) {
-        assert committedGroupMembers == effectiveGroupMembers : "Cannot update group members to: " + members + " at log index: "
-                                                                + logIndex + " because effective group members: "
-                                                                + effectiveGroupMembers
-                                                                + " is different than committed group members: "
-                                                                + committedGroupMembers;
-        assert effectiveGroupMembers.getLogIndex() < logIndex : "Cannot update group members to: " + members + " at log index: "
-                                                                + logIndex + " because effective group members: "
-                                                                + effectiveGroupMembers + " has a bigger log index.";
+    public void updateGroupMembers(long logIndex, Collection<RaftEndpoint> members,
+            Collection<RaftEndpoint> votingMembers) {
+        assert committedGroupMembers == effectiveGroupMembers : "Cannot update group members to: " + members
+                + " at log index: " + logIndex + " because effective group members: " + effectiveGroupMembers
+                + " is different than committed group members: " + committedGroupMembers;
+        assert effectiveGroupMembers.getLogIndex() < logIndex : "Cannot update group members to: " + members
+                + " at log index: " + logIndex + " because effective group members: " + effectiveGroupMembers
+                + " has a bigger log index.";
 
-        RaftGroupMembersState newGroupMembers = new RaftGroupMembersState(logIndex, members, votingMembers, localEndpoint);
+        RaftGroupMembersState newGroupMembers = new RaftGroupMembersState(logIndex, members, votingMembers,
+                localEndpoint);
         committedGroupMembers = effectiveGroupMembers;
         effectiveGroupMembers = newGroupMembers;
 
         if (leaderState != null) {
-            members.stream()
-                   .filter(member -> !committedGroupMembers.isKnownMember(member))
-                   .forEach(member -> leaderState.add(member, log.lastLogOrSnapshotIndex()));
+            members.stream().filter(member -> !committedGroupMembers.isKnownMember(member))
+                    .forEach(member -> leaderState.add(member, log.lastLogOrSnapshotIndex()));
 
-            committedGroupMembers.remoteMembers()
-                                 .stream()
-                                 .filter(member -> !members.contains(member))
-                                 .forEach(member -> leaderState.remove(member));
+            committedGroupMembers.remoteMembers().stream().filter(member -> !members.contains(member))
+                    .forEach(member -> leaderState.remove(member));
         }
 
         if (role == LEARNER && effectiveGroupMembers.getVotingMembers().contains(this.localEndpoint)) {
@@ -592,24 +586,24 @@ import static java.util.Objects.requireNonNull;
     }
 
     /**
-     * Marks the effective group members as committed. At this point {@link #committedGroupMembers} and {@link
-     * #effectiveGroupMembers} are the same.
+     * Marks the effective group members as committed. At this point {@link #committedGroupMembers} and
+     * {@link #effectiveGroupMembers} are the same.
      */
     public void commitGroupMembers() {
-        assert committedGroupMembers != effectiveGroupMembers : "Cannot commit effective group members: " + effectiveGroupMembers
-                                                                + " because it is same with committed " + "group " + "members";
+        assert committedGroupMembers != effectiveGroupMembers : "Cannot commit effective group members: "
+                + effectiveGroupMembers + " because it is same with committed " + "group " + "members";
 
         committedGroupMembers = effectiveGroupMembers;
     }
 
     /**
-     * Reverts the effective group members back to the committed group members. Essentially this means that the applied but
-     * not-yet-committed membership change is reverted.
+     * Reverts the effective group members back to the committed group members. Essentially this means that the applied
+     * but not-yet-committed membership change is reverted.
      */
     public void revertGroupMembers() {
         assert this.committedGroupMembers != this.effectiveGroupMembers;
         boolean demoteToNonVotingMember = !this.committedGroupMembers.getVotingMembers().contains(this.localEndpoint)
-                                          && this.effectiveGroupMembers.getVotingMembers().contains(this.localEndpoint);
+                && this.effectiveGroupMembers.getVotingMembers().contains(this.localEndpoint);
         this.effectiveGroupMembers = this.committedGroupMembers;
         if (demoteToNonVotingMember) {
             try {
@@ -622,37 +616,33 @@ import static java.util.Objects.requireNonNull;
     }
 
     /**
-     * Installs group members from the snapshot. Both the committed group members and the effective group members are overwritten
-     * with the given member list.
+     * Installs group members from the snapshot. Both the committed group members and the effective group members are
+     * overwritten with the given member list.
      */
     public boolean installGroupMembers(RaftGroupMembersView groupMembersView) {
-        assert effectiveGroupMembers.getLogIndex() <= groupMembersView.getLogIndex() : "Cannot restore group members to: "
-                                                                                       + groupMembersView.getMembers()
-                                                                                       + " at log index: "
-                                                                                       + groupMembersView.getLogIndex()
-                                                                                       + " because effective group members: "
-                                                                                       + effectiveGroupMembers
-                                                                                       + " has a bigger log index.";
+        assert effectiveGroupMembers.getLogIndex() <= groupMembersView
+                .getLogIndex() : "Cannot restore group members to: " + groupMembersView.getMembers() + " at log index: "
+                        + groupMembersView.getLogIndex() + " because effective group members: " + effectiveGroupMembers
+                        + " has a bigger log index.";
 
         // there is no leader state to clean up
 
         boolean changed = effectiveGroupMembers.getLogIndex() < groupMembersView.getLogIndex();
         RaftGroupMembersState previousGroupMembers = this.effectiveGroupMembers;
         RaftGroupMembersState groupMembers = new RaftGroupMembersState(groupMembersView.getLogIndex(),
-                                                                       groupMembersView.getMembers(),
-                                                                       groupMembersView.getVotingMembers(), localEndpoint);
+                groupMembersView.getMembers(), groupMembersView.getVotingMembers(), localEndpoint);
         this.committedGroupMembers = groupMembers;
         this.effectiveGroupMembers = groupMembers;
 
         if (changed) {
             try {
-                if (!previousGroupMembers.getVotingMembers().contains(localEndpoint) && groupMembers.getVotingMembers()
-                                                                                                    .contains(localEndpoint)) {
+                if (!previousGroupMembers.getVotingMembers().contains(localEndpoint)
+                        && groupMembers.getVotingMembers().contains(localEndpoint)) {
                     promoteToVotingMember();
-                } else if (previousGroupMembers.getVotingMembers().contains(localEndpoint) && !groupMembers.getVotingMembers()
-                                                                                                           .contains(
-                                                                                                                   localEndpoint)) {
-                    assert role == FOLLOWER || role == CANDIDATE : "Cannot demote to non voting member since role is " + role;
+                } else if (previousGroupMembers.getVotingMembers().contains(localEndpoint)
+                        && !groupMembers.getVotingMembers().contains(localEndpoint)) {
+                    assert role == FOLLOWER || role == CANDIDATE : "Cannot demote to non voting member since role is "
+                            + role;
                     demoteToNonVotingMember();
                 }
             } catch (IOException e) {
@@ -664,9 +654,10 @@ import static java.util.Objects.requireNonNull;
     }
 
     /**
-     * Initializes a new leadership transfer process for the given endpoint. Returns {@code true} if the leadership transfer
-     * process is initialized with this call, {@code false} if there is already an ongoing leadership transfer process. If there
-     * is already an ongoing leadership transfer process, the given future object is also attached to it.
+     * Initializes a new leadership transfer process for the given endpoint. Returns {@code true} if the leadership
+     * transfer process is initialized with this call, {@code false} if there is already an ongoing leadership transfer
+     * process. If there is already an ongoing leadership transfer process, the given future object is also attached to
+     * it.
      */
     public boolean initLeadershipTransfer(RaftEndpoint targetEndpoint, OrderedFuture<Object> resultFuture) {
         assert effectiveGroupMembers.getMembers().contains(targetEndpoint);
@@ -693,10 +684,11 @@ import static java.util.Objects.requireNonNull;
 
     public void snapshotChunkCollector(SnapshotChunkCollector snapshotChunkCollector) {
         if (this.snapshotChunkCollector != null && snapshotChunkCollector != null
-            && this.snapshotChunkCollector.getSnapshotIndex() >= snapshotChunkCollector.getSnapshotIndex()) {
-            throw new IllegalArgumentException(
-                    "Current snapshot chunk collector at snapshot index: " + this.snapshotChunkCollector.getSnapshotIndex()
-                    + " invalid new snapshot chunk collector at snapshot index: " + snapshotChunkCollector.getSnapshotIndex());
+                && this.snapshotChunkCollector.getSnapshotIndex() >= snapshotChunkCollector.getSnapshotIndex()) {
+            throw new IllegalArgumentException("Current snapshot chunk collector at snapshot index: "
+                    + this.snapshotChunkCollector.getSnapshotIndex()
+                    + " invalid new snapshot chunk collector at snapshot index: "
+                    + snapshotChunkCollector.getSnapshotIndex());
         }
 
         this.snapshotChunkCollector = snapshotChunkCollector;

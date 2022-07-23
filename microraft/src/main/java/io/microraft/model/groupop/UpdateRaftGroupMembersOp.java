@@ -26,34 +26,42 @@ import java.util.Collection;
 /**
  * Updates member list of a Raft group.
  * <p>
- * This operation is replicated when a Raft group membership change is triggered via {@link
- * RaftNode#changeMembership(RaftEndpoint, MembershipChangeMode, long)}.
+ * This operation is replicated when a Raft group membership change is triggered via
+ * {@link RaftNode#changeMembership(RaftEndpoint, MembershipChangeMode, long)}.
  */
-public interface UpdateRaftGroupMembersOp
-        extends RaftGroupOp {
+public interface UpdateRaftGroupMembersOp extends RaftGroupOp {
 
-    @Nonnull Collection<RaftEndpoint> getMembers();
+    @Nonnull
+    Collection<RaftEndpoint> getMembers();
 
-    @Nonnull Collection<RaftEndpoint> getVotingMembers();
+    @Nonnull
+    Collection<RaftEndpoint> getVotingMembers();
 
-    @Nonnull RaftEndpoint getEndpoint();
+    @Nonnull
+    RaftEndpoint getEndpoint();
 
-    @Nonnull MembershipChangeMode getMode();
+    @Nonnull
+    MembershipChangeMode getMode();
 
     /**
      * The builder interface for {@link UpdateRaftGroupMembersOp}.
      */
     interface UpdateRaftGroupMembersOpBuilder {
 
-        @Nonnull UpdateRaftGroupMembersOpBuilder setMembers(@Nonnull Collection<RaftEndpoint> members);
+        @Nonnull
+        UpdateRaftGroupMembersOpBuilder setMembers(@Nonnull Collection<RaftEndpoint> members);
 
-        @Nonnull UpdateRaftGroupMembersOpBuilder setVotingMembers(@Nonnull Collection<RaftEndpoint> votingMembers);
+        @Nonnull
+        UpdateRaftGroupMembersOpBuilder setVotingMembers(@Nonnull Collection<RaftEndpoint> votingMembers);
 
-        @Nonnull UpdateRaftGroupMembersOpBuilder setEndpoint(@Nonnull RaftEndpoint endpoint);
+        @Nonnull
+        UpdateRaftGroupMembersOpBuilder setEndpoint(@Nonnull RaftEndpoint endpoint);
 
-        @Nonnull UpdateRaftGroupMembersOpBuilder setMode(@Nonnull MembershipChangeMode mode);
+        @Nonnull
+        UpdateRaftGroupMembersOpBuilder setMode(@Nonnull MembershipChangeMode mode);
 
-        @Nonnull UpdateRaftGroupMembersOp build();
+        @Nonnull
+        UpdateRaftGroupMembersOp build();
 
     }
 

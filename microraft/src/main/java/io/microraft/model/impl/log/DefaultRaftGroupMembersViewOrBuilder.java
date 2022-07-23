@@ -25,50 +25,64 @@ import java.util.Collection;
 
 import static java.util.Objects.requireNonNull;
 
-public class DefaultRaftGroupMembersViewOrBuilder
-        implements RaftGroupMembersView, RaftGroupMembersViewBuilder {
+public class DefaultRaftGroupMembersViewOrBuilder implements RaftGroupMembersView, RaftGroupMembersViewBuilder {
 
     private long logIndex;
     private Collection<RaftEndpoint> members;
     private Collection<RaftEndpoint> votingMembers;
     private DefaultRaftGroupMembersViewOrBuilder builder = this;
 
-    @Override public long getLogIndex() {
+    @Override
+    public long getLogIndex() {
         return logIndex;
     }
 
-    @Nonnull @Override public Collection<RaftEndpoint> getMembers() {
+    @Nonnull
+    @Override
+    public Collection<RaftEndpoint> getMembers() {
         return members;
     }
 
-    @Nonnull @Override public Collection<RaftEndpoint> getVotingMembers() {
+    @Nonnull
+    @Override
+    public Collection<RaftEndpoint> getVotingMembers() {
         return votingMembers;
     }
 
-    @Nonnull @Override public RaftGroupMembersViewBuilder setLogIndex(long logIndex) {
+    @Nonnull
+    @Override
+    public RaftGroupMembersViewBuilder setLogIndex(long logIndex) {
         builder.logIndex = logIndex;
         return this;
     }
 
-    @Nonnull @Override public RaftGroupMembersViewBuilder setMembers(@Nonnull Collection<RaftEndpoint> members) {
+    @Nonnull
+    @Override
+    public RaftGroupMembersViewBuilder setMembers(@Nonnull Collection<RaftEndpoint> members) {
         builder.members = members;
         return this;
     }
 
-    @Nonnull @Override public RaftGroupMembersViewBuilder setVotingMembers(@Nonnull Collection<RaftEndpoint> votingMembers) {
+    @Nonnull
+    @Override
+    public RaftGroupMembersViewBuilder setVotingMembers(@Nonnull Collection<RaftEndpoint> votingMembers) {
         builder.votingMembers = votingMembers;
         return this;
     }
 
-    @Nonnull @Override public RaftGroupMembersView build() {
+    @Nonnull
+    @Override
+    public RaftGroupMembersView build() {
         requireNonNull(builder);
         builder = null;
         return this;
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         String header = builder != null ? "RaftGroupMembersViewBuilder" : "RaftGroupMembersView";
-        return header + "{" + "logIndex=" + logIndex + ", members=" + members + ", votingMembers=" + votingMembers + '}';
+        return header + "{" + "logIndex=" + logIndex + ", members=" + members + ", votingMembers=" + votingMembers
+                + '}';
     }
 
 }

@@ -32,20 +32,18 @@ import javax.annotation.Nonnull;
 import static io.microraft.RaftRole.LEADER;
 
 /**
- * Handles an {@link AppendEntriesFailureResponse} which can be sent as a response to a previous append-entries request or an
- * install-snapshot request.
+ * Handles an {@link AppendEntriesFailureResponse} which can be sent as a response to a previous append-entries request
+ * or an install-snapshot request.
  * <p>
  * Decrements {@code nextIndex} of the follower by 1 if the response is valid.
  * <p>
- * See <i>5.3 Log replication</i> section of
- * <i>In Search of an Understandable Consensus Algorithm</i>
- * paper by <i>Diego Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>5.3 Log replication</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
+ * Ongaro</i> and <i>John Ousterhout</i>.
  *
  * @see AppendEntriesRequest
  * @see InstallSnapshotRequest
  */
-public class AppendEntriesFailureResponseHandler
-        extends AbstractResponseHandler<AppendEntriesFailureResponse> {
+public class AppendEntriesFailureResponseHandler extends AbstractResponseHandler<AppendEntriesFailureResponse> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AppendEntriesFailureResponseHandler.class);
 
@@ -53,7 +51,8 @@ public class AppendEntriesFailureResponseHandler
         super(raftNode, response);
     }
 
-    @Override protected void handleResponse(@Nonnull AppendEntriesFailureResponse response) {
+    @Override
+    protected void handleResponse(@Nonnull AppendEntriesFailureResponse response) {
         if (state.role() != LEADER) {
             LOGGER.warn("{} {} is ignored since we are not LEADER.", localEndpointStr(), response);
             return;
@@ -61,8 +60,8 @@ public class AppendEntriesFailureResponseHandler
 
         if (response.getTerm() > state.term()) {
             // If the response term is greater than the local term, update the local term and convert to follower (§5.1)
-            LOGGER.info("{} Switching to term: {} after {} from current term: {}", localEndpointStr(), response.getTerm(),
-                        response, state.term());
+            LOGGER.info("{} Switching to term: {} after {} from current term: {}", localEndpointStr(),
+                    response.getTerm(), response, state.term());
             node.toFollower(response.getTerm());
             return;
         }
@@ -95,13 +94,14 @@ public class AppendEntriesFailureResponseHandler
             // this is the response of the request I have sent for this nextIndex
             nextIndex--;
             if (nextIndex <= matchIndex) {
-                LOGGER.error("{} Cannot decrement next index: {} below match index: {} for follower: {}", localEndpointStr(),
-                             nextIndex, matchIndex, follower.getId());
+                LOGGER.error("{} Cannot decrement next index: {} below match index: {} for follower: {}",
+                        localEndpointStr(), nextIndex, matchIndex, follower.getId());
                 return false;
             }
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(localEndpointStr() + " Updating next index: " + nextIndex + " for follower: " + follower.getId());
+                LOGGER.debug(localEndpointStr() + " Updating next index: " + nextIndex + " for follower: "
+                        + follower.getId());
             }
 
             followerState.nextIndex(nextIndex);

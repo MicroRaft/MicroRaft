@@ -31,14 +31,14 @@ import static java.util.Objects.requireNonNull;
  * <p>
  * If {@link RaftMessage#getSender()} is not a known Raft group member, then the response is ignored.
  */
-public abstract class AbstractResponseHandler<T extends RaftMessage>
-        extends AbstractMessageHandler<T> {
+public abstract class AbstractResponseHandler<T extends RaftMessage> extends AbstractMessageHandler<T> {
 
     AbstractResponseHandler(RaftNodeImpl raftNode, T response) {
         super(raftNode, response);
     }
 
-    @Override protected final void handle(@Nonnull T response) {
+    @Override
+    protected final void handle(@Nonnull T response) {
         requireNonNull(response);
 
         if (!node.state().isKnownMember(response.getSender())) {

@@ -53,7 +53,8 @@ public final class LeaderState {
     }
 
     /**
-     * Add a new follower with the leader's {@code lastLogIndex}. Follower's {@code nextIndex} will be set to {@code lastLogIndex
+     * Add a new follower with the leader's {@code lastLogIndex}. Follower's {@code nextIndex} will be set to
+     * {@code lastLogIndex
      * + 1} and {@code matchIndex} to 0.
      */
     public void add(RaftEndpoint follower, long lastLogIndex) {
@@ -71,8 +72,8 @@ public final class LeaderState {
     }
 
     /**
-     * Returns an array of match indices for all followers. Additionally an empty slot is added at the end of indices array for
-     * leader itself.
+     * Returns an array of match indices for all followers. Additionally an empty slot is added at the end of indices
+     * array for leader itself.
      */
     public long[] matchIndices(Collection<RaftEndpoint> remoteVotingMembers) {
         // Leader index is put to the last index of the array while calculating
@@ -114,7 +115,8 @@ public final class LeaderState {
     }
 
     /**
-     * Returns the query sequence number to be acked by the log replication quorum to execute the currently waiting queries.
+     * Returns the query sequence number to be acked by the log replication quorum to execute the currently waiting
+     * queries.
      */
     public long querySequenceNumber() {
         return queryState.querySequenceNumber();
@@ -138,7 +140,7 @@ public final class LeaderState {
 
     public void flushedLogIndex(long flushedLogIndex) {
         assert flushedLogIndex >= this.flushedLogIndex : "new flushed log index: " + flushedLogIndex
-                                                         + " existing flushed log index: " + this.flushedLogIndex;
+                + " existing flushed log index: " + this.flushedLogIndex;
         this.flushedLogIndex = flushedLogIndex;
     }
 

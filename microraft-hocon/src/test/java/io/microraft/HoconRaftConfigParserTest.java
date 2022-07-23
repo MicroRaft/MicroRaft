@@ -23,15 +23,15 @@ import org.junit.Test;
 import static io.microraft.HoconRaftConfigParser.parseConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class HoconRaftConfigParserTest
-        extends BaseTest {
+public class HoconRaftConfigParserTest extends BaseTest {
 
     @Test
     public void test_parseValidHoconString() {
-        String configString = "raft {\n" + "  leader-election-timeout-millis: 750\n" + "  leader-heartbeat-period-secs: 15\n"
-                + "  leader-heartbeat-timeout-secs: 45\n" + "  append-entries-request-batch-size: 750\n"
-                + "  commit-count-to-take-snapshot: 7500\n" + "  max-pending-log-entry-count: 1500\n"
-                + "  transfer-snapshots-from-followers-enabled: false\n" + "  raft-node-report-publish-period-secs: 20\n" + "}\n";
+        String configString = "raft {\n" + "  leader-election-timeout-millis: 750\n"
+                + "  leader-heartbeat-period-secs: 15\n" + "  leader-heartbeat-timeout-secs: 45\n"
+                + "  append-entries-request-batch-size: 750\n" + "  commit-count-to-take-snapshot: 7500\n"
+                + "  max-pending-log-entry-count: 1500\n" + "  transfer-snapshots-from-followers-enabled: false\n"
+                + "  raft-node-report-publish-period-secs: 20\n" + "}\n";
 
         RaftConfig config = parseConfig(ConfigFactory.parseString(configString));
 

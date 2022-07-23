@@ -115,7 +115,7 @@ public class MajorityFailureTest {
         // or a leader. However, we can still perform a local query with the
         // QueryPolicy.EVENTUAL_CONSISTENCY policy.
         Ordered<String> queryResult = leader
-                .<String>query(SimpleStateMachine.queryLastValue(), QueryPolicy.EVENTUAL_CONSISTENCY, 0).join();
+                .<String> query(SimpleStateMachine.queryLastValue(), QueryPolicy.EVENTUAL_CONSISTENCY, 0).join();
         assertThat(queryResult.getCommitIndex()).isEqualTo(commitIndex1);
         assertThat(queryResult.getResult()).isEqualTo(value);
 

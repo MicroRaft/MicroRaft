@@ -27,17 +27,15 @@ import java.util.Collection;
 /**
  * Raft message for the InstallSnapshot RPC.
  * <p>
- * See <i>7 Log compaction</i> section of
- * <i>In Search of an Understandable Consensus Algorithm</i>
- * paper by <i>Diego Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>7 Log compaction</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
+ * Ongaro</i> and <i>John Ousterhout</i>.
  * <p>
- * Invoked by leader to send chunks of a snapshot to a follower. Chunks are sent in the order defined by the follower and the
- * follower is free to request the chunks in any order.
+ * Invoked by leader to send chunks of a snapshot to a follower. Chunks are sent in the order defined by the follower
+ * and the follower is free to request the chunks in any order.
  *
  * @see InstallSnapshotResponse
  */
-public interface InstallSnapshotRequest
-        extends RaftMessage {
+public interface InstallSnapshotRequest extends RaftMessage {
 
     boolean isSenderLeader();
 
@@ -47,11 +45,14 @@ public interface InstallSnapshotRequest
 
     int getTotalSnapshotChunkCount();
 
-    @Nullable SnapshotChunk getSnapshotChunk();
+    @Nullable
+    SnapshotChunk getSnapshotChunk();
 
-    @Nonnull Collection<RaftEndpoint> getSnapshottedMembers();
+    @Nonnull
+    Collection<RaftEndpoint> getSnapshottedMembers();
 
-    @Nonnull RaftGroupMembersView getGroupMembersView();
+    @Nonnull
+    RaftGroupMembersView getGroupMembersView();
 
     long getQuerySequenceNumber();
 
@@ -60,32 +61,43 @@ public interface InstallSnapshotRequest
     /**
      * The builder interface for {@link InstallSnapshotRequest}.
      */
-    interface InstallSnapshotRequestBuilder
-            extends RaftMessageBuilder<InstallSnapshotRequest> {
+    interface InstallSnapshotRequestBuilder extends RaftMessageBuilder<InstallSnapshotRequest> {
 
-        @Nonnull InstallSnapshotRequestBuilder setGroupId(@Nonnull Object groupId);
+        @Nonnull
+        InstallSnapshotRequestBuilder setGroupId(@Nonnull Object groupId);
 
-        @Nonnull InstallSnapshotRequestBuilder setSender(@Nonnull RaftEndpoint sender);
+        @Nonnull
+        InstallSnapshotRequestBuilder setSender(@Nonnull RaftEndpoint sender);
 
-        @Nonnull InstallSnapshotRequestBuilder setTerm(int term);
+        @Nonnull
+        InstallSnapshotRequestBuilder setTerm(int term);
 
-        @Nonnull InstallSnapshotRequestBuilder setSenderLeader(boolean leader);
+        @Nonnull
+        InstallSnapshotRequestBuilder setSenderLeader(boolean leader);
 
-        @Nonnull InstallSnapshotRequestBuilder setSnapshotTerm(int snapshotTerm);
+        @Nonnull
+        InstallSnapshotRequestBuilder setSnapshotTerm(int snapshotTerm);
 
-        @Nonnull InstallSnapshotRequestBuilder setSnapshotIndex(long snapshotIndex);
+        @Nonnull
+        InstallSnapshotRequestBuilder setSnapshotIndex(long snapshotIndex);
 
-        @Nonnull InstallSnapshotRequestBuilder setTotalSnapshotChunkCount(int totalSnapshotChunkCount);
+        @Nonnull
+        InstallSnapshotRequestBuilder setTotalSnapshotChunkCount(int totalSnapshotChunkCount);
 
-        @Nonnull InstallSnapshotRequestBuilder setSnapshotChunk(@Nullable SnapshotChunk snapshotChunk);
+        @Nonnull
+        InstallSnapshotRequestBuilder setSnapshotChunk(@Nullable SnapshotChunk snapshotChunk);
 
-        @Nonnull InstallSnapshotRequestBuilder setSnapshottedMembers(@Nonnull Collection<RaftEndpoint> snapshottedMembers);
+        @Nonnull
+        InstallSnapshotRequestBuilder setSnapshottedMembers(@Nonnull Collection<RaftEndpoint> snapshottedMembers);
 
-        @Nonnull InstallSnapshotRequestBuilder setGroupMembersView(@Nonnull RaftGroupMembersView groupMembersView);
+        @Nonnull
+        InstallSnapshotRequestBuilder setGroupMembersView(@Nonnull RaftGroupMembersView groupMembersView);
 
-        @Nonnull InstallSnapshotRequestBuilder setQuerySequenceNumber(long querySequenceNumber);
+        @Nonnull
+        InstallSnapshotRequestBuilder setQuerySequenceNumber(long querySequenceNumber);
 
-        @Nonnull InstallSnapshotRequestBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
+        @Nonnull
+        InstallSnapshotRequestBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
 
     }
 

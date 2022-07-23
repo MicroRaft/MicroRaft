@@ -22,12 +22,11 @@ import io.microraft.RaftEndpoint;
 import java.util.Collection;
 
 /**
- * Thrown when a membership change is triggered with an expected group members commit index that doesn't match the current group
- * members commit index in the local state of the Raft group leader. A group members commit index is the Raft log index at which
- * the current Raft group member list is committed.
+ * Thrown when a membership change is triggered with an expected group members commit index that doesn't match the
+ * current group members commit index in the local state of the Raft group leader. A group members commit index is the
+ * Raft log index at which the current Raft group member list is committed.
  */
-public class MismatchingRaftGroupMembersCommitIndexException
-        extends RaftException {
+public class MismatchingRaftGroupMembersCommitIndexException extends RaftException {
     // TODO(basri): find a shorter name
 
     private static final long serialVersionUID = -109570074579015635L;
@@ -49,9 +48,10 @@ public class MismatchingRaftGroupMembersCommitIndexException
         return members;
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return "MismatchingRaftGroupMembersCommitIndexException{leader=" + getLeader() + ", commitIndex=" + commitIndex
-               + ", members=" + members + "}";
+                + ", members=" + members + "}";
     }
 
 }

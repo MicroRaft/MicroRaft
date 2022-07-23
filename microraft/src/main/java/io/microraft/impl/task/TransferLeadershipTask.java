@@ -37,14 +37,13 @@ import static io.microraft.RaftNodeStatus.isTerminal;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
- * Triggers the leadership transfer process for the given Raft endpoint. If the local Raft node is not leader, or there is an
- * ongoing membership change, or the target Raft endpoint is not in the committed raft group members, the leadership transfer
- * process immediately fails.
+ * Triggers the leadership transfer process for the given Raft endpoint. If the local Raft node is not leader, or there
+ * is an ongoing membership change, or the target Raft endpoint is not in the committed raft group members, the
+ * leadership transfer process immediately fails.
  * <p>
  * New appends are temporarily rejected until the leadership transfer process completes.
  */
-public class TransferLeadershipTask
-        implements Runnable {
+public class TransferLeadershipTask implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TransferLeadershipTask.class);
 
@@ -58,7 +57,8 @@ public class TransferLeadershipTask
         this.future = future;
     }
 
-    @Override public void run() {
+    @Override
+    public void run() {
         RaftState state = node.state();
 
         if (checkLeadershipTransfer(state)) {
@@ -66,7 +66,8 @@ public class TransferLeadershipTask
         }
 
         if (node.getLocalEndpoint().equals(targetEndpoint)) {
-            LOGGER.warn("{} I am already the leader... There is no leadership transfer to myself.", node.localEndpointStr());
+            LOGGER.warn("{} I am already the leader... There is no leadership transfer to myself.",
+                    node.localEndpointStr());
             future.completeNull(state.commitIndex());
             return;
         }
@@ -85,7 +86,7 @@ public class TransferLeadershipTask
 
         if (!node.getCommittedMembers().getVotingMembers().contains(targetEndpoint)) {
             future.fail(new IllegalArgumentException("Cannot transfer leadership to " + targetEndpoint
-                                                     + " because it is not in the committed voting group members!"));
+                    + " because it is not in the committed voting group members!"));
             return true;
         }
 
@@ -117,7 +118,7 @@ public class TransferLeadershipTask
         LeadershipTransferState leadershipTransferState = state.leadershipTransferState();
         if (leadershipTransferState == null || !leadershipTransferState.endpoint().equals(targetEndpoint)) {
             LOGGER.error("{} no leadership transfer state for target endpoint: {}", node.localEndpointStr(),
-                         targetEndpoint.getId());
+                    targetEndpoint.getId());
             return;
         }
 
@@ -133,7 +134,7 @@ public class TransferLeadershipTask
 
         if (state.commitIndex() < state.log().lastLogOrSnapshotIndex()) {
             LOGGER.warn("{} waiting until all appended entries to be committed before transferring leadership to {}",
-                        node.localEndpointStr(), targetEndpoint.getId());
+                    node.localEndpointStr(), targetEndpoint.getId());
             scheduleRetry(state);
             return;
         }
@@ -148,25 +149,20 @@ public class TransferLeadershipTask
         node.sendAppendEntriesRequest(targetEndpoint);
 
         BaseLogEntry entry = state.log().lastLogOrSnapshotEntry();
-        RaftMessage request = node.getModelFactory()
-                                  .createTriggerLeaderElectionRequestBuilder()
-                                  .setGroupId(node.getGroupId())
-                                  .setSender(node.getLocalEndpoint())
-                                  .setTerm(state.term())
-                                  .setLastLogTerm(entry.getTerm())
-                                  .setLastLogIndex(entry.getIndex())
-                                  .build();
+        RaftMessage request = node.getModelFactory().createTriggerLeaderElectionRequestBuilder()
+                .setGroupId(node.getGroupId()).setSender(node.getLocalEndpoint()).setTerm(state.term())
+                .setLastLogTerm(entry.getTerm()).setLastLogIndex(entry.getIndex()).build();
         node.send(targetEndpoint, request);
         scheduleRetry(state);
     }
 
     private void scheduleRetry(RaftState state) {
         try {
-            node.getExecutor()
-                .schedule(() -> transferLeadership(state), node.getConfig().getLeaderHeartbeatPeriodSecs(), SECONDS);
+            node.getExecutor().schedule(() -> transferLeadership(state),
+                    node.getConfig().getLeaderHeartbeatPeriodSecs(), SECONDS);
         } catch (Throwable t) {
-            LOGGER.error(
-                    node.localEndpointStr() + " failed to schedule retry of leadership transfer to " + targetEndpoint.getId(), t);
+            LOGGER.error(node.localEndpointStr() + " failed to schedule retry of leadership transfer to "
+                    + targetEndpoint.getId(), t);
         }
     }
 

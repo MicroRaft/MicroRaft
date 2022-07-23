@@ -26,14 +26,14 @@ import io.microraft.impl.state.LeaderState;
  * <p>
  * Silently returns if the Raft node is no longer the leader.
  */
-public class LeaderFlushTask
-        extends RaftNodeStatusAwareTask {
+public class LeaderFlushTask extends RaftNodeStatusAwareTask {
 
     public LeaderFlushTask(RaftNodeImpl node) {
         super(node);
     }
 
-    @Override protected void doRun() {
+    @Override
+    protected void doRun() {
         RaftLog log = state.log();
         log.flush();
 

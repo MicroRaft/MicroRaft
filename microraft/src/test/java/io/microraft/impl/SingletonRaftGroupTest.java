@@ -80,6 +80,11 @@ public class SingletonRaftGroupTest extends BaseTest {
         assertThat(leader).isNotNull();
         assertThat(leader.getLeaderEndpoint()).isEqualTo(leader.getLocalEndpoint());
         assertThat(leader.getTerm().getTerm()).isGreaterThan(0);
+        List<RaftNodeReport> reports = group.getRaftNodeReports(leader.getLocalEndpoint());
+        assertThat(reports).hasSize(3);
+        assertThat(reports.get(0).getRole()).isEqualTo(RaftRole.FOLLOWER);
+        assertThat(reports.get(1).getRole()).isEqualTo(RaftRole.CANDIDATE);
+        assertThat(reports.get(2).getRole()).isEqualTo(RaftRole.LEADER);
 
         allTheTime(() -> assertThat(leader.getLeaderEndpoint()).isEqualTo(leader.getLocalEndpoint()),
                 2 * config.getLeaderHeartbeatTimeoutSecs());

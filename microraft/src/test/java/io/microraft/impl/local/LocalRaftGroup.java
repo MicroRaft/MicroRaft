@@ -165,7 +165,8 @@ public final class LocalRaftGroup {
             SimpleStateMachine stateMachine = new SimpleStateMachine(newTermEntryEnabled);
             RaftNodeBuilder nodeBuilder = RaftNode.newBuilder().setGroupId("default").setLocalEndpoint(endpoint)
                     .setInitialGroupMembers(initialMembers, initialVotingMembers).setConfig(config)
-                    .setTransport(transport).setStateMachine(stateMachine);
+                    .setTransport(transport).setStateMachine(stateMachine)
+                    .setRaftNodeReportListener(new RecordingRaftNodeReportListener());
 
             if (raftStoreFactory != null) {
                 nodeBuilder.setStore(raftStoreFactory.apply(endpoint, config));
@@ -431,6 +432,20 @@ public final class LocalRaftGroup {
         }
 
         throw new IllegalArgumentException("Unknown endpoint: " + endpoint);
+    }
+
+    /**
+     * Returns all RaftNodeReport objects reported by the given Raft endpoint
+     *
+     * @param endpoint
+     *            the Raft endpoint to get the RaftNodeReport objects
+     *
+     * @return all RaftNodeReport objects reported by the given Raft endpoint
+     */
+    public List<RaftNodeReport> getRaftNodeReports(RaftEndpoint endpoint) {
+        requireNonNull(endpoint);
+        return ((RecordingRaftNodeReportListener) nodeContexts.get(endpoint).node.getRaftNodeReportListener())
+                .getReports();
     }
 
     /**
@@ -818,6 +833,22 @@ public final class LocalRaftGroup {
 
         boolean isExecutorShutdown() {
             return executor.getExecutor().isShutdown();
+        }
+    }
+
+    private static class RecordingRaftNodeReportListener implements RaftNodeReportListener {
+
+        private List<RaftNodeReport> reports = new ArrayList<>();
+
+        public synchronized List<RaftNodeReport> getReports() {
+            List<RaftNodeReport> reports = new ArrayList<>();
+            reports.addAll(this.reports);
+            return reports;
+        }
+
+        @Override
+        public synchronized void accept(RaftNodeReport report) {
+            reports.add(report);
         }
     }
 

@@ -535,6 +535,10 @@ public final class RaftNodeImpl implements RaftNode {
         return future;
     }
 
+    public RaftNodeReportListener getRaftNodeReportListener() {
+        return raftNodeReportListener;
+    }
+
     private void initTasks() {
         if (!(store instanceof NopRaftStore)) {
             leaderFlushTask = new LeaderFlushTask(this);

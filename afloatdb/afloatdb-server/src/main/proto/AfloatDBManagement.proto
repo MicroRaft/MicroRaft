@@ -1,0 +1,154 @@
+syntax = "proto3";
+
+package io.afloatdb.management.proto;
+
+import "RaftEndpoint.proto";
+
+option java_multiple_files = true;
+
+// This file contains the Protobufs definitions for the management operations
+// on AfloatDB clusters, such as adding/removing servers, querying RaftNode 
+// reports.
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/report/RaftGroupMembers.java
+message RaftGroupMembersProto {
+    int64 logIndex = 1;
+    repeated io.afloatdb.raft.proto.RaftEndpointProto member = 2;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/report/RaftTerm.java
+message RaftTermProto {
+    int32 term = 1;
+    io.afloatdb.raft.proto.RaftEndpointProto leaderEndpoint = 2;
+    io.afloatdb.raft.proto.RaftEndpointProto votedEndpoint = 3;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftRole.java
+enum RaftRoleProto {
+    LEADER = 0;
+    CANDIDATE = 1;
+    FOLLOWER = 2;
+    LEARNER = 3;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/report/RaftNodeReport.java
+enum RaftNodeReportReasonProto {
+    STATUS_CHANGE = 0;
+    ROLE_CHANGE = 1;
+    GROUP_MEMBERS_CHANGE = 2;
+    TAKE_SNAPSHOT = 3;
+    INSTALL_SNAPSHOT = 4;
+    PERIODIC = 5;
+    API_CALL = 6;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNodeStatus.java
+enum RaftNodeStatusProto {
+    INITIAL = 0;
+    ACTIVE = 1;
+    UPDATING_RAFT_GROUP_MEMBER_LIST = 2;
+    TERMINATED = 3;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/report/RaftLogStats.java
+message RaftLogStatsProto {
+    int64 commitIndex = 1;
+    int64 lastLogOrSnapshotTerm = 2;
+    int64 lastLogOrSnapshotIndex = 3;
+    int64 snapshotTerm = 4;
+    int64 snapshotIndex = 5;
+    int32 takeSnapshotCount = 6;
+    int32 installSnapshotCount = 7;
+    map<string, int64> followerMatchIndex = 8;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/report/RaftNodeReport.java
+message RaftNodeReportProto {
+    RaftNodeReportReasonProto reason = 1;
+    string groupId = 2;
+    io.afloatdb.raft.proto.RaftEndpointProto endpoint = 3;
+    RaftGroupMembersProto initialMembers = 4;
+    RaftGroupMembersProto committedMembers = 5;
+    RaftGroupMembersProto effectiveMembers = 6;
+    RaftRoleProto role = 7;
+    RaftNodeStatusProto status = 8;
+    RaftTermProto term = 9;
+    RaftLogStatsProto log = 10;
+}
+
+// The request/response messages below are for managing AfloatDB clusters by
+// querying states and changing group memberships.
+
+message GetRaftNodeReportRequest {
+}
+
+message GetRaftNodeReportResponse {
+    // RaftNodeReport fetched from the RaftNode object running in the contacted
+    // AfloatDB instance.
+    RaftNodeReportProto report = 1;
+    // RaftEndpoint -> address pairs known by a contacted AfloatDB instance.
+    map<string, string> endpointAddress = 2;
+}
+
+message AddRaftEndpointAddressRequest {
+    // RaftEndpoint for which the address is going to be specified.
+    io.afloatdb.raft.proto.RaftEndpointProto endpoint = 1;
+
+    // Address of the RaftEndpoint which will be used by AfloatDB instances to
+    // communicate for that RaftEndpoint.
+    string address = 2;
+}
+
+message AddRaftEndpointAddressResponse {
+}
+
+message AddRaftEndpointRequest {
+    io.afloatdb.raft.proto.RaftEndpointProto endpoint = 1;
+    bool votingMember = 2;
+    int64 groupMembersCommitIndex = 3;
+}
+
+message AddRaftEndpointResponse {
+    int64 groupMembersCommitIndex = 1;
+}
+
+message RemoveRaftEndpointRequest {
+    io.afloatdb.raft.proto.RaftEndpointProto endpoint = 1;
+    int64 groupMembersCommitIndex = 2;
+}
+
+message RemoveRaftEndpointResponse {
+    int64 groupMembersCommitIndex = 1;
+}
+
+
+service ManagementRequestHandler {
+    // Fetches the RaftNodeReport object from the RaftNode object running
+    // inside an AfloatDB server
+    rpc getRaftNodeReport (GetRaftNodeReportRequest) returns (GetRaftNodeReportResponse) {
+    }
+
+    // Adds the given RaftEndpoint -> address mapping to a AfloatDB server.
+    // Before adding a new AfloatDB server is added to an AfloatDB cluster, its
+    // RaftEndpoint's address must be added to all running AfloatDB servers.
+    rpc addRaftEndpointAddress (AddRaftEndpointAddressRequest) returns (AddRaftEndpointAddressResponse) {
+    }
+
+    // Adds a new server to the AfloatDB cluster. The new AfloatDB
+    // server is represented by the RaftEndpoint present in the request.
+    // Once this API call succeeds, the given AfloatDB server is added to the 
+    // cluster, i.e., it will be contacted by the other servers. 
+    // If an exception or an uxpected failure occurs, the caller should get 
+    // the RaftNodeReport via #getRaftNodeReport() API above and check if the 
+    // given server has been added to the cluster or not, and retry if needed.
+    rpc addRaftEndpoint (AddRaftEndpointRequest) returns (AddRaftEndpointResponse) {
+    }
+
+    // Removes the given server from the AfloatDB cluster. Once this call
+    // succeeds, the server is removed from the cluster. 
+    // If an exception or an uxpected failure occurs, the caller should get the 
+    // RaftNodeReport via #getRaftNodeReport() API above and check if the given
+    // server has been removed from the cluster or not, and retry if needed.
+    rpc removeRaftEndpoint (RemoveRaftEndpointRequest) returns (RemoveRaftEndpointResponse) {
+    }
+}

@@ -1,0 +1,15 @@
+<Configuration status="ERROR">
+    <Appenders>
+        <Console name="CONSOLE" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} %level - [%-8c{1}] %msg%n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="INFO">
+            <AppenderRef ref="CONSOLE"/>
+        </Root>
+        <Logger name="io.afloatdb" level="INFO"/>
+        <Logger name="io.microraft" level="INFO"/>
+        <Logger name="com.netflix.governator" level="OFF"/>
+    </Loggers>
+</Configuration>

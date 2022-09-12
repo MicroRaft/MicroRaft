@@ -1,0 +1,269 @@
+syntax = "proto3";
+
+package io.afloatdb.raft.proto;
+
+import "RaftEndpoint.proto";
+import "KV.proto";
+
+option java_multiple_files = true;
+
+// This file contains the Protobufs definitions for MicroRaft's model and
+// network abstractions and the key-value operations of AfloatDB's key-value
+// API.
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/groupop/UpdateRaftGroupMembersOp.java
+message UpdateRaftGroupMembersOpProto {
+    repeated RaftEndpointProto member = 1;
+    repeated RaftEndpointProto votingMember = 2;
+    RaftEndpointProto endpoint = 3;
+
+    // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/MembershipChangeMode.java
+    enum MembershipChangeModeProto {
+        ADD_LEARNER = 0;
+        ADD_OR_PROMOTE_TO_FOLLOWER = 1;
+        REMOVE_MEMBER = 2;
+    }
+
+    MembershipChangeModeProto mode = 4;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/statemachine/StateMachine.java#L120
+message StartNewTermOpProto {
+}
+
+
+message PutOp {
+    string key = 1;
+    io.afloatdb.kv.proto.Val val = 2;
+    bool putIfAbsent = 3;
+}
+
+message PutResult {
+    io.afloatdb.kv.proto.Val oldVal = 1;
+}
+
+message GetOp {
+    string key = 1;
+    int64 minCommitIndex = 2;
+}
+
+message GetResult {
+    io.afloatdb.kv.proto.Val val = 1;
+}
+
+message RemoveOp {
+    string key = 1;
+    io.afloatdb.kv.proto.Val val = 2;
+}
+
+message RemoveResult {
+    bool success = 1;
+    io.afloatdb.kv.proto.Val oldVal = 2;
+}
+
+message ReplaceOp {
+    string key = 1;
+    io.afloatdb.kv.proto.Val oldVal = 2;
+    io.afloatdb.kv.proto.Val newVal = 3;
+}
+
+message ReplaceResult {
+    bool success = 1;
+}
+
+message SizeOp {
+    int64 minCommitIndex = 1;
+}
+
+message SizeResult {
+    int32 size = 1;
+}
+
+message ClearOp {
+}
+
+message ClearResult {
+    int32 size = 1;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/log/LogEntry.java
+message LogEntryProto {
+    int32 term = 1;
+    int64 index = 2;
+    oneof operation {
+        UpdateRaftGroupMembersOpProto updateRaftGroupMembersOp = 3;
+        StartNewTermOpProto startNewTermOp = 4;
+        PutOp putOp = 5;
+        GetOp getOp = 6;
+        RemoveOp removeOp = 7;
+        ReplaceOp replaceOp = 8;
+        SizeOp sizeOp = 9;
+        ClearOp clearOp = 10;
+    }
+}
+
+message KVEntry {
+    string key = 1;
+    io.afloatdb.kv.proto.Val val = 2;
+}
+
+message KVSnapshotChunkData {
+    repeated KVEntry entry = 1;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/log/RaftGroupMembersView.java
+message RaftGroupMembersViewProto {
+    int64 logIndex = 1;
+    repeated RaftEndpointProto member = 2;
+    repeated RaftEndpointProto votingMember = 3;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/log/SnapshotChunk.java
+message KVSnapshotChunk {
+    int32 term = 1;
+    int64 index = 2;
+    KVSnapshotChunkData operation = 3;
+    int32 snapshotChunkIndex = 4;
+    int32 snapshotChunkCount = 5;
+    RaftGroupMembersViewProto groupMembersView = 6;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/log/SnapshotEntry.java
+message SnapshotEntryProto {
+    int32 term = 1;
+    int64 index = 2;
+    repeated KVSnapshotChunk snapshotChunk = 3;
+    RaftGroupMembersViewProto groupMembersView = 4;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/VoteRequest.java
+message VoteRequestProto {
+    string groupId = 1;
+    RaftEndpointProto sender = 2;
+    int32 term = 3;
+    int32 lastLogTerm = 4;
+    int64 lastLogIndex = 5;
+    bool sticky = 6;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/VoteResponse.java
+message VoteResponseProto {
+    string groupId = 1;
+    RaftEndpointProto sender = 2;
+    int32 term = 3;
+    bool granted = 4;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/AppendEntriesRequest.java
+message AppendEntriesRequestProto {
+    string groupId = 1;
+    RaftEndpointProto sender = 2;
+    int32 term = 3;
+    int32 prevLogTerm = 4;
+    int64 prevLogIndex = 5;
+    int64 commitIndex = 6;
+    repeated LogEntryProto entry = 7;
+    int64 querySequenceNumber = 8;
+    int64 flowControlSequenceNumber = 9;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/AppendEntriesSuccessResponse.java
+message AppendEntriesSuccessResponseProto {
+    string groupId = 1;
+    RaftEndpointProto sender = 2;
+    int32 term = 3;
+    int64 lastLogIndex = 4;
+    int64 querySequenceNumber = 5;
+    int64 flowControlSequenceNumber = 6;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/AppendEntriesFailureResponse.java
+message AppendEntriesFailureResponseProto {
+    string groupId = 1;
+    RaftEndpointProto sender = 2;
+    int32 term = 3;
+    int64 expectedNextIndex = 4;
+    int64 querySequenceNumber = 5;
+    int64 flowControlSequenceNumber = 6;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/InstallSnapshotRequest.java
+message InstallSnapshotRequestProto {
+    string groupId = 1;
+    RaftEndpointProto sender = 2;
+    int32 term = 3;
+    bool senderLeader = 4;
+    int32 snapshotTerm = 5;
+    int64 snapshotIndex = 6;
+    int32 totalSnapshotChunkCount = 7;
+    KVSnapshotChunk snapshotChunk = 8;
+    repeated RaftEndpointProto snapshottedMember = 9;
+    RaftGroupMembersViewProto groupMembersView = 10;
+    int64 querySequenceNumber = 12;
+    int64 flowControlSequenceNumber = 13;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/InstallSnapshotResponse.java
+message InstallSnapshotResponseProto {
+    string groupId = 1;
+    RaftEndpointProto sender = 2;
+    int32 term = 3;
+    int64 snapshotIndex = 4;
+    int32 requestedSnapshotChunkIndex = 5;
+    int64 querySequenceNumber = 6;
+    int64 flowControlSequenceNumber = 7;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/PreVoteRequest.java
+message PreVoteRequestProto {
+    string groupId = 1;
+    RaftEndpointProto sender = 2;
+    int32 term = 3;
+    int32 lastLogTerm = 4;
+    int64 lastLogIndex = 5;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/PreVoteResponse.java
+message PreVoteResponseProto {
+    string groupId = 1;
+    RaftEndpointProto sender = 2;
+    int32 term = 3;
+    bool granted = 4;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/TriggerLeaderElectionRequest.java
+message TriggerLeaderElectionRequestProto {
+    string groupId = 1;
+    RaftEndpointProto sender = 2;
+    int32 term = 3;
+    int32 lastLogTerm = 4;
+    int64 lastLogIndex = 5;
+}
+
+// https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/RaftMessage.java
+message RaftMessageRequest {
+    oneof message {
+        VoteRequestProto voteRequest = 1;
+        VoteResponseProto voteResponse = 2;
+        AppendEntriesRequestProto appendEntriesRequest = 3;
+        AppendEntriesSuccessResponseProto appendEntriesSuccessResponse = 4;
+        AppendEntriesFailureResponseProto appendEntriesFailureResponse = 5;
+        InstallSnapshotRequestProto installSnapshotRequest = 6;
+        InstallSnapshotResponseProto installSnapshotResponse = 7;
+        PreVoteRequestProto preVoteRequest = 8;
+        PreVoteResponseProto preVoteResponse = 9;
+        TriggerLeaderElectionRequestProto triggerLeaderElectionRequest = 10;
+    }
+}
+
+message RaftMessageResponse {
+}
+
+// Service definition for the Raft communication between AfloatDB servers.
+service RaftMessageHandler {
+    // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNode.java#L225
+    rpc handle (stream RaftMessageRequest) returns (RaftMessageResponse) {
+    }
+}
+
+

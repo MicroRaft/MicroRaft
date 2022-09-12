@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+package io.afloatdb.kv.proto;
+
+option java_multiple_files = true;
+
+message Val {
+    oneof val {
+        string str = 1;
+        int64 num = 2;
+        bytes byteArray = 3;
+    }
+}
+
+message PutRequest {
+    string key = 1;
+    Val val = 2;
+    bool putIfAbsent = 3;
+}
+
+message PutResult {
+    Val oldVal = 1;
+}
+
+message SetRequest {
+    string key = 1;
+    Val val = 2;
+}
+
+message SetResult {
+    bool oldValExisted = 1;
+}
+
+message GetRequest {
+    string key = 1;
+    int64 minCommitIndex = 2;
+}
+
+message GetResult {
+    Val val = 1;
+}
+
+message ContainsRequest {
+    string key = 1;
+    Val val = 2;
+    int64 minCommitIndex = 3;
+}
+
+message ContainsResult {
+    bool success = 1;
+}
+
+message DeleteRequest {
+    string key = 1;
+}
+
+message DeleteResult {
+    bool success = 1;
+}
+
+message RemoveRequest {
+    string key = 1;
+    Val val = 2;
+}
+
+message RemoveResult {
+    bool success = 1;
+    Val oldVal = 2;
+}
+
+message ReplaceRequest {
+    string key = 1;
+    Val oldVal = 2;
+    Val newVal = 3;
+}
+
+message ReplaceResult {
+    bool success = 1;
+}
+
+message SizeRequest {
+    int64 minCommitIndex = 1;
+}
+
+message SizeResult {
+    int32 size = 1;
+}
+
+message ClearRequest {
+}
+
+message ClearResult {
+    int32 size = 1;
+}
+
+message KVResponse {
+    int64 commitIndex = 1;
+    oneof result {
+        PutResult putResult = 2;
+        SetResult setResult = 3;
+        GetResult getResult = 4;
+        ContainsResult containsResult = 5;
+        DeleteResult deleteResult = 6;
+        RemoveResult removeResult = 7;
+        ReplaceResult replaceResult = 8;
+        SizeResult sizeResult = 9;
+        ClearResult clearResult = 10;
+    };
+}
+
+service KVRequestHandler {
+    rpc put (PutRequest) returns (KVResponse);
+    rpc set (SetRequest) returns (KVResponse);
+    rpc get (GetRequest) returns (KVResponse);
+    rpc contains (ContainsRequest) returns (KVResponse);
+    rpc delete (DeleteRequest) returns (KVResponse);
+    rpc remove (RemoveRequest) returns (KVResponse);
+    rpc replace (ReplaceRequest) returns (KVResponse);
+    rpc size (SizeRequest) returns (KVResponse);
+    rpc clear (ClearRequest) returns (KVResponse);
+}

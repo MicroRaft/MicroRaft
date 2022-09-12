@@ -68,6 +68,8 @@ parsing HOCON and YAML files to start Raft nodes.
 `microraft-metrics` module contains the integration with the Micrometer library
 for publishing MicroRaft metrics to external systems.
 
+`afloatdb` contains a simple in-memory distributed KV store project built with MicroRaft and gRPC.
+
 `site-src` contains the source files of [microraft.io](https://microraft.io).
 
 

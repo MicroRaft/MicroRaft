@@ -15,7 +15,7 @@
 
     <properties>
         <root.dir>${project.parent.basedir}</root.dir>
-        <snakeyaml.version>1.26</snakeyaml.version>
+        <snakeyaml.version>1.32</snakeyaml.version>
     </properties>
 
     <dependencies>

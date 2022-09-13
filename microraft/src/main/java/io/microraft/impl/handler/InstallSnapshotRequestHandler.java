@@ -144,7 +144,6 @@ public class InstallSnapshotRequestHandler extends AbstractMessageHandler<Instal
             SnapshotEntryBuilder snapshotEntryBuilder = node.getModelFactory().createSnapshotEntryBuilder();
             node.installSnapshot(snapshotChunkCollector.buildSnapshotEntry(snapshotEntryBuilder));
             sendAppendEntriesSuccessResponse(request);
-            // TODO(basri): maybe flush here? no need for safety but does it help to perf?
         } else {
             requestMissingSnapshotChunks(request, snapshotChunkCollector);
         }

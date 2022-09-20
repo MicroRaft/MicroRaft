@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 
+import java.time.Clock;
+
 import static io.microraft.RaftRole.LEADER;
 
 /**
@@ -49,9 +51,12 @@ import static io.microraft.RaftRole.LEADER;
 public class AppendEntriesSuccessResponseHandler extends AbstractResponseHandler<AppendEntriesSuccessResponse> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AppendEntriesSuccessResponseHandler.class);
+    private final Clock clock;
 
-    public AppendEntriesSuccessResponseHandler(RaftNodeImpl raftNode, AppendEntriesSuccessResponse response) {
+    public AppendEntriesSuccessResponseHandler(RaftNodeImpl raftNode, AppendEntriesSuccessResponse response,
+            Clock clock) {
         super(raftNode, response);
+        this.clock = clock;
     }
 
     @Override
@@ -102,7 +107,7 @@ public class AppendEntriesSuccessResponseHandler extends AbstractResponseHandler
         long matchIndex = followerState.matchIndex();
         long followerLastLogIndex = response.getLastLogIndex();
 
-        followerState.responseReceived(response.getFlowControlSequenceNumber());
+        followerState.responseReceived(response.getFlowControlSequenceNumber(), clock.millis());
 
         if (followerLastLogIndex > matchIndex) {
             long newNextIndex = followerLastLogIndex + 1;

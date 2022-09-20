@@ -18,19 +18,21 @@
 package io.microraft.impl.state;
 
 import io.microraft.RaftEndpoint;
-import io.microraft.impl.util.RandomPicker;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import static io.microraft.impl.local.LocalRaftEndpoint.newEndpoint;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class LeaderStateTest {
+    private static final int TIME = 12345;
+    private final Random random = new Random(0);
 
     private LeaderState state;
     private List<RaftEndpoint> remoteEndpoints;
@@ -40,7 +42,7 @@ public class LeaderStateTest {
     public void setUp() {
         lastLogIndex = 123;
         remoteEndpoints = asList(newEndpoint(), newEndpoint(), newEndpoint(), newEndpoint());
-        state = new LeaderState(remoteEndpoints, lastLogIndex);
+        state = new LeaderState(remoteEndpoints, lastLogIndex, TIME);
     }
 
     @Test
@@ -64,7 +66,7 @@ public class LeaderStateTest {
     public void test_nextIndex() {
         Map<RaftEndpoint, Integer> indices = new HashMap<>();
         for (RaftEndpoint endpoint : remoteEndpoints) {
-            int index = 1 + RandomPicker.getRandomInt(100);
+            int index = 1 + random.nextInt(100);
             state.getFollowerState(endpoint).nextIndex(index);
             indices.put(endpoint, index);
         }
@@ -79,7 +81,7 @@ public class LeaderStateTest {
     public void test_matchIndex() {
         Map<RaftEndpoint, Long> indices = new HashMap<>();
         for (RaftEndpoint endpoint : remoteEndpoints) {
-            long index = 1 + RandomPicker.getRandomInt(100);
+            long index = 1 + random.nextInt(100);
             state.getFollowerState(endpoint).matchIndex(index);
             indices.put(endpoint, index);
         }

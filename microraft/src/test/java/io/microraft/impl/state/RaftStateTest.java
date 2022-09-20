@@ -44,6 +44,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RaftStateTest {
+    private static final long TIME = 12345;
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
@@ -131,7 +132,7 @@ public class RaftStateTest {
 
     @Test
     public void toFollower_fromLeader() {
-        state.toLeader();
+        state.toLeader(TIME);
 
         int term = 23;
         state.toFollower(term);
@@ -172,7 +173,7 @@ public class RaftStateTest {
         log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(term).setIndex(3).build());
         long lastLogIndex = log.lastLogOrSnapshotIndex();
 
-        state.toLeader();
+        state.toLeader(TIME);
 
         assertThat(state.role()).isEqualTo(LEADER);
         assertThat(state.leader()).isEqualTo(localEndpoint);
@@ -251,7 +252,7 @@ public class RaftStateTest {
 
         List<RaftEndpoint> newMemberList = new ArrayList<>(initialEndpoints);
         newMemberList.add(localEndpoint);
-        state.updateGroupMembers(1, newMemberList, initialEndpoints);
+        state.updateGroupMembers(1, newMemberList, initialEndpoints, TIME);
 
         assertThat(state.remoteMembers()).isEqualTo(initialEndpoints);
         assertThat(state.remoteVotingMembers()).isEqualTo(initialEndpoints);
@@ -281,7 +282,7 @@ public class RaftStateTest {
 
         List<RaftEndpoint> newMemberList = new ArrayList<>(initialEndpoints);
         newMemberList.add(localEndpoint);
-        state.updateGroupMembers(1, newMemberList, newMemberList);
+        state.updateGroupMembers(1, newMemberList, newMemberList, TIME);
 
         assertThat(state.effectiveGroupMembers().getVotingMembersList()).isEqualTo(newMemberList);
         assertThat(state.votingMemberCount()).isEqualTo(initialEndpoints.size() + 1);
@@ -296,7 +297,7 @@ public class RaftStateTest {
 
         List<RaftEndpoint> newMemberList = new ArrayList<>(initialEndpoints);
         newMemberList.add(localEndpoint);
-        state.updateGroupMembers(1, newMemberList, initialEndpoints);
+        state.updateGroupMembers(1, newMemberList, initialEndpoints, TIME);
 
         state.revertGroupMembers();
 
@@ -311,7 +312,7 @@ public class RaftStateTest {
 
         List<RaftEndpoint> newMemberList = new ArrayList<>(initialEndpoints);
         newMemberList.add(localEndpoint);
-        state.updateGroupMembers(1, newMemberList, newMemberList);
+        state.updateGroupMembers(1, newMemberList, newMemberList, TIME);
 
         state.toCandidate();
 

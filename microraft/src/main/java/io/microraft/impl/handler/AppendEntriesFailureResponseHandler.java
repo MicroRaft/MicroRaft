@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 
+import java.time.Clock;
+
 import static io.microraft.RaftRole.LEADER;
 
 /**
@@ -47,8 +49,12 @@ public class AppendEntriesFailureResponseHandler extends AbstractResponseHandler
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AppendEntriesFailureResponseHandler.class);
 
-    public AppendEntriesFailureResponseHandler(RaftNodeImpl raftNode, AppendEntriesFailureResponse response) {
+    private final Clock clock;
+
+    public AppendEntriesFailureResponseHandler(RaftNodeImpl raftNode, AppendEntriesFailureResponse response,
+            Clock clock) {
         super(raftNode, response);
+        this.clock = clock;
     }
 
     @Override
@@ -88,7 +94,7 @@ public class AppendEntriesFailureResponseHandler extends AbstractResponseHandler
         long nextIndex = followerState.nextIndex();
         long matchIndex = followerState.matchIndex();
 
-        followerState.responseReceived(response.getFlowControlSequenceNumber());
+        followerState.responseReceived(response.getFlowControlSequenceNumber(), clock.millis());
 
         if (response.getExpectedNextIndex() == nextIndex) {
             // this is the response of the request I have sent for this nextIndex

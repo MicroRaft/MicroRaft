@@ -98,6 +98,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -118,7 +119,6 @@ import static io.microraft.RaftRole.LEADER;
 import static io.microraft.RaftRole.LEARNER;
 import static io.microraft.impl.log.RaftLog.getLogCapacity;
 import static io.microraft.impl.log.RaftLog.getMaxLogEntryCountToKeepAfterSnapshot;
-import static io.microraft.impl.util.RandomPicker.getRandomInt;
 import static io.microraft.model.log.SnapshotEntry.isNonInitial;
 import static java.lang.Math.min;
 import static java.util.Arrays.sort;
@@ -141,7 +141,7 @@ import static java.util.stream.Collectors.toMap;
 public final class RaftNodeImpl implements RaftNode {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RaftNode.class);
-    private static final long LEADER_ELECTION_TIMEOUT_NOISE_MILLIS = 100;
+    private static final int LEADER_ELECTION_TIMEOUT_NOISE_MILLIS = 100;
     private static final long LEADER_BACKOFF_RESET_TASK_PERIOD_MILLIS = 250;
     private static final int MIN_BACKOFF_ROUNDS = 4;
 
@@ -156,6 +156,9 @@ public final class RaftNodeImpl implements RaftNode {
     private final RaftNodeReportListener raftNodeReportListener;
     private final String localEndpointStr;
     private final Long2ObjectHashMap<OrderedFuture> futures = new Long2ObjectHashMap<>();
+
+    private final Random random;
+    private final Clock clock;
 
     private final long leaderHeartbeatTimeoutMillis;
     private final int commitCountToTakeSnapshot;
@@ -179,7 +182,8 @@ public final class RaftNodeImpl implements RaftNode {
     @SuppressWarnings("checkstyle:executablestatementcount")
     RaftNodeImpl(Object groupId, RaftEndpoint localEndpoint, RaftGroupMembersView initialGroupMembers,
             RaftConfig config, RaftNodeExecutor executor, StateMachine stateMachine, Transport transport,
-            RaftModelFactory modelFactory, RaftStore store, RaftNodeReportListener raftNodeReportListener) {
+            RaftModelFactory modelFactory, RaftStore store, RaftNodeReportListener raftNodeReportListener,
+            Random random, Clock clock) {
         requireNonNull(localEndpoint);
         this.groupId = requireNonNull(groupId);
         this.transport = requireNonNull(transport);
@@ -198,13 +202,15 @@ public final class RaftNodeImpl implements RaftNode {
         int logCapacity = getLogCapacity(commitCountToTakeSnapshot, maxPendingLogEntryCount);
         this.state = RaftState.create(groupId, localEndpoint, initialGroupMembers, logCapacity, store);
         this.maxBackoffRounds = getMaxBackoffRounds(config);
+        this.random = requireNonNull(random);
+        this.clock = requireNonNull(clock);
         populateLifecycleAwareComponents();
     }
 
     @SuppressWarnings("checkstyle:executablestatementcount")
     RaftNodeImpl(Object groupId, RestoredRaftState restoredState, RaftConfig config, RaftNodeExecutor executor,
             StateMachine stateMachine, Transport transport, RaftModelFactory modelFactory, RaftStore store,
-            RaftNodeReportListener raftNodeReportListener) {
+            RaftNodeReportListener raftNodeReportListener, Random random, Clock clock) {
         requireNonNull(store);
         this.groupId = requireNonNull(groupId);
         this.transport = requireNonNull(transport);
@@ -223,6 +229,8 @@ public final class RaftNodeImpl implements RaftNode {
         int logCapacity = getLogCapacity(commitCountToTakeSnapshot, maxPendingLogEntryCount);
         this.state = RaftState.restore(groupId, restoredState, logCapacity, store);
         this.maxBackoffRounds = getMaxBackoffRounds(config);
+        this.random = requireNonNull(random);
+        this.clock = requireNonNull(clock);
         populateLifecycleAwareComponents();
     }
 
@@ -631,13 +639,13 @@ public final class RaftNodeImpl implements RaftNode {
         if (message instanceof AppendEntriesRequest) {
             handler = new AppendEntriesRequestHandler(this, (AppendEntriesRequest) message);
         } else if (message instanceof AppendEntriesSuccessResponse) {
-            handler = new AppendEntriesSuccessResponseHandler(this, (AppendEntriesSuccessResponse) message);
+            handler = new AppendEntriesSuccessResponseHandler(this, (AppendEntriesSuccessResponse) message, clock);
         } else if (message instanceof AppendEntriesFailureResponse) {
-            handler = new AppendEntriesFailureResponseHandler(this, (AppendEntriesFailureResponse) message);
+            handler = new AppendEntriesFailureResponseHandler(this, (AppendEntriesFailureResponse) message, clock);
         } else if (message instanceof InstallSnapshotRequest) {
             handler = new InstallSnapshotRequestHandler(this, (InstallSnapshotRequest) message);
         } else if (message instanceof InstallSnapshotResponse) {
-            handler = new InstallSnapshotResponseHandler(this, (InstallSnapshotResponse) message);
+            handler = new InstallSnapshotResponseHandler(this, (InstallSnapshotResponse) message, clock);
         } else if (message instanceof VoteRequest) {
             handler = new VoteRequestHandler(this, (VoteRequest) message);
         } else if (message instanceof VoteResponse) {
@@ -869,7 +877,7 @@ public final class RaftNodeImpl implements RaftNode {
      * Updates the last leader heartbeat timestamp to now
      */
     public void leaderHeartbeatReceived() {
-        lastLeaderHeartbeatTimestamp = Math.max(lastLeaderHeartbeatTimestamp, System.currentTimeMillis());
+        lastLeaderHeartbeatTimestamp = Math.max(lastLeaderHeartbeatTimestamp, clock.millis());
     }
 
     /**
@@ -1062,11 +1070,11 @@ public final class RaftNodeImpl implements RaftNode {
      * @param votingMembers
      *            the list of voting Raft endpoints in the Raft group (must be a subset of the "members" parameter)
      *
-     * @see RaftState#updateGroupMembers(long, Collection, Collection)
+     * @see RaftState#updateGroupMembers(long, Collection, Collection, long)
      */
     public void updateGroupMembers(long logIndex, Collection<RaftEndpoint> members,
             Collection<RaftEndpoint> votingMembers) {
-        state.updateGroupMembers(logIndex, members, votingMembers);
+        state.updateGroupMembers(logIndex, members, votingMembers, clock.millis());
         publishRaftNodeReport(RaftNodeReportReason.GROUP_MEMBERS_CHANGE);
     }
 
@@ -1141,7 +1149,7 @@ public final class RaftNodeImpl implements RaftNode {
      * </ul>
      */
     public void toLeader() {
-        state.toLeader();
+        state.toLeader(clock.millis());
         appendNewTermEntry();
         broadcastAppendEntriesRequest();
         publishRaftNodeReport(RaftNodeReportReason.ROLE_CHANGE);
@@ -1294,7 +1302,7 @@ public final class RaftNodeImpl implements RaftNode {
             return Collections.singletonList(state.localEndpoint());
         }
 
-        long now = System.currentTimeMillis();
+        long now = clock.millis();
         List<RaftEndpoint> snapshottedMembers = new ArrayList<>();
         snapshottedMembers.add(state.localEndpoint());
         for (Entry<RaftEndpoint, FollowerState> e : leaderState.getFollowerStates().entrySet()) {
@@ -1397,15 +1405,14 @@ public final class RaftNodeImpl implements RaftNode {
     }
 
     /**
-     * Returns a the leader election timeout with a small and randomised extension.
+     * Returns the leader election timeout with a small and randomised extension.
      *
-     * @return a the leader election timeout with a small and randomised extension.
+     * @return the leader election timeout with a small and randomised extension.
      *
      * @see RaftConfig#getLeaderElectionTimeoutMillis()
      */
     public long getLeaderElectionTimeoutMs() {
-        return getRandomInt((int) config.getLeaderElectionTimeoutMillis(),
-                (int) (config.getLeaderElectionTimeoutMillis() + LEADER_ELECTION_TIMEOUT_NOISE_MILLIS));
+        return ((int) config.getLeaderElectionTimeoutMillis()) + random.nextInt(LEADER_ELECTION_TIMEOUT_NOISE_MILLIS);
     }
 
     /**
@@ -1585,11 +1592,11 @@ public final class RaftNodeImpl implements RaftNode {
     }
 
     public boolean isLeaderHeartbeatTimeoutElapsed() {
-        return isLeaderHeartbeatTimeoutElapsed(lastLeaderHeartbeatTimestamp, System.currentTimeMillis());
+        return isLeaderHeartbeatTimeoutElapsed(lastLeaderHeartbeatTimestamp, clock.millis());
     }
 
     private boolean isLeaderHeartbeatTimeoutElapsed(long timestamp) {
-        return isLeaderHeartbeatTimeoutElapsed(timestamp, System.currentTimeMillis());
+        return isLeaderHeartbeatTimeoutElapsed(timestamp, clock.millis());
     }
 
     private boolean isLeaderHeartbeatTimeoutElapsed(long timestamp, long now) {

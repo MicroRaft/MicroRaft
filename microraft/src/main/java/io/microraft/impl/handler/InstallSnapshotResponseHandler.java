@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 
+import java.time.Clock;
+
 import static io.microraft.RaftRole.FOLLOWER;
 import static io.microraft.RaftRole.LEADER;
 import static io.microraft.RaftRole.LEARNER;
@@ -54,9 +56,11 @@ import static io.microraft.RaftRole.LEARNER;
 public class InstallSnapshotResponseHandler extends AbstractResponseHandler<InstallSnapshotResponse> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstallSnapshotResponseHandler.class);
+    private final Clock clock;
 
-    public InstallSnapshotResponseHandler(RaftNodeImpl raftNode, InstallSnapshotResponse response) {
+    public InstallSnapshotResponseHandler(RaftNodeImpl raftNode, InstallSnapshotResponse response, Clock clock) {
         super(raftNode, response);
+        this.clock = clock;
     }
 
     @Override
@@ -85,7 +89,7 @@ public class InstallSnapshotResponseHandler extends AbstractResponseHandler<Inst
         if (followerState != null) {
             if (response.getFlowControlSequenceNumber() == 0) {
                 followerState.resetRequestBackoff();
-            } else if (!followerState.responseReceived(response.getFlowControlSequenceNumber())) {
+            } else if (!followerState.responseReceived(response.getFlowControlSequenceNumber(), clock.millis())) {
                 return;
             }
         }

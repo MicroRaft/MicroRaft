@@ -119,13 +119,13 @@ public final class RaftState {
 
     /**
      * Candidate state maintained during the pre-voting step. Becomes null when pre-voting ends by one of
-     * {@link #toCandidate()}, {@link #toLeader()} or {@link #toFollower(int)} methods is called.
+     * {@link #toCandidate()}, {@link #toLeader(long)} or {@link #toFollower(int)} methods is called.
      */
     private CandidateState preCandidateState;
 
     /**
      * Candidate state maintained during the leader election step. Initialized when this Raft node becomes a candidate
-     * via a {@link #toCandidate()} call and becomes null when the voting ends when {@link #toLeader()} or
+     * via a {@link #toCandidate()} call and becomes null when the voting ends when {@link #toLeader(long)} or
      * {@link #toFollower(int)} is called.
      */
     private CandidateState candidateState;
@@ -503,12 +503,13 @@ public final class RaftState {
      * Switches this Raft node to leader role. Sets local endpoint as the known leader. Clears (pre)candidate states and
      * initializes leader state for the current members.
      */
-    public void toLeader() {
+    public void toLeader(long currentTimeMillis) {
         role = LEADER;
         leader(localEndpoint);
         preCandidateState = null;
         candidateState = null;
-        leaderState = new LeaderState(effectiveGroupMembers.remoteMembers(), log.lastLogOrSnapshotIndex());
+        leaderState = new LeaderState(effectiveGroupMembers.remoteMembers(), log.lastLogOrSnapshotIndex(),
+                currentTimeMillis);
     }
 
     /**
@@ -553,9 +554,13 @@ public final class RaftState {
      *            log index of membership change
      * @param members
      *            latest applied members
+     * @param votingMembers
+     *            latest applied voting members
+     * @param currentTimeMillis
+     *            the current time since epoch
      */
     public void updateGroupMembers(long logIndex, Collection<RaftEndpoint> members,
-            Collection<RaftEndpoint> votingMembers) {
+            Collection<RaftEndpoint> votingMembers, long currentTimeMillis) {
         assert committedGroupMembers == effectiveGroupMembers : "Cannot update group members to: " + members
                 + " at log index: " + logIndex + " because effective group members: " + effectiveGroupMembers
                 + " is different than committed group members: " + committedGroupMembers;
@@ -570,7 +575,7 @@ public final class RaftState {
 
         if (leaderState != null) {
             members.stream().filter(member -> !committedGroupMembers.isKnownMember(member))
-                    .forEach(member -> leaderState.add(member, log.lastLogOrSnapshotIndex()));
+                    .forEach(member -> leaderState.add(member, log.lastLogOrSnapshotIndex(), currentTimeMillis));
 
             committedGroupMembers.remoteMembers().stream().filter(member -> !members.contains(member))
                     .forEach(member -> leaderState.remove(member));

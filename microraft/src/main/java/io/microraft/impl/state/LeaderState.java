@@ -47,8 +47,9 @@ public final class LeaderState {
 
     private long flushedLogIndex;
 
-    LeaderState(Collection<RaftEndpoint> remoteMembers, long lastLogIndex) {
-        remoteMembers.forEach(follower -> followerStates.put(follower, new FollowerState(0L, lastLogIndex + 1)));
+    LeaderState(Collection<RaftEndpoint> remoteMembers, long lastLogIndex, long currentTimeMillis) {
+        remoteMembers.forEach(
+                follower -> followerStates.put(follower, new FollowerState(0L, lastLogIndex + 1, currentTimeMillis)));
         flushedLogIndex = lastLogIndex;
     }
 
@@ -57,9 +58,9 @@ public final class LeaderState {
      * {@code lastLogIndex
      * + 1} and {@code matchIndex} to 0.
      */
-    public void add(RaftEndpoint follower, long lastLogIndex) {
+    public void add(RaftEndpoint follower, long lastLogIndex, long currentTimeMillis) {
         assert !followerStates.containsKey(follower) : "Already known follower " + follower;
-        followerStates.put(follower, new FollowerState(0L, lastLogIndex + 1));
+        followerStates.put(follower, new FollowerState(0L, lastLogIndex + 1, currentTimeMillis));
     }
 
     /**

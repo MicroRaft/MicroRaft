@@ -40,7 +40,9 @@ import io.microraft.statemachine.StateMachine;
 import io.microraft.transport.Transport;
 
 import javax.annotation.Nonnull;
+import java.time.Clock;
 import java.util.Collection;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 
@@ -577,6 +579,26 @@ public interface RaftNode {
          * @see RaftNodeReportListener
          */
         RaftNodeBuilder setRaftNodeReportListener(@Nonnull RaftNodeReportListener listener);
+
+        /**
+         * Sets the Random instance used in parts of the Raft algorithm.
+         *
+         * @param random
+         *            the Random instance to be used by this RaftNode.
+         *
+         * @return the builder object for fluent calls
+         */
+        RaftNodeBuilder setRandom(Random random);
+
+        /**
+         * Sets the Clock instance used by parts of the Raft algorithm.
+         *
+         * @param clock
+         *            the Clock instance to be used by this RaftNode.
+         *
+         * @return the builder object for fluent calls
+         */
+        RaftNodeBuilder setClock(Clock clock);
 
         /**
          * Builds and returns the RaftNode instance with the given settings.

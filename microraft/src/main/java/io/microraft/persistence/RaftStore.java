@@ -130,7 +130,7 @@ public interface RaftStore {
      * <p>
      * A snapshot is persisted with at least 1 chunk. The number of chunks in a snapshot is provided via
      * {@link SnapshotChunk#getSnapshotChunkCount()}. A snapshot is considered to be complete when all of its chunks are
-     * provided to this method and {@link #flush()} could be called afterwards.
+     * provided to this method in any order, and {@link #flush()} could be called afterwards.
      * <p>
      * After a snapshot is persisted at <em>index=i</em> and {@link #flush()} is called, the log entry at
      * <em>index=i</em>, all the preceding log entries, and all the preceding snapshots are no longer needed and can be

@@ -49,12 +49,8 @@ public class AppendEntriesFailureResponseHandler extends AbstractResponseHandler
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AppendEntriesFailureResponseHandler.class);
 
-    private final Clock clock;
-
-    public AppendEntriesFailureResponseHandler(RaftNodeImpl raftNode, AppendEntriesFailureResponse response,
-            Clock clock) {
+    public AppendEntriesFailureResponseHandler(RaftNodeImpl raftNode, AppendEntriesFailureResponse response) {
         super(raftNode, response);
-        this.clock = clock;
     }
 
     @Override
@@ -94,7 +90,7 @@ public class AppendEntriesFailureResponseHandler extends AbstractResponseHandler
         long nextIndex = followerState.nextIndex();
         long matchIndex = followerState.matchIndex();
 
-        followerState.responseReceived(response.getFlowControlSequenceNumber(), clock.millis());
+        followerState.responseReceived(response.getFlowControlSequenceNumber(), node.getClock().millis());
 
         if (response.getExpectedNextIndex() == nextIndex) {
             // this is the response of the request I have sent for this nextIndex

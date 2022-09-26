@@ -56,11 +56,9 @@ import static io.microraft.RaftRole.LEARNER;
 public class InstallSnapshotResponseHandler extends AbstractResponseHandler<InstallSnapshotResponse> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InstallSnapshotResponseHandler.class);
-    private final Clock clock;
 
-    public InstallSnapshotResponseHandler(RaftNodeImpl raftNode, InstallSnapshotResponse response, Clock clock) {
+    public InstallSnapshotResponseHandler(RaftNodeImpl raftNode, InstallSnapshotResponse response) {
         super(raftNode, response);
-        this.clock = clock;
     }
 
     @Override
@@ -89,7 +87,7 @@ public class InstallSnapshotResponseHandler extends AbstractResponseHandler<Inst
         if (followerState != null) {
             if (response.getFlowControlSequenceNumber() == 0) {
                 followerState.resetRequestBackoff();
-            } else if (!followerState.responseReceived(response.getFlowControlSequenceNumber(), clock.millis())) {
+            } else if (!followerState.responseReceived(response.getFlowControlSequenceNumber(), node.getClock().millis())) {
                 return;
             }
         }

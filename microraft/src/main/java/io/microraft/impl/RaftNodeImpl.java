@@ -639,13 +639,13 @@ public final class RaftNodeImpl implements RaftNode {
         if (message instanceof AppendEntriesRequest) {
             handler = new AppendEntriesRequestHandler(this, (AppendEntriesRequest) message);
         } else if (message instanceof AppendEntriesSuccessResponse) {
-            handler = new AppendEntriesSuccessResponseHandler(this, (AppendEntriesSuccessResponse) message, clock);
+            handler = new AppendEntriesSuccessResponseHandler(this, (AppendEntriesSuccessResponse) message);
         } else if (message instanceof AppendEntriesFailureResponse) {
-            handler = new AppendEntriesFailureResponseHandler(this, (AppendEntriesFailureResponse) message, clock);
+            handler = new AppendEntriesFailureResponseHandler(this, (AppendEntriesFailureResponse) message);
         } else if (message instanceof InstallSnapshotRequest) {
             handler = new InstallSnapshotRequestHandler(this, (InstallSnapshotRequest) message);
         } else if (message instanceof InstallSnapshotResponse) {
-            handler = new InstallSnapshotResponseHandler(this, (InstallSnapshotResponse) message, clock);
+            handler = new InstallSnapshotResponseHandler(this, (InstallSnapshotResponse) message);
         } else if (message instanceof VoteRequest) {
             handler = new VoteRequestHandler(this, (VoteRequest) message);
         } else if (message instanceof VoteResponse) {
@@ -1745,6 +1745,10 @@ public final class RaftNodeImpl implements RaftNode {
         } else {
             tryAdvanceCommitIndex();
         }
+    }
+
+    public Clock getClock() {
+        return clock;
     }
 
 }

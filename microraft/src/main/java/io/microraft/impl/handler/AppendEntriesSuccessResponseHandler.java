@@ -51,12 +51,9 @@ import static io.microraft.RaftRole.LEADER;
 public class AppendEntriesSuccessResponseHandler extends AbstractResponseHandler<AppendEntriesSuccessResponse> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AppendEntriesSuccessResponseHandler.class);
-    private final Clock clock;
 
-    public AppendEntriesSuccessResponseHandler(RaftNodeImpl raftNode, AppendEntriesSuccessResponse response,
-            Clock clock) {
+    public AppendEntriesSuccessResponseHandler(RaftNodeImpl raftNode, AppendEntriesSuccessResponse response) {
         super(raftNode, response);
-        this.clock = clock;
     }
 
     @Override
@@ -107,7 +104,7 @@ public class AppendEntriesSuccessResponseHandler extends AbstractResponseHandler
         long matchIndex = followerState.matchIndex();
         long followerLastLogIndex = response.getLastLogIndex();
 
-        followerState.responseReceived(response.getFlowControlSequenceNumber(), clock.millis());
+        followerState.responseReceived(response.getFlowControlSequenceNumber(), node.getClock().millis());
 
         if (followerLastLogIndex > matchIndex) {
             long newNextIndex = followerLastLogIndex + 1;

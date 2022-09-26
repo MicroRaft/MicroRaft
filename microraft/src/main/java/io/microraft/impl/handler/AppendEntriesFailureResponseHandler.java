@@ -29,8 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 
-import java.time.Clock;
-
 import static io.microraft.RaftRole.LEADER;
 
 /**

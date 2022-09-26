@@ -35,8 +35,10 @@ import io.microraft.statemachine.StateMachine;
 import io.microraft.transport.Transport;
 
 import javax.annotation.Nonnull;
+import java.time.Clock;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Random;
 
 import static io.microraft.RaftConfig.DEFAULT_RAFT_CONFIG;
 import static io.microraft.report.RaftGroupMembers.MAX_LEARNER_COUNT;
@@ -60,6 +62,8 @@ public class RaftNodeBuilderImpl implements RaftNodeBuilder {
     };
     private RaftStore store = new NopRaftStore();
     private RaftModelFactory modelFactory = new DefaultRaftModelFactory();
+    private Random random = new Random();
+    private Clock clock = Clock.systemUTC();
     private boolean done;
 
     @Nonnull
@@ -167,6 +171,20 @@ public class RaftNodeBuilderImpl implements RaftNodeBuilder {
 
     @Nonnull
     @Override
+    public RaftNodeBuilder setRandom(@Nonnull Random random) {
+        this.random = requireNonNull(random);
+        return this;
+    }
+
+    @Nonnull
+    @Override
+    public RaftNodeBuilder setClock(@Nonnull Clock clock) {
+        this.clock = requireNonNull(clock);
+        return this;
+    }
+
+    @Nonnull
+    @Override
     public RaftNode build() {
         if (done) {
             throw new IllegalStateException("Raft node is already built!");
@@ -184,13 +202,13 @@ public class RaftNodeBuilderImpl implements RaftNodeBuilder {
         done = true;
         if (restoredState != null) {
             return new RaftNodeImpl(groupId, restoredState, config, executor, stateMachine, transport, modelFactory,
-                    store, listener);
+                    store, listener, random, clock);
         } else {
             // this groupMembers object does not hit network or disk.
             RaftGroupMembersView groupMembers = new DefaultRaftGroupMembersViewOrBuilder().setLogIndex(0)
                     .setMembers(initialGroupMembers).setVotingMembers(initialVotingGroupMembers).build();
             return new RaftNodeImpl(groupId, localEndpoint, groupMembers, config, executor, stateMachine, transport,
-                    modelFactory, store, listener);
+                    modelFactory, store, listener, random, clock);
         }
     }
 

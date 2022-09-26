@@ -5,8 +5,9 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class FollowerStateTest {
+    private static final long TIME = 12345;
 
-    private final FollowerState followerState = new FollowerState(0, 1);
+    private final FollowerState followerState = new FollowerState(0, 1, TIME);
 
     @Test
     public void testFirstBackoffRound() {
@@ -20,7 +21,7 @@ public class FollowerStateTest {
     @Test
     public void testValidResponseReceivedOnFirstBackoff() {
         long flowControlSeqNum = followerState.setRequestBackoff(1, 2);
-        boolean success = followerState.responseReceived(flowControlSeqNum);
+        boolean success = followerState.responseReceived(flowControlSeqNum, TIME);
 
         assertThat(success).isTrue();
         assertThat(followerState.flowControlSequenceNumber()).isEqualTo(flowControlSeqNum);
@@ -30,7 +31,7 @@ public class FollowerStateTest {
     @Test
     public void testInvalidResponseReceivedOnFirstBackoff() {
         long flowControlSeqNum = followerState.setRequestBackoff(1, 2);
-        boolean success = followerState.responseReceived(flowControlSeqNum + 1);
+        boolean success = followerState.responseReceived(flowControlSeqNum + 1, TIME);
 
         assertThat(success).isFalse();
         assertThat(followerState.flowControlSequenceNumber()).isEqualTo(flowControlSeqNum);
@@ -56,7 +57,7 @@ public class FollowerStateTest {
         long flowControlSeqNum2 = followerState.setRequestBackoff(1, 2);
         assertThat(flowControlSeqNum2).isGreaterThan(flowControlSeqNum1);
 
-        boolean success = followerState.responseReceived(flowControlSeqNum1);
+        boolean success = followerState.responseReceived(flowControlSeqNum1, TIME);
 
         assertThat(success).isFalse();
         assertThat(followerState.flowControlSequenceNumber()).isEqualTo(flowControlSeqNum2);
@@ -81,7 +82,7 @@ public class FollowerStateTest {
         followerState.completeBackoffRound();
 
         long flowControlSeqNum = followerState.setRequestBackoff(1, 2);
-        boolean success = followerState.responseReceived(flowControlSeqNum);
+        boolean success = followerState.responseReceived(flowControlSeqNum, TIME);
 
         assertThat(success).isTrue();
         assertThat(followerState.flowControlSequenceNumber()).isEqualTo(flowControlSeqNum);
@@ -94,7 +95,7 @@ public class FollowerStateTest {
         followerState.completeBackoffRound();
 
         long flowControlSeqNum = followerState.setRequestBackoff(1, 2);
-        boolean success = followerState.responseReceived(flowControlSeqNum + 1);
+        boolean success = followerState.responseReceived(flowControlSeqNum + 1, TIME);
 
         assertThat(success).isFalse();
         assertThat(followerState.flowControlSequenceNumber()).isEqualTo(flowControlSeqNum);
@@ -129,7 +130,7 @@ public class FollowerStateTest {
         long flowControlSeqNum2 = followerState.setRequestBackoff(1, 2);
         assertThat(flowControlSeqNum2).isGreaterThan(flowControlSeqNum1);
 
-        boolean success = followerState.responseReceived(flowControlSeqNum1);
+        boolean success = followerState.responseReceived(flowControlSeqNum1, TIME);
 
         assertThat(success).isFalse();
         assertThat(followerState.flowControlSequenceNumber()).isEqualTo(flowControlSeqNum2);

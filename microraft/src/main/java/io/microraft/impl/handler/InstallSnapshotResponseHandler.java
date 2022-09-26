@@ -85,7 +85,7 @@ public class InstallSnapshotResponseHandler extends AbstractResponseHandler<Inst
         if (followerState != null) {
             if (response.getFlowControlSequenceNumber() == 0) {
                 followerState.resetRequestBackoff();
-            } else if (!followerState.responseReceived(response.getFlowControlSequenceNumber())) {
+            } else if (!followerState.responseReceived(response.getFlowControlSequenceNumber(), node.getClock().millis())) {
                 return;
             }
         }

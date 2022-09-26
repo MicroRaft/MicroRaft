@@ -54,10 +54,10 @@ public final class FollowerState {
      */
     private long flowControlSequenceNumber;
 
-    FollowerState(long matchIndex, long nextIndex) {
+    FollowerState(long matchIndex, long nextIndex, long responseTimestamp) {
         this.matchIndex = matchIndex;
         this.nextIndex = nextIndex;
-        this.responseTimestamp = System.currentTimeMillis();
+        this.responseTimestamp = responseTimestamp;
     }
 
     /**
@@ -127,8 +127,8 @@ public final class FollowerState {
      * received flow control sequence number is equal to the last sent flow sequence number, the internal request
      * backoff state is also reset.
      */
-    public boolean responseReceived(long flowControlSequenceNumber) {
-        responseTimestamp = Math.max(responseTimestamp, System.currentTimeMillis());
+    public boolean responseReceived(long flowControlSequenceNumber, long currentTimeMillis) {
+        responseTimestamp = Math.max(responseTimestamp, currentTimeMillis);
         boolean success = this.flowControlSequenceNumber == flowControlSequenceNumber;
         if (success) {
             resetRequestBackoff();

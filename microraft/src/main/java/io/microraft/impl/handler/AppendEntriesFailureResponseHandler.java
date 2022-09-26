@@ -88,7 +88,7 @@ public class AppendEntriesFailureResponseHandler extends AbstractResponseHandler
         long nextIndex = followerState.nextIndex();
         long matchIndex = followerState.matchIndex();
 
-        followerState.responseReceived(response.getFlowControlSequenceNumber());
+        followerState.responseReceived(response.getFlowControlSequenceNumber(), node.getClock().millis());
 
         if (response.getExpectedNextIndex() == nextIndex) {
             // this is the response of the request I have sent for this nextIndex

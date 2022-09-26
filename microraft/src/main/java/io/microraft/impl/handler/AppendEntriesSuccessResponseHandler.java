@@ -102,7 +102,7 @@ public class AppendEntriesSuccessResponseHandler extends AbstractResponseHandler
         long matchIndex = followerState.matchIndex();
         long followerLastLogIndex = response.getLastLogIndex();
 
-        followerState.responseReceived(response.getFlowControlSequenceNumber());
+        followerState.responseReceived(response.getFlowControlSequenceNumber(), node.getClock().millis());
 
         if (followerLastLogIndex > matchIndex) {
             long newNextIndex = followerLastLogIndex + 1;

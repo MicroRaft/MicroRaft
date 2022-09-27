@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class LeaderStateTest {
     private static final int TIME = 12345;
-    private final Random random = new Random(0);
+    private final Random random = new Random();
 
     private LeaderState state;
     private List<RaftEndpoint> remoteEndpoints;

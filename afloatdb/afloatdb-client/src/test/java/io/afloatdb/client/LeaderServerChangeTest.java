@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Random;
 
 import static com.typesafe.config.ConfigFactory.load;
 import static io.afloatdb.utils.AfloatDBTestUtils.CONFIG_1;
@@ -25,7 +26,6 @@ import static io.afloatdb.utils.AfloatDBTestUtils.CONFIG_3;
 import static io.afloatdb.utils.AfloatDBTestUtils.getAnyFollower;
 import static io.afloatdb.utils.AfloatDBTestUtils.getRaftNode;
 import static io.afloatdb.utils.AfloatDBTestUtils.waitUntilLeaderElected;
-import static io.microraft.impl.util.RandomPicker.getRandomInt;
 import static io.microraft.test.util.AssertionUtils.eventually;
 import static io.microraft.test.util.AssertionUtils.sleepMillis;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,13 +37,15 @@ public class LeaderServerChangeTest extends BaseTest {
     private static AfloatDBClient client;
     private static KV kv;
 
+    private final Random random = new Random();
+
     @Before
     public void init() {
         servers.add(AfloatDB.bootstrap(CONFIG_1));
         servers.add(AfloatDB.bootstrap(CONFIG_2));
         servers.add(AfloatDB.bootstrap(CONFIG_3));
 
-        String serverAddress = servers.get(getRandomInt(servers.size())).getConfig().getLocalEndpointConfig()
+        String serverAddress = servers.get(random.nextInt(servers.size())).getConfig().getLocalEndpointConfig()
                 .getAddress();
         Config config = ConfigFactory.parseString("afloatdb.client.server-address: \"" + serverAddress + "\"")
                 .withFallback(load("client.conf"));

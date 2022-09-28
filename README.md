@@ -1,5 +1,5 @@
 
-[![](https://jitci.com/gh/MicroRaft/MicroRaft/svg)](https://jitci.com/gh/MicroRaft/MicroRaft) [![Integration](license-apache-2.svg)](https://github.com/MicroRaft/MicroRaft/blob/master/LICENSE)
+[![Java CI with Maven](https://github.com/MicroRaft/MicroRaft/actions/workflows/maven.yml/badge.svg)](https://github.com/MicroRaft/MicroRaft/actions/workflows/maven.yml) [![](https://jitci.com/gh/MicroRaft/MicroRaft/svg)](https://jitci.com/gh/MicroRaft/MicroRaft) [![Integration](license-apache-2.svg)](https://github.com/MicroRaft/MicroRaft/blob/master/LICENSE)
 
 
 ![](microraft.io/src/img/microraft-logo.png)

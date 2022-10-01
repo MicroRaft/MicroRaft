@@ -53,14 +53,14 @@
 
         <dependency>
             <groupId>io.afloatdb</groupId>
-            <artifactId>afloatdb</artifactId>
+            <artifactId>afloatdb-server</artifactId>
             <version>0.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.afloatdb</groupId>
-            <artifactId>afloatdb</artifactId>
+            <artifactId>afloatdb-server</artifactId>
             <version>0.1-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>

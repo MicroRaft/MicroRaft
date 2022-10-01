@@ -65,7 +65,7 @@
         <vmHeapSettings>-Xms1G -Xmx2G</vmHeapSettings>
         <extraVmSettings/>
 
-        <redirect.test.output.to.file>true</redirect.test.output.to.file>
+        <redirect.test.output.to.file>false</redirect.test.output.to.file>
 
         <slf4j.api.version>1.7.36</slf4j.api.version>
         <log4j.version>2.17.2</log4j.version>

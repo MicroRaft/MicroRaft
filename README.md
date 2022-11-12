@@ -56,6 +56,9 @@ See [the User Guide](https://microraft.io/docs/setup).
 Pull the latest code with `gh repo clone MicroRaft/MicroRaft`
 and build with `cd MicroRaft && ./mvnw clean package`.
 
+## Use in your own project
+
+Go to https://jitpack.io/#MicroRaft/MicroRaft/ for depending to the latest released JAR.
 
 ## Source Code Layout 
 

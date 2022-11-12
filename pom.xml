@@ -81,8 +81,8 @@
         <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
         <maven.javadoc.plugin.version>3.2.0</maven.javadoc.plugin.version>
         <maven.jacoco.plugin.version>0.8.5</maven.jacoco.plugin.version>
-        <maven.checkstyle.plugin.version>3.1.1</maven.checkstyle.plugin.version>
-        <maven.formatter.plugin.version>2.18.0</maven.formatter.plugin.version>
+        <maven.checkstyle.plugin.version>3.2.0</maven.checkstyle.plugin.version>
+        <maven.formatter.plugin.version>2.21.0</maven.formatter.plugin.version>
     </properties>
 
     <dependencies>
@@ -229,10 +229,17 @@
                 <groupId>net.revelc.code.formatter</groupId>
                 <artifactId>formatter-maven-plugin</artifactId>
                 <version>${maven.formatter.plugin.version}</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <compilerSource>${jdk.version}</compilerSource>
+                    <compilerTargetPlatform>${jdk.version}</compilerTargetPlatform>
+                    <configFile>${maven.multiModuleProjectDirectory}/tools/formatter.xml</configFile>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
                             <goal>format</goal>
+                            <!-- <goal>validate</goal> -->
                         </goals>
                     </execution>
                 </executions>
@@ -291,6 +298,10 @@
                             <includeTestSourceDirectory>true</includeTestSourceDirectory>
                             <enableRulesSummary>true</enableRulesSummary>
                             <propertyExpansion>basedir=${root.dir}</propertyExpansion>
+                            <sourceDirectories>
+                                <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+                                <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
+                            </sourceDirectories>
                         </configuration>
                     </plugin>
                 </plugins>

@@ -16,8 +16,11 @@
 
 package io.afloatdb.internal.di;
 
+import static com.google.inject.name.Names.named;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
+import io.afloatdb.admin.proto.AdminServiceGrpc.AdminServiceImplBase;
 import io.afloatdb.config.AfloatDBConfig;
 import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
 import io.afloatdb.internal.lifecycle.impl.ProcessTerminationLoggerImpl;
@@ -28,26 +31,22 @@ import io.afloatdb.internal.raft.impl.RaftNodeSupplier;
 import io.afloatdb.internal.raft.impl.model.ProtoRaftModelFactory;
 import io.afloatdb.internal.rpc.RaftRpcService;
 import io.afloatdb.internal.rpc.RpcServer;
-import io.afloatdb.internal.rpc.impl.KVRequestHandler;
-import io.afloatdb.internal.rpc.impl.ManagementRequestHandler;
-import io.afloatdb.internal.rpc.impl.RaftMessageHandler;
+import io.afloatdb.internal.rpc.impl.AdminService;
+import io.afloatdb.internal.rpc.impl.KVService;
 import io.afloatdb.internal.rpc.impl.RaftRpcServiceImpl;
+import io.afloatdb.internal.rpc.impl.RaftService;
 import io.afloatdb.internal.rpc.impl.RpcServerImpl;
-import io.afloatdb.kv.proto.KVRequestHandlerGrpc.KVRequestHandlerImplBase;
-import io.afloatdb.management.proto.ManagementRequestHandlerGrpc.ManagementRequestHandlerImplBase;
-import io.afloatdb.raft.proto.RaftMessageHandlerGrpc.RaftMessageHandlerImplBase;
+import io.afloatdb.kv.proto.KVServiceGrpc.KVServiceImplBase;
+import io.afloatdb.raft.proto.RaftServiceGrpc.RaftServiceImplBase;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.statemachine.StateMachine;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
-
-import static com.google.inject.name.Names.named;
 
 public class AfloatDBModule extends AbstractModule {
 
@@ -88,11 +87,11 @@ public class AfloatDBModule extends AbstractModule {
         bind(RaftNodeReportSupplier.class).to(AfloatDBClusterEndpointsPublisher.class);
         bind(StateMachine.class).to(KVStoreStateMachine.class);
         bind(RaftModelFactory.class).to(ProtoRaftModelFactory.class);
-        bind(RaftMessageHandlerImplBase.class).to(RaftMessageHandler.class);
+        bind(RaftServiceImplBase.class).to(RaftService.class);
         bind(RpcServer.class).to(RpcServerImpl.class);
         bind(RaftRpcService.class).to(RaftRpcServiceImpl.class);
-        bind(KVRequestHandlerImplBase.class).to(KVRequestHandler.class);
-        bind(ManagementRequestHandlerImplBase.class).to(ManagementRequestHandler.class);
+        bind(KVServiceImplBase.class).to(KVService.class);
+        bind(AdminServiceImplBase.class).to(AdminService.class);
 
         bind(new TypeLiteral<Supplier<RaftNode>>() {
         }).annotatedWith(named(RAFT_NODE_SUPPLIER_KEY)).to(RaftNodeSupplier.class);

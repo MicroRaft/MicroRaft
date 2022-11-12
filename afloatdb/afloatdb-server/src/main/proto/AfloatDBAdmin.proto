@@ -1,10 +1,13 @@
 syntax = "proto3";
 
-package io.afloatdb.management.proto;
+package io.afloatdb.admin.proto;
 
 import "RaftEndpoint.proto";
 
 option java_multiple_files = true;
+
+// protoc --go_out=. --go-grpc_out=. AfloatDBAdmin.proto
+option go_package = "io.microraft/afloatdb/admin";
 
 // This file contains the Protobufs definitions for the management operations
 // on AfloatDB clusters, such as adding/removing servers, querying RaftNode 
@@ -121,8 +124,16 @@ message RemoveRaftEndpointResponse {
     int64 groupMembersCommitIndex = 1;
 }
 
+message TakeSnapshotRequest {
+}
 
-service ManagementRequestHandler {
+message TakeSnapshotResponse {
+    // RaftNodeReport fetched from the RaftNode object running in the contacted
+    // AfloatDB instance.
+    RaftNodeReportProto report = 1;
+}
+
+service AdminService {
     // Fetches the RaftNodeReport object from the RaftNode object running
     // inside an AfloatDB server
     rpc getRaftNodeReport (GetRaftNodeReportRequest) returns (GetRaftNodeReportResponse) {
@@ -151,4 +162,6 @@ service ManagementRequestHandler {
     // server has been removed from the cluster or not, and retry if needed.
     rpc removeRaftEndpoint (RemoveRaftEndpointRequest) returns (RemoveRaftEndpointResponse) {
     }
+
+    rpc takeSnapshot(TakeSnapshotRequest) returns (TakeSnapshotResponse) {}
 }

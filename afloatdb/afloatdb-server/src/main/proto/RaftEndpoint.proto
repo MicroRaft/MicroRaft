@@ -4,6 +4,9 @@ package io.afloatdb.raft.proto;
 
 option java_multiple_files = true;
 
+// protoc --go_out=. --go-grpc_out=. RaftEndpoint.proto
+option go_package = "io.microraft/afloatdb/raftendpoint";
+
 // Represents a Raft endpoint and is embedded into the other
 // RaftMessage Protobufs.
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftEndpoint.java

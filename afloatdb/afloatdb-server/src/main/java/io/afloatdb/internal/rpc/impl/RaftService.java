@@ -17,9 +17,9 @@
 package io.afloatdb.internal.rpc.impl;
 
 import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
-import io.afloatdb.raft.proto.RaftMessageHandlerGrpc.RaftMessageHandlerImplBase;
-import io.afloatdb.raft.proto.RaftMessageRequest;
-import io.afloatdb.raft.proto.RaftMessageResponse;
+import io.afloatdb.raft.proto.RaftServiceGrpc.RaftServiceImplBase;
+import io.afloatdb.raft.proto.RaftRequest;
+import io.afloatdb.raft.proto.RaftResponse;
 import io.grpc.stub.StreamObserver;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
@@ -40,17 +40,17 @@ import static io.afloatdb.internal.di.AfloatDBModule.RAFT_NODE_SUPPLIER_KEY;
 import static io.afloatdb.internal.utils.Serialization.unwrap;
 
 @Singleton
-public class RaftMessageHandler extends RaftMessageHandlerImplBase {
+public class RaftService extends RaftServiceImplBase {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RaftMessageHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RaftService.class);
 
     private final RaftNode raftNode;
     private final RaftEndpoint localEndpoint;
     private final ProcessTerminationLogger processTerminationLogger;
-    private final Set<RaftMessageStreamObserver> streamObservers = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<RaftRequestStreamObserver> streamObservers = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     @Inject
-    public RaftMessageHandler(@Named(RAFT_NODE_SUPPLIER_KEY) Supplier<RaftNode> raftNodeSupplier,
+    public RaftService(@Named(RAFT_NODE_SUPPLIER_KEY) Supplier<RaftNode> raftNodeSupplier,
             ProcessTerminationLogger processTerminationLogger) {
         this.raftNode = raftNodeSupplier.get();
         this.localEndpoint = this.raftNode.getLocalEndpoint();
@@ -59,25 +59,25 @@ public class RaftMessageHandler extends RaftMessageHandlerImplBase {
 
     @PreDestroy
     public void shutdown() {
-        streamObservers.forEach(RaftMessageStreamObserver::onCompleted);
+        streamObservers.forEach(RaftRequestStreamObserver::onCompleted);
         streamObservers.clear();
 
         processTerminationLogger.logInfo(LOGGER, localEndpoint.getId() + " RaftMessageHandler is shut down.");
     }
 
     @Override
-    public StreamObserver<RaftMessageRequest> handle(StreamObserver<RaftMessageResponse> responseObserver) {
-        RaftMessageStreamObserver observer = new RaftMessageStreamObserver();
+    public StreamObserver<RaftRequest> handle(StreamObserver<RaftResponse> responseObserver) {
+        RaftRequestStreamObserver observer = new RaftRequestStreamObserver();
         streamObservers.add(observer);
         return observer;
     }
 
-    private class RaftMessageStreamObserver implements StreamObserver<RaftMessageRequest> {
+    private class RaftRequestStreamObserver implements StreamObserver<RaftRequest> {
 
         private volatile RaftEndpoint sender;
 
         @Override
-        public void onNext(RaftMessageRequest proto) {
+        public void onNext(RaftRequest proto) {
             RaftMessage message = unwrap(proto);
             if (sender == null) {
                 sender = message.getSender();

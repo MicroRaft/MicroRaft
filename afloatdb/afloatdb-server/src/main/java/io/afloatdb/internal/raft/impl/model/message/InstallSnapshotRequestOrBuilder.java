@@ -16,25 +16,27 @@
 
 package io.afloatdb.internal.raft.impl.model.message;
 
-import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.internal.raft.impl.model.log.SnapshotChunkOrBuilder;
-import io.afloatdb.internal.raft.impl.model.log.RaftGroupMembersViewOrBuilder;
-import io.afloatdb.raft.proto.InstallSnapshotRequestProto;
-import io.afloatdb.raft.proto.KVSnapshotChunk;
-import io.afloatdb.raft.proto.RaftMessageRequest;
-import io.microraft.RaftEndpoint;
-import io.microraft.model.log.SnapshotChunk;
-import io.microraft.model.log.RaftGroupMembersView;
-import io.microraft.model.message.InstallSnapshotRequest;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.Collection;
-
 import static java.util.stream.Collectors.toList;
 
-public class InstallSnapshotRequestOrBuilder implements InstallSnapshotRequest,
-        InstallSnapshotRequest.InstallSnapshotRequestBuilder, RaftMessageRequestAware {
+import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
+import io.afloatdb.internal.raft.impl.model.log.RaftGroupMembersViewOrBuilder;
+import io.afloatdb.internal.raft.impl.model.log.SnapshotChunkOrBuilder;
+import io.afloatdb.raft.proto.InstallSnapshotRequestProto;
+import io.afloatdb.raft.proto.KVSnapshotChunk;
+import io.afloatdb.raft.proto.RaftRequest;
+import io.microraft.RaftEndpoint;
+import io.microraft.model.log.RaftGroupMembersView;
+import io.microraft.model.log.SnapshotChunk;
+import io.microraft.model.message.InstallSnapshotRequest;
+import java.util.Collection;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+public class InstallSnapshotRequestOrBuilder
+        implements
+            InstallSnapshotRequest,
+            InstallSnapshotRequest.InstallSnapshotRequestBuilder,
+            RaftRequestAware {
 
     private InstallSnapshotRequestProto.Builder builder;
     private InstallSnapshotRequestProto request;
@@ -162,7 +164,7 @@ public class InstallSnapshotRequestOrBuilder implements InstallSnapshotRequest,
     }
 
     @Override
-    public void populate(RaftMessageRequest.Builder builder) {
+    public void populate(RaftRequest.Builder builder) {
         builder.setInstallSnapshotRequest(request);
     }
 
@@ -236,12 +238,11 @@ public class InstallSnapshotRequestOrBuilder implements InstallSnapshotRequest,
             return "InstallSnapshotRequest{builder=" + builder + "}";
         }
 
-        return "InstallSnapshotRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term="
+        return ("InstallSnapshotRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term="
                 + getTerm() + ", senderLeader=" + isSenderLeader() + ", snapshotTerm=" + getSnapshotTerm()
                 + ", snapshotIndex=" + getSnapshotIndex() + ", chunkCount=" + getTotalSnapshotChunkCount()
                 + ", snapshotChunk=" + getSnapshotChunk() + ", snapshottedMembers=" + getSnapshottedMembers()
                 + ", groupMembersView=" + getGroupMembersView() + ", querySequenceNumber=" + getQuerySequenceNumber()
-                + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + '}';
+                + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + '}');
     }
-
 }

@@ -111,7 +111,7 @@ message KVResponse {
     };
 }
 
-service KVRequestHandler {
+service KVService {
     rpc put (PutRequest) returns (KVResponse);
     rpc set (SetRequest) returns (KVResponse);
     rpc get (GetRequest) returns (KVResponse);

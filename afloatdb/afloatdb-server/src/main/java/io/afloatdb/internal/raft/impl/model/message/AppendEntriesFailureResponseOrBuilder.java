@@ -18,15 +18,17 @@ package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.raft.proto.AppendEntriesFailureResponseProto;
-import io.afloatdb.raft.proto.RaftMessageRequest;
+import io.afloatdb.raft.proto.RaftRequest;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.AppendEntriesFailureResponse;
 import io.microraft.model.message.AppendEntriesFailureResponse.AppendEntriesFailureResponseBuilder;
-
 import javax.annotation.Nonnull;
 
 public class AppendEntriesFailureResponseOrBuilder
-        implements AppendEntriesFailureResponse, AppendEntriesFailureResponseBuilder, RaftMessageRequestAware {
+        implements
+            AppendEntriesFailureResponse,
+            AppendEntriesFailureResponseBuilder,
+            RaftRequestAware {
 
     private AppendEntriesFailureResponseProto.Builder builder;
     private AppendEntriesFailureResponseProto response;
@@ -46,7 +48,7 @@ public class AppendEntriesFailureResponseOrBuilder
     }
 
     @Override
-    public void populate(RaftMessageRequest.Builder builder) {
+    public void populate(RaftRequest.Builder builder) {
         builder.setAppendEntriesFailureResponse(response);
     }
 
@@ -138,9 +140,8 @@ public class AppendEntriesFailureResponseOrBuilder
             return "AppendEntriesFailureResponse{builder=" + builder + "}";
         }
 
-        return "AppendEntriesFailureResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", "
+        return ("AppendEntriesFailureResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", "
                 + "term=" + getTerm() + ", expectedNextIndex=" + getExpectedNextIndex() + ", querySequenceNumber="
-                + getQuerySequenceNumber() + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + '}';
+                + getQuerySequenceNumber() + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + '}');
     }
-
 }

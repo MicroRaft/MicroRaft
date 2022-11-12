@@ -2,15 +2,17 @@ package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.raft.proto.InstallSnapshotResponseProto;
-import io.afloatdb.raft.proto.RaftMessageRequest;
+import io.afloatdb.raft.proto.RaftRequest;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.InstallSnapshotResponse;
 import io.microraft.model.message.InstallSnapshotResponse.InstallSnapshotResponseBuilder;
-
 import javax.annotation.Nonnull;
 
 public class InstallSnapshotResponseOrBuilder
-        implements InstallSnapshotResponse, InstallSnapshotResponseBuilder, RaftMessageRequestAware {
+        implements
+            InstallSnapshotResponse,
+            InstallSnapshotResponseBuilder,
+            RaftRequestAware {
 
     private InstallSnapshotResponseProto.Builder builder;
     private InstallSnapshotResponseProto response;
@@ -88,7 +90,7 @@ public class InstallSnapshotResponseOrBuilder
     }
 
     @Override
-    public void populate(RaftMessageRequest.Builder builder) {
+    public void populate(RaftRequest.Builder builder) {
         builder.setInstallSnapshotResponse(response);
     }
 
@@ -134,10 +136,9 @@ public class InstallSnapshotResponseOrBuilder
             return "InstallSnapshotResponse{builder=" + builder + "}";
         }
 
-        return "InstallSnapshotResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term="
+        return ("InstallSnapshotResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term="
                 + getTerm() + ", snapshotIndex=" + getSnapshotIndex() + ", requestedSnapshotChunkIndex="
                 + getRequestedSnapshotChunkIndex() + ", querySequenceNumber=" + getQuerySequenceNumber()
-                + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + '}';
+                + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + '}');
     }
-
 }

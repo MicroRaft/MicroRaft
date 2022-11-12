@@ -55,9 +55,9 @@ public class RpcServerImpl implements RpcServer {
 
     @Inject
     public RpcServerImpl(@Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint,
-            @Named(CONFIG_KEY) AfloatDBConfig config, KVRequestHandler kvRequestHandler,
-            RaftMessageHandler raftMessageHandler, ManagementRequestHandler managementRequestHandler,
-            RaftNodeReportSupplier raftNodeReportSupplier, ProcessTerminationLogger processTerminationLogger) {
+            @Named(CONFIG_KEY) AfloatDBConfig config, KVService kvRequestHandler, RaftService raftService,
+            AdminService adminService, RaftNodeReportSupplier raftNodeReportSupplier,
+            ProcessTerminationLogger processTerminationLogger) {
         this.localEndpoint = localEndpoint;
         // TODO [basri] do perf analysis for this setup
         EventLoopGroup boss = new NioEventLoopGroup(1);
@@ -65,7 +65,7 @@ public class RpcServerImpl implements RpcServer {
         Class<? extends ServerChannel> channelType = NioServerSocketChannel.class;
         this.server = NettyServerBuilder.forAddress(config.getLocalEndpointConfig().getSocketAddress())
                 .bossEventLoopGroup(boss).workerEventLoopGroup(worker).channelType(channelType)
-                .addService(kvRequestHandler).addService(raftMessageHandler).addService(managementRequestHandler)
+                .addService(kvRequestHandler).addService(raftService).addService(adminService)
                 .addService((AfloatDBClusterServiceImplBase) raftNodeReportSupplier).directExecutor().build();
         this.processTerminationLogger = processTerminationLogger;
     }

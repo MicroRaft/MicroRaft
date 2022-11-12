@@ -16,18 +16,19 @@
 
 package io.afloatdb.internal.rpc.impl;
 
-import io.afloatdb.AfloatDB;
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.internal.rpc.RaftRpcService;
-import io.afloatdb.management.proto.AddRaftEndpointAddressRequest;
-import io.afloatdb.management.proto.AddRaftEndpointAddressResponse;
-import io.afloatdb.management.proto.AddRaftEndpointRequest;
-import io.afloatdb.management.proto.AddRaftEndpointResponse;
-import io.afloatdb.management.proto.GetRaftNodeReportRequest;
-import io.afloatdb.management.proto.GetRaftNodeReportResponse;
-import io.afloatdb.management.proto.ManagementRequestHandlerGrpc.ManagementRequestHandlerImplBase;
-import io.afloatdb.management.proto.RemoveRaftEndpointRequest;
-import io.afloatdb.management.proto.RemoveRaftEndpointResponse;
+import io.afloatdb.admin.proto.AddRaftEndpointAddressRequest;
+import io.afloatdb.admin.proto.AddRaftEndpointAddressResponse;
+import io.afloatdb.admin.proto.AddRaftEndpointRequest;
+import io.afloatdb.admin.proto.AddRaftEndpointResponse;
+import io.afloatdb.admin.proto.GetRaftNodeReportRequest;
+import io.afloatdb.admin.proto.GetRaftNodeReportResponse;
+import io.afloatdb.admin.proto.AdminServiceGrpc.AdminServiceImplBase;
+import io.afloatdb.admin.proto.RemoveRaftEndpointRequest;
+import io.afloatdb.admin.proto.RemoveRaftEndpointResponse;
+import io.afloatdb.admin.proto.TakeSnapshotRequest;
+import io.afloatdb.admin.proto.TakeSnapshotResponse;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
@@ -48,15 +49,15 @@ import static io.afloatdb.internal.utils.Serialization.toProto;
 import static io.microraft.MembershipChangeMode.REMOVE_MEMBER;
 
 @Singleton
-public class ManagementRequestHandler extends ManagementRequestHandlerImplBase {
+public class AdminService extends AdminServiceImplBase {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ManagementRequestHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AdminService.class);
 
     private final RaftNode raftNode;
     private final RaftRpcService raftRpcService;
 
     @Inject
-    public ManagementRequestHandler(@Named(RAFT_NODE_SUPPLIER_KEY) Supplier<RaftNode> raftNodeSupplier,
+    public AdminService(@Named(RAFT_NODE_SUPPLIER_KEY) Supplier<RaftNode> raftNodeSupplier,
             RaftRpcService raftRpcService) {
         this.raftNode = raftNodeSupplier.get();
         this.raftRpcService = raftRpcService;
@@ -97,9 +98,9 @@ public class ManagementRequestHandler extends ManagementRequestHandlerImplBase {
                 builder.setReport(toProto(response.getResult()));
                 raftRpcService.getAddresses()
                         .forEach((key, value) -> builder.putEndpointAddress(key.getId().toString(), value));
-
                 responseObserver.onNext(builder.build());
             } else {
+                LOGGER.error(raftNode.getLocalEndpoint().getId() + " could not get report", throwable);
                 responseObserver.onError(wrap(throwable));
             }
             responseObserver.onCompleted();
@@ -134,7 +135,8 @@ public class ManagementRequestHandler extends ManagementRequestHandlerImplBase {
             return;
         }
 
-        MembershipChangeMode mode = request.getVotingMember() ? MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER
+        MembershipChangeMode mode = request.getVotingMember()
+                ? MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER
                 : MembershipChangeMode.ADD_LEARNER;
 
         LOGGER.info("{} is adding {} with mode: {} and address: {}.", raftNode.getLocalEndpoint().getId(),
@@ -158,6 +160,21 @@ public class ManagementRequestHandler extends ManagementRequestHandlerImplBase {
                     }
                     responseObserver.onCompleted();
                 });
+    }
+
+    @Override
+    public void takeSnapshot(TakeSnapshotRequest request, StreamObserver<TakeSnapshotResponse> responseObserver) {
+        raftNode.takeSnapshot().whenComplete((response, throwable) -> {
+            if (throwable == null) {
+                TakeSnapshotResponse.Builder builder = TakeSnapshotResponse.newBuilder();
+                builder.setReport(toProto(response.getResult()));
+                responseObserver.onNext(builder.build());
+            } else {
+                LOGGER.error(raftNode.getLocalEndpoint().getId() + " could not take snapshot", throwable);
+                responseObserver.onError(wrap(throwable));
+            }
+            responseObserver.onCompleted();
+        });
     }
 
 }

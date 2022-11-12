@@ -3,8 +3,8 @@ package io.afloatdb.client.internal.rpc.impl;
 import io.afloatdb.client.AfloatDBClientException;
 import io.afloatdb.client.config.AfloatDBClientConfig;
 import io.afloatdb.client.internal.channel.ChannelManager;
-import io.afloatdb.kv.proto.KVRequestHandlerGrpc;
-import io.afloatdb.kv.proto.KVRequestHandlerGrpc.KVRequestHandlerFutureStub;
+import io.afloatdb.kv.proto.KVServiceGrpc;
+import io.afloatdb.kv.proto.KVServiceGrpc.KVServiceFutureStub;
 import io.afloatdb.client.internal.rpc.InvocationService;
 import io.grpc.StatusRuntimeException;
 import io.grpc.Status;
@@ -35,19 +35,18 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public class UniKVServiceStubManager implements InvocationService {
 
     private final int rpcTimeoutSecs;
-    private final KVRequestHandlerFutureStub stub;
+    private final KVServiceFutureStub stub;
     private final ScheduledExecutorService executor = newSingleThreadScheduledExecutor();
 
     @Inject
     public UniKVServiceStubManager(@Named(CONFIG_KEY) AfloatDBClientConfig config, ChannelManager channelManager) {
         this.rpcTimeoutSecs = config.getRpcTimeoutSecs();
-        this.stub = KVRequestHandlerGrpc.newFutureStub(channelManager.getOrCreateChannel(config.getServerAddress()))
+        this.stub = KVServiceGrpc.newFutureStub(channelManager.getOrCreateChannel(config.getServerAddress()))
                 .withDeadlineAfter(rpcTimeoutSecs, SECONDS);
     }
 
     @Override
-    public CompletableFuture<KVResponse> invoke(
-            Function<KVRequestHandlerFutureStub, ListenableFuture<KVResponse>> func) {
+    public CompletableFuture<KVResponse> invoke(Function<KVServiceFutureStub, ListenableFuture<KVResponse>> func) {
         CompletableFuture<KVResponse> future = new CompletableFuture<>();
         ListenableFuture<KVResponse> rawFuture = func.apply(stub);
         rawFuture.addListener(new Runnable() {

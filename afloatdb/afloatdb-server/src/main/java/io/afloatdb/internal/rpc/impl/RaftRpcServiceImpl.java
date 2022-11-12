@@ -16,35 +16,6 @@
 
 package io.afloatdb.internal.rpc.impl;
 
-import io.afloatdb.config.AfloatDBConfig;
-import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
-import io.afloatdb.internal.rpc.RaftRpcService;
-import io.afloatdb.raft.proto.RaftMessageHandlerGrpc;
-import io.afloatdb.raft.proto.RaftMessageHandlerGrpc.RaftMessageHandlerStub;
-import io.afloatdb.raft.proto.RaftMessageRequest;
-import io.afloatdb.raft.proto.RaftMessageResponse;
-import io.grpc.Deadline;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.stub.StreamObserver;
-import io.microraft.RaftEndpoint;
-import io.microraft.model.message.RaftMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-import javax.annotation.PreDestroy;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ScheduledExecutorService;
-
 import static io.afloatdb.internal.di.AfloatDBModule.CONFIG_KEY;
 import static io.afloatdb.internal.di.AfloatDBModule.LOCAL_ENDPOINT_KEY;
 import static io.afloatdb.internal.di.AfloatDBModule.RAFT_ENDPOINT_ADDRESSES_KEY;
@@ -53,6 +24,33 @@ import static io.afloatdb.internal.utils.Serialization.wrap;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
+
+import io.afloatdb.config.AfloatDBConfig;
+import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
+import io.afloatdb.internal.rpc.RaftRpcService;
+import io.afloatdb.raft.proto.RaftRequest;
+import io.afloatdb.raft.proto.RaftResponse;
+import io.afloatdb.raft.proto.RaftServiceGrpc;
+import io.afloatdb.raft.proto.RaftServiceGrpc.RaftServiceStub;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.stub.StreamObserver;
+import io.microraft.RaftEndpoint;
+import io.microraft.model.message.RaftMessage;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import javax.annotation.Nonnull;
+import javax.annotation.PreDestroy;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 public class RaftRpcServiceImpl implements RaftRpcService {
@@ -149,7 +147,7 @@ public class RaftRpcServiceImpl implements RaftRpcService {
                     // .directExecutor()
                     .build();
 
-            RaftMessageHandlerStub replicationStub = RaftMessageHandlerGrpc.newStub(channel);
+            RaftServiceStub replicationStub = RaftServiceGrpc.newStub(channel);
             // .withDeadlineAfter(rpcTimeoutSecs, SECONDS);
             RaftRpcContext context = new RaftRpcContext(target, channel);
             context.raftMessageSender = replicationStub.handle(new ResponseStreamObserver(context));
@@ -186,9 +184,10 @@ public class RaftRpcServiceImpl implements RaftRpcService {
     }
 
     private class RaftRpcContext {
+
         final RaftEndpoint targetEndpoint;
         final ManagedChannel channel;
-        StreamObserver<RaftMessageRequest> raftMessageSender;
+        StreamObserver<RaftRequest> raftMessageSender;
 
         RaftRpcContext(RaftEndpoint targetEndpoint, ManagedChannel channel) {
             this.targetEndpoint = targetEndpoint;
@@ -216,7 +215,8 @@ public class RaftRpcServiceImpl implements RaftRpcService {
         }
     }
 
-    private class ResponseStreamObserver implements StreamObserver<RaftMessageResponse> {
+    private class ResponseStreamObserver implements StreamObserver<RaftResponse> {
+
         final RaftRpcContext context;
 
         private ResponseStreamObserver(RaftRpcContext context) {
@@ -224,7 +224,7 @@ public class RaftRpcServiceImpl implements RaftRpcService {
         }
 
         @Override
-        public void onNext(RaftMessageResponse response) {
+        public void onNext(RaftResponse response) {
             LOGGER.warn("{} received {} from Raft RPC stream to {}", localEndpoint.getId(), response,
                     context.targetEndpoint.getId());
         }
@@ -247,7 +247,5 @@ public class RaftRpcServiceImpl implements RaftRpcService {
             LOGGER.warn("{} Raft RPC stream to {} has completed.", localEndpoint.getId(),
                     context.targetEndpoint.getId());
         }
-
     }
-
 }

@@ -20,18 +20,20 @@ import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.internal.raft.impl.model.log.LogEntryOrBuilder;
 import io.afloatdb.raft.proto.AppendEntriesRequestProto;
 import io.afloatdb.raft.proto.LogEntryProto;
-import io.afloatdb.raft.proto.RaftMessageRequest;
+import io.afloatdb.raft.proto.RaftRequest;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.message.AppendEntriesRequest;
 import io.microraft.model.message.AppendEntriesRequest.AppendEntriesRequestBuilder;
-
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nonnull;
 
 public class AppendEntriesRequestOrBuilder
-        implements AppendEntriesRequest, AppendEntriesRequestBuilder, RaftMessageRequestAware {
+        implements
+            AppendEntriesRequest,
+            AppendEntriesRequestBuilder,
+            RaftRequestAware {
 
     private AppendEntriesRequestProto.Builder builder;
     private AppendEntriesRequestProto request;
@@ -56,7 +58,7 @@ public class AppendEntriesRequestOrBuilder
     }
 
     @Override
-    public void populate(RaftMessageRequest.Builder builder) {
+    public void populate(RaftRequest.Builder builder) {
         builder.setAppendEntriesRequest(request);
     }
 
@@ -190,11 +192,10 @@ public class AppendEntriesRequestOrBuilder
             return "AppendEntriesRequest{builder=" + builder + "}";
         }
 
-        return "AppendEntriesRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term="
+        return ("AppendEntriesRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term="
                 + getTerm() + ", commitIndex=" + getCommitIndex() + ", querySequenceNumber=" + getQuerySequenceNumber()
                 + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + ", " + "prevLogIndex="
                 + getPreviousLogIndex() + ", prevLogTerm=" + getPreviousLogTerm() + ", entries=" + getLogEntries()
-                + '}';
+                + '}');
     }
-
 }

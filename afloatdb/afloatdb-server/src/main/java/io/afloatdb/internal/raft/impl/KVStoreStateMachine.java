@@ -97,7 +97,8 @@ public class KVStoreStateMachine implements StateMachine {
     }
 
     private PutResult put(long commitIndex, PutOp op) {
-        Val oldVal = op.getPutIfAbsent() ? map.putIfAbsent(op.getKey(), op.getVal())
+        Val oldVal = op.getPutIfAbsent()
+                ? map.putIfAbsent(op.getKey(), op.getVal())
                 : map.put(op.getKey(), op.getVal());
         PutResult.Builder builder = PutResult.newBuilder();
         if (oldVal != null) {

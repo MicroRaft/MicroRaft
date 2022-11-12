@@ -30,13 +30,13 @@ import io.afloatdb.internal.di.AfloatDBModule;
 import io.afloatdb.internal.lifecycle.TerminationAware;
 import io.afloatdb.internal.raft.RaftNodeReportSupplier;
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.management.proto.AddRaftEndpointAddressRequest;
-import io.afloatdb.management.proto.AddRaftEndpointRequest;
-import io.afloatdb.management.proto.GetRaftNodeReportRequest;
-import io.afloatdb.management.proto.GetRaftNodeReportResponse;
-import io.afloatdb.management.proto.ManagementRequestHandlerGrpc;
-import io.afloatdb.management.proto.RaftNodeReportProto;
-import io.afloatdb.management.proto.RaftNodeStatusProto;
+import io.afloatdb.admin.proto.AddRaftEndpointAddressRequest;
+import io.afloatdb.admin.proto.AddRaftEndpointRequest;
+import io.afloatdb.admin.proto.GetRaftNodeReportRequest;
+import io.afloatdb.admin.proto.GetRaftNodeReportResponse;
+import io.afloatdb.admin.proto.AdminServiceGrpc;
+import io.afloatdb.admin.proto.RaftNodeReportProto;
+import io.afloatdb.admin.proto.RaftNodeStatusProto;
 import io.afloatdb.raft.proto.RaftEndpointProto;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -270,7 +270,7 @@ public class AfloatDBImpl implements AfloatDB {
             ManagedChannel reportChannel = createChannel(joinAddress);
             GetRaftNodeReportResponse reportResponse;
             try {
-                reportResponse = ManagementRequestHandlerGrpc.newBlockingStub(reportChannel)
+                reportResponse = AdminServiceGrpc.newBlockingStub(reportChannel)
                         .getRaftNodeReport(GetRaftNodeReportRequest.getDefaultInstance());
             } finally {
                 reportChannel.shutdownNow();
@@ -314,7 +314,7 @@ public class AfloatDBImpl implements AfloatDB {
                     target.getId(), targetAddress);
             ManagedChannel channel = createChannel(targetAddress);
             try {
-                ManagementRequestHandlerGrpc.newBlockingStub(channel).addRaftEndpointAddress(request);
+                AdminServiceGrpc.newBlockingStub(channel).addRaftEndpointAddress(request);
             } catch (Throwable t) {
                 throw new AfloatDBException("Could not add Raft endpoint address to " + target + " at " + targetAddress,
                         t);
@@ -337,7 +337,7 @@ public class AfloatDBImpl implements AfloatDB {
             AddRaftEndpointRequest request = AddRaftEndpointRequest.newBuilder().setEndpoint(localEndpoint)
                     .setVotingMember(votingMember).setGroupMembersCommitIndex(groupMembersCommitIndex).build();
             try {
-                ManagementRequestHandlerGrpc.newBlockingStub(leaderChannel).addRaftEndpoint(request);
+                AdminServiceGrpc.newBlockingStub(leaderChannel).addRaftEndpoint(request);
             } catch (Throwable t) {
                 throw new AfloatDBException(localEndpoint.getId() + " failure during add Raft endpoint via the Raft "
                         + "leader: " + leaderEndpoint + " at " + leaderAddress, t);

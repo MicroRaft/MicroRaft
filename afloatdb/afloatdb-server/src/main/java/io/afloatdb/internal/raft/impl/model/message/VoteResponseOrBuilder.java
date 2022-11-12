@@ -17,15 +17,14 @@
 package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.raft.proto.RaftMessageRequest;
+import io.afloatdb.raft.proto.RaftRequest;
 import io.afloatdb.raft.proto.VoteResponseProto;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.VoteResponse;
 import io.microraft.model.message.VoteResponse.VoteResponseBuilder;
-
 import javax.annotation.Nonnull;
 
-public class VoteResponseOrBuilder implements VoteResponse, VoteResponseBuilder, RaftMessageRequestAware {
+public class VoteResponseOrBuilder implements VoteResponse, VoteResponseBuilder, RaftRequestAware {
 
     private VoteResponseProto.Builder builder;
     private VoteResponseProto response;
@@ -82,7 +81,7 @@ public class VoteResponseOrBuilder implements VoteResponse, VoteResponseBuilder,
     }
 
     @Override
-    public void populate(RaftMessageRequest.Builder builder) {
+    public void populate(RaftRequest.Builder builder) {
         builder.setVoteResponse(response);
     }
 
@@ -92,8 +91,8 @@ public class VoteResponseOrBuilder implements VoteResponse, VoteResponseBuilder,
             return "VoteResponse{builder=" + builder + "}";
         }
 
-        return "VoteResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
-                + ", granted=" + isGranted() + '}';
+        return ("VoteResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
+                + ", granted=" + isGranted() + '}');
     }
 
     @Override
@@ -116,5 +115,4 @@ public class VoteResponseOrBuilder implements VoteResponse, VoteResponseBuilder,
     public int getTerm() {
         return response.getTerm();
     }
-
 }

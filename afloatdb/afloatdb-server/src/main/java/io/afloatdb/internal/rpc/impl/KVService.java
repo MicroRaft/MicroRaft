@@ -20,7 +20,7 @@ import io.afloatdb.kv.proto.ClearRequest;
 import io.afloatdb.kv.proto.ContainsRequest;
 import io.afloatdb.kv.proto.DeleteRequest;
 import io.afloatdb.kv.proto.GetRequest;
-import io.afloatdb.kv.proto.KVRequestHandlerGrpc.KVRequestHandlerImplBase;
+import io.afloatdb.kv.proto.KVServiceGrpc.KVServiceImplBase;
 import io.afloatdb.kv.proto.KVResponse;
 import io.afloatdb.kv.proto.PutRequest;
 import io.afloatdb.kv.proto.RemoveRequest;
@@ -53,14 +53,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-public class KVRequestHandler extends KVRequestHandlerImplBase {
+public class KVService extends KVServiceImplBase {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(KVRequestHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(KVService.class);
 
     private final RaftNode raftNode;
 
     @Inject
-    public KVRequestHandler(@Named(RAFT_NODE_SUPPLIER_KEY) Supplier<RaftNode> raftNodeSupplier) {
+    public KVService(@Named(RAFT_NODE_SUPPLIER_KEY) Supplier<RaftNode> raftNodeSupplier) {
         this.raftNode = raftNodeSupplier.get();
     }
 
@@ -69,7 +69,7 @@ public class KVRequestHandler extends KVRequestHandlerImplBase {
         // TODO (basri) build the proxy logic here (invocation logic)
         PutOp op = PutOp.newBuilder().setKey(request.getKey()).setVal(request.getVal())
                 .setPutIfAbsent(request.getPutIfAbsent()).build();
-        raftNode.<io.afloatdb.raft.proto.PutResult> replicate(op)
+        raftNode.<io.afloatdb.raft.proto.PutResult>replicate(op)
                 .whenComplete((Ordered<io.afloatdb.raft.proto.PutResult> result, Throwable throwable) -> {
                     // TODO [basri] bottleneck. offload to IO thread...
                     if (throwable == null) {
@@ -87,7 +87,7 @@ public class KVRequestHandler extends KVRequestHandlerImplBase {
     @Override
     public void set(SetRequest request, StreamObserver<KVResponse> responseObserver) {
         PutOp op = PutOp.newBuilder().setKey(request.getKey()).setVal(request.getVal()).build();
-        raftNode.<io.afloatdb.raft.proto.PutResult> replicate(op)
+        raftNode.<io.afloatdb.raft.proto.PutResult>replicate(op)
                 .whenComplete((Ordered<io.afloatdb.raft.proto.PutResult> result, Throwable throwable) -> {
                     // TODO [basri] bottleneck. offload to IO thread...
                     if (throwable == null) {
@@ -105,7 +105,7 @@ public class KVRequestHandler extends KVRequestHandlerImplBase {
     @Override
     public void get(GetRequest request, StreamObserver<KVResponse> responseObserver) {
         GetOp op = GetOp.newBuilder().setKey(request.getKey()).build();
-        raftNode.<io.afloatdb.raft.proto.GetResult> query(op,
+        raftNode.<io.afloatdb.raft.proto.GetResult>query(op,
                 request.getMinCommitIndex() == -1 ? LINEARIZABLE : EVENTUAL_CONSISTENCY,
                 Math.max(0, request.getMinCommitIndex()))
                 .whenComplete((Ordered<io.afloatdb.raft.proto.GetResult> result, Throwable throwable) -> {
@@ -125,7 +125,7 @@ public class KVRequestHandler extends KVRequestHandlerImplBase {
     @Override
     public void contains(ContainsRequest request, StreamObserver<KVResponse> responseObserver) {
         GetOp op = GetOp.newBuilder().setKey(request.getKey()).build();
-        raftNode.<io.afloatdb.raft.proto.GetResult> query(op,
+        raftNode.<io.afloatdb.raft.proto.GetResult>query(op,
                 request.getMinCommitIndex() == -1 ? LINEARIZABLE : EVENTUAL_CONSISTENCY,
                 Math.max(0, request.getMinCommitIndex()))
                 .whenComplete((Ordered<io.afloatdb.raft.proto.GetResult> result, Throwable throwable) -> {
@@ -152,7 +152,7 @@ public class KVRequestHandler extends KVRequestHandlerImplBase {
     @Override
     public void delete(DeleteRequest request, StreamObserver<KVResponse> responseObserver) {
         RemoveOp op = RemoveOp.newBuilder().setKey(request.getKey()).build();
-        raftNode.<io.afloatdb.raft.proto.RemoveResult> replicate(op)
+        raftNode.<io.afloatdb.raft.proto.RemoveResult>replicate(op)
                 .whenComplete((Ordered<io.afloatdb.raft.proto.RemoveResult> result, Throwable throwable) -> {
                     // TODO [basri] bottleneck. offload to IO thread...
                     if (throwable == null) {
@@ -173,7 +173,7 @@ public class KVRequestHandler extends KVRequestHandlerImplBase {
         if (request.hasVal()) {
             builder.setVal(request.getVal());
         }
-        raftNode.<io.afloatdb.raft.proto.RemoveResult> replicate(builder.build())
+        raftNode.<io.afloatdb.raft.proto.RemoveResult>replicate(builder.build())
                 .whenComplete((Ordered<io.afloatdb.raft.proto.RemoveResult> result, Throwable throwable) -> {
                     // TODO [basri] bottleneck. offload to IO thread...
                     if (throwable == null) {
@@ -195,7 +195,7 @@ public class KVRequestHandler extends KVRequestHandlerImplBase {
     public void replace(ReplaceRequest request, StreamObserver<KVResponse> responseObserver) {
         ReplaceOp op = ReplaceOp.newBuilder().setKey(request.getKey()).setOldVal(request.getOldVal())
                 .setNewVal(request.getNewVal()).build();
-        raftNode.<io.afloatdb.raft.proto.ReplaceResult> replicate(op)
+        raftNode.<io.afloatdb.raft.proto.ReplaceResult>replicate(op)
                 .whenComplete((Ordered<io.afloatdb.raft.proto.ReplaceResult> result, Throwable throwable) -> {
                     // TODO [basri] bottleneck. offload to IO thread...
                     if (throwable == null) {
@@ -212,7 +212,7 @@ public class KVRequestHandler extends KVRequestHandlerImplBase {
 
     @Override
     public void size(SizeRequest request, StreamObserver<KVResponse> responseObserver) {
-        raftNode.<io.afloatdb.raft.proto.SizeResult> query(SizeOp.getDefaultInstance(),
+        raftNode.<io.afloatdb.raft.proto.SizeResult>query(SizeOp.getDefaultInstance(),
                 request.getMinCommitIndex() == -1 ? LINEARIZABLE : EVENTUAL_CONSISTENCY,
                 Math.max(0, request.getMinCommitIndex()))
                 .whenComplete((Ordered<io.afloatdb.raft.proto.SizeResult> result, Throwable throwable) -> {
@@ -231,7 +231,7 @@ public class KVRequestHandler extends KVRequestHandlerImplBase {
 
     @Override
     public void clear(ClearRequest request, StreamObserver<KVResponse> responseObserver) {
-        raftNode.<io.afloatdb.raft.proto.ClearResult> replicate(ClearOp.getDefaultInstance())
+        raftNode.<io.afloatdb.raft.proto.ClearResult>replicate(ClearOp.getDefaultInstance())
                 .whenComplete((Ordered<io.afloatdb.raft.proto.ClearResult> result, Throwable throwable) -> {
                     // TODO [basri] bottleneck. offload to IO thread...
                     if (throwable == null) {

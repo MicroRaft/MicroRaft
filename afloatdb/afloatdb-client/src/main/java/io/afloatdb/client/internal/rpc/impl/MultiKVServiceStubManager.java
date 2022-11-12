@@ -25,8 +25,8 @@ import io.afloatdb.cluster.proto.AfloatDBClusterEndpointsRequest;
 import io.afloatdb.cluster.proto.AfloatDBClusterEndpointsResponse;
 import io.afloatdb.cluster.proto.AfloatDBClusterServiceGrpc;
 import io.afloatdb.cluster.proto.AfloatDBClusterServiceGrpc.AfloatDBClusterServiceStub;
-import io.afloatdb.kv.proto.KVRequestHandlerGrpc;
-import io.afloatdb.kv.proto.KVRequestHandlerGrpc.KVRequestHandlerFutureStub;
+import io.afloatdb.kv.proto.KVServiceGrpc;
+import io.afloatdb.kv.proto.KVServiceGrpc.KVServiceFutureStub;
 import io.afloatdb.kv.proto.KVResponse;
 import io.grpc.ManagedChannel;
 import java.util.function.Function;
@@ -67,10 +67,10 @@ public class MultiKVServiceStubManager implements InvocationService {
     private static final long START_TIMEOUT_SECONDS = 60;
 
     private static class StubHolder {
-        final KVRequestHandlerFutureStub stub;
+        final KVServiceFutureStub stub;
         final String serverId;
 
-        StubHolder(KVRequestHandlerFutureStub stub, String serverId) {
+        StubHolder(KVServiceFutureStub stub, String serverId) {
             this.stub = stub;
             this.serverId = serverId;
         }
@@ -94,8 +94,7 @@ public class MultiKVServiceStubManager implements InvocationService {
     }
 
     @Override
-    public CompletableFuture<KVResponse> invoke(
-            Function<KVRequestHandlerFutureStub, ListenableFuture<KVResponse>> func) {
+    public CompletableFuture<KVResponse> invoke(Function<KVServiceFutureStub, ListenableFuture<KVResponse>> func) {
         return new Invocation(func).invoke();
     }
 
@@ -156,10 +155,10 @@ public class MultiKVServiceStubManager implements InvocationService {
                     newEndpoints.getLeaderId());
 
             String leaderAddress = newEndpoints.getEndpointMap().get(newEndpoints.getLeaderId());
-            // stub = KVRequestHandlerGrpc.newBlockingStub(channelManager.getOrCreateChannel(leaderAddress));
-            stubHolder = new StubHolder(
-                    KVRequestHandlerGrpc.newFutureStub(channelManager.getOrCreateChannel(leaderAddress))
-                    // .withDeadlineAfter(rpcTimeoutSecs, SECONDS)
+            // stub =
+            // KVServiceGrpc.newBlockingStub(channelManager.getOrCreateChannel(leaderAddress));
+            stubHolder = new StubHolder(KVServiceGrpc.newFutureStub(channelManager.getOrCreateChannel(leaderAddress))
+            // .withDeadlineAfter(rpcTimeoutSecs, SECONDS)
                     , newEndpoints.getLeaderId());
             startLatch.countDown();
         }
@@ -233,9 +232,9 @@ public class MultiKVServiceStubManager implements InvocationService {
 
     private class Invocation {
         final CompletableFuture<KVResponse> future = new CompletableFuture<>();
-        final Function<KVRequestHandlerFutureStub, ListenableFuture<KVResponse>> func;
+        final Function<KVServiceFutureStub, ListenableFuture<KVResponse>> func;
 
-        Invocation(Function<KVRequestHandlerFutureStub, ListenableFuture<KVResponse>> func) {
+        Invocation(Function<KVServiceFutureStub, ListenableFuture<KVResponse>> func) {
             this.func = func;
         }
 

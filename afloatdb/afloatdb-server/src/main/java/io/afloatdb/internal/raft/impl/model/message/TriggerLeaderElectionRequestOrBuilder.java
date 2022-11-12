@@ -17,16 +17,18 @@
 package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.raft.proto.RaftMessageRequest;
+import io.afloatdb.raft.proto.RaftRequest;
 import io.afloatdb.raft.proto.TriggerLeaderElectionRequestProto;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.TriggerLeaderElectionRequest;
 import io.microraft.model.message.TriggerLeaderElectionRequest.TriggerLeaderElectionRequestBuilder;
-
 import javax.annotation.Nonnull;
 
 public class TriggerLeaderElectionRequestOrBuilder
-        implements TriggerLeaderElectionRequest, TriggerLeaderElectionRequestBuilder, RaftMessageRequestAware {
+        implements
+            TriggerLeaderElectionRequest,
+            TriggerLeaderElectionRequestBuilder,
+            RaftRequestAware {
 
     private TriggerLeaderElectionRequestProto.Builder builder;
     private TriggerLeaderElectionRequestProto request;
@@ -90,7 +92,7 @@ public class TriggerLeaderElectionRequestOrBuilder
     }
 
     @Override
-    public void populate(RaftMessageRequest.Builder builder) {
+    public void populate(RaftRequest.Builder builder) {
         builder.setTriggerLeaderElectionRequest(request);
     }
 
@@ -100,9 +102,9 @@ public class TriggerLeaderElectionRequestOrBuilder
             return "TriggerLeaderElectionRequest{builder=" + builder + "}";
         }
 
-        return "TriggerLeaderElectionRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", "
+        return ("TriggerLeaderElectionRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", "
                 + "term=" + getTerm() + ", lastLogTerm=" + getLastLogTerm() + ", lastLogIndex=" + getLastLogIndex()
-                + '}';
+                + '}');
     }
 
     @Override
@@ -130,5 +132,4 @@ public class TriggerLeaderElectionRequestOrBuilder
     public int getTerm() {
         return request.getTerm();
     }
-
 }

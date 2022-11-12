@@ -118,24 +118,24 @@ public class LogEntryOrBuilder implements LogEntry, LogEntryBuilder {
     @Override
     public Object getOperation() {
         switch (entry.getOperationCase()) {
-        case UPDATERAFTGROUPMEMBERSOP:
-            return new UpdateRaftGroupMembersOpOrBuilder(entry.getUpdateRaftGroupMembersOp());
-        case STARTNEWTERMOP:
-            return entry.getStartNewTermOp();
-        case PUTOP:
-            return entry.getPutOp();
-        case GETOP:
-            return entry.getGetOp();
-        case REMOVEOP:
-            return entry.getRemoveOp();
-        case REPLACEOP:
-            return entry.getReplaceOp();
-        case SIZEOP:
-            return entry.getSizeOp();
-        case CLEAROP:
-            return entry.getClearOp();
-        default:
-            throw new IllegalArgumentException("Illegal operation in " + entry);
+            case UPDATERAFTGROUPMEMBERSOP :
+                return new UpdateRaftGroupMembersOpOrBuilder(entry.getUpdateRaftGroupMembersOp());
+            case STARTNEWTERMOP :
+                return entry.getStartNewTermOp();
+            case PUTOP :
+                return entry.getPutOp();
+            case GETOP :
+                return entry.getGetOp();
+            case REMOVEOP :
+                return entry.getRemoveOp();
+            case REPLACEOP :
+                return entry.getReplaceOp();
+            case SIZEOP :
+                return entry.getSizeOp();
+            case CLEAROP :
+                return entry.getClearOp();
+            default :
+                throw new IllegalArgumentException("Illegal operation in " + entry);
         }
     }
 

@@ -16,7 +16,7 @@ and the client-server communication happens through gRPC.
 "afloatdb-server/src/main/proto/AfloatDBRaft.proto" contains the Protobufs definitions
 for MicroRaft's model and network abstractions, and the key-value operations of
 AfloatDB's key-value API. AfloatDB servers talk to each other via
-the `RaftMessageHandler` service defined in this file. This service is
+the `RaftService` defined in this file. This service is
 implemented at "afloatdb-server/src/main/java/io/afloatdb/internal/rpc/impl/RaftRpcHandler.java".
 
 "afloatdb-server/src/main/java/io/afloatdb/internal/raft/impl/model" package contains
@@ -33,15 +33,15 @@ implements MicroRaft's `StateMachine` interface.
 
 "afloatdb-commons/src/main/proto/KV.proto" defines the protocol between
 AfloatDB clients and servers. The server side counterpart is at
-"afloatdb-server/src/main/java/io/afloatdb/internal/rpc/impl/KVRequestHandler.java".
+"afloatdb-server/src/main/java/io/afloatdb/internal/rpc/impl/KVService.java".
 It handles requests sent by clients and passes them to `RaftNode`.
 
-"afloatdb-server/src/main/proto/AfloatDBManagement.proto" contains the Protobufs
+"afloatdb-server/src/main/proto/AfloatDBAdmin.proto" contains the Protobufs
 definitions for management operations on AfloatDB clusters, such as
 adding / removing servers, querying RaftNode reports. Operators can manage
-AfloatDB clusters by making gRPC calls to the `ManagementRequestHandler`
+AfloatDB clusters by making gRPC calls to the `AdminService`
 service defined in this file. Its server side counter part is at
-"afloatdb-server/src/main/java/io/afloatdb/internal/rpc/impl/ManagementRequestHandler.java".
+"afloatdb-server/src/main/java/io/afloatdb/internal/rpc/impl/AdminService.java".
 It handles requests sent by clients and passes them to `RaftNode`.
 
 That is enough pointers for curious readers.

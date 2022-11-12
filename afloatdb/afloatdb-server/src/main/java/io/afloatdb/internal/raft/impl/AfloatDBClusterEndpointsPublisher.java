@@ -48,7 +48,8 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Singleton
 public class AfloatDBClusterEndpointsPublisher extends AfloatDBClusterServiceImplBase
-        implements RaftNodeReportSupplier {
+        implements
+            RaftNodeReportSupplier {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AfloatDBClusterEndpointsPublisher.class);
     private static final long CLUSTER_ENDPOINTS_IDLE_PUBLISH_DURATION_MILLIS = SECONDS.toMillis(30);

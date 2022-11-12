@@ -17,15 +17,14 @@
 package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
-import io.afloatdb.raft.proto.RaftMessageRequest;
+import io.afloatdb.raft.proto.RaftRequest;
 import io.afloatdb.raft.proto.VoteRequestProto;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.VoteRequest;
 import io.microraft.model.message.VoteRequest.VoteRequestBuilder;
-
 import javax.annotation.Nonnull;
 
-public class VoteRequestOrBuilder implements VoteRequest, VoteRequestBuilder, RaftMessageRequestAware {
+public class VoteRequestOrBuilder implements VoteRequest, VoteRequestBuilder, RaftRequestAware {
 
     private VoteRequestProto.Builder builder;
     private VoteRequestProto request;
@@ -96,7 +95,7 @@ public class VoteRequestOrBuilder implements VoteRequest, VoteRequestBuilder, Ra
     }
 
     @Override
-    public void populate(RaftMessageRequest.Builder builder) {
+    public void populate(RaftRequest.Builder builder) {
         builder.setVoteRequest(request);
     }
 
@@ -106,9 +105,9 @@ public class VoteRequestOrBuilder implements VoteRequest, VoteRequestBuilder, Ra
             return "VoteRequest{builder=" + builder + "}";
         }
 
-        return "VoteRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
+        return ("VoteRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
                 + ", lastLogTerm=" + getLastLogTerm() + ", lastLogIndex=" + getLastLogIndex() + ", sticky=" + isSticky()
-                + '}';
+                + '}');
     }
 
     @Override
@@ -141,5 +140,4 @@ public class VoteRequestOrBuilder implements VoteRequest, VoteRequestBuilder, Ra
     public int getTerm() {
         return request.getTerm();
     }
-
 }

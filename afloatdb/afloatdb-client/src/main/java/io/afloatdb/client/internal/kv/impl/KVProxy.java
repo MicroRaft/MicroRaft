@@ -24,7 +24,7 @@ import io.afloatdb.kv.proto.ContainsRequest;
 import io.afloatdb.kv.proto.DeleteRequest;
 import io.afloatdb.kv.proto.GetRequest;
 import io.afloatdb.kv.proto.GetResult;
-import io.afloatdb.kv.proto.KVRequestHandlerGrpc.KVRequestHandlerFutureStub;
+import io.afloatdb.kv.proto.KVServiceGrpc.KVServiceFutureStub;
 import io.afloatdb.kv.proto.KVResponse;
 import io.afloatdb.kv.proto.PutRequest;
 import io.afloatdb.kv.proto.PutResult;
@@ -49,16 +49,16 @@ public class KVProxy implements KV {
 
     private Object extract(@Nonnull Val val) {
         switch (val.getValCase()) {
-        case VAL_NOT_SET:
-            return null;
-        case STR:
-            return val.getStr();
-        case NUM:
-            return val.getNum();
-        case BYTEARRAY:
-            return val.getByteArray().toByteArray();
-        default:
-            throw new IllegalArgumentException("Invalid val: " + val);
+            case VAL_NOT_SET :
+                return null;
+            case STR :
+                return val.getStr();
+            case NUM :
+                return val.getNum();
+            case BYTEARRAY :
+                return val.getByteArray().toByteArray();
+            default :
+                throw new IllegalArgumentException("Invalid val: " + val);
         }
     }
 
@@ -117,7 +117,7 @@ public class KVProxy implements KV {
     }
 
     private <T> Ordered<T> putOrdered(String key, @Nonnull Val val, boolean absent) {
-        KVResponse response = invocationService.invoke((KVRequestHandlerFutureStub stub) -> {
+        KVResponse response = invocationService.invoke((KVServiceFutureStub stub) -> {
             PutRequest request = PutRequest.newBuilder().setKey(requireNonNull(key)).setVal(requireNonNull(val))
                     .setPutIfAbsent(absent).build();
             return stub.put(request);

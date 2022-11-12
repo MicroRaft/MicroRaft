@@ -18,14 +18,16 @@ package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.raft.proto.AppendEntriesSuccessResponseProto;
-import io.afloatdb.raft.proto.RaftMessageRequest;
+import io.afloatdb.raft.proto.RaftRequest;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.AppendEntriesSuccessResponse;
-
 import javax.annotation.Nonnull;
 
-public class AppendEntriesSuccessResponseOrBuilder implements AppendEntriesSuccessResponse,
-        AppendEntriesSuccessResponse.AppendEntriesSuccessResponseBuilder, RaftMessageRequestAware {
+public class AppendEntriesSuccessResponseOrBuilder
+        implements
+            AppendEntriesSuccessResponse,
+            AppendEntriesSuccessResponse.AppendEntriesSuccessResponseBuilder,
+            RaftRequestAware {
 
     private AppendEntriesSuccessResponseProto.Builder builder;
     private AppendEntriesSuccessResponseProto response;
@@ -96,7 +98,7 @@ public class AppendEntriesSuccessResponseOrBuilder implements AppendEntriesSucce
     }
 
     @Override
-    public void populate(RaftMessageRequest.Builder builder) {
+    public void populate(RaftRequest.Builder builder) {
         builder.setAppendEntriesSuccessResponse(response);
     }
 
@@ -137,9 +139,8 @@ public class AppendEntriesSuccessResponseOrBuilder implements AppendEntriesSucce
             return "AppendEntriesSuccessResponse{builder=" + builder + "}";
         }
 
-        return "AppendEntriesSuccessResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", "
+        return ("AppendEntriesSuccessResponse{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", "
                 + "term=" + getTerm() + ", lastLogIndex=" + getLastLogIndex() + ", querySequenceNumber="
-                + getQuerySequenceNumber() + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + '}';
+                + getQuerySequenceNumber() + ", flowControlSequenceNumber=" + getFlowControlSequenceNumber() + '}');
     }
-
 }

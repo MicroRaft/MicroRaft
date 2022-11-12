@@ -18,14 +18,13 @@ package io.afloatdb.internal.raft.impl.model.message;
 
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.raft.proto.PreVoteRequestProto;
-import io.afloatdb.raft.proto.RaftMessageRequest;
+import io.afloatdb.raft.proto.RaftRequest;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.PreVoteRequest;
 import io.microraft.model.message.PreVoteRequest.PreVoteRequestBuilder;
-
 import javax.annotation.Nonnull;
 
-public class PreVoteRequestOrBuilder implements PreVoteRequest, PreVoteRequestBuilder, RaftMessageRequestAware {
+public class PreVoteRequestOrBuilder implements PreVoteRequest, PreVoteRequestBuilder, RaftRequestAware {
 
     private PreVoteRequestProto.Builder builder;
     private PreVoteRequestProto request;
@@ -89,7 +88,7 @@ public class PreVoteRequestOrBuilder implements PreVoteRequest, PreVoteRequestBu
     }
 
     @Override
-    public void populate(RaftMessageRequest.Builder builder) {
+    public void populate(RaftRequest.Builder builder) {
         builder.setPreVoteRequest(request);
     }
 
@@ -99,8 +98,8 @@ public class PreVoteRequestOrBuilder implements PreVoteRequest, PreVoteRequestBu
             return "PreVoteRequest{builder=" + builder + "}";
         }
 
-        return "PreVoteRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
-                + ", lastLogTerm=" + getLastLogTerm() + ", lastLogIndex=" + getLastLogIndex() + '}';
+        return ("PreVoteRequest{" + "groupId=" + getGroupId() + ", sender=" + sender.getId() + ", term=" + getTerm()
+                + ", lastLogTerm=" + getLastLogTerm() + ", lastLogIndex=" + getLastLogIndex() + '}');
     }
 
     @Override
@@ -128,5 +127,4 @@ public class PreVoteRequestOrBuilder implements PreVoteRequest, PreVoteRequestBu
     public int getTerm() {
         return request.getTerm();
     }
-
 }

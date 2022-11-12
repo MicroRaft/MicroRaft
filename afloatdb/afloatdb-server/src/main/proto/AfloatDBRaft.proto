@@ -241,7 +241,7 @@ message TriggerLeaderElectionRequestProto {
 }
 
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/RaftMessage.java
-message RaftMessageRequest {
+message RaftRequest {
     oneof message {
         VoteRequestProto voteRequest = 1;
         VoteResponseProto voteResponse = 2;
@@ -256,13 +256,13 @@ message RaftMessageRequest {
     }
 }
 
-message RaftMessageResponse {
+message RaftResponse {
 }
 
 // Service definition for the Raft communication between AfloatDB servers.
-service RaftMessageHandler {
+service RaftService {
     // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftNode.java#L225
-    rpc handle (stream RaftMessageRequest) returns (RaftMessageResponse) {
+    rpc handle (stream RaftRequest) returns (RaftResponse) {
     }
 }
 

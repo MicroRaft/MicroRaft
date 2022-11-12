@@ -17,34 +17,34 @@ import picocli.CommandLine.Option;
 @Command
 public class AfloatDBClientCliRunner implements Runnable {
 
-    @Option(names = { "-s", "--server" }, required = true)
+    @Option(names = {"-s", "--server"}, required = true)
     public String serverAddress;
 
-    @Option(names = { "-cfg", "--config-file-path" }, required = false)
+    @Option(names = {"-cfg", "--config-file-path"}, required = false)
     public String configFilePath;
 
-    @Option(names = { "-id", "--client-id" }, required = false)
+    @Option(names = {"-id", "--client-id"}, required = false)
     public String clientId;
 
-    @Option(names = { "-sc", "--single-connection" }, required = false)
+    @Option(names = {"-sc", "--single-connection"}, required = false)
     public boolean singleConnection;
 
-    @Option(names = { "-tsec", "--rpc-timeout-secs" }, required = false)
+    @Option(names = {"-tsec", "--rpc-timeout-secs"}, required = false)
     public Integer rpcTimeoutSecs;
 
-    @Option(names = { "-prcfg", "--print-config" }, required = false)
+    @Option(names = {"-prcfg", "--print-config"}, required = false)
     public boolean printConfig;
 
-    @Option(names = { "-k", "--key" }, required = false)
+    @Option(names = {"-k", "--key"}, required = false)
     public String key;
 
-    @Option(names = { "-v", "--value" }, required = false)
+    @Option(names = {"-v", "--value"}, required = false)
     public String value;
 
-    @Option(names = { "-nv", "--new-value" }, required = false)
+    @Option(names = {"-nv", "--new-value"}, required = false)
     public String newValue;
 
-    @Option(names = { "-cix", "--min-commit-index" }, required = false)
+    @Option(names = {"-cix", "--min-commit-index"}, required = false)
     public long minCommitIndex = -1;
 
     private AfloatDBClientConfig initConfig() {
@@ -165,7 +165,8 @@ public class AfloatDBClientCliRunner implements Runnable {
         Object result = call(kv -> {
             Long longVal = parseValueLong();
             Long longNewVal = parseNewValueLong();
-            return (longVal != null && longNewVal != null) ? kv.replace(key, longVal, longNewVal)
+            return (longVal != null && longNewVal != null)
+                    ? kv.replace(key, longVal, longNewVal)
                     : kv.replace(key, value, newValue);
         });
 

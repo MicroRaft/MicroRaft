@@ -17,6 +17,24 @@
 
 package io.microraft.impl;
 
+import static io.microraft.MembershipChangeMode.ADD_LEARNER;
+import static io.microraft.MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER;
+import static io.microraft.RaftNodeStatus.ACTIVE;
+import static io.microraft.impl.local.SimpleStateMachine.applyValue;
+import static io.microraft.impl.log.RaftLog.FIRST_VALID_LOG_INDEX;
+import static io.microraft.test.util.AssertionUtils.eventually;
+import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
+import static io.microraft.test.util.RaftTestUtils.getCommittedGroupMembers;
+import static io.microraft.test.util.RaftTestUtils.getLastLogOrSnapshotEntry;
+import static io.microraft.test.util.RaftTestUtils.getMatchIndex;
+import static io.microraft.test.util.RaftTestUtils.getRole;
+import static io.microraft.test.util.RaftTestUtils.getSnapshotChunkCollector;
+import static io.microraft.test.util.RaftTestUtils.getSnapshotEntry;
+import static io.microraft.test.util.RaftTestUtils.getStatus;
+import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+
 import io.microraft.Ordered;
 import io.microraft.RaftConfig;
 import io.microraft.RaftNode;
@@ -35,33 +53,18 @@ import io.microraft.model.message.InstallSnapshotRequest;
 import io.microraft.model.message.InstallSnapshotResponse;
 import io.microraft.model.message.RaftMessage;
 import io.microraft.report.RaftGroupMembers;
+import io.microraft.report.RaftNodeReport;
+import io.microraft.test.util.AssertionUtils.AssertTask;
 import io.microraft.test.util.BaseTest;
-import org.junit.After;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Function;
-
-import static io.microraft.MembershipChangeMode.ADD_LEARNER;
-import static io.microraft.MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER;
-import static io.microraft.RaftNodeStatus.ACTIVE;
-import static io.microraft.impl.local.SimpleStateMachine.applyValue;
-import static io.microraft.test.util.AssertionUtils.eventually;
-import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
-import static io.microraft.test.util.RaftTestUtils.getCommittedGroupMembers;
-import static io.microraft.test.util.RaftTestUtils.getLastLogOrSnapshotEntry;
-import static io.microraft.test.util.RaftTestUtils.getMatchIndex;
-import static io.microraft.test.util.RaftTestUtils.getRole;
-import static io.microraft.test.util.RaftTestUtils.getSnapshotChunkCollector;
-import static io.microraft.test.util.RaftTestUtils.getSnapshotEntry;
-import static io.microraft.test.util.RaftTestUtils.getStatus;
-import static java.util.Collections.emptyList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import org.junit.After;
+import org.junit.Test;
 
 public class SnapshotTest extends BaseTest {
 
@@ -327,7 +330,8 @@ public class SnapshotTest extends BaseTest {
         // the leader cannot send AppendEntriesRPC to the follower
         group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), AppendEntriesRequest.class);
 
-        // the follower cannot send append response to the leader after installing the snapshot
+        // the follower cannot send append response to the leader after installing the
+        // snapshot
         group.dropMessagesTo(slowFollower.getLocalEndpoint(), leader.getLocalEndpoint(),
                 AppendEntriesSuccessResponse.class);
 
@@ -342,7 +346,7 @@ public class SnapshotTest extends BaseTest {
         group.resetAllRulesFrom(leader.getLocalEndpoint());
 
         eventually(() -> {
-            for (RaftNodeImpl node : group.<RaftNodeImpl> getNodesExcept(slowFollower.getLocalEndpoint())) {
+            for (RaftNodeImpl node : group.<RaftNodeImpl>getNodesExcept(slowFollower.getLocalEndpoint())) {
                 assertThat(getCommitIndex(node)).isEqualTo(entryCount + 1);
                 SimpleStateMachine stateMachine = group.getStateMachine(node.getLocalEndpoint());
                 assertThat(stateMachine.size()).isEqualTo(entryCount + 1);
@@ -481,7 +485,7 @@ public class SnapshotTest extends BaseTest {
         }
 
         eventually(() -> {
-            for (RaftNodeImpl follower : group.<RaftNodeImpl> getNodesExcept(leader.getLocalEndpoint())) {
+            for (RaftNodeImpl follower : group.<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint())) {
                 assertThat(getMatchIndex(leader, follower.getLocalEndpoint())).isEqualTo(entryCount - 1);
             }
         });
@@ -527,7 +531,7 @@ public class SnapshotTest extends BaseTest {
         }
 
         eventually(() -> {
-            for (RaftNodeImpl follower : group.<RaftNodeImpl> getNodesExcept(leader.getLocalEndpoint())) {
+            for (RaftNodeImpl follower : group.<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint())) {
                 assertThat(getMatchIndex(leader, follower.getLocalEndpoint()))
                         .isEqualTo(entryCount - missingEntryCountOnSlowFollower);
             }
@@ -701,7 +705,8 @@ public class SnapshotTest extends BaseTest {
 
     @Test(timeout = 300_000)
     public void testMembershipChangeBlocksSnapshotBug() {
-        // The comments below show how the code behaves before the mentioned bug is fixed.
+        // The comments below show how the code behaves before the mentioned bug is
+        // fixed.
 
         int commitCountToTakeSnapshot = 50;
         int pendingEntryCount = 10;
@@ -720,7 +725,8 @@ public class SnapshotTest extends BaseTest {
         }
 
         // now, the leader has taken a snapshot.
-        // It also keeps some already committed entries in the log because followers[0] hasn't appended them.
+        // It also keeps some already committed entries in the log because followers[0]
+        // hasn't appended them.
         // LOG: [ <46 - 49>, <50>], SNAPSHOT INDEX: 50, COMMIT INDEX: 50
 
         long leaderCommitIndex = getCommitIndex(leader);
@@ -730,7 +736,8 @@ public class SnapshotTest extends BaseTest {
 
         // committing new entries.
         // one more entry is needed to take the next snapshot.
-        // LOG: [ <46 - 49>, <50>, <51 - 99 (committed)> ], SNAPSHOT INDEX: 50, COMMIT INDEX: 99
+        // LOG: [ <46 - 49>, <50>, <51 - 99 (committed)> ], SNAPSHOT INDEX: 50, COMMIT
+        // INDEX: 99
 
         group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint(),
                 AppendEntriesRequest.class);
@@ -739,9 +746,11 @@ public class SnapshotTest extends BaseTest {
             leader.replicate(applyValue("uncommitted_after_snapshot"));
         }
 
-        // appended some more entries which will not be committed because the leader has no majority.
+        // appended some more entries which will not be committed because the leader has
+        // no majority.
         // the last uncommitted index is reserved for membership changed.
-        // LOG: [ <46 - 49>, <50>, <51 - 99 (committed)>, <100 - 108 (uncommitted)> ], SNAPSHOT INDEX: 50, COMMIT
+        // LOG: [ <46 - 49>, <50>, <51 - 99 (committed)>, <100 - 108 (uncommitted)> ],
+        // SNAPSHOT INDEX: 50, COMMIT
         // INDEX: 99
         // There are only 2 empty indices in the log.
 
@@ -783,8 +792,10 @@ public class SnapshotTest extends BaseTest {
 
         leader.changeMembership(newRaftNode.getLocalEndpoint(), ADD_LEARNER, 0);
 
-        // When the membership change entry is appended, the leader's log will be as following:
-        // LOG: [ <46 - 49>, <50>, <51 - 99 (committed)>, <100 - 108 (uncommitted)>, <109 (membership change)> ],
+        // When the membership change entry is appended, the leader's log will be as
+        // following:
+        // LOG: [ <46 - 49>, <50>, <51 - 99 (committed)>, <100 - 108 (uncommitted)>,
+        // <109 (membership change)> ],
         // SNAPSHOT INDEX: 50, COMMIT INDEX: 99
 
         eventually(() -> assertThat(getLastLogOrSnapshotEntry(leader).getIndex()).isGreaterThan(lastLogIndex1));
@@ -792,9 +803,11 @@ public class SnapshotTest extends BaseTest {
         group.allowMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint(),
                 AppendEntriesRequest.class);
 
-        // Then, only the entries before the membership change will be committed because we alter the append request.
+        // Then, only the entries before the membership change will be committed because
+        // we alter the append request.
         // The log will be:
-        // LOG: [ <46 - 49>, <50>, <51 - 108 (committed)>, <109 (membership change)> ], SNAPSHOT INDEX: 50, COMMIT
+        // LOG: [ <46 - 49>, <50>, <51 - 108 (committed)>, <109 (membership change)> ],
+        // SNAPSHOT INDEX: 50, COMMIT
         // INDEX: 108
         // There is only 1 empty index in the log.
 
@@ -815,7 +828,8 @@ public class SnapshotTest extends BaseTest {
         eventually(() -> assertThat(getLastLogOrSnapshotEntry(leader).getIndex()).isGreaterThan(lastLogIndex2));
 
         // Now the log is full. There is no empty space left.
-        // LOG: [ <46 - 49>, <50>, <51 - 108 (committed)>, <109 (membership change)>, <110 (uncommitted)> ], SNAPSHOT
+        // LOG: [ <46 - 49>, <50>, <51 - 108 (committed)>, <109 (membership change)>,
+        // <110 (uncommitted)> ], SNAPSHOT
         // INDEX: 50, COMMIT INDEX: 108
 
         long lastLogIndex3 = getLastLogOrSnapshotEntry(leader).getIndex();
@@ -862,7 +876,8 @@ public class SnapshotTest extends BaseTest {
 
         eventually(() -> assertThat(getCommitIndex(slowFollower2)).isEqualTo(getCommitIndex(leader)));
 
-        // slowFollower2's log: [ <91 - 100 before snapshot>, <100 snapshot>, <101 - 199 committed> ]
+        // slowFollower2's log: [ <91 - 100 before snapshot>, <100 snapshot>, <101 - 199
+        // committed> ]
 
         group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower2.getLocalEndpoint(), AppendEntriesRequest.class);
 
@@ -872,12 +887,15 @@ public class SnapshotTest extends BaseTest {
 
         eventually(() -> assertThat(getSnapshotEntry(leader).getIndex()).isGreaterThan(commitCountToTakeSnapshot));
 
-        // leader's log: [ <191 - 199 before snapshot>, <200 snapshot>, <201 - 249 committed> ]
+        // leader's log: [ <191 - 199 before snapshot>, <200 snapshot>, <201 - 249
+        // committed> ]
 
         group.allowMessagesTo(leader.getLocalEndpoint(), slowFollower2.getLocalEndpoint(), AppendEntriesRequest.class);
 
-        // leader replicates 50 entries to slowFollower2 but slowFollower2 has only available capacity of 11 indices.
-        // so, slowFollower2 appends 11 of these 50 entries in the first AppendRequest, takes a snapshot,
+        // leader replicates 50 entries to slowFollower2 but slowFollower2 has only
+        // available capacity of 11 indices.
+        // so, slowFollower2 appends 11 of these 50 entries in the first AppendRequest,
+        // takes a snapshot,
         // and receives another AppendRequest for the remaining entries...
 
         eventually(() -> {
@@ -1079,4 +1097,204 @@ public class SnapshotTest extends BaseTest {
         });
     }
 
+    @Test(timeout = 300_000)
+    public void when_snapshotTriggeredViaNotStartedSingletonNode_then_snapshotCannotBeTaken() {
+        group = LocalRaftGroup.newBuilder(1).build();
+        RaftNodeImpl node = group.getNodes().get(0);
+
+        try {
+            node.takeSnapshot().join();
+            fail("Cannot take snapshot manually before started");
+        } catch (CompletionException e) {
+            assertThat(e).hasCauseInstanceOf(IllegalStateException.class);
+        }
+    }
+
+    @Test(timeout = 300_000)
+    public void when_snapshotTriggeredViaSingletonNodeWhenFirstLogEntryNotCommitted_then_snapshotCannotBeTaken() {
+        group = LocalRaftGroup.start(1);
+        RaftNodeImpl node = group.getNodes().get(0);
+
+        try {
+            node.takeSnapshot().join();
+            fail("Cannot take snapshot manually before first entry committed");
+        } catch (CompletionException e) {
+            assertThat(e).hasCauseInstanceOf(IllegalStateException.class);
+        }
+    }
+
+    @Test(timeout = 300_000)
+    public void when_snapshotTriggeredViaSingletonNodeWhenFirstLogEntryCommitted_then_snapshotCanBeTaken() {
+        group = LocalRaftGroup.newBuilder(1).enableNewTermOperation().start();
+        RaftNodeImpl node = group.getNodes().get(0);
+
+        Ordered<RaftNodeReport> result = node.takeSnapshot().join();
+        assertThat(result.getCommitIndex()).isEqualTo(FIRST_VALID_LOG_INDEX);
+    }
+
+    @Test(timeout = 300_000)
+    public void when_snapshotTriggeredViaNotStartedNode_then_snapshotCannotBeTaken() {
+        group = LocalRaftGroup.newBuilder(2).build();
+        RaftNodeImpl node = group.getNodes().get(0);
+
+        try {
+            node.takeSnapshot().join();
+            fail("Cannot take snapshot manually before started");
+        } catch (CompletionException e) {
+            assertThat(e).hasCauseInstanceOf(IllegalStateException.class);
+        }
+    }
+
+    @Test(timeout = 300_000)
+    public void when_snapshotTriggeredViaLeaderWhenFirstEntryNotCommitted_then_snapshotCannotBeTaken() {
+        group = LocalRaftGroup.start(3);
+        RaftNodeImpl node = group.waitUntilLeaderElected();
+
+        try {
+            node.takeSnapshot().join();
+            fail("Cannot take snapshot manually before first entry committed");
+        } catch (CompletionException e) {
+            assertThat(e).hasCauseInstanceOf(IllegalStateException.class);
+        }
+    }
+
+    @Test(timeout = 300_000)
+    public void when_snapshotTriggeredViaLeaderWhenFirstEntryCommitted_then_snapshotCanBeTaken() {
+        group = LocalRaftGroup.newBuilder(3).enableNewTermOperation().start();
+        RaftNodeImpl node = group.waitUntilLeaderElected();
+        eventually(() -> {
+            assertThat(getCommitIndex(node)).isGreaterThan(0);
+        });
+
+        Ordered<RaftNodeReport> result = node.takeSnapshot().join();
+        assertThat(result.getCommitIndex()).isEqualTo(FIRST_VALID_LOG_INDEX);
+    }
+
+    @Test(timeout = 300_000)
+    public void when_snapshotTriggeredViaLeaderMultipleTimesAtSameIndex_then_singleSnapshotIsTaken() {
+        group = LocalRaftGroup.newBuilder(3).enableNewTermOperation().start();
+        RaftNodeImpl node = group.waitUntilLeaderElected();
+        eventually(() -> {
+            assertThat(getCommitIndex(node)).isGreaterThan(0);
+        });
+
+        Ordered<RaftNodeReport> result1 = node.takeSnapshot().join();
+        assertThat(result1.getCommitIndex()).isEqualTo(FIRST_VALID_LOG_INDEX);
+        assertThat(result1.getResult()).isNotNull();
+        Ordered<RaftNodeReport> result2 = node.takeSnapshot().join();
+        assertThat(result2.getCommitIndex()).isEqualTo(result1.getCommitIndex());
+        assertThat(result2.getResult()).isNull();
+    }
+
+    @Test(timeout = 300_000)
+    public void when_snapshotTriggeredViaFollowerMultipleTimesAtSameIndex_then_singleSnapshotIsTaken() {
+        group = LocalRaftGroup.newBuilder(2).enableNewTermOperation().start();
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        RaftNodeImpl node = group.getAnyNodeExcept(leader.getLeaderEndpoint());
+        eventually(() -> {
+            assertThat(getCommitIndex(node)).isGreaterThan(0);
+        });
+
+        Ordered<RaftNodeReport> result1 = node.takeSnapshot().join();
+        assertThat(result1.getCommitIndex()).isEqualTo(FIRST_VALID_LOG_INDEX);
+        Ordered<RaftNodeReport> result2 = node.takeSnapshot().join();
+        assertThat(result2.getCommitIndex()).isEqualTo(result1.getCommitIndex());
+    }
+
+    @Test(timeout = 300_000)
+    public void when_snapshotTriggeredViaFollowerWhenFirstEntryCommitted_then_snapshotCanBeTaken() {
+        group = LocalRaftGroup.newBuilder(3).enableNewTermOperation().start();
+        group.waitUntilLeaderElected();
+        RaftNodeImpl node = group.getAnyNodeExcept(group.getLeaderEndpoint());
+        eventually(() -> {
+            assertThat(getCommitIndex(node)).isGreaterThan(0);
+        });
+
+        Ordered<RaftNodeReport> result = node.takeSnapshot().join();
+        assertThat(result.getCommitIndex()).isEqualTo(FIRST_VALID_LOG_INDEX);
+    }
+
+    @Test(timeout = 300_000)
+    public void when_snapshotTriggeredViaLearnerWhenFirstEntryCommitted_then_snapshotCanBeTaken() {
+        group = LocalRaftGroup.newBuilder(3).enableNewTermOperation().start();
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+
+        RaftNodeImpl newNode = group.createNewNode();
+
+        long commitIndex = leader.changeMembership(newNode.getLocalEndpoint(), ADD_LEARNER, 0).join().getCommitIndex();
+
+        eventually(() -> {
+            assertThat(getCommitIndex(newNode)).isEqualTo(getCommitIndex(leader));
+        });
+
+        Ordered<RaftNodeReport> result = newNode.takeSnapshot().join();
+        assertThat(result.getCommitIndex()).isEqualTo(commitIndex);
+    }
+
+    @Test(timeout = 300_000)
+    public void when_manualSnapshotIsTakenViaLeader_then_leaderCanTakeAutomaticSnapshot() {
+        int entryCount = 50;
+        RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount)
+                .setMaxPendingLogEntryCount(entryCount / 10).build();
+        group = LocalRaftGroup.newBuilder(3).setConfig(config).enableNewTermOperation().start();
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        eventually(() -> {
+            assertThat(getCommitIndex(leader)).isGreaterThan(0);
+        });
+
+        long snapshotIndex1 = leader.takeSnapshot().join().getCommitIndex();
+
+        for (int i = 0; i < entryCount * 5; i++) {
+            leader.replicate(applyValue("val")).join();
+        }
+
+        long snapshotIndex2 = getSnapshotEntry(leader).getIndex();
+        assertThat(snapshotIndex2).isGreaterThan(snapshotIndex1);
+
+        for (int i = 0; i < entryCount * 10 + entryCount / 2; i++) {
+            leader.replicate(applyValue("val")).join();
+        }
+
+        long snapshotIndex3 = leader.takeSnapshot().join().getCommitIndex();
+
+        assertThat(snapshotIndex3).isGreaterThan(snapshotIndex2);
+    }
+
+    @Test(timeout = 300_000)
+    public void when_manualSnapshotIsTakenViaFollower_then_followerCanTakeAutomaticSnapshot() {
+        int entryCount = 50;
+        RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount)
+                .setMaxPendingLogEntryCount(entryCount / 10).build();
+        group = LocalRaftGroup.newBuilder(3).setConfig(config).enableNewTermOperation().start();
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        RaftNodeImpl follower = group.getAnyNodeExcept(leader.getLocalEndpoint());
+        eventually(() -> {
+            assertThat(getCommitIndex(follower)).isGreaterThan(0);
+        });
+
+        long snapshotIndex1 = follower.takeSnapshot().join().getCommitIndex();
+
+        for (int i = 0; i < entryCount * 5; i++) {
+            leader.replicate(applyValue("val")).join();
+        }
+
+        eventually(() -> {
+            assertThat(getCommitIndex(follower)).isEqualTo(getCommitIndex(leader));
+        });
+
+        long snapshotIndex2 = getSnapshotEntry(follower).getIndex();
+
+        assertThat(snapshotIndex2).isGreaterThan(snapshotIndex1);
+
+        for (int i = 0; i < entryCount * 10 + entryCount / 2; i++) {
+            leader.replicate(applyValue("val")).join();
+        }
+
+        eventually(() -> {
+            assertThat(getCommitIndex(follower)).isEqualTo(getCommitIndex(leader));
+        });
+
+        long snapshotIndex3 = follower.takeSnapshot().join().getCommitIndex();
+        assertThat(snapshotIndex3).isGreaterThan(snapshotIndex2);
+    }
 }

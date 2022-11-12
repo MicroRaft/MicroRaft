@@ -69,7 +69,7 @@ public class RestoreCrashedRaftNodeTest {
         eventually(() -> {
             Object queryOperation = SimpleStateMachine.queryLastValue();
             Ordered<String> queryResult = crashedFollower
-                    .<String> query(queryOperation, QueryPolicy.EVENTUAL_CONSISTENCY, 0).join();
+                    .<String>query(queryOperation, QueryPolicy.EVENTUAL_CONSISTENCY, 0).join();
             assertThat(queryResult.getResult()).isEqualTo(value);
             System.out.println("monotonic local query successful on follower. query result: " + queryResult.getResult()
                     + ", commit index: " + queryResult.getCommitIndex());
@@ -83,7 +83,7 @@ public class RestoreCrashedRaftNodeTest {
         eventually(() -> {
             Object queryOperation = SimpleStateMachine.queryLastValue();
             Ordered<String> queryResult = restoredFollower
-                    .<String> query(queryOperation, QueryPolicy.EVENTUAL_CONSISTENCY, 0).join();
+                    .<String>query(queryOperation, QueryPolicy.EVENTUAL_CONSISTENCY, 0).join();
             assertThat(queryResult.getResult()).isEqualTo(value);
             System.out.println("monotonic local query successful on restarted follower. query result: "
                     + queryResult.getResult() + ", commit index: " + queryResult.getCommitIndex());

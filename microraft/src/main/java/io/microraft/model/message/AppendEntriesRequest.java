@@ -26,10 +26,12 @@ import java.util.List;
 /**
  * Raft message for the AppendEntries RPC.
  * <p>
- * See <i>5.3 Log replication</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
- * Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>5.3 Log replication</i> section of <i>In Search of an Understandable
+ * Consensus Algorithm</i> paper by <i>Diego Ongaro</i> and <i>John
+ * Ousterhout</i>.
  * <p>
- * Invoked by leader to replicate log entries (§5.3); also used as heartbeat (§5.2).
+ * Invoked by leader to replicate log entries (§5.3); also used as heartbeat
+ * (§5.2).
  *
  * @see AppendEntriesRequestHandler
  */

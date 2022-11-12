@@ -29,15 +29,19 @@ import javax.annotation.Nonnull;
 /**
  * Used for communicating Raft nodes with each other.
  * <p>
- * Transport implementations must be non-blocking. A Raft node must be able to send a Raft message to another Raft node
- * and continue without blocking. This is required because Raft nodes run concurrently with the Actor model.
+ * Transport implementations must be non-blocking. A Raft node must be able to
+ * send a Raft message to another Raft node and continue without blocking. This
+ * is required because Raft nodes run concurrently with the Actor model.
  * <p>
- * Transport implementations must be able to serialize {@link RaftMessage} objects created by {@link RaftModelFactory}.
+ * Transport implementations must be able to serialize {@link RaftMessage}
+ * objects created by {@link RaftModelFactory}.
  * <p>
- * A {@link Transport} implementation can implement {@link RaftNodeLifecycleAware} to perform initialization and clean
- * up work during {@link RaftNode} startup and termination. {@link RaftNode} calls
- * {@link RaftNodeLifecycleAware#onRaftNodeStart()} before calling any other method on {@link Transport}, and finally
- * calls {@link RaftNodeLifecycleAware#onRaftNodeTerminate()} on termination.
+ * A {@link Transport} implementation can implement
+ * {@link RaftNodeLifecycleAware} to perform initialization and clean up work
+ * during {@link RaftNode} startup and termination. {@link RaftNode} calls
+ * {@link RaftNodeLifecycleAware#onRaftNodeStart()} before calling any other
+ * method on {@link Transport}, and finally calls
+ * {@link RaftNodeLifecycleAware#onRaftNodeTerminate()} on termination.
  *
  * @see RaftModel
  * @see RaftMessage
@@ -49,13 +53,16 @@ import javax.annotation.Nonnull;
 public interface Transport {
 
     /**
-     * Sends the given {@link RaftMessage} object to the given endpoint. This method must not block the caller Raft node
-     * instance and return promptly so that the caller can continue its execution.
+     * Sends the given {@link RaftMessage} object to the given endpoint. This method
+     * must not block the caller Raft node instance and return promptly so that the
+     * caller can continue its execution.
      * <p>
-     * This method must not throw an exception, for example if the given {@link RaftMessage} object has not been sent to
-     * the given endpoint or an internal error has occurred. The handling of {@link RaftMessage} objects are designed
-     * idempotently. Therefore, if a {@link RaftMessage} object is not sent to the given endpoint, it implies that the
-     * source Raft node will not receive a {@link RaftMessage} as response, hence it will re-send the failed
+     * This method must not throw an exception, for example if the given
+     * {@link RaftMessage} object has not been sent to the given endpoint or an
+     * internal error has occurred. The handling of {@link RaftMessage} objects are
+     * designed idempotently. Therefore, if a {@link RaftMessage} object is not sent
+     * to the given endpoint, it implies that the source Raft node will not receive
+     * a {@link RaftMessage} as response, hence it will re-send the failed
      * {@link RaftMessage} again.
      *
      * @param target
@@ -66,12 +73,14 @@ public interface Transport {
     void send(@Nonnull RaftEndpoint target, @Nonnull RaftMessage message);
 
     /**
-     * Returns true if the given endpoint is supposedly reachable by the time this method is called, false otherwise.
+     * Returns true if the given endpoint is supposedly reachable by the time this
+     * method is called, false otherwise.
      * <p>
-     * This method is not required to return a precise information. For instance, the Transport implementation does not
-     * need to ping the given endpoint to check if it is reachable when this method is called. Instead, the local Raft
-     * node could use a local information, such as recency of a message sent by or having a TCP connection to the given
-     * Raft endpoint.
+     * This method is not required to return a precise information. For instance,
+     * the Transport implementation does not need to ping the given endpoint to
+     * check if it is reachable when this method is called. Instead, the local Raft
+     * node could use a local information, such as recency of a message sent by or
+     * having a TCP connection to the given Raft endpoint.
      *
      * @param endpoint
      *            the Raft endpoint to check reachability

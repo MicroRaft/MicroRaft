@@ -24,8 +24,9 @@ import javax.annotation.Nonnull;
 /**
  * Base class for Raft log entries.
  * <p>
- * Each log entry stores an operation that will be executed on the state machine along with the term number when the
- * operation was received by the leader. Term numbers are used to detect inconsistencies between logs. Each log entry
+ * Each log entry stores an operation that will be executed on the state machine
+ * along with the term number when the operation was received by the leader.
+ * Term numbers are used to detect inconsistencies between logs. Each log entry
  * also has an integer index identifying its position in the Raft log.
  * <p>
  * {@link BaseLogEntry} objects are created by {@link RaftModelFactory}.

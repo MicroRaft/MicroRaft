@@ -38,8 +38,8 @@ public class OperableAtomicRegister extends AtomicRegister implements StateMachi
     protected Object value;
 
     /**
-     * Returns a new operation to update the atomic register with the given value. The operation returns the previous
-     * value as response.
+     * Returns a new operation to update the atomic register with the given value.
+     * The operation returns the previous value as response.
      *
      * @param value
      *            to update the atomic register
@@ -60,9 +60,10 @@ public class OperableAtomicRegister extends AtomicRegister implements StateMachi
     }
 
     /**
-     * Returns a compare-and-swap operation to update the atomic register with the given new value of only if its
-     * current value matches with the given current value. The operations returns true if the compare-and-swap operation
-     * is successful.
+     * Returns a compare-and-swap operation to update the atomic register with the
+     * given new value of only if its current value matches with the given current
+     * value. The operations returns true if the compare-and-swap operation is
+     * successful.
      *
      * @param currentValue
      *            the current value of the atomic register for cas
@@ -107,7 +108,8 @@ public class OperableAtomicRegister extends AtomicRegister implements StateMachi
     }
 
     /**
-     * Marker interface for operations to be executed on the atomic register state machine.
+     * Marker interface for operations to be executed on the atomic register state
+     * machine.
      */
     public interface AtomicRegisterOperation {
     }

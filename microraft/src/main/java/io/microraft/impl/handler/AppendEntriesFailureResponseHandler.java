@@ -32,13 +32,14 @@ import javax.annotation.Nonnull;
 import static io.microraft.RaftRole.LEADER;
 
 /**
- * Handles an {@link AppendEntriesFailureResponse} which can be sent as a response to a previous append-entries request
- * or an install-snapshot request.
+ * Handles an {@link AppendEntriesFailureResponse} which can be sent as a
+ * response to a previous append-entries request or an install-snapshot request.
  * <p>
  * Decrements {@code nextIndex} of the follower by 1 if the response is valid.
  * <p>
- * See <i>5.3 Log replication</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
- * Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>5.3 Log replication</i> section of <i>In Search of an Understandable
+ * Consensus Algorithm</i> paper by <i>Diego Ongaro</i> and <i>John
+ * Ousterhout</i>.
  *
  * @see AppendEntriesRequest
  * @see InstallSnapshotRequest
@@ -59,7 +60,8 @@ public class AppendEntriesFailureResponseHandler extends AbstractResponseHandler
         }
 
         if (response.getTerm() > state.term()) {
-            // If the response term is greater than the local term, update the local term and convert to follower (§5.1)
+            // If the response term is greater than the local term, update the local term
+            // and convert to follower (§5.1)
             LOGGER.info("{} Switching to term: {} after {} from current term: {}", localEndpointStr(),
                     response.getTerm(), response, state.term());
             node.toFollower(response.getTerm());

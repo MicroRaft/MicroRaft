@@ -33,7 +33,8 @@ import static java.util.Objects.requireNonNull;
 /**
  * A very simple {@link Transport} implementation used in the tutorial.
  * <p>
- * It uses a concurrent hash map to pass Raft message objects between Raft nodes.
+ * It uses a concurrent hash map to pass Raft message objects between Raft
+ * nodes.
  * <p>
  * YOU CAN SEE THIS CLASS AT:
  * <p>
@@ -70,7 +71,8 @@ final class LocalTransport implements Transport {
     /**
      * Adds the given Raft node to the known Raft nodes map.
      * <p>
-     * After this call, Raft messages sent to the given Raft endpoint are are passed to its Raft node.
+     * After this call, Raft messages sent to the given Raft endpoint are are passed
+     * to its Raft node.
      *
      * @param node
      *            the Raft node to be added to the known Raft nodes map
@@ -90,7 +92,8 @@ final class LocalTransport implements Transport {
     /**
      * Removes the given Raft node from the known Raft nodes map.
      * <p>
-     * After this call, Raft messages sent to the given Raft endpoint are silently dropped.
+     * After this call, Raft messages sent to the given Raft endpoint are silently
+     * dropped.
      *
      * @param node
      *            the Raft node to be removed from the known Raft nodes map

@@ -51,12 +51,12 @@ public class LinearizableQueryTest extends BaseLocalTest {
 
         String value = "value";
         AtomicRegisterOperation operation1 = OperableAtomicRegister.newSetOperation(value);
-        Ordered<String> result1 = leader.<String> replicate(operation1).join();
+        Ordered<String> result1 = leader.<String>replicate(operation1).join();
 
         System.out.println("set operation commit index: " + result1.getCommitIndex());
 
         AtomicRegisterOperation operation2 = OperableAtomicRegister.newGetOperation();
-        Ordered<String> queryResult = leader.<String> query(operation2, QueryPolicy.LINEARIZABLE, 0).join();
+        Ordered<String> queryResult = leader.<String>query(operation2, QueryPolicy.LINEARIZABLE, 0).join();
 
         System.out.println(
                 "get operation result: " + queryResult.getResult() + ", commit index: " + queryResult.getCommitIndex());

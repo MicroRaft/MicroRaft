@@ -27,11 +27,13 @@ import java.util.Collection;
 /**
  * Raft message for the InstallSnapshot RPC.
  * <p>
- * See <i>7 Log compaction</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
- * Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>7 Log compaction</i> section of <i>In Search of an Understandable
+ * Consensus Algorithm</i> paper by <i>Diego Ongaro</i> and <i>John
+ * Ousterhout</i>.
  * <p>
- * Invoked by leader to send chunks of a snapshot to a follower. Chunks are sent in the order defined by the follower
- * and the follower is free to request the chunks in any order.
+ * Invoked by leader to send chunks of a snapshot to a follower. Chunks are sent
+ * in the order defined by the follower and the follower is free to request the
+ * chunks in any order.
  *
  * @see InstallSnapshotResponse
  */

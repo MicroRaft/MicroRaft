@@ -44,26 +44,34 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Handles an {@link InstallSnapshotRequest} which could be sent by the leader or a follower.
+ * Handles an {@link InstallSnapshotRequest} which could be sent by the leader
+ * or a follower.
  * <p>
- * Responds with either an {@link InstallSnapshotResponse}, {@link AppendEntriesSuccessResponse}, or
+ * Responds with either an {@link InstallSnapshotResponse},
+ * {@link AppendEntriesSuccessResponse}, or
  * {@link AppendEntriesFailureResponse}.
  * <p>
- * See <i>7 Log compaction</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
- * Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>7 Log compaction</i> section of <i>In Search of an Understandable
+ * Consensus Algorithm</i> paper by <i>Diego Ongaro</i> and <i>John
+ * Ousterhout</i>.
  * <p>
- * If the request contains no snapshot chunk, it means that the Raft leader intends to transfer a new snapshot to the
- * follower. In this case, the follower initializes its {@link SnapshotChunkCollector} state based on the total snapshot
- * chunk count present in the request, then starts asking snapshot chunks via sending {@link InstallSnapshotResponse}
- * objects. Once the follower collects all snapshot chunks, it installs the snapshot and sends an
+ * If the request contains no snapshot chunk, it means that the Raft leader
+ * intends to transfer a new snapshot to the follower. In this case, the
+ * follower initializes its {@link SnapshotChunkCollector} state based on the
+ * total snapshot chunk count present in the request, then starts asking
+ * snapshot chunks via sending {@link InstallSnapshotResponse} objects. Once the
+ * follower collects all snapshot chunks, it installs the snapshot and sends an
  * {@link AppendEntriesSuccessResponse} back to the leader.
  * <p>
- * Our Raft log design ensures that every Raft group member takes a snapshot at exactly the same log index. This
- * behaviour enables an optimization. The {@link InstallSnapshotRequest} object sent by the leader contains a list of
- * followers whom are known to be installed the given snapshot. Using this information, when a follower receives an
- * {@link InstallSnapshotRequest} from the leader, it can ask snapshot chunks not only from the leader, but also from
- * the followers provided in the received {@link InstallSnapshotRequest}. By this way, we utilize the bandwidth of the
- * followers and speed up the process by transferring snapshot chunks to the follower in parallel.
+ * Our Raft log design ensures that every Raft group member takes a snapshot at
+ * exactly the same log index. This behaviour enables an optimization. The
+ * {@link InstallSnapshotRequest} object sent by the leader contains a list of
+ * followers whom are known to be installed the given snapshot. Using this
+ * information, when a follower receives an {@link InstallSnapshotRequest} from
+ * the leader, it can ask snapshot chunks not only from the leader, but also
+ * from the followers provided in the received {@link InstallSnapshotRequest}.
+ * By this way, we utilize the bandwidth of the followers and speed up the
+ * process by transferring snapshot chunks to the follower in parallel.
  *
  * @see InstallSnapshotRequest
  * @see InstallSnapshotResponse
@@ -79,7 +87,7 @@ public class InstallSnapshotRequestHandler extends AbstractMessageHandler<Instal
     }
 
     @Override
-    @SuppressWarnings({ "checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity" })
+    @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity"})
     protected void handle(@Nonnull InstallSnapshotRequest request) {
         requireNonNull(request);
 
@@ -113,9 +121,11 @@ public class InstallSnapshotRequestHandler extends AbstractMessageHandler<Instal
                     sender.getId(), request.getSnapshotIndex());
         }
 
-        // Transform into follower if a newer term is seen or another node wins the election of the current term
+        // Transform into follower if a newer term is seen or another node wins the
+        // election of the current term
         if (request.getTerm() > state.term() || (state.role() != FOLLOWER && state.role() != LEARNER)) {
-            // If the request term is greater than the local term, update the local term and convert to follower (§5.1)
+            // If the request term is greater than the local term, update the local term and
+            // convert to follower (§5.1)
             LOGGER.info("{} Moving to new term: {} from current term: {} and sender: {}", localEndpointStr(),
                     request.getTerm(), state.term(), sender.getId());
 

@@ -333,7 +333,7 @@ public class PersistenceTest extends BaseTest {
     }
 
     private void blockVotingBetweenFollowers() {
-        for (RaftNodeImpl follower : group.<RaftNodeImpl> getNodesExcept(group.getLeaderEndpoint())) {
+        for (RaftNodeImpl follower : group.<RaftNodeImpl>getNodesExcept(group.getLeaderEndpoint())) {
             group.dropMessagesToAll(follower.getLocalEndpoint(), PreVoteRequest.class);
         }
     }
@@ -387,7 +387,7 @@ public class PersistenceTest extends BaseTest {
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         RaftNodeImpl terminatedLearner = null;
-        for (RaftNodeImpl node : group.<RaftNodeImpl> getNodesExcept(leader.getLocalEndpoint())) {
+        for (RaftNodeImpl node : group.<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint())) {
             if (getRole(node) == LEARNER) {
                 terminatedLearner = node;
                 break;
@@ -549,7 +549,7 @@ public class PersistenceTest extends BaseTest {
         });
 
         RaftNodeImpl terminatedLearner = null;
-        for (RaftNodeImpl node : group.<RaftNodeImpl> getNodesExcept(leader.getLocalEndpoint())) {
+        for (RaftNodeImpl node : group.<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint())) {
             if (getRole(node) == LEARNER) {
                 terminatedLearner = node;
                 break;
@@ -713,7 +713,7 @@ public class PersistenceTest extends BaseTest {
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
         RaftNodeImpl terminatedLearner = null;
-        for (RaftNodeImpl node : group.<RaftNodeImpl> getNodesExcept(leader.getLocalEndpoint())) {
+        for (RaftNodeImpl node : group.<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint())) {
             if (getRole(node) == LEARNER) {
                 terminatedLearner = node;
                 break;
@@ -835,7 +835,7 @@ public class PersistenceTest extends BaseTest {
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
         RaftNodeImpl terminatedLearner = null;
-        for (RaftNodeImpl node : group.<RaftNodeImpl> getNodesExcept(leader.getLocalEndpoint())) {
+        for (RaftNodeImpl node : group.<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint())) {
             if (getRole(node) == LEARNER) {
                 terminatedLearner = node;
                 break;

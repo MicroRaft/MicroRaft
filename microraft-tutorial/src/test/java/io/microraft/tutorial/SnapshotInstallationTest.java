@@ -77,10 +77,10 @@ public class SnapshotInstallationTest extends BaseLocalTest {
         eventually(() -> assertThat(getRaftLogStats(follower).getInstallSnapshotCount()).isEqualTo(1));
 
         Ordered<String> leaderQueryResult = leader
-                .<String> query(SnapshotableAtomicRegister.newGetOperation(), EVENTUAL_CONSISTENCY, 0).join();
+                .<String>query(SnapshotableAtomicRegister.newGetOperation(), EVENTUAL_CONSISTENCY, 0).join();
 
         Ordered<String> followerQueryResult = follower
-                .<String> query(SnapshotableAtomicRegister.newGetOperation(), EVENTUAL_CONSISTENCY, 0).join();
+                .<String>query(SnapshotableAtomicRegister.newGetOperation(), EVENTUAL_CONSISTENCY, 0).join();
 
         assertThat(followerQueryResult.getCommitIndex()).isEqualTo(leaderQueryResult.getCommitIndex());
         assertThat(followerQueryResult.getResult()).isEqualTo(leaderQueryResult.getResult());

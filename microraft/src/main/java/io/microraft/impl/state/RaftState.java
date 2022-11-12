@@ -44,7 +44,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * State maintained by each Raft node.
  */
-@SuppressWarnings({ "checkstyle:methodcount" })
+@SuppressWarnings({"checkstyle:methodcount"})
 public final class RaftState {
 
     /**
@@ -70,8 +70,8 @@ public final class RaftState {
     private final RaftStore store;
 
     /**
-     * Raft log entries; each log entry contains command for state machine, and the term when entry was received by Raft
-     * group leader. First log index is 1.
+     * Raft log entries; each log entry contains command for state machine, and the
+     * term when entry was received by Raft group leader. First log index is 1.
      */
     private final RaftLog log;
 
@@ -81,8 +81,9 @@ public final class RaftState {
     private volatile RaftGroupMembersState committedGroupMembers;
 
     /**
-     * Latest applied group members of the Raft group. This member may not be committed yet and can be reverted.
-     * (initially equal to {@link #committedGroupMembers})
+     * Latest applied group members of the Raft group. This member may not be
+     * committed yet and can be reverted. (initially equal to
+     * {@link #committedGroupMembers})
      */
     private volatile RaftGroupMembersState effectiveGroupMembers;
 
@@ -92,40 +93,48 @@ public final class RaftState {
     private volatile RaftRole role;
 
     /**
-     * Latest term this Raft node has seen along with the latest known Raft leader endpoint (or null if not known).
+     * Latest term this Raft node has seen along with the latest known Raft leader
+     * endpoint (or null if not known).
      */
     private volatile RaftTermState termState;
 
     /**
-     * Index of highest log entry known to be committed. (starts with 0 and increases monotonically)
+     * Index of highest log entry known to be committed. (starts with 0 and
+     * increases monotonically)
      * <p>
-     * [NOT-PERSISTENT] because we can re-calculate commitIndex after restoring logs.
+     * [NOT-PERSISTENT] because we can re-calculate commitIndex after restoring
+     * logs.
      */
     private long commitIndex;
 
     /**
-     * Index of highest log entry applied to state machine. (starts with 0 and increases monotonically)
+     * Index of highest log entry applied to state machine. (starts with 0 and
+     * increases monotonically)
      * <p>
      * {@code lastApplied <= commitIndex} condition holds true always.
      * <p>
-     * [NOT-PERSISTENT] because we can apply restored logs and re-calculate lastApplied.
+     * [NOT-PERSISTENT] because we can apply restored logs and re-calculate
+     * lastApplied.
      */
     private long lastApplied;
 
     /**
-     * State maintained by the Raft group leader, or null if this Raft node is not the leader.
+     * State maintained by the Raft group leader, or null if this Raft node is not
+     * the leader.
      */
     private LeaderState leaderState;
 
     /**
-     * Candidate state maintained during the pre-voting step. Becomes null when pre-voting ends by one of
-     * {@link #toCandidate()}, {@link #toLeader(long)} or {@link #toFollower(int)} methods is called.
+     * Candidate state maintained during the pre-voting step. Becomes null when
+     * pre-voting ends by one of {@link #toCandidate()}, {@link #toLeader(long)} or
+     * {@link #toFollower(int)} methods is called.
      */
     private CandidateState preCandidateState;
 
     /**
-     * Candidate state maintained during the leader election step. Initialized when this Raft node becomes a candidate
-     * via a {@link #toCandidate()} call and becomes null when the voting ends when {@link #toLeader(long)} or
+     * Candidate state maintained during the leader election step. Initialized when
+     * this Raft node becomes a candidate via a {@link #toCandidate()} call and
+     * becomes null when the voting ends when {@link #toLeader(long)} or
      * {@link #toFollower(int)} is called.
      */
     private CandidateState candidateState;
@@ -136,7 +145,8 @@ public final class RaftState {
     private LeadershipTransferState leadershipTransferState;
 
     /**
-     * State maintained by followers to keep received snapshot chunks during snapshot installation.
+     * State maintained by followers to keep received snapshot chunks during
+     * snapshot installation.
      */
     private SnapshotChunkCollector snapshotChunkCollector;
 
@@ -312,8 +322,8 @@ public final class RaftState {
      * Updates the commit index.
      */
     public void commitIndex(long index) {
-        assert index >= commitIndex : "new commit index: " + index + " is smaller than current commit index: "
-                + commitIndex;
+        assert index >= commitIndex
+                : "new commit index: " + index + " is smaller than current commit index: " + commitIndex;
         commitIndex = index;
     }
 
@@ -328,8 +338,8 @@ public final class RaftState {
      * Updates the last applied index
      */
     public void lastApplied(long index) {
-        assert index >= lastApplied : "new last applied: " + index + " is smaller than current last applied: "
-                + lastApplied;
+        assert index >= lastApplied
+                : "new last applied: " + index + " is smaller than current last applied: " + lastApplied;
         lastApplied = index;
     }
 
@@ -370,7 +380,8 @@ public final class RaftState {
     }
 
     /**
-     * Switches this Raft node to follower role. Clears leader and (pre)candidate states, updates the term.
+     * Switches this Raft node to follower role. Clears leader and (pre)candidate
+     * states, updates the term.
      *
      * @param term
      *            current term
@@ -421,7 +432,8 @@ public final class RaftState {
     }
 
     /**
-     * Completes the current leadership transfer process with the given result and resets it.
+     * Completes the current leadership transfer process with the given result and
+     * resets it.
      */
     public void completeLeadershipTransfer(Object result) {
         if (leadershipTransferState == null) {
@@ -433,8 +445,9 @@ public final class RaftState {
     }
 
     /**
-     * Switches this Raft node to candidate role. Clears pre-candidate and leader states. Initializes candidate state
-     * for the current majority and grants a vote for the local endpoint.
+     * Switches this Raft node to candidate role. Clears pre-candidate and leader
+     * states. Initializes candidate state for the current majority and grants a
+     * vote for the local endpoint.
      */
     public void toCandidate() {
         if (role == LEARNER) {
@@ -481,14 +494,16 @@ public final class RaftState {
      */
     public int logReplicationQuorumSize() {
         /*
-         * We use the improved majority quorums technique of FPaxos here. In a cluster of size N * 2, we can commit log
-         * entries after collecting acks from N nodes. Since leader elections are done with majority quorums (N + 1), we
-         * still guarantee that a new leader will always have all committed log entries.
+         * We use the improved majority quorums technique of FPaxos here. In a cluster
+         * of size N * 2, we can commit log entries after collecting acks from N nodes.
+         * Since leader elections are done with majority quorums (N + 1), we still
+         * guarantee that a new leader will always have all committed log entries.
          */
         int quorumSize = leaderElectionQuorumSize();
         return effectiveGroupMembers.votingMemberCount() % 2 != 0
                 || committedGroupMembers.getLogIndex() != effectiveGroupMembers.getLogIndex() || quorumSize == 2
-                        ? quorumSize : quorumSize - 1;
+                        ? quorumSize
+                        : quorumSize - 1;
     }
 
     /**
@@ -500,8 +515,9 @@ public final class RaftState {
     }
 
     /**
-     * Switches this Raft node to leader role. Sets local endpoint as the known leader. Clears (pre)candidate states and
-     * initializes leader state for the current members.
+     * Switches this Raft node to leader role. Sets local endpoint as the known
+     * leader. Clears (pre)candidate states and initializes leader state for the
+     * current members.
      */
     public void toLeader(long currentTimeMillis) {
         role = LEADER;
@@ -520,14 +536,16 @@ public final class RaftState {
     }
 
     /**
-     * Returns true if the given endpoint is in the effective group members, false otherwise.
+     * Returns true if the given endpoint is in the effective group members, false
+     * otherwise.
      */
     public boolean isKnownMember(RaftEndpoint endpoint) {
         return effectiveGroupMembers.isKnownMember(endpoint);
     }
 
     /**
-     * Initializes the pre-candidate state for pre-voting and grants a vote for the local endpoint.
+     * Initializes the pre-candidate state for pre-voting and grants a vote for the
+     * local endpoint.
      */
     public void initPreCandidateState() {
         preCandidateState = new CandidateState(leaderElectionQuorumSize());
@@ -544,11 +562,12 @@ public final class RaftState {
     /**
      * Initializes the effective members with the given members and the log index.
      * <p>
-     * This method expects that there's no pending membership changes and the committed members are the same as the
-     * effective members.
+     * This method expects that there's no pending membership changes and the
+     * committed members are the same as the effective members.
      * <p>
-     * The leader state is also updated for the members which don't exist in the committed members and the committed
-     * members that don't exist in the effective members are removed.
+     * The leader state is also updated for the members which don't exist in the
+     * committed members and the committed members that don't exist in the effective
+     * members are removed.
      *
      * @param logIndex
      *            log index of membership change
@@ -564,9 +583,9 @@ public final class RaftState {
         assert committedGroupMembers == effectiveGroupMembers : "Cannot update group members to: " + members
                 + " at log index: " + logIndex + " because effective group members: " + effectiveGroupMembers
                 + " is different than committed group members: " + committedGroupMembers;
-        assert effectiveGroupMembers.getLogIndex() < logIndex : "Cannot update group members to: " + members
-                + " at log index: " + logIndex + " because effective group members: " + effectiveGroupMembers
-                + " has a bigger log index.";
+        assert effectiveGroupMembers.getLogIndex() < logIndex
+                : "Cannot update group members to: " + members + " at log index: " + logIndex
+                        + " because effective group members: " + effectiveGroupMembers + " has a bigger log index.";
 
         RaftGroupMembersState newGroupMembers = new RaftGroupMembersState(logIndex, members, votingMembers,
                 localEndpoint);
@@ -591,8 +610,9 @@ public final class RaftState {
     }
 
     /**
-     * Marks the effective group members as committed. At this point {@link #committedGroupMembers} and
-     * {@link #effectiveGroupMembers} are the same.
+     * Marks the effective group members as committed. At this point
+     * {@link #committedGroupMembers} and {@link #effectiveGroupMembers} are the
+     * same.
      */
     public void commitGroupMembers() {
         assert committedGroupMembers != effectiveGroupMembers : "Cannot commit effective group members: "
@@ -602,8 +622,9 @@ public final class RaftState {
     }
 
     /**
-     * Reverts the effective group members back to the committed group members. Essentially this means that the applied
-     * but not-yet-committed membership change is reverted.
+     * Reverts the effective group members back to the committed group members.
+     * Essentially this means that the applied but not-yet-committed membership
+     * change is reverted.
      */
     public void revertGroupMembers() {
         assert this.committedGroupMembers != this.effectiveGroupMembers;
@@ -621,12 +642,12 @@ public final class RaftState {
     }
 
     /**
-     * Installs group members from the snapshot. Both the committed group members and the effective group members are
-     * overwritten with the given member list.
+     * Installs group members from the snapshot. Both the committed group members
+     * and the effective group members are overwritten with the given member list.
      */
     public boolean installGroupMembers(RaftGroupMembersView groupMembersView) {
-        assert effectiveGroupMembers.getLogIndex() <= groupMembersView
-                .getLogIndex() : "Cannot restore group members to: " + groupMembersView.getMembers() + " at log index: "
+        assert effectiveGroupMembers.getLogIndex() <= groupMembersView.getLogIndex()
+                : "Cannot restore group members to: " + groupMembersView.getMembers() + " at log index: "
                         + groupMembersView.getLogIndex() + " because effective group members: " + effectiveGroupMembers
                         + " has a bigger log index.";
 
@@ -646,8 +667,8 @@ public final class RaftState {
                     promoteToVotingMember();
                 } else if (previousGroupMembers.getVotingMembers().contains(localEndpoint)
                         && !groupMembers.getVotingMembers().contains(localEndpoint)) {
-                    assert role == FOLLOWER || role == CANDIDATE : "Cannot demote to non voting member since role is "
-                            + role;
+                    assert role == FOLLOWER || role == CANDIDATE
+                            : "Cannot demote to non voting member since role is " + role;
                     demoteToNonVotingMember();
                 }
             } catch (IOException e) {
@@ -659,10 +680,11 @@ public final class RaftState {
     }
 
     /**
-     * Initializes a new leadership transfer process for the given endpoint. Returns {@code true} if the leadership
-     * transfer process is initialized with this call, {@code false} if there is already an ongoing leadership transfer
-     * process. If there is already an ongoing leadership transfer process, the given future object is also attached to
-     * it.
+     * Initializes a new leadership transfer process for the given endpoint. Returns
+     * {@code true} if the leadership transfer process is initialized with this
+     * call, {@code false} if there is already an ongoing leadership transfer
+     * process. If there is already an ongoing leadership transfer process, the
+     * given future object is also attached to it.
      */
     public boolean initLeadershipTransfer(RaftEndpoint targetEndpoint, OrderedFuture<Object> resultFuture) {
         assert effectiveGroupMembers.getMembers().contains(targetEndpoint);

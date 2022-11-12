@@ -33,8 +33,8 @@ import java.util.function.LongFunction;
 import static java.util.Objects.requireNonNull;
 
 /**
- * {@link java.util.Map} implementation specialised for {@code long} keys using open addressing and linear probing for
- * cache efficient access.
+ * {@link java.util.Map} implementation specialised for {@code long} keys using
+ * open addressing and linear probing for cache efficient access.
  * <p>
  * NOTE: This map doesn't support {@code null} keys and values.
  *
@@ -70,7 +70,8 @@ public final class Long2ObjectHashMap<V> implements Map<Long, V> {
     }
 
     /**
-     * Construct a new map allowing a configuration for initial capacity and load factor.
+     * Construct a new map allowing a configuration for initial capacity and load
+     * factor.
      *
      * @param initialCapacity
      *            for the backing array
@@ -117,7 +118,8 @@ public final class Long2ObjectHashMap<V> implements Map<Long, V> {
     }
 
     /**
-     * Get the total capacity for the map to which the load factor with be a fraction of.
+     * Get the total capacity for the map to which the load factor with be a
+     * fraction of.
      *
      * @return the total capacity for the map.
      */
@@ -126,8 +128,8 @@ public final class Long2ObjectHashMap<V> implements Map<Long, V> {
     }
 
     /**
-     * Get the actual threshold which when reached the map resize. This is a function of the current capacity and load
-     * factor.
+     * Get the actual threshold which when reached the map resize. This is a
+     * function of the current capacity and load factor.
      *
      * @return the threshold when the map will resize.
      */
@@ -136,8 +138,8 @@ public final class Long2ObjectHashMap<V> implements Map<Long, V> {
     }
 
     /**
-     * Get a value for a given key, or if it does ot exist then default the value via a {@link LongFunction} and put it
-     * in the map.
+     * Get a value for a given key, or if it does ot exist then default the value
+     * via a {@link LongFunction} and put it in the map.
      *
      * @param key
      *            to search on.
@@ -159,8 +161,8 @@ public final class Long2ObjectHashMap<V> implements Map<Long, V> {
     }
 
     /**
-     * Compact the {@link Map} backing arrays by rehashing with a capacity just larger than current size and giving
-     * consideration to the load factor.
+     * Compact the {@link Map} backing arrays by rehashing with a capacity just
+     * larger than current size and giving consideration to the load factor.
      */
     public void compact() {
         final int idealCapacity = (int) Math.round(size() * (1.0d / loadFactor));
@@ -184,7 +186,8 @@ public final class Long2ObjectHashMap<V> implements Map<Long, V> {
     }
 
     /**
-     * Overloaded version of {@link Map#containsKey(Object)} that takes a primitive long key.
+     * Overloaded version of {@link Map#containsKey(Object)} that takes a primitive
+     * long key.
      *
      * @param key
      *            for indexing the {@link Map}
@@ -219,7 +222,8 @@ public final class Long2ObjectHashMap<V> implements Map<Long, V> {
     }
 
     /**
-     * Overloaded version of {@link Map#get(Object)} that takes a primitive long key.
+     * Overloaded version of {@link Map#get(Object)} that takes a primitive long
+     * key.
      *
      * @param key
      *            for indexing the {@link Map}
@@ -245,7 +249,8 @@ public final class Long2ObjectHashMap<V> implements Map<Long, V> {
     }
 
     /**
-     * Overloaded version of {@link Map#put(Object, Object)} that takes a primitive long key.
+     * Overloaded version of {@link Map#put(Object, Object)} that takes a primitive
+     * long key.
      *
      * @param key
      *            for indexing the {@link Map}
@@ -291,7 +296,8 @@ public final class Long2ObjectHashMap<V> implements Map<Long, V> {
     }
 
     /**
-     * Overloaded version of {@link Map#remove(Object)} that takes a primitive long key.
+     * Overloaded version of {@link Map#remove(Object)} that takes a primitive long
+     * key.
      *
      * @param key
      *            for indexing the {@link Map}
@@ -360,9 +366,11 @@ public final class Long2ObjectHashMap<V> implements Map<Long, V> {
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
-     * {@inheritDoc} This set's iterator also implements <code>Map.Entry</code> so the <code>next()</code> method can
-     * just return the iterator instance itself with no heap allocation. This characteristic makes the set unusable
-     * wherever the returned entries are retained (such as <code>coll.addAll(entrySet)</code>.
+     * {@inheritDoc} This set's iterator also implements <code>Map.Entry</code> so
+     * the <code>next()</code> method can just return the iterator instance itself
+     * with no heap allocation. This characteristic makes the set unusable wherever
+     * the returned entries are retained (such as
+     * <code>coll.addAll(entrySet)</code>.
      */
     @Override
     public Set<Entry<Long, V>> entrySet() {

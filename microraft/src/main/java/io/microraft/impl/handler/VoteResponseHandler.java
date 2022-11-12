@@ -34,14 +34,17 @@ import static io.microraft.RaftRole.CANDIDATE;
 /**
  * Handles a {@link VoteResponse} sent for a {@link VoteRequest}.
  * <p>
- * Changes the local Raft node's role to {@link RaftRole#LEADER} via {@link RaftState#toLeader()} if the majority votes
- * has been granted for this term.
+ * Changes the local Raft node's role to {@link RaftRole#LEADER} via
+ * {@link RaftState#toLeader()} if the majority votes has been granted for this
+ * term.
  * <p>
- * In the beginning of the new term, the Raft group leader appends a new log entry that contains an operation which is
- * returned via {@link StateMachine#getNewTermOperation()}.
+ * In the beginning of the new term, the Raft group leader appends a new log
+ * entry that contains an operation which is returned via
+ * {@link StateMachine#getNewTermOperation()}.
  * <p>
- * See <i>5.2 Leader election</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
- * Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>5.2 Leader election</i> section of <i>In Search of an Understandable
+ * Consensus Algorithm</i> paper by <i>Diego Ongaro</i> and <i>John
+ * Ousterhout</i>.
  *
  * @see VoteRequest
  * @see VoteResponse
@@ -60,7 +63,8 @@ public class VoteResponseHandler extends AbstractResponseHandler<VoteResponse> {
             LOGGER.debug("{} Ignored {}. We are not CANDIDATE anymore.", localEndpointStr(), response);
             return;
         } else if (response.getTerm() > state.term()) {
-            // If the response term is greater than the local term, update the local term and convert to follower (§5.1)
+            // If the response term is greater than the local term, update the local term
+            // and convert to follower (§5.1)
             LOGGER.info("{} Moving to new term: {} from current term: {} after {}", localEndpointStr(),
                     response.getTerm(), state.term(), response);
             node.toFollower(response.getTerm());

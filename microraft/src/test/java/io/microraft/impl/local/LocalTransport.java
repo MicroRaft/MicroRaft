@@ -77,7 +77,8 @@ public class LocalTransport implements Transport {
     /**
      * Adds the given Raft node to the known Raft nodes map.
      * <p>
-     * After this call, Raft messages sent to the given Raft endpoint are are passed to its Raft node.
+     * After this call, Raft messages sent to the given Raft endpoint are are passed
+     * to its Raft node.
      *
      * @param node
      *            the Raft node to be added to the known Raft nodes map
@@ -97,7 +98,8 @@ public class LocalTransport implements Transport {
     /**
      * Removes the given Raft node from the known Raft nodes map.
      * <p>
-     * After this call, Raft messages sent to the given Raft endpoint are silently dropped.
+     * After this call, Raft messages sent to the given Raft endpoint are silently
+     * dropped.
      *
      * @param node
      *            the Raft node to be removed from the known Raft nodes map

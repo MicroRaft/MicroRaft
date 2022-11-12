@@ -31,22 +31,27 @@ import static io.microraft.RaftRole.LEADER;
 import static io.microraft.RaftRole.LEARNER;
 
 /**
- * Handles an {@link InstallSnapshotResponse} sent by a Raft follower and responds with a
- * {@link InstallSnapshotRequest}.
+ * Handles an {@link InstallSnapshotResponse} sent by a Raft follower and
+ * responds with a {@link InstallSnapshotRequest}.
  * <p>
- * See <i>7 Log compaction</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
- * Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>7 Log compaction</i> section of <i>In Search of an Understandable
+ * Consensus Algorithm</i> paper by <i>Diego Ongaro</i> and <i>John
+ * Ousterhout</i>.
  * <p>
- * {@link InstallSnapshotResponse} could be received either by the Raft group leader or a follower whose is known to be
- * installed the requested snapshot.
+ * {@link InstallSnapshotResponse} could be received either by the Raft group
+ * leader or a follower whose is known to be installed the requested snapshot.
  * <p>
- * A Raft leader initiates a snapshot installation process by sending an empty {@link InstallSnapshotRequest} to a
- * follower. Then, the follower asks missing snapshot chunks from both the Raft group leader and the followers given in
- * the {@link InstallSnapshotRequest}. If this node's last snapshot is still at the requested log index, i.e., there is
- * no new snapshot taken, then the node responds back with an {@link InstallSnapshotRequest} object that contains the
- * requested snapshot chunk. However, if this node is the leader and has taken a new snapshot in the meantime, which
- * means the requested snapshot chunk is not available for the requested log index. then it sends back a new empty
- * {@link InstallSnapshotRequest} in order to initiate a new snapshot transfer process for the current snapshot.
+ * A Raft leader initiates a snapshot installation process by sending an empty
+ * {@link InstallSnapshotRequest} to a follower. Then, the follower asks missing
+ * snapshot chunks from both the Raft group leader and the followers given in
+ * the {@link InstallSnapshotRequest}. If this node's last snapshot is still at
+ * the requested log index, i.e., there is no new snapshot taken, then the node
+ * responds back with an {@link InstallSnapshotRequest} object that contains the
+ * requested snapshot chunk. However, if this node is the leader and has taken a
+ * new snapshot in the meantime, which means the requested snapshot chunk is not
+ * available for the requested log index. then it sends back a new empty
+ * {@link InstallSnapshotRequest} in order to initiate a new snapshot transfer
+ * process for the current snapshot.
  *
  * @see InstallSnapshotRequest
  * @see InstallSnapshotResponse

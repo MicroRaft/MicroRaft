@@ -23,7 +23,8 @@ import javax.annotation.Nonnull;
 /**
  * Response for {@link PreVoteRequest}.
  * <p>
- * See <i>Four modifications for the Raft consensus algorithm</i> by Henrik Ingo.
+ * See <i>Four modifications for the Raft consensus algorithm</i> by Henrik
+ * Ingo.
  *
  * @see PreVoteRequest
  * @see VoteResponse

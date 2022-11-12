@@ -32,11 +32,12 @@ import java.util.function.Consumer;
 /**
  * A simple {@link StateMachine} implementation used for testing.
  * <p>
- * This state machine implementation just collects all committed values along with their commit indices, and those
- * values can be used for assertions in tests.
+ * This state machine implementation just collects all committed values along
+ * with their commit indices, and those values can be used for assertions in
+ * tests.
  * <p>
- * This class is thread safe. Committed values can be queried from test threads while they are being updated in Raft
- * node threads.
+ * This class is thread safe. Committed values can be queried from test threads
+ * while they are being updated in Raft node threads.
  */
 public class SimpleStateMachine implements StateMachine {
 
@@ -65,18 +66,22 @@ public class SimpleStateMachine implements StateMachine {
     }
 
     /**
-     * Returns an operation that will query the last value applied to the state machine.
+     * Returns an operation that will query the last value applied to the state
+     * machine.
      *
-     * @return the operation that will query the last value applied to the state machine
+     * @return the operation that will query the last value applied to the state
+     *         machine
      */
     public static Object queryLastValue() {
         return new QueryLast();
     }
 
     /**
-     * Returns an operation that will query all of the values applied to the state machine.
+     * Returns an operation that will query all of the values applied to the state
+     * machine.
      *
-     * @return the operation that will query all of the values applied to the state machine
+     * @return the operation that will query all of the values applied to the state
+     *         machine
      */
     public static Object queryAllValues() {
         return new QueryAll();

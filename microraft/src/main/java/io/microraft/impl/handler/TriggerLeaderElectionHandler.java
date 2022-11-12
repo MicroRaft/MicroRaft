@@ -30,8 +30,9 @@ import static io.microraft.RaftRole.LEARNER;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Handles a {@link TriggerLeaderElectionRequest} and initiates a new leader election round if this Raft node accepts
- * the sender as the leader and the local Raft log is up-to-date with the leader's Raft log.
+ * Handles a {@link TriggerLeaderElectionRequest} and initiates a new leader
+ * election round if this Raft node accepts the sender as the leader and the
+ * local Raft log is up-to-date with the leader's Raft log.
  *
  * @see TriggerLeaderElectionRequest
  */

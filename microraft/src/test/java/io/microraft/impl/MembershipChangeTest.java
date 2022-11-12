@@ -757,7 +757,7 @@ public class MembershipChangeTest extends BaseTest {
         assertThat(leader.getStatus()).isEqualTo(TERMINATED);
 
         eventually(() -> {
-            for (RaftNodeImpl node : group.<RaftNodeImpl> getNodesExcept(leader.getLocalEndpoint())) {
+            for (RaftNodeImpl node : group.<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint())) {
                 assertThat(getEffectiveGroupMembers(node).isKnownMember(leader.getLocalEndpoint())).isFalse();
                 assertThat(getCommittedGroupMembers(node).isKnownMember(leader.getLocalEndpoint())).isFalse();
             }
@@ -1196,7 +1196,7 @@ public class MembershipChangeTest extends BaseTest {
         group = LocalRaftGroup.newBuilder(3, 2).setConfig(TEST_RAFT_CONFIG).enableNewTermOperation().start();
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         RaftNodeImpl follower = null;
-        for (RaftNodeImpl node : group.<RaftNodeImpl> getNodesExcept(leader.getLocalEndpoint())) {
+        for (RaftNodeImpl node : group.<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint())) {
             if (getRole(node) == FOLLOWER) {
                 follower = node;
                 break;

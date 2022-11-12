@@ -39,9 +39,11 @@ public class BaseTest {
             long durationMicros = durationNanos / 1000;
             long durationMillis = durationMicros / 1000;
             long durationSeconds = durationMillis / 1000;
-            long duration = durationSeconds > 0 ? durationSeconds
+            long duration = durationSeconds > 0
+                    ? durationSeconds
                     : (durationMillis > 0 ? durationMillis : (durationMicros > 0 ? durationMicros : durationNanos));
-            String unit = durationSeconds > 0 ? "secs"
+            String unit = durationSeconds > 0
+                    ? "secs"
                     : (durationMillis > 0 ? "millis" : (durationMicros > 0 ? "micros" : "nanos"));
             LOGGER.info("+ SUCCEEDED: " + description.getMethodName() + " IN " + duration + " " + unit);
         }
@@ -54,9 +56,11 @@ public class BaseTest {
             long durationMicros = durationNs / 1000;
             long durationMs = durationMicros / 1000;
             long durationSecs = durationMs / 1000;
-            long duration = durationSecs > 0 ? durationSecs
+            long duration = durationSecs > 0
+                    ? durationSecs
                     : (durationMs > 0 ? durationMs : (durationMicros > 0 ? durationMicros : durationNs));
-            final String unit = durationSecs > 0 ? "secs"
+            final String unit = durationSecs > 0
+                    ? "secs"
                     : (durationMs > 0 ? "millis" : (durationMicros > 0 ? "micros" : "nanos"));
             LOGGER.info("- FAILED: " + description.getMethodName() + " IN " + duration + " " + unit);
         }

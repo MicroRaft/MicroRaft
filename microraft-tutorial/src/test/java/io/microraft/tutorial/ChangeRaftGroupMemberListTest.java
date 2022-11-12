@@ -98,7 +98,7 @@ public class ChangeRaftGroupMemberListTest extends BaseLocalTest {
     }
 
     private Ordered<String> query(RaftNode raftNode) {
-        return raftNode.<String> query(OperableAtomicRegister.newGetOperation(), QueryPolicy.EVENTUAL_CONSISTENCY, 0)
+        return raftNode.<String>query(OperableAtomicRegister.newGetOperation(), QueryPolicy.EVENTUAL_CONSISTENCY, 0)
                 .join();
     }
 

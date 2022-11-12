@@ -42,14 +42,18 @@ import javax.annotation.Nonnull;
 /**
  * Used for creating {@link RaftModel} objects with the builder pattern.
  * <p>
- * Users of MicroRaft can provide an implementation of this interface while creating {@link RaftNode} instances.
- * Otherwise, {@link DefaultRaftModelFactory} is used. {@link RaftModel} objects created by a Raft model factory
- * implementation are passed to {@link Transport} for networking, and {@link RaftStore} for persistence.
+ * Users of MicroRaft can provide an implementation of this interface while
+ * creating {@link RaftNode} instances. Otherwise,
+ * {@link DefaultRaftModelFactory} is used. {@link RaftModel} objects created by
+ * a Raft model factory implementation are passed to {@link Transport} for
+ * networking, and {@link RaftStore} for persistence.
  * <p>
- * A {@link RaftModelFactory} implementation can implement {@link RaftNodeLifecycleAware} to perform initialization and
- * clean up work during {@link RaftNode} startup and termination. {@link RaftNode} calls
- * {@link RaftNodeLifecycleAware#onRaftNodeStart()} before calling any other method on {@link RaftModelFactory}, and
- * finally calls {@link RaftNodeLifecycleAware#onRaftNodeTerminate()} on termination.
+ * A {@link RaftModelFactory} implementation can implement
+ * {@link RaftNodeLifecycleAware} to perform initialization and clean up work
+ * during {@link RaftNode} startup and termination. {@link RaftNode} calls
+ * {@link RaftNodeLifecycleAware#onRaftNodeStart()} before calling any other
+ * method on {@link RaftModelFactory}, and finally calls
+ * {@link RaftNodeLifecycleAware#onRaftNodeTerminate()} on termination.
  */
 public interface RaftModelFactory {
 

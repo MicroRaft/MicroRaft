@@ -33,12 +33,14 @@ import static io.microraft.RaftRole.LEARNER;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Handles a {@link VoteRequest} sent by a candidate and responds with a {@link VoteResponse}.
+ * Handles a {@link VoteRequest} sent by a candidate and responds with a
+ * {@link VoteResponse}.
  * <p>
  * Leader election is initiated by {@link LeaderElectionTask}.
  * <p>
- * See <i>5.2 Leader election</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
- * Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>5.2 Leader election</i> section of <i>In Search of an Understandable
+ * Consensus Algorithm</i> paper by <i>Diego Ongaro</i> and <i>John
+ * Ousterhout</i>.
  *
  * @see VoteRequest
  * @see VoteResponse
@@ -53,8 +55,9 @@ public class VoteRequestHandler extends AbstractMessageHandler<VoteRequest> {
     }
 
     @Override
-    @SuppressWarnings({ "checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity" })
-    // Justification: It is easier to follow the RequestVoteRPC logic in a single method
+    @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity"})
+    // Justification: It is easier to follow the RequestVoteRPC logic in a single
+    // method
     protected void handle(@Nonnull VoteRequest request) {
         requireNonNull(request);
 
@@ -75,11 +78,16 @@ public class VoteRequestHandler extends AbstractMessageHandler<VoteRequest> {
             return;
         }
 
-        // (Raft thesis - Section 4.2.3) This check conflicts with the leadership transfer mechanism,
-        // in which a server legitimately starts an election without waiting a leader heartbeat timeout.
-        // Those VoteRequest objects are marked as "non-sticky" to bypass leader stickiness.
-        // Also if the request comes from the current leader, then the leader stickiness check is skipped.
-        // Since the current leader may have restarted by recovering its persistent state.
+        // (Raft thesis - Section 4.2.3) This check conflicts with the leadership
+        // transfer mechanism,
+        // in which a server legitimately starts an election without waiting a leader
+        // heartbeat timeout.
+        // Those VoteRequest objects are marked as "non-sticky" to bypass leader
+        // stickiness.
+        // Also if the request comes from the current leader, then the leader stickiness
+        // check is skipped.
+        // Since the current leader may have restarted by recovering its persistent
+        // state.
         if (request.isSticky() && (state.leaderState() != null || !node.isLeaderHeartbeatTimeoutElapsed())
                 && !candidate.equals(state.leader())) {
             LOGGER.info("{} Rejecting {} since the leader is still alive...", localEndpointStr(), request);
@@ -88,7 +96,8 @@ public class VoteRequestHandler extends AbstractMessageHandler<VoteRequest> {
         }
 
         if (state.term() < candidateTerm) {
-            // If the request term is greater than the local term, update the local term and convert to follower (§5.1)
+            // If the request term is greater than the local term, update the local term and
+            // convert to follower (§5.1)
             LOGGER.info("{} Moving to new term: {} from current term: {} after {}", localEndpointStr(), candidateTerm,
                     state.term(), request);
 

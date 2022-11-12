@@ -27,8 +27,8 @@ import static io.microraft.RaftRole.LEARNER;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
- * Checks whether currently there is a known leader endpoint and triggers the pre-voting mechanism there is no known
- * leader or the leader has timed out.
+ * Checks whether currently there is a known leader endpoint and triggers the
+ * pre-voting mechanism there is no known leader or the leader has timed out.
  */
 public class HeartbeatTask extends RaftNodeStatusAwareTask {
 

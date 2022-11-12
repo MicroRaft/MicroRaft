@@ -72,8 +72,9 @@ public final class LeadershipTransferState {
     }
 
     /**
-     * Attaches the given Future object to the current leadership transfer process, if it aims the same target endpoint.
-     * Otherwise, the given future object is notified with {@link IllegalStateException}.
+     * Attaches the given Future object to the current leadership transfer process,
+     * if it aims the same target endpoint. Otherwise, the given future object is
+     * notified with {@link IllegalStateException}.
      */
     void andThen(RaftEndpoint targetEndpoint, OrderedFuture otherFuture) {
         if (this.endpoint.equals(targetEndpoint)) {

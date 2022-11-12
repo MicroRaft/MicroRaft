@@ -20,11 +20,13 @@ package io.microraft.impl.util;
 import java.util.Arrays;
 
 /**
- * The ArrayRingbuffer is responsible for storing the actual contents of a ringbuffer.
+ * The ArrayRingbuffer is responsible for storing the actual contents of a
+ * ringbuffer.
  * <p>
- * Currently the Ringbuffer is not a partitioned data-structure. So all data of a ringbuffer is stored in a single
- * partition and replicated to the replicas. No thread safety is needed since a partition can only be accessed by a
- * single thread at any given moment.
+ * Currently the Ringbuffer is not a partitioned data-structure. So all data of
+ * a ringbuffer is stored in a single partition and replicated to the replicas.
+ * No thread safety is needed since a partition can only be accessed by a single
+ * thread at any given moment.
  *
  * @param <E>
  *            the type of the data stored in the ringbuffer
@@ -93,7 +95,8 @@ public final class ArrayRingbuffer<E> {
         return ringItems[toIndex(sequence)];
     }
 
-    // the sequence is usually in the right range since the RingbufferContainer checks it too
+    // the sequence is usually in the right range since the RingbufferContainer
+    // checks it too
     private void checkReadSequence(long sequence) {
         if (sequence > tailSequence) {
             throw new IllegalArgumentException(

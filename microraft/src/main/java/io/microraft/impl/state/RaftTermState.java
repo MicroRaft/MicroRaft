@@ -81,8 +81,8 @@ public final class RaftTermState implements RaftTerm {
 
     public RaftTermState grantVote(int term, RaftEndpoint votedEndpoint) {
         requireNonNull(votedEndpoint);
-        assert this.term == term : "current term: " + this.term + " voted term: " + term + " voted for: "
-                + votedEndpoint;
+        assert this.term == term
+                : "current term: " + this.term + " voted term: " + term + " voted for: " + votedEndpoint;
         assert this.votedEndpoint == null : "current term: " + this.term + " already voted for: " + this.votedEndpoint
                 + " new vote to: " + votedEndpoint;
 

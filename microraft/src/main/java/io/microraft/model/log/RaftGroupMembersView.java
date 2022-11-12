@@ -23,8 +23,8 @@ import javax.annotation.Nonnull;
 import java.util.Collection;
 
 /**
- * Represents the member list of a Raft group with an index identifying on which log index the given member list is
- * appended to the Raft log.
+ * Represents the member list of a Raft group with an index identifying on which
+ * log index the given member list is appended to the Raft log.
  */
 public interface RaftGroupMembersView extends RaftModel {
 

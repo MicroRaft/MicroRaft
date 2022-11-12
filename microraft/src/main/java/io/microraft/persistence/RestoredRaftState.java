@@ -28,7 +28,8 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * Contains restored state of a {@link RaftNode}. All the fields in this class are persisted via {@link RaftStore}.
+ * Contains restored state of a {@link RaftNode}. All the fields in this class
+ * are persisted via {@link RaftStore}.
  */
 public final class RestoredRaftState {
 

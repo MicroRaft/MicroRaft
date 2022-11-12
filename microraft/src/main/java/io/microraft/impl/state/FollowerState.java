@@ -25,12 +25,14 @@ import static java.lang.Math.min;
 public final class FollowerState {
 
     /**
-     * index of highest log entry known to be replicated on server (initialized to 0, increases monotonically)
+     * index of highest log entry known to be replicated on server (initialized to
+     * 0, increases monotonically)
      */
     private long matchIndex;
 
     /**
-     * index of the next log entry to send to that server (initialized to leader's {@code lastLogIndex + 1})
+     * index of the next log entry to send to that server (initialized to leader's
+     * {@code lastLogIndex + 1})
      */
     private long nextIndex;
 
@@ -50,7 +52,8 @@ public final class FollowerState {
     private long responseTimestamp;
 
     /**
-     * the flow control sequence number sent to the follower in the last append entries or install snapshot request
+     * the flow control sequence number sent to the follower in the last append
+     * entries or install snapshot request
      */
     private long flowControlSequenceNumber;
 
@@ -89,21 +92,23 @@ public final class FollowerState {
     }
 
     /**
-     * Returns whether leader is waiting for response of the last append entries request.
+     * Returns whether leader is waiting for response of the last append entries
+     * request.
      */
     public boolean isRequestBackoffSet() {
         return backoffRound > 0;
     }
 
     /**
-     * Starts a new request backoff period. No new append entries or install snapshot request will be sent to this
-     * follower either until it sends a response or the backoff timeout elapses.
+     * Starts a new request backoff period. No new append entries or install
+     * snapshot request will be sent to this follower either until it sends a
+     * response or the backoff timeout elapses.
      * <p>
-     * If the "extraRound" is true and the backoff state is initialized with only 1 round, one more backoff round is
-     * added.
+     * If the "extraRound" is true and the backoff state is initialized with only 1
+     * round, one more backoff round is added.
      * <p>
-     * Returns the flow control sequence number to be put into the append entries or install snapshot request which is
-     * to be sent to the follower.
+     * Returns the flow control sequence number to be put into the append entries or
+     * install snapshot request which is to be sent to the follower.
      */
     public long setRequestBackoff(int minRounds, int maxRounds) {
         assert backoffRound == 0 : "backoff round: " + backoffRound;
@@ -123,9 +128,10 @@ public final class FollowerState {
     }
 
     /**
-     * Updates the timestamp of the last received append entries or install snapshot response. In addition, if the
-     * received flow control sequence number is equal to the last sent flow sequence number, the internal request
-     * backoff state is also reset.
+     * Updates the timestamp of the last received append entries or install snapshot
+     * response. In addition, if the received flow control sequence number is equal
+     * to the last sent flow sequence number, the internal request backoff state is
+     * also reset.
      */
     public boolean responseReceived(long flowControlSequenceNumber, long currentTimeMillis) {
         responseTimestamp = Math.max(responseTimestamp, currentTimeMillis);

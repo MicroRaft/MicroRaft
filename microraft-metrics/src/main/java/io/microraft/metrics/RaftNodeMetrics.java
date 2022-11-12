@@ -43,58 +43,68 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Collect metrics reported by Raft nodes and publishes them to Metric registries.
+ * Collect metrics reported by Raft nodes and publishes them to Metric
+ * registries.
  * <p>
  * A {@link RaftNodeMetrics} object can be registered to a single Raft node via
- * {@link RaftNodeBuilder#setRaftNodeReportListener(RaftNodeReportListener)}. Then, it will publish metrics from
- * published {@link RaftNodeReport} objects.
+ * {@link RaftNodeBuilder#setRaftNodeReportListener(RaftNodeReportListener)}.
+ * Then, it will publish metrics from published {@link RaftNodeReport} objects.
  * <p>
  * The list of metrics are as follows:
  * <ul>
- * <li>"raft.node.role": The role of the Raft node (0: leader, 1: candidate, 2: follower, 3: learner). Please see
- * {@link RaftRole}.</li>
+ * <li>"raft.node.role": The role of the Raft node (0: leader, 1: candidate, 2:
+ * follower, 3: learner). Please see {@link RaftRole}.</li>
  *
- * <li>"raft.node.status": The status of the Raft node (0: initial, 1: active, 2: updating Raft group member list, 3:
- * terminated). Please see {@link RaftNodeStatus}.</li>
+ * <li>"raft.node.status": The status of the Raft node (0: initial, 1: active,
+ * 2: updating Raft group member list, 3: terminated). Please see
+ * {@link RaftNodeStatus}.</li>
  *
- * <li>"raft.node.report.reason": The reason of the last published Raft report (0: periodic, 1: Raft node status change,
- * 2: Raft role change, 3: Raft group member list change, 4: snapshot taken, 5: snapshot installed). Please see
+ * <li>"raft.node.report.reason": The reason of the last published Raft report
+ * (0: periodic, 1: Raft node status change, 2: Raft role change, 3: Raft group
+ * member list change, 4: snapshot taken, 5: snapshot installed). Please see
  * {@link RaftNodeReportReason}</li>
  *
  * <li>"raft.node.term": The current term of the Raft node</li>
  *
- * <li>"raft.committed.group.members.commit.index": The Raft log commit index of the last committed Raft group
- * members.</li>
+ * <li>"raft.committed.group.members.commit.index": The Raft log commit index of
+ * the last committed Raft group members.</li>
  *
- * <li>"raft.committed.group.members.size": The number of Raft nodes in the last committed Raft group member list.</li>
+ * <li>"raft.committed.group.members.size": The number of Raft nodes in the last
+ * committed Raft group member list.</li>
  *
- * <li>"raft.committed.group.members.majority": The majority number of Raft nodes in the last committed Raft group
- * member list.</li>
+ * <li>"raft.committed.group.members.majority": The majority number of Raft
+ * nodes in the last committed Raft group member list.</li>
  *
- * <li>"raft.effective.group.members.commit.index": The Raft log commit index of the currently effective (maybe not-yet
- * committed) Raft group members.</li>
+ * <li>"raft.effective.group.members.commit.index": The Raft log commit index of
+ * the currently effective (maybe not-yet committed) Raft group members.</li>
  *
- * <li>"raft.effective.group.members.size": The number of Raft nodes in the currently effective (maybe not-yet
- * committed) Raft group member list.</li>
+ * <li>"raft.effective.group.members.size": The number of Raft nodes in the
+ * currently effective (maybe not-yet committed) Raft group member list.</li>
  *
- * <li>"raft.effective.group.members.majority": The majority number of Raft nodes in the currently effective (maybe
- * not-yet committed) Raft group member list.</li>
+ * <li>"raft.effective.group.members.majority": The majority number of Raft
+ * nodes in the currently effective (maybe not-yet committed) Raft group member
+ * list.</li>
  *
- * <li>"raft.node.commit.index": The committed Raft log index of the Raft node.</li>
- *
- * <li>"raft.node.last.log.term": The term of the last appended Raft log entry.</li>
- *
- * <li>"raft.node.last.log.index": The index of the last appended Raft log entry.</li>
- *
- * <li>"raft.node.last.snapshot.term": The term of the last snapshot taken or installed by the Raft node.</li>
- *
- * <li>"raft.node.last.snapshot.index": The Raft log index of the last snapshot taken or installed by the Raft
+ * <li>"raft.node.commit.index": The committed Raft log index of the Raft
  * node.</li>
  *
- * <li>"raft.node.last.take.snapshot.count": The number of snapshots locally taken by the Raft node.</li>
+ * <li>"raft.node.last.log.term": The term of the last appended Raft log
+ * entry.</li>
  *
- * <li>"raft.node.last.install.snapshot.count": The number of snapshots transferred from others and installed by the
- * Raft node.</li>
+ * <li>"raft.node.last.log.index": The index of the last appended Raft log
+ * entry.</li>
+ *
+ * <li>"raft.node.last.snapshot.term": The term of the last snapshot taken or
+ * installed by the Raft node.</li>
+ *
+ * <li>"raft.node.last.snapshot.index": The Raft log index of the last snapshot
+ * taken or installed by the Raft node.</li>
+ *
+ * <li>"raft.node.last.take.snapshot.count": The number of snapshots locally
+ * taken by the Raft node.</li>
+ *
+ * <li>"raft.node.last.install.snapshot.count": The number of snapshots
+ * transferred from others and installed by the Raft node.</li>
  * </ul>
  *
  * @see RaftNode
@@ -109,8 +119,9 @@ public final class RaftNodeMetrics implements RaftNodeReportListener, MeterBinde
     private volatile MultiGauge followerMatchIndicesGauge;
 
     /**
-     * Creates the object with the given Raft group id and node id strings. Those strings are attached to the published
-     * metrics as "raft.group.id" and "raft.node.id" tags.
+     * Creates the object with the given Raft group id and node id strings. Those
+     * strings are attached to the published metrics as "raft.group.id" and
+     * "raft.node.id" tags.
      *
      * @param groupIdStr
      *            The Raft group id to be attached as "raft.group.id" tag
@@ -123,7 +134,8 @@ public final class RaftNodeMetrics implements RaftNodeReportListener, MeterBinde
     }
 
     /**
-     * Creates the object with the given tag list to be attached to the published metrics.
+     * Creates the object with the given tag list to be attached to the published
+     * metrics.
      *
      * @param tags
      *            the list of tags to be attached to the published metrics.

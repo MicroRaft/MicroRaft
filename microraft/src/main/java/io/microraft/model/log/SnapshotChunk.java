@@ -26,9 +26,11 @@ import java.util.function.Consumer;
  * <p>
  * A snapshot entry in the Raft log contains at least one snapshot chunk.
  * <p>
- * Snapshot chunks are ordered by snapshot chunk indices. They contain objects provided to the consumer argument of
- * {@link StateMachine#takeSnapshot(long, Consumer)}. Additionally, a snapshot chunk contains the committed Raft group
- * member list along with its commit index at the time of the snapshot creation.
+ * Snapshot chunks are ordered by snapshot chunk indices. They contain objects
+ * provided to the consumer argument of
+ * {@link StateMachine#takeSnapshot(long, Consumer)}. Additionally, a snapshot
+ * chunk contains the committed Raft group member list along with its commit
+ * index at the time of the snapshot creation.
  */
 public interface SnapshotChunk extends BaseLogEntry {
 

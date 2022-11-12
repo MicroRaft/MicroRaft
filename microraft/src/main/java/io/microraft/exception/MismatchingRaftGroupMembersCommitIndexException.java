@@ -22,8 +22,9 @@ import io.microraft.RaftEndpoint;
 import java.util.Collection;
 
 /**
- * Thrown when a membership change is triggered with an expected group members commit index that doesn't match the
- * current group members commit index in the local state of the Raft group leader. A group members commit index is the
+ * Thrown when a membership change is triggered with an expected group members
+ * commit index that doesn't match the current group members commit index in the
+ * local state of the Raft group leader. A group members commit index is the
  * Raft log index at which the current Raft group member list is committed.
  */
 public class MismatchingRaftGroupMembersCommitIndexException extends RaftException {

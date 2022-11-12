@@ -44,11 +44,13 @@ import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Handles an {@link AppendEntriesRequest} sent by the Raft group leader and responds with either an
- * {@link AppendEntriesSuccessResponse} or an {@link AppendEntriesFailureResponse}.
+ * Handles an {@link AppendEntriesRequest} sent by the Raft group leader and
+ * responds with either an {@link AppendEntriesSuccessResponse} or an
+ * {@link AppendEntriesFailureResponse}.
  * <p>
- * See <i>5.3 Log replication</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
- * Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>5.3 Log replication</i> section of <i>In Search of an Understandable
+ * Consensus Algorithm</i> paper by <i>Diego Ongaro</i> and <i>John
+ * Ousterhout</i>.
  *
  * @see AppendEntriesRequest
  * @see AppendEntriesSuccessResponse
@@ -63,9 +65,10 @@ public class AppendEntriesRequestHandler extends AbstractMessageHandler<AppendEn
     }
 
     @Override
-    @SuppressWarnings({ "checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity", "checkstyle:methodlength",
-            "checkstyle:nestedifdepth" })
-    // Justification: It is easier to follow the AppendEntriesRPC logic in a single method
+    @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity", "checkstyle:methodlength",
+            "checkstyle:nestedifdepth"})
+    // Justification: It is easier to follow the AppendEntriesRPC logic in a single
+    // method
     protected void handle(@Nonnull AppendEntriesRequest request) {
         requireNonNull(request);
 
@@ -84,9 +87,11 @@ public class AppendEntriesRequestHandler extends AbstractMessageHandler<AppendEn
 
         RaftLog log = state.log();
 
-        // Transform into follower if a newer term is seen or another node wins the election of the current term
+        // Transform into follower if a newer term is seen or another node wins the
+        // election of the current term
         if (request.getTerm() > state.term() || (state.role() != FOLLOWER && state.role() != LEARNER)) {
-            // If the request term is greater than the local term, update the local term and convert to follower (§5.1)
+            // If the request term is greater than the local term, update the local term and
+            // convert to follower (§5.1)
             LOGGER.info("{} Moving to new term: {} and leader: {} from current term: {}.", localEndpointStr(),
                     request.getTerm(), leader.getId(), state.term());
             node.toFollower(request.getTerm());
@@ -113,7 +118,8 @@ public class AppendEntriesRequestHandler extends AbstractMessageHandler<AppendEn
 
         // Update the commit index
         if (request.getCommitIndex() > oldCommitIndex) {
-            // If leaderCommit > commitIndex, set commitIndex = min(leaderCommit, index of last new entry)
+            // If leaderCommit > commitIndex, set commitIndex = min(leaderCommit, index of
+            // last new entry)
             long newCommitIndex = min(request.getCommitIndex(), lastLogIndex);
             LOGGER.debug("{} Setting commit index: {}.", localEndpointStr(), newCommitIndex);
 
@@ -146,7 +152,8 @@ public class AppendEntriesRequestHandler extends AbstractMessageHandler<AppendEn
             if (request.getPreviousLogIndex() == lastLogIndex) {
                 prevLogTerm = lastLogTerm;
             } else {
-                // Reply false if log does not contain an entry at prevLogIndex whose term matches prevLogTerm (§5.3)
+                // Reply false if log does not contain an entry at prevLogIndex whose term
+                // matches prevLogTerm (§5.3)
                 LogEntry prevEntry = log.getLogEntry(request.getPreviousLogIndex());
                 if (prevEntry == null) {
                     if (LOGGER.isDebugEnabled()) {
@@ -193,7 +200,8 @@ public class AppendEntriesRequestHandler extends AbstractMessageHandler<AppendEn
                 assert localEntry != null : localEndpointStr() + " Entry not found on log index: "
                         + requestEntry.getIndex() + " for " + request;
 
-                // If an existing entry conflicts with a new one (same index but different terms),
+                // If an existing entry conflicts with a new one (same index but different
+                // terms),
                 // delete the existing entry and all that follow it (§5.3)
                 if (requestEntry.getTerm() != localEntry.getTerm()) {
                     List<LogEntry> truncatedEntries = log.truncateEntriesFrom(requestEntry.getIndex());
@@ -235,9 +243,12 @@ public class AppendEntriesRequestHandler extends AbstractMessageHandler<AppendEn
             }
         }
 
-        // I cannot use log.lastLogOrSnapshotIndex() for lastLogIndex because my log may contain
-        // some pending entries from the previous leader and those entries will be truncated soon
-        // I can only send a response based on how many entries I have appended from this append request
+        // I cannot use log.lastLogOrSnapshotIndex() for lastLogIndex because my log may
+        // contain
+        // some pending entries from the previous leader and those entries will be
+        // truncated soon
+        // I can only send a response based on how many entries I have appended from
+        // this append request
         long lastLogIndex = request.getPreviousLogIndex() + request.getLogEntries().size() - truncatedRequestEntryCount;
 
         return new SimpleImmutableEntry<>(lastLogIndex, newLogEntries);
@@ -260,7 +271,8 @@ public class AppendEntriesRequestHandler extends AbstractMessageHandler<AppendEn
     }
 
     private void revertPreparedGroupOp(List<LogEntry> logEntries) {
-        // Reverting inflight (i.e., appended but not-yet-committed) Raft group operations.
+        // Reverting inflight (i.e., appended but not-yet-committed) Raft group
+        // operations.
         // There can be at most 1 instance of such operation...
         logEntries.stream().filter(logEntry -> logEntry.getOperation() instanceof RaftGroupOp).findFirst()
                 .ifPresent(logEntry -> {

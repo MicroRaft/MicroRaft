@@ -27,7 +27,8 @@ import static java.util.Objects.requireNonNull;
 /**
  * A very simple {@link RaftEndpoint} implementation used in the tutorial.
  * <p>
- * Unique Raft endpoints can be created via {@link LocalRaftEndpoint#newEndpoint()}.
+ * Unique Raft endpoints can be created via
+ * {@link LocalRaftEndpoint#newEndpoint()}.
  * <p>
  * YOU CAN SEE THIS CLASS AT:
  * <p>

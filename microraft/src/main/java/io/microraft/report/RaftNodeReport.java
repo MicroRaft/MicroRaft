@@ -27,10 +27,12 @@ import io.microraft.statemachine.StateMachine;
 import javax.annotation.Nonnull;
 
 /**
- * Contains information about a Raft node's local state related to the execution of the Raft consensus algorithm.
+ * Contains information about a Raft node's local state related to the execution
+ * of the Raft consensus algorithm.
  * <p>
- * Raft node reports are published either periodically or when there is a change in the local state of a Raft node
- * related to the Raft consensus algorithm. The duration of the periodic report publishing is configured via
+ * Raft node reports are published either periodically or when there is a change
+ * in the local state of a Raft node related to the Raft consensus algorithm.
+ * The duration of the periodic report publishing is configured via
  * {@link RaftConfigBuilder#setRaftNodeReportPublishPeriodSecs(int)}.
  *
  * @see RaftNodeReportListener
@@ -71,25 +73,32 @@ public interface RaftNodeReport {
     RaftGroupMembers getInitialMembers();
 
     /**
-     * Returns the last committed member list of the Raft group this Raft node belongs to.
+     * Returns the last committed member list of the Raft group this Raft node
+     * belongs to.
      * <p>
-     * Please note that the returned member list is read from the local state and can be different from the currently
-     * effective applied member list, if there is an ongoing (appended but not-yet committed) membership change in the
-     * group. It can be different from the current committed member list of the Raft group, also if a new membership
-     * change is committed by other Raft nodes of the group but not learnt by this Raft node yet.
+     * Please note that the returned member list is read from the local state and
+     * can be different from the currently effective applied member list, if there
+     * is an ongoing (appended but not-yet committed) membership change in the
+     * group. It can be different from the current committed member list of the Raft
+     * group, also if a new membership change is committed by other Raft nodes of
+     * the group but not learnt by this Raft node yet.
      *
-     * @return the last committed member list of the Raft group this Raft node belongs to
+     * @return the last committed member list of the Raft group this Raft node
+     *         belongs to
      */
     @Nonnull
     RaftGroupMembers getCommittedMembers();
 
     /**
-     * Returns the currently effective member list of the Raft group this Raft node belongs to.
+     * Returns the currently effective member list of the Raft group this Raft node
+     * belongs to.
      * <p>
-     * Please note that the returned member list is read from the local state and can be different from the committed
-     * member list, if there is an ongoing (appended but not-yet committed) membership change in the Raft group.
+     * Please note that the returned member list is read from the local state and
+     * can be different from the committed member list, if there is an ongoing
+     * (appended but not-yet committed) membership change in the Raft group.
      *
-     * @return the currently effective member list of the Raft group this Raft node belongs to
+     * @return the currently effective member list of the Raft group this Raft node
+     *         belongs to
      */
     @Nonnull
     RaftGroupMembers getEffectiveMembers();
@@ -139,29 +148,32 @@ public interface RaftNodeReport {
         PERIODIC,
 
         /**
-         * The report is created when a {@link RaftNode} changes its {@link RaftNodeStatus}.
+         * The report is created when a {@link RaftNode} changes its
+         * {@link RaftNodeStatus}.
          */
         STATUS_CHANGE,
 
         /**
-         * The report is created on when a {@link RaftNode} changes its role or discovers the leader in the current
-         * term.
+         * The report is created on when a {@link RaftNode} changes its role or
+         * discovers the leader in the current term.
          */
         ROLE_CHANGE,
 
         /**
-         * The report is created when a {@link RaftNode} moves to a new Raft group member list.
+         * The report is created when a {@link RaftNode} moves to a new Raft group
+         * member list.
          */
         GROUP_MEMBERS_CHANGE,
 
         /**
-         * The report is created when a {@link RaftNode} takes a snapshot of the {@link StateMachine}
+         * The report is created when a {@link RaftNode} takes a snapshot of the
+         * {@link StateMachine}
          */
         TAKE_SNAPSHOT,
 
         /**
-         * The report is created when a {@link RaftNode} installs a snapshot that is sent by the current
-         * {@link RaftRole#LEADER}.
+         * The report is created when a {@link RaftNode} installs a snapshot that is
+         * sent by the current {@link RaftRole#LEADER}.
          */
         INSTALL_SNAPSHOT,
 

@@ -45,9 +45,11 @@ import static java.util.Objects.requireNonNull;
 public final class YamlRaftConfigParser {
 
     /*
-     * A sample YAML string is below: --- raft: leader-election-timeout-millis: 750 leader-heartbeat-period-secs: 15
-     * leader-heartbeat-timeout-secs: 45 append-entries-request-batch-size: 750 commit-count-to-take-snapshot: 7500
-     * max-uncommitted-log-entry-count: 1500 transfer-snapshots-from-followers-enabled: false
+     * A sample YAML string is below: --- raft: leader-election-timeout-millis: 750
+     * leader-heartbeat-period-secs: 15 leader-heartbeat-timeout-secs: 45
+     * append-entries-request-batch-size: 750 commit-count-to-take-snapshot: 7500
+     * max-uncommitted-log-entry-count: 1500
+     * transfer-snapshots-from-followers-enabled: false
      * raft-node-report-publish-period-secs: 20
      *
      */
@@ -55,8 +57,8 @@ public final class YamlRaftConfigParser {
     }
 
     /**
-     * Loads a parameter map from the yaml object with the given string and populates a {@link RaftConfig} object from
-     * the returned parameter map.
+     * Loads a parameter map from the yaml object with the given string and
+     * populates a {@link RaftConfig} object from the returned parameter map.
      *
      * @return the created RaftConfig object
      *
@@ -79,8 +81,8 @@ public final class YamlRaftConfigParser {
     }
 
     /**
-     * Loads a parameter map from the yaml object with the given reader and populates a {@link RaftConfig} object from
-     * the returned parameter map.
+     * Loads a parameter map from the yaml object with the given reader and
+     * populates a {@link RaftConfig} object from the returned parameter map.
      *
      * @return the created RaftConfig object
      *
@@ -104,8 +106,8 @@ public final class YamlRaftConfigParser {
     }
 
     /**
-     * Loads a parameter map from the yaml object with the given file and populates a {@link RaftConfig} object from the
-     * returned parameter map.
+     * Loads a parameter map from the yaml object with the given file and populates
+     * a {@link RaftConfig} object from the returned parameter map.
      *
      * @return the created RaftConfig object
      *
@@ -127,8 +129,8 @@ public final class YamlRaftConfigParser {
     }
 
     /**
-     * Loads a parameter map from the yaml object with the given file and populates a {@link RaftConfig} object from the
-     * returned parameter map.
+     * Loads a parameter map from the yaml object with the given file and populates
+     * a {@link RaftConfig} object from the returned parameter map.
      *
      * @return the created RaftConfig object
      *
@@ -155,8 +157,8 @@ public final class YamlRaftConfigParser {
     }
 
     /**
-     * Loads a parameter map from the yaml object with the given stream and populates a {@link RaftConfig} object from
-     * the returned parameter map.
+     * Loads a parameter map from the yaml object with the given stream and
+     * populates a {@link RaftConfig} object from the returned parameter map.
      *
      * @return the created RaftConfig object
      *

@@ -122,7 +122,8 @@ public final class RaftGroupMembersState implements RaftGroupMembers {
     }
 
     /**
-     * Returns the list of voting members in the Raft group member list, excluding the local endpoint.
+     * Returns the list of voting members in the Raft group member list, excluding
+     * the local endpoint.
      */
     public Collection<RaftEndpoint> remoteVotingMembers() {
         return remoteVotingMembers;
@@ -137,7 +138,8 @@ public final class RaftGroupMembersState implements RaftGroupMembers {
     }
 
     /**
-     * Returns true if the given endpoint is a member of the Raft group, false otherwise.
+     * Returns true if the given endpoint is a member of the Raft group, false
+     * otherwise.
      */
     public boolean isKnownMember(RaftEndpoint endpoint) {
         return members.contains(endpoint);

@@ -34,13 +34,15 @@ import javax.annotation.Nonnull;
 import static io.microraft.RaftRole.LEADER;
 
 /**
- * Handles an {@link AppendEntriesSuccessResponse} which can be sent as a response to a append-entries request or an
- * install-snapshot request.
+ * Handles an {@link AppendEntriesSuccessResponse} which can be sent as a
+ * response to a append-entries request or an install-snapshot request.
  * <p>
- * Advances {@link RaftState#commitIndex()} according to the match indices of the Raft group members.
+ * Advances {@link RaftState#commitIndex()} according to the match indices of
+ * the Raft group members.
  * <p>
- * See <i>5.3 Log replication</i> section of <i>In Search of an Understandable Consensus Algorithm</i> paper by <i>Diego
- * Ongaro</i> and <i>John Ousterhout</i>.
+ * See <i>5.3 Log replication</i> section of <i>In Search of an Understandable
+ * Consensus Algorithm</i> paper by <i>Diego Ongaro</i> and <i>John
+ * Ousterhout</i>.
  *
  * @see AppendEntriesRequest
  * @see AppendEntriesSuccessResponse
@@ -134,7 +136,8 @@ public class AppendEntriesSuccessResponseHandler extends AbstractResponseHandler
         long followerLastLogIndex = response.getLastLogIndex();
         if (state.log().lastLogOrSnapshotIndex() > followerLastLogIndex
                 || state.commitIndex() == followerLastLogIndex) {
-            // If the follower is still missing some log entries or has not learnt the latest commit index yet,
+            // If the follower is still missing some log entries or has not learnt the
+            // latest commit index yet,
             // then send another append request.
             node.sendAppendEntriesRequest(response.getSender());
         }

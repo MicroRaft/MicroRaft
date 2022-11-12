@@ -190,7 +190,7 @@ public class LocalQueryTest extends BaseTest {
 
         eventually(() -> {
             long commitIndex = getCommitIndex(leader);
-            for (RaftNodeImpl follower : group.<RaftNodeImpl> getNodesExcept(leader.getLocalEndpoint())) {
+            for (RaftNodeImpl follower : group.<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint())) {
                 assertThat(getCommitIndex(follower)).isEqualTo(commitIndex);
                 Ordered<Object> result = follower.query(queryLastValue(), EVENTUAL_CONSISTENCY, 0).join();
                 assertThat(result.getResult()).isEqualTo(latestValue);
@@ -214,7 +214,7 @@ public class LocalQueryTest extends BaseTest {
 
         eventually(() -> {
             long commitIndex = getCommitIndex(leader);
-            for (RaftNodeImpl follower : group.<RaftNodeImpl> getNodesExcept(leader.getLocalEndpoint())) {
+            for (RaftNodeImpl follower : group.<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint())) {
                 assertThat(getCommitIndex(follower)).isEqualTo(commitIndex);
                 Ordered<Object> result = follower.query(queryLastValue(), EVENTUAL_CONSISTENCY, commitIndex).join();
                 assertThat(result.getResult()).isEqualTo(latestValue);

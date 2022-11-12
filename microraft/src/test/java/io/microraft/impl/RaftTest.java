@@ -655,7 +655,8 @@ public class RaftTest extends BaseTest {
             assertThat(getLastLogOrSnapshotEntry(followers.get(i)).getIndex()).isEqualTo(commitIndex);
         }
 
-        // followerWithLongestLog does not truncate its extra log entry until the new leader appends a new entry
+        // followerWithLongestLog does not truncate its extra log entry until the new
+        // leader appends a new entry
         assertThat(getLastLogOrSnapshotEntry(followerWithLongestLog).getIndex()).isGreaterThan(commitIndex);
 
         newLeader.replicate(applyValue("val3")).join();
@@ -842,7 +843,7 @@ public class RaftTest extends BaseTest {
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         int followerCount = 0;
         int learnerCount = 0;
-        for (RaftNodeImpl node : group.<RaftNodeImpl> getNodesExcept(leader.getLocalEndpoint())) {
+        for (RaftNodeImpl node : group.<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint())) {
             RaftRole role = getRole(node);
             if (role == RaftRole.FOLLOWER) {
                 followerCount++;
@@ -864,7 +865,7 @@ public class RaftTest extends BaseTest {
 
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         int learnerCount = 0;
-        for (RaftNodeImpl node : group.<RaftNodeImpl> getNodesExcept(leader.getLocalEndpoint())) {
+        for (RaftNodeImpl node : group.<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint())) {
             if (getRole(node) == RaftRole.LEARNER) {
                 learnerCount++;
             } else {

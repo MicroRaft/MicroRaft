@@ -37,7 +37,8 @@ public final class LeaderState {
     private final Map<RaftEndpoint, FollowerState> followerStates = new HashMap<>();
 
     /**
-     * Contains inflight queries that are waiting to be executed without appending entries to the Raft log.
+     * Contains inflight queries that are waiting to be executed without appending
+     * entries to the Raft log.
      */
     private final QueryState queryState = new QueryState();
 
@@ -54,8 +55,8 @@ public final class LeaderState {
     }
 
     /**
-     * Add a new follower with the leader's {@code lastLogIndex}. Follower's {@code nextIndex} will be set to
-     * {@code lastLogIndex
+     * Add a new follower with the leader's {@code lastLogIndex}. Follower's
+     * {@code nextIndex} will be set to {@code lastLogIndex
      * + 1} and {@code matchIndex} to 0.
      */
     public void add(RaftEndpoint follower, long lastLogIndex, long currentTimeMillis) {
@@ -73,8 +74,8 @@ public final class LeaderState {
     }
 
     /**
-     * Returns an array of match indices for all followers. Additionally an empty slot is added at the end of indices
-     * array for leader itself.
+     * Returns an array of match indices for all followers. Additionally an empty
+     * slot is added at the end of indices array for leader itself.
      */
     public long[] matchIndices(Collection<RaftEndpoint> remoteVotingMembers) {
         // Leader index is put to the last index of the array while calculating
@@ -116,8 +117,8 @@ public final class LeaderState {
     }
 
     /**
-     * Returns the query sequence number to be acked by the log replication quorum to execute the currently waiting
-     * queries.
+     * Returns the query sequence number to be acked by the log replication quorum
+     * to execute the currently waiting queries.
      */
     public long querySequenceNumber() {
         return queryState.querySequenceNumber();
@@ -140,8 +141,8 @@ public final class LeaderState {
     }
 
     public void flushedLogIndex(long flushedLogIndex) {
-        assert flushedLogIndex >= this.flushedLogIndex : "new flushed log index: " + flushedLogIndex
-                + " existing flushed log index: " + this.flushedLogIndex;
+        assert flushedLogIndex >= this.flushedLogIndex
+                : "new flushed log index: " + flushedLogIndex + " existing flushed log index: " + this.flushedLogIndex;
         this.flushedLogIndex = flushedLogIndex;
     }
 
@@ -150,7 +151,8 @@ public final class LeaderState {
     }
 
     /**
-     * Returns the earliest append entries response timestamp of the log replication quorum nodes.
+     * Returns the earliest append entries response timestamp of the log replication
+     * quorum nodes.
      */
     public long quorumResponseTimestamp(int quorumSize) {
         long[] timestamps = new long[followerStates.size() + 1];

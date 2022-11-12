@@ -23,15 +23,16 @@ import javax.annotation.Nonnull;
 import java.util.Collection;
 
 /**
- * Represents member list of a Raft group with an index identifying on which log index the given member list is appended
- * to the Raft log.
+ * Represents member list of a Raft group with an index identifying on which log
+ * index the given member list is appended to the Raft log.
  * <p>
  * The initial member list of a Raft group has log index of 0.
  */
 public interface RaftGroupMembers {
 
     /**
-     * The maximum number of {@link RaftRole#LEARNER} members allowed in the Raft group member list.
+     * The maximum number of {@link RaftRole#LEARNER} members allowed in the Raft
+     * group member list.
      */
     int MAX_LEARNER_COUNT = 2;
 

@@ -54,9 +54,10 @@ import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * This class is used for running a Raft group with local Raft nodes. It provides methods to access specific Raft nodes,
- * a set of functionalities over them, such as terminations, creating network partitions, dropping or altering network
- * messages.
+ * This class is used for running a Raft group with local Raft nodes. It
+ * provides methods to access specific Raft nodes, a set of functionalities over
+ * them, such as terminations, creating network partitions, dropping or altering
+ * network messages.
  *
  * @see LocalRaftEndpoint
  * @see SimpleStateMachine
@@ -227,10 +228,11 @@ public final class LocalRaftGroup {
     }
 
     /**
-     * Restores a Raft node with the given {@link RestoredRaftState} object. The Raft node to be restored must be
-     * created in this local Raft group.
+     * Restores a Raft node with the given {@link RestoredRaftState} object. The
+     * Raft node to be restored must be created in this local Raft group.
      * <p>
-     * If there exists a running Raft node with the same endpoint, this method fails with {@link IllegalStateException}.
+     * If there exists a running Raft node with the same endpoint, this method fails
+     * with {@link IllegalStateException}.
      *
      * @param restoredState
      *            the restored Raft state object to start the Raft node
@@ -276,12 +278,14 @@ public final class LocalRaftGroup {
     }
 
     /**
-     * Returns all Raft nodes currently running in this local Raft group except the given Raft endpoint.
+     * Returns all Raft nodes currently running in this local Raft group except the
+     * given Raft endpoint.
      *
      * @param endpoint
      *            the Raft endpoint to excluded in the returned Raft node list
      *
-     * @return all Raft nodes currently running in this local Raft group except the given Raft endpoint
+     * @return all Raft nodes currently running in this local Raft group except the
+     *         given Raft endpoint
      */
     public <T extends RaftNode> List<T> getNodesExcept(RaftEndpoint endpoint) {
         requireNonNull(endpoint);
@@ -310,11 +314,14 @@ public final class LocalRaftGroup {
     }
 
     /**
-     * Returns the current leader Raft endpoint of the Raft group, or null if there is no elected leader.
+     * Returns the current leader Raft endpoint of the Raft group, or null if there
+     * is no elected leader.
      * <p>
-     * If different Raft nodes see different leaders, this method fails with {@link AssertionError}.
+     * If different Raft nodes see different leaders, this method fails with
+     * {@link AssertionError}.
      *
-     * @return the current leader Raft endpoint of the Raft group, or null if there is no elected leader
+     * @return the current leader Raft endpoint of the Raft group, or null if there
+     *         is no elected leader
      *
      * @throws AssertionError
      *             if different Raft nodes see different leaders
@@ -382,16 +389,18 @@ public final class LocalRaftGroup {
     }
 
     /**
-     * Returns the current leader Raft node of the Raft group, or null if there is no elected leader.
+     * Returns the current leader Raft node of the Raft group, or null if there is
+     * no elected leader.
      * <p>
-     * If different Raft nodes see different leaders or the Raft node of the leader Raft endpoint is not found, this
-     * method fails with {@link AssertionError}.
+     * If different Raft nodes see different leaders or the Raft node of the leader
+     * Raft endpoint is not found, this method fails with {@link AssertionError}.
      *
-     * @return the current leader Raft endpoint of the Raft group, or null if there is no elected leader
+     * @return the current leader Raft endpoint of the Raft group, or null if there
+     *         is no elected leader
      *
      * @throws AssertionError
-     *             if different Raft nodes see different leaders or the Raft node of the leader Raft endpoint is not
-     *             found
+     *             if different Raft nodes see different leaders or the Raft node of
+     *             the leader Raft endpoint is not found
      */
     public <T extends RaftNode> T getLeaderNode() {
         RaftEndpoint leaderEndpoint = getLeaderEndpoint();
@@ -410,8 +419,8 @@ public final class LocalRaftGroup {
     /**
      * Returns a random Raft node other than the given Raft endpoint.
      * <p>
-     * If no running Raft node is found for given Raft endpoint, then this method fails with
-     * {@link NullPointerException}.
+     * If no running Raft node is found for given Raft endpoint, then this method
+     * fails with {@link NullPointerException}.
      *
      * @param endpoint
      *            the endpoint to not to choose for the returned Raft node
@@ -464,7 +473,8 @@ public final class LocalRaftGroup {
     }
 
     /**
-     * Creates an artificial load on the given Raft node by sleeping its thread for the given duration.
+     * Creates an artificial load on the given Raft node by sleeping its thread for
+     * the given duration.
      *
      * @param endpoint
      *            the endpoint of the Raft node to slow down
@@ -483,13 +493,16 @@ public final class LocalRaftGroup {
     }
 
     /**
-     * Split the given Raft endpoints from the rest of the Raft group. It means that the communication between the given
-     * endpoints and the other Raft nodes will be blocked completely.
+     * Split the given Raft endpoints from the rest of the Raft group. It means that
+     * the communication between the given endpoints and the other Raft nodes will
+     * be blocked completely.
      * <p>
-     * This method fails with {@link NullPointerException} if no Raft node is found for any of the given endpoints list.
+     * This method fails with {@link NullPointerException} if no Raft node is found
+     * for any of the given endpoints list.
      *
      * @param endpoints
-     *            the list of Raft endpoints to split from the rest of the Raft group
+     *            the list of Raft endpoints to split from the rest of the Raft
+     *            group
      *
      * @throws NullPointerException
      *             if no Raft node is found for any of the given endpoints list
@@ -499,13 +512,16 @@ public final class LocalRaftGroup {
     }
 
     /**
-     * Split the given Raft endpoints from the rest of the Raft group. It means that the communication between the given
-     * endpoints and the other Raft nodes will be blocked completely.
+     * Split the given Raft endpoints from the rest of the Raft group. It means that
+     * the communication between the given endpoints and the other Raft nodes will
+     * be blocked completely.
      * <p>
-     * This method fails with {@link NullPointerException} if no Raft node is found for any of the given endpoints list.
+     * This method fails with {@link NullPointerException} if no Raft node is found
+     * for any of the given endpoints list.
      *
      * @param endpoints
-     *            the list of Raft endpoints to split from the rest of the Raft group
+     *            the list of Raft endpoints to split from the rest of the Raft
+     *            group
      *
      * @throws NullPointerException
      *             if no Raft node is found for any of the given endpoints list
@@ -563,17 +579,19 @@ public final class LocalRaftGroup {
     }
 
     /**
-     * Cancels all network partitions and enables the Raft nodes to reach to each other again.
+     * Cancels all network partitions and enables the Raft nodes to reach to each
+     * other again.
      */
     public void merge() {
         initDiscovery();
     }
 
     /**
-     * Adds a one-way drop-message rule for the given source and target Raft endpoints and the Raft message type.
+     * Adds a one-way drop-message rule for the given source and target Raft
+     * endpoints and the Raft message type.
      * <p>
-     * After this call, Raft messages of the given type sent from the given source Raft endpoint to the given target
-     * Raft endpoint are silently dropped.
+     * After this call, Raft messages of the given type sent from the given source
+     * Raft endpoint to the given target Raft endpoint are silently dropped.
      *
      * @param source
      *            the source Raft endpoint to drop Raft messages of the given type
@@ -587,7 +605,8 @@ public final class LocalRaftGroup {
     }
 
     /**
-     * Deletes the one-way drop-message rule for the given source and target Raft endpoints and the Raft message type.
+     * Deletes the one-way drop-message rule for the given source and target Raft
+     * endpoints and the Raft message type.
      *
      * @param source
      *            the source Raft endpoint to remove the drop-message rule
@@ -602,13 +621,14 @@ public final class LocalRaftGroup {
     }
 
     /**
-     * Adds a one-way drop-all-messages rule for the given source and target Raft endpoints.
+     * Adds a one-way drop-all-messages rule for the given source and target Raft
+     * endpoints.
      * <p>
-     * After this call, all Raft messages sent from the source Raft endpoint to the target Raft endpoint are silently
-     * dropped.
+     * After this call, all Raft messages sent from the source Raft endpoint to the
+     * target Raft endpoint are silently dropped.
      * <p>
-     * If there were drop-message rules from the source Raft endpoint to the target Raft endpoint, they are replaced
-     * with a drop-all-messages rule.
+     * If there were drop-message rules from the source Raft endpoint to the target
+     * Raft endpoint, they are replaced with a drop-all-messages rule.
      *
      * @param source
      *            the source Raft endpoint to drop all Raft messages
@@ -620,8 +640,8 @@ public final class LocalRaftGroup {
     }
 
     /**
-     * Deletes all one-way drop-message and drop-all-messages rules created for the source Raft endpoint and the target
-     * Raft endpoint.
+     * Deletes all one-way drop-message and drop-all-messages rules created for the
+     * source Raft endpoint and the target Raft endpoint.
      *
      * @param source
      *            the source Raft endpoint
@@ -633,8 +653,8 @@ public final class LocalRaftGroup {
     }
 
     /**
-     * Adds a one-way drop-message rule for the given Raft message type from the source Raft endpoint to all other Raft
-     * endpoints.
+     * Adds a one-way drop-message rule for the given Raft message type from the
+     * source Raft endpoint to all other Raft endpoints.
      *
      * @param messageType
      *            the type of the Raft messages to be dropped
@@ -644,8 +664,8 @@ public final class LocalRaftGroup {
     }
 
     /**
-     * Deletes the one-way drop-all-messages rule for the given Raft message type from the source Raft endpoint to any
-     * other Raft endpoint.
+     * Deletes the one-way drop-all-messages rule for the given Raft message type
+     * from the source Raft endpoint to any other Raft endpoint.
      *
      * @param messageType
      *            the type of the Raft message to delete the rule
@@ -662,13 +682,14 @@ public final class LocalRaftGroup {
     }
 
     /**
-     * Applies the given function an all Raft messages sent from the source Raft endpoint to the target Raft endpoint.
+     * Applies the given function an all Raft messages sent from the source Raft
+     * endpoint to the target Raft endpoint.
      * <p>
-     * If the given function is not altering a given Raft message, it should return it as it is, instead of returning
-     * null.
+     * If the given function is not altering a given Raft message, it should return
+     * it as it is, instead of returning null.
      * <p>
-     * Only a single alter rule can be created in the source Raft endpoint for a given target Raft endpoint and a new
-     * alter rule overwrites the previous one.
+     * Only a single alter rule can be created in the source Raft endpoint for a
+     * given target Raft endpoint and a new alter rule overwrites the previous one.
      *
      * @param source
      *            the source Raft endpoint to apply the alter function
@@ -682,7 +703,8 @@ public final class LocalRaftGroup {
     }
 
     /**
-     * Deletes the alter-message rule from the source Raft endpoint to the target Raft endpoint.
+     * Deletes the alter-message rule from the source Raft endpoint to the target
+     * Raft endpoint.
      *
      * @param source
      *            the source Raft endpoint to delete the alter function
@@ -694,10 +716,12 @@ public final class LocalRaftGroup {
     }
 
     /**
-     * Terminates the Raft node with the given Raft endpoint and removes it from the discovery state of the other Raft
-     * nodes. It means that the other Raft nodes will see the terminated Raft node as unreachable.
+     * Terminates the Raft node with the given Raft endpoint and removes it from the
+     * discovery state of the other Raft nodes. It means that the other Raft nodes
+     * will see the terminated Raft node as unreachable.
      * <p>
-     * This method fails with {@link NullPointerException} if there is no running Raft node with the given endpoint.
+     * This method fails with {@link NullPointerException} if there is no running
+     * Raft node with the given endpoint.
      *
      * @param endpoint
      *            the Raft endpoint to terminate its Raft node
@@ -786,8 +810,8 @@ public final class LocalRaftGroup {
         }
 
         /**
-         * Builds the local Raft group with the configured settings. Please note that the returned Raft group is not
-         * started yet.
+         * Builds the local Raft group with the configured settings. Please note that
+         * the returned Raft group is not started yet.
          *
          * @return the created local Raft group
          */

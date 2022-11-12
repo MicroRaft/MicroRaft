@@ -99,7 +99,7 @@ public class RaftLeaderFailureTest extends BaseTest {
         newLeader.replicate(SimpleStateMachine.applyValue(value)).join();
 
         Ordered<List<String>> queryResult = newLeader
-                .<List<String>> query(SimpleStateMachine.queryAllValues(), QueryPolicy.LEADER_LEASE, 0).join();
+                .<List<String>>query(SimpleStateMachine.queryAllValues(), QueryPolicy.LEADER_LEASE, 0).join();
 
         // it turns out that our operation is committed twice
         assertThat(queryResult.getResult()).hasSize(2);

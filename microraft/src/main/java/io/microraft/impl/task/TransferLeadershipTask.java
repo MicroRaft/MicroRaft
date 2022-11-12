@@ -37,11 +37,13 @@ import static io.microraft.RaftNodeStatus.isTerminal;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
- * Triggers the leadership transfer process for the given Raft endpoint. If the local Raft node is not leader, or there
- * is an ongoing membership change, or the target Raft endpoint is not in the committed raft group members, the
+ * Triggers the leadership transfer process for the given Raft endpoint. If the
+ * local Raft node is not leader, or there is an ongoing membership change, or
+ * the target Raft endpoint is not in the committed raft group members, the
  * leadership transfer process immediately fails.
  * <p>
- * New appends are temporarily rejected until the leadership transfer process completes.
+ * New appends are temporarily rejected until the leadership transfer process
+ * completes.
  */
 public class TransferLeadershipTask implements Runnable {
 

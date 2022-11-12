@@ -25,8 +25,8 @@ import io.microraft.impl.state.LeaderState;
 import java.util.Map.Entry;
 
 /**
- * If the append entries request backoff period is active for any follower, this task will send a new append entries
- * request on the backoff completion.
+ * If the append entries request backoff period is active for any follower, this
+ * task will send a new append entries request on the backoff completion.
  */
 public class LeaderBackoffResetTask extends RaftNodeStatusAwareTask {
 

@@ -29,8 +29,8 @@ import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 /**
  * The default implementation of {@link RaftNodeExecutor}.
  * <p>
- * Internally uses a single-threaded {@link ScheduledExecutorService} to execute tasks submitted and scheduled by
- * {@link RaftNode}.
+ * Internally uses a single-threaded {@link ScheduledExecutorService} to execute
+ * tasks submitted and scheduled by {@link RaftNode}.
  *
  * @see RaftNode
  * @see RaftNodeExecutor

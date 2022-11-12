@@ -30,7 +30,8 @@ import java.util.function.Function;
 import static java.util.Collections.newSetFromMap;
 
 /**
- * Used for blocking and altering Raft messages sent between Raft nodes during local testing.
+ * Used for blocking and altering Raft messages sent between Raft nodes during
+ * local testing.
  */
 class Firewall {
 
@@ -38,9 +39,11 @@ class Firewall {
     private final Map<RaftEndpoint, Function<RaftMessage, RaftMessage>> alterFunctions = new ConcurrentHashMap<>();
 
     /**
-     * Adds a drop-message rule for the given target Raft endpoint and the Raft message type.
+     * Adds a drop-message rule for the given target Raft endpoint and the Raft
+     * message type.
      * <p>
-     * After this call, Raft messages of the given type sent to the given Raft endpoint are silently dropped.
+     * After this call, Raft messages of the given type sent to the given Raft
+     * endpoint are silently dropped.
      *
      * @param target
      *            the target Raft endpoint to drop Raft messages of the given type
@@ -54,10 +57,11 @@ class Firewall {
     /**
      * Adds a drop-all-messages rule for the given target Raft endpoint.
      * <p>
-     * After this call, all Raft messages sent to the given Raft endpoint are silently dropped.
+     * After this call, all Raft messages sent to the given Raft endpoint are
+     * silently dropped.
      * <p>
-     * If there were drop-message rules for the given target Raft endpoint, they are replaced with a drop-all-messages
-     * rule.
+     * If there were drop-message rules for the given target Raft endpoint, they are
+     * replaced with a drop-all-messages rule.
      *
      * @param target
      *            the target Raft endpoint to drop all Raft messages
@@ -67,7 +71,8 @@ class Firewall {
     }
 
     /**
-     * Deletes the drop-message rule for the given target Raft endpoint and the Raft message type.
+     * Deletes the drop-message rule for the given target Raft endpoint and the Raft
+     * message type.
      *
      * @param target
      *            the target Raft endpoint to remove the drop-message rule
@@ -79,7 +84,8 @@ class Firewall {
     }
 
     /**
-     * Deletes all drop-message and drop-all-messages rules created for the given target Raft endpoint.
+     * Deletes all drop-message and drop-all-messages rules created for the given
+     * target Raft endpoint.
      *
      * @param target
      *            the target Raft endpoint to remove all rules
@@ -99,7 +105,8 @@ class Firewall {
     }
 
     /**
-     * Deletes the drop-message rule for the given Raft message type to any Raft endpoint.
+     * Deletes the drop-message rule for the given Raft message type to any Raft
+     * endpoint.
      *
      * @param messageType
      *            the type of the Raft message to delete the rule
@@ -109,13 +116,14 @@ class Firewall {
     }
 
     /**
-     * Applies the given function an all Raft messages sent to the given Raft endpoint.
+     * Applies the given function an all Raft messages sent to the given Raft
+     * endpoint.
      * <p>
-     * If the given function is not altering a given Raft message, it should return it as it is, instead of returning
-     * null.
+     * If the given function is not altering a given Raft message, it should return
+     * it as it is, instead of returning null.
      * <p>
-     * Only a single alter rule can be created for a given Raft endpoint and a new alter rule overwrites the previous
-     * one.
+     * Only a single alter rule can be created for a given Raft endpoint and a new
+     * alter rule overwrites the previous one.
      *
      * @param endpoint
      *            the target Raft endpoint to apply the alter function
@@ -137,28 +145,33 @@ class Firewall {
     }
 
     /**
-     * Returns true if the given Raft message sent to the given Raft endpoint should be dropped.
+     * Returns true if the given Raft message sent to the given Raft endpoint should
+     * be dropped.
      *
      * @param target
-     *            the target Raft endpoint to check if the Raft message should be dropped
+     *            the target Raft endpoint to check if the Raft message should be
+     *            dropped
      * @param message
      *            the Raft message to check if it should be dropped
      *
-     * @return true if the given Raft message sent to the given Raft endpoint should be dropped
+     * @return true if the given Raft message sent to the given Raft endpoint should
+     *         be dropped
      */
     boolean shouldDropMessage(RaftEndpoint target, RaftMessage message) {
         return dropRules.stream().anyMatch(rule -> rule.shouldDrop(target, message));
     }
 
     /**
-     * Alters the given Raft message sent to the given Raft endpoint if there is an alter function for the Raft message
-     * type. If there exists no alter function for the given Raft message type, then the given Raft message is returned
-     * as it is.
+     * Alters the given Raft message sent to the given Raft endpoint if there is an
+     * alter function for the Raft message type. If there exists no alter function
+     * for the given Raft message type, then the given Raft message is returned as
+     * it is.
      *
      * @param target
      *            the target Raft endpoint to which the given Raft message is sent
      * @param message
-     *            the Raft message to alter if there exists an alter function for its type
+     *            the Raft message to alter if there exists an alter function for
+     *            its type
      *
      * @return the altered or the original Raft message
      */

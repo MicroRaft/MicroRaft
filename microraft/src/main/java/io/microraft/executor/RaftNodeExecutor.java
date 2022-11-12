@@ -24,19 +24,23 @@ import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The abstraction used by {@link RaftNode} to execute the Raft consensus algorithm with the Actor model. You can read
- * about the Actor Model at the following link: https://en.wikipedia.org/wiki/Actor_model
+ * The abstraction used by {@link RaftNode} to execute the Raft consensus
+ * algorithm with the Actor model. You can read about the Actor Model at the
+ * following link: https://en.wikipedia.org/wiki/Actor_model
  * <p>
- * A Raft node runs by submitting tasks to its Raft node executor. All tasks submitted by a Raft node must be executed
- * serially, with maintaining the happens-before relationship, so that the Raft consensus algorithm and the
+ * A Raft node runs by submitting tasks to its Raft node executor. All tasks
+ * submitted by a Raft node must be executed serially, with maintaining the
+ * happens-before relationship, so that the Raft consensus algorithm and the
  * user-provided state machine logic could be executed without synchronization.
  * <p>
- * A default implementation, {@link DefaultRaftNodeExecutor} is provided and should be suitable for most of the
- * use-cases.
+ * A default implementation, {@link DefaultRaftNodeExecutor} is provided and
+ * should be suitable for most of the use-cases.
  * <p>
- * A {@link RaftNodeExecutor} implementation can implement {@link RaftNodeLifecycleAware} to perform initialization and
- * clean up work during {@link RaftNode} startup and termination. However, there is one subtle point about the order of
- * method calls. {@link RaftNode} calls {@link RaftNodeExecutor#execute(Runnable)} before
+ * A {@link RaftNodeExecutor} implementation can implement
+ * {@link RaftNodeLifecycleAware} to perform initialization and clean up work
+ * during {@link RaftNode} startup and termination. However, there is one subtle
+ * point about the order of method calls. {@link RaftNode} calls
+ * {@link RaftNodeExecutor#execute(Runnable)} before
  * {@link RaftNodeLifecycleAware#onRaftNodeStart()} to submit the start task.
  *
  * @see RaftNode
@@ -48,10 +52,12 @@ public interface RaftNodeExecutor {
     /**
      * Executes the given task on the underlying platform.
      * <p>
-     * Please note that all tasks of a single Raft node must be executed in a single-threaded manner and the
-     * happens-before relationship must be maintained between given tasks of the Raft node.
+     * Please note that all tasks of a single Raft node must be executed in a
+     * single-threaded manner and the happens-before relationship must be maintained
+     * between given tasks of the Raft node.
      * <p>
-     * The underlying platform is free to execute the given task immediately if it fits to the defined guarantees.
+     * The underlying platform is free to execute the given task immediately if it
+     * fits to the defined guarantees.
      *
      * @param task
      *            the task to be executed.
@@ -61,8 +67,9 @@ public interface RaftNodeExecutor {
     /**
      * Submits the given task for execution.
      * <p>
-     * If the caller is already on the thread that runs the Raft node, the given task cannot be executed immediately and
-     * it must be put into the internal task queue for execution in future.
+     * If the caller is already on the thread that runs the Raft node, the given
+     * task cannot be executed immediately and it must be put into the internal task
+     * queue for execution in future.
      *
      * @param task
      *            the task object to be executed later.
@@ -70,10 +77,12 @@ public interface RaftNodeExecutor {
     void submit(@Nonnull Runnable task);
 
     /**
-     * Schedules the task on the underlying platform to be executed after the given delay.
+     * Schedules the task on the underlying platform to be executed after the given
+     * delay.
      * <p>
-     * Please note that even though the scheduling can be offloaded to another thread, the given task must be executed
-     * in a single-threaded manner and the happens-before relationship must be maintained between given tasks of the
+     * Please note that even though the scheduling can be offloaded to another
+     * thread, the given task must be executed in a single-threaded manner and the
+     * happens-before relationship must be maintained between given tasks of the
      * Raft node.
      *
      * @param task

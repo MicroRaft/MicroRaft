@@ -24,8 +24,9 @@ import org.slf4j.LoggerFactory;
 import static io.microraft.RaftRole.FOLLOWER;
 
 /**
- * Scheduled by {@link PreVoteTask} to trigger pre-voting again if the local Raft node is still a follower and a leader
- * is not yet available after the leader election timeout.
+ * Scheduled by {@link PreVoteTask} to trigger pre-voting again if the local
+ * Raft node is still a follower and a leader is not yet available after the
+ * leader election timeout.
  */
 public final class PreVoteTimeoutTask extends RaftNodeStatusAwareTask implements Runnable {
 

@@ -52,6 +52,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
+                            <finalName>afloatdb-client-cli-fat</finalName>
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>
@@ -60,6 +61,7 @@
                                     <mainClass>${afloatdb.client.cli.main.class}</mainClass>
                                 </manifest>
                             </archive>
+                            <appendAssemblyId>false</appendAssemblyId>
                         </configuration>
                     </execution>
                 </executions>

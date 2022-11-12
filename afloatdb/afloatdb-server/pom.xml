@@ -144,6 +144,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
+                            <finalName>afloatdb-server-fat</finalName>
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>
@@ -152,6 +153,7 @@
                                     <mainClass>${afloatdb.main.class}</mainClass>
                                 </manifest>
                             </archive>
+                            <appendAssemblyId>false</appendAssemblyId>
                         </configuration>
                     </execution>
                 </executions>

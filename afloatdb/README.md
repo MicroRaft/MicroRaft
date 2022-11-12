@@ -62,11 +62,11 @@ start a 3 node AfloatDB cluster.
 
 `mvn clean package`
 
-`java -jar  afloatdb-server/target/afloatdb-server-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb-server/src/test/resources/node1.conf &`
+`java -jar  afloatdb-server/target/afloatdb-server-fat.jar afloatdb-server/src/test/resources/node1.conf &`
 
-`java -jar  afloatdb-server/target/afloatdb-server-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb-server/src/test/resources/node2.conf &`
+`java -jar  afloatdb-server/target/afloatdb-server-fat.jar afloatdb-server/src/test/resources/node2.conf &`
 
-`java -jar  afloatdb-server/target/afloatdb-server-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb-server/src/test/resources/node3.conf &`
+`java -jar  afloatdb-server/target/afloatdb-server-fat.jar afloatdb-server/src/test/resources/node3.conf &`
 
 ## Adding a new server to a running cluster
 
@@ -74,7 +74,7 @@ Once you start your AfloatDB cluster, you can add new servers at runtime.
 For this, you need to provide address of one of the running servers via
 the "join-to" config field for the new server.
 
-`java -jar  afloatdb-server/target/afloatdb-server-0.1-SNAPSHOT-jar-with-dependencies.jar afloatdb-server/src/test/resources/node4.conf &`
+`java -jar  afloatdb-server/target/afloatdb-server-fat.jar afloatdb-server/src/test/resources/node4.conf &`
 
 ## Key-value API
 
@@ -93,11 +93,11 @@ discover all servers and connect to them.
 
 ## Key-value CLI for experimentation
 
-`java  -jar afloatdb-client-cli/target/afloatdb-client-cli-0.1-SNAPSHOT-jar-with-dependencies.jar --server localhost:6701 --key name --value basri set`
+`java  -jar afloatdb-client-cli/target/afloatdb-client-cli-fat.jar --server localhost:6701 --key name --value basri set`
 
 Output: `Ordered{commitIndex=2, value=null}`
 
-`java  -jar afloatdb-client-cli/target/afloatdb-client-cli-0.1-SNAPSHOT-jar-with-dependencies.jar --server localhost:6701 --key name get`
+`java  -jar afloatdb-client-cli/target/afloatdb-client-cli-fat.jar --server localhost:6701 --key name get`
 
 Output: `Ordered{commitIndex=2, value=basri}`
 

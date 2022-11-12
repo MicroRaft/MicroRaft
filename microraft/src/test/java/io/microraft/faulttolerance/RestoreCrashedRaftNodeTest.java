@@ -63,16 +63,12 @@ public class RestoreCrashedRaftNodeTest {
 
         String value = "value";
         Ordered<Object> replicateResult = leader.replicate(SimpleStateMachine.applyValue(value)).join();
-        System.out.println("replicate result: " + replicateResult.getResult() + ", commit index: "
-                + replicateResult.getCommitIndex());
 
         eventually(() -> {
             Object queryOperation = SimpleStateMachine.queryLastValue();
             Ordered<String> queryResult = crashedFollower
                     .<String>query(queryOperation, QueryPolicy.EVENTUAL_CONSISTENCY, 0).join();
             assertThat(queryResult.getResult()).isEqualTo(value);
-            System.out.println("monotonic local query successful on follower. query result: " + queryResult.getResult()
-                    + ", commit index: " + queryResult.getCommitIndex());
         });
 
         RestoredRaftState restoredState = RaftTestUtils.getRestoredState(crashedFollower);
@@ -85,8 +81,6 @@ public class RestoreCrashedRaftNodeTest {
             Ordered<String> queryResult = restoredFollower
                     .<String>query(queryOperation, QueryPolicy.EVENTUAL_CONSISTENCY, 0).join();
             assertThat(queryResult.getResult()).isEqualTo(value);
-            System.out.println("monotonic local query successful on restarted follower. query result: "
-                    + queryResult.getResult() + ", commit index: " + queryResult.getCommitIndex());
         });
     }
 

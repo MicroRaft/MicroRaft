@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package io.afloatdb.client;
+package io.afloatdb;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.afloatdb.client.config.AfloatDBClientConfig;
 import io.afloatdb.client.kv.KV;
+import io.afloatdb.client.AfloatDBClient;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -40,7 +41,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 @Fork(1)
-public class AfloatDBClientBenchmark {
+public class AfloatDBBenchmark {
 
     @Benchmark
     @BenchmarkMode(Mode.Throughput)

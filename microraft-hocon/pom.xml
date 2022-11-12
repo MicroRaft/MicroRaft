@@ -15,7 +15,7 @@
 
     <properties>
         <root.dir>${project.parent.basedir}</root.dir>
-        <config.version>1.4.0</config.version>
+        <config.version>1.4.2</config.version>
     </properties>
 
     <dependencies>

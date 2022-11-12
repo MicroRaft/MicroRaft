@@ -16,7 +16,7 @@
     <properties>
         <root.dir>${project.parent.basedir}</root.dir>
         <config.version>1.4.0</config.version>
-        <io.micrometer.core.version>1.5.0</io.micrometer.core.version>
+        <io.micrometer.core.version>1.10.0</io.micrometer.core.version>
     </properties>
 
     <dependencies>

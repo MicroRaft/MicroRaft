@@ -64,7 +64,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <finalName>afloatdb-client-benchmark</finalName>
+                            <finalName>afloatdb-benchmark</finalName>
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>

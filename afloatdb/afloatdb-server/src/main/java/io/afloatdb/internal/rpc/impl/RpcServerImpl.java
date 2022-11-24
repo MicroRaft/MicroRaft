@@ -16,11 +16,12 @@
 
 package io.afloatdb.internal.rpc.impl;
 
+import static io.afloatdb.internal.utils.Threads.nextThreadId;
+
 import io.afloatdb.AfloatDBException;
 import io.afloatdb.cluster.proto.AfloatDBClusterServiceGrpc.AfloatDBClusterServiceImplBase;
 import io.afloatdb.config.AfloatDBConfig;
 import io.afloatdb.internal.lifecycle.ProcessTerminationLogger;
-import io.afloatdb.internal.lifecycle.TerminationAware;
 import io.afloatdb.internal.raft.RaftNodeReportSupplier;
 import io.afloatdb.internal.rpc.RpcServer;
 import io.grpc.Server;
@@ -39,7 +40,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ThreadFactory;
 
 import static io.afloatdb.internal.di.AfloatDBModule.CONFIG_KEY;
 import static io.afloatdb.internal.di.AfloatDBModule.LOCAL_ENDPOINT_KEY;
@@ -49,6 +50,12 @@ public class RpcServerImpl implements RpcServer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RpcServer.class);
 
+    private final ThreadGroup threadGroup = new ThreadGroup("RaftServer");
+    private final EventLoopGroup bossELG = new NioEventLoopGroup(1,
+            (ThreadFactory) r -> new Thread(threadGroup, r, "RaftBossELB-" + nextThreadId()));
+    // https://github.com/MicroRaft/MicroRaft/issues/28
+    private final EventLoopGroup workerELG = new NioEventLoopGroup(4,
+            (ThreadFactory) r -> new Thread(threadGroup, r, "RaftWorkELB-" + nextThreadId()));
     private final RaftEndpoint localEndpoint;
     private final Server server;
     private final ProcessTerminationLogger processTerminationLogger;
@@ -59,12 +66,12 @@ public class RpcServerImpl implements RpcServer {
             AdminService adminService, RaftNodeReportSupplier raftNodeReportSupplier,
             ProcessTerminationLogger processTerminationLogger) {
         this.localEndpoint = localEndpoint;
-        // TODO [basri] do perf analysis for this setup
-        EventLoopGroup boss = new NioEventLoopGroup(1);
-        EventLoopGroup worker = new NioEventLoopGroup(1);
+        // we use direct executor because RaftNode has its own thread,
+        // so once workers deserialize requests and invoke the service,
+        // the actual processing is offloaded to the RaftNode's thread.
         Class<? extends ServerChannel> channelType = NioServerSocketChannel.class;
         this.server = NettyServerBuilder.forAddress(config.getLocalEndpointConfig().getSocketAddress())
-                .bossEventLoopGroup(boss).workerEventLoopGroup(worker).channelType(channelType)
+                .bossEventLoopGroup(bossELG).workerEventLoopGroup(workerELG).channelType(channelType)
                 .addService(kvRequestHandler).addService(raftService).addService(adminService)
                 .addService((AfloatDBClusterServiceImplBase) raftNodeReportSupplier).directExecutor().build();
         this.processTerminationLogger = processTerminationLogger;

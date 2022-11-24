@@ -21,6 +21,7 @@ import static io.afloatdb.internal.di.AfloatDBModule.LOCAL_ENDPOINT_KEY;
 import static io.afloatdb.internal.di.AfloatDBModule.RAFT_ENDPOINT_ADDRESSES_KEY;
 import static io.afloatdb.internal.utils.Exceptions.runSilently;
 import static io.afloatdb.internal.utils.Serialization.wrap;
+import static io.afloatdb.internal.utils.Threads.nextThreadId;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -42,6 +43,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import javax.annotation.Nonnull;
@@ -61,8 +63,10 @@ public class RaftRpcServiceImpl implements RaftRpcService {
     private final Map<RaftEndpoint, String> addresses;
     private final Map<RaftEndpoint, RaftRpcContext> stubs = new ConcurrentHashMap<>();
     private final Set<RaftEndpoint> initializingEndpoints = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final ThreadGroup threadGroup = new ThreadGroup("RaftRpc");
+    private final ScheduledExecutorService executor = newSingleThreadScheduledExecutor(
+            r -> new Thread(threadGroup, r, "RaftRpc-" + nextThreadId()));
     private final ProcessTerminationLogger processTerminationLogger;
-    private final ScheduledExecutorService executor = newSingleThreadScheduledExecutor();
     private final long rpcTimeoutSecs;
 
     @Inject
@@ -108,9 +112,7 @@ public class RaftRpcServiceImpl implements RaftRpcService {
     public void send(@Nonnull RaftEndpoint target, @Nonnull RaftMessage message) {
         RaftRpcContext stub = getOrCreateStub(requireNonNull(target));
         if (stub != null) {
-            executor.submit(() -> {
-                stub.send(message);
-            });
+            stub.send(message);
         }
     }
 
@@ -143,16 +145,20 @@ public class RaftRpcServiceImpl implements RaftRpcService {
 
         try {
             String address = addresses.get(target);
+            Executor channelExecutor = newSingleThreadScheduledExecutor(
+                    r -> new Thread(threadGroup, r, "RaftRpc-" + nextThreadId()));
+            // https://qr.ae/pv0Vm7
+            // https://github.com/MicroRaft/MicroRaft/issues/29
             ManagedChannel channel = ManagedChannelBuilder.forTarget(address).disableRetry().usePlaintext()
-                    // .directExecutor()
-                    .build();
-
-            RaftServiceStub replicationStub = RaftServiceGrpc.newStub(channel);
-            // .withDeadlineAfter(rpcTimeoutSecs, SECONDS);
-            RaftRpcContext context = new RaftRpcContext(target, channel);
+                    .executor(channelExecutor).build();
+            RaftServiceStub replicationStub = RaftServiceGrpc.newStub(channel).withDeadlineAfter(rpcTimeoutSecs,
+                    SECONDS);
+            RaftRpcContext context = new RaftRpcContext(target, channel, channelExecutor);
             context.raftMessageSender = replicationStub.handle(new ResponseStreamObserver(context));
 
             stubs.put(target, context);
+
+            LOGGER.info("{} initialized stub for {}", localEndpoint, target);
 
             return context;
         } finally {
@@ -187,11 +193,13 @@ public class RaftRpcServiceImpl implements RaftRpcService {
 
         final RaftEndpoint targetEndpoint;
         final ManagedChannel channel;
+        final Executor executor;
         StreamObserver<RaftRequest> raftMessageSender;
 
-        RaftRpcContext(RaftEndpoint targetEndpoint, ManagedChannel channel) {
+        RaftRpcContext(RaftEndpoint targetEndpoint, ManagedChannel channel, Executor executor) {
             this.targetEndpoint = targetEndpoint;
             this.channel = channel;
+            this.executor = executor;
         }
 
         void shutdownSilently() {
@@ -200,18 +208,20 @@ public class RaftRpcServiceImpl implements RaftRpcService {
         }
 
         public void send(@Nonnull RaftMessage message) {
-            try {
-                raftMessageSender.onNext(wrap(message));
-            } catch (Throwable t) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.error(localEndpoint.getId() + " failure during sending " + message.getClass().getSimpleName()
-                            + " to " + targetEndpoint, t);
-                } else {
-                    LOGGER.error("{} failure during sending {} to {}. Exception: {} Message: {}", localEndpoint.getId(),
-                            message.getClass().getSimpleName(), targetEndpoint, t.getClass().getSimpleName(),
-                            t.getMessage());
+            executor.execute(() -> {
+                try {
+                    raftMessageSender.onNext(wrap(message));
+                } catch (Throwable t) {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.error(localEndpoint.getId() + " failure during sending "
+                                + message.getClass().getSimpleName() + " to " + targetEndpoint, t);
+                    } else {
+                        LOGGER.error("{} failure during sending {} to {}. Exception: {} Message: {}",
+                                localEndpoint.getId(), message.getClass().getSimpleName(), targetEndpoint,
+                                t.getClass().getSimpleName(), t.getMessage());
+                    }
                 }
-            }
+            });
         }
     }
 

@@ -1,7 +1,7 @@
 <Configuration status="WARN">
     <Appenders>
         <Console name="CONSOLE" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} %level - [%-8c{1}] %msg%n"/>
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%tn] %level - [%-8c{1}] %msg%n"/>
         </Console>
     </Appenders>
     <Loggers>
@@ -9,6 +9,7 @@
             <AppenderRef ref="CONSOLE"/>
         </Root>
         <Logger name="io.afloatdb" level="INFO"/>
+        <!-- <Logger name="io.grpc" level="DEBUG"/> -->
         <Logger name="io.microraft" level="INFO"/>
         <Logger name="com.netflix.governator" level="OFF"/>
     </Loggers>

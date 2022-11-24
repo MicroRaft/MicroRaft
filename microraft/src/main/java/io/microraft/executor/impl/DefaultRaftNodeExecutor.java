@@ -16,15 +16,15 @@
 
 package io.microraft.executor.impl;
 
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+
 import io.microraft.RaftNode;
 import io.microraft.executor.RaftNodeExecutor;
 import io.microraft.lifecycle.RaftNodeLifecycleAware;
-
-import javax.annotation.Nonnull;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.Nonnull;
 
 /**
  * The default implementation of {@link RaftNodeExecutor}.
@@ -37,8 +37,11 @@ import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
  */
 public class DefaultRaftNodeExecutor implements RaftNodeExecutor, RaftNodeLifecycleAware {
 
+    private static final AtomicInteger RAFT_THREAD_ID = new AtomicInteger(0);
+
     private final ThreadGroup threadGroup = new ThreadGroup("RaftThread");
-    private final ScheduledExecutorService executor = newSingleThreadScheduledExecutor(r -> new Thread(threadGroup, r));
+    private final ScheduledExecutorService executor = newSingleThreadScheduledExecutor(
+            r -> new Thread(threadGroup, r, "RaftThread-" + RAFT_THREAD_ID.getAndIncrement()));
 
     @Override
     public void execute(@Nonnull Runnable task) {
@@ -63,5 +66,4 @@ public class DefaultRaftNodeExecutor implements RaftNodeExecutor, RaftNodeLifecy
     public ScheduledExecutorService getExecutor() {
         return executor;
     }
-
 }

@@ -41,7 +41,7 @@ public class DefaultRaftNodeExecutor implements RaftNodeExecutor, RaftNodeLifecy
 
     private final ThreadGroup threadGroup = new ThreadGroup("RaftThread");
     private final ScheduledExecutorService executor = newSingleThreadScheduledExecutor(
-            r -> new Thread(threadGroup, r, "RaftThread-" + RAFT_THREAD_ID.getAndIncrement()));
+            r -> new Thread(threadGroup, r, "Raft-" + RAFT_THREAD_ID.getAndIncrement()));
 
     @Override
     public void execute(@Nonnull Runnable task) {

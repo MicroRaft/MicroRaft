@@ -14,6 +14,7 @@
         <module>microraft-hocon</module>
         <module>microraft-yaml</module>
         <module>microraft-metrics</module>
+        <module>microraft-store-sqlite</module>
         <module>microraft-tutorial</module>
         <module>afloatdb</module>
     </modules>

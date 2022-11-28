@@ -33,24 +33,24 @@ import org.sqlite.SQLiteConfig.LockingMode;
 import org.sqlite.SQLiteConfig.Pragma;
 
 /**
- * An implementation of a RaftStore which uses SQLite for persistence. A user of this class is advised to construct
- * this class, and then use {@link RaftSqliteStore#getRestoredRaftState()} to acquire any previously persisted state.
+ * An implementation of a RaftStore which uses SQLite for persistence. A user of
+ * this class is advised to construct this class, and then use
+ * {@link RaftSqliteStore#getRestoredRaftState()} to acquire any previously
+ * persisted state.
  * <p>
  * At time of writing, this store prioritizes:
  * <ul>
- *     <li>
- *         Being reasonably low overhead on individual writes. It should not be a major source of
- *         overhead when replicating messages.
- *     </li>
- *     <li>
- *         Being as straightforward as possible with all other operations.
- *     </li>
+ * <li>Being reasonably low overhead on individual writes. It should not be a
+ * major source of overhead when replicating messages.</li>
+ * <li>Being as straightforward as possible with all other operations.</li>
  * </ul>
  * There are three tables which exist in this store.
  * <ol>
- *     <li>logEntries stores the log entries</li>
- *     <li>snapshots and snapshotChunks store which snapshots exist and pointers to their chunks</li>
- *     <li>kv stores the remaining metadata in a single-row, one-column-per-value 'key-value store'.</li>
+ * <li>logEntries stores the log entries</li>
+ * <li>snapshots and snapshotChunks store which snapshots exist and pointers to
+ * their chunks</li>
+ * <li>kv stores the remaining metadata in a single-row, one-column-per-value
+ * 'key-value store'.</li>
  * </ol>
  */
 public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware {
@@ -77,66 +77,40 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
     private final RaftModelFactory raftModelFactory;
     private boolean tryToCleanUpOldSnapshots = false;
 
-    public RaftSqliteStore(
-            CloseableDSLContext dsl, StoreModelSerializer modelSerializer, RaftModelFactory raftModelFactory) {
+    public RaftSqliteStore(CloseableDSLContext dsl, StoreModelSerializer modelSerializer,
+            RaftModelFactory raftModelFactory) {
         this.dsl = dsl;
         this.raftModelFactory = raftModelFactory;
-        initialGroupMembersField = DSL.field(
-                "initialGroupMembers",
+        initialGroupMembersField = DSL.field("initialGroupMembers",
                 SQLDataType.BINARY.asConvertedDataType(new JooqConverterAdapter<>(
                         modelSerializer.raftGroupMembersViewSerializer(), RaftGroupMembersView.class)));
-        logEntryField = DSL.field(
-                "logEntry",
-                SQLDataType.BINARY.asConvertedDataType(
-                        new JooqConverterAdapter<>(modelSerializer.logEntrySerializer(), LogEntry.class)));
-        localEndpointField = DSL.field(
-                "localEndpoint",
-                SQLDataType.BINARY.asConvertedDataType(
-                        new JooqConverterAdapter<>(modelSerializer.raftEndpointSerializer(), RaftEndpoint.class)));
-        votedForField = DSL.field(
-                "votedFor",
-                SQLDataType.BINARY.asConvertedDataType(
-                        new JooqConverterAdapter<>(modelSerializer.raftEndpointSerializer(), RaftEndpoint.class)));
-        chunkField = DSL.field(
-                "chunk",
-                SQLDataType.BINARY.asConvertedDataType(
-                        new JooqConverterAdapter<>(modelSerializer.snapshotChunkSerializer(), SnapshotChunk.class)));
+        logEntryField = DSL.field("logEntry", SQLDataType.BINARY
+                .asConvertedDataType(new JooqConverterAdapter<>(modelSerializer.logEntrySerializer(), LogEntry.class)));
+        localEndpointField = DSL.field("localEndpoint", SQLDataType.BINARY.asConvertedDataType(
+                new JooqConverterAdapter<>(modelSerializer.raftEndpointSerializer(), RaftEndpoint.class)));
+        votedForField = DSL.field("votedFor", SQLDataType.BINARY.asConvertedDataType(
+                new JooqConverterAdapter<>(modelSerializer.raftEndpointSerializer(), RaftEndpoint.class)));
+        chunkField = DSL.field("chunk", SQLDataType.BINARY.asConvertedDataType(
+                new JooqConverterAdapter<>(modelSerializer.snapshotChunkSerializer(), SnapshotChunk.class)));
     }
 
     private void createTablesIfNotExists() {
-        dsl.createTableIfNotExists(KV)
-                .column(KEY)
-                .primaryKey(KEY)
-                .column(localEndpointField)
-                .column(LOCAL_ENDPOINT_VOTING)
-                .column(initialGroupMembersField)
-                .column(TERM)
-                .column(votedForField)
-                .execute();
+        dsl.createTableIfNotExists(KV).column(KEY).column(localEndpointField).column(LOCAL_ENDPOINT_VOTING)
+                .column(initialGroupMembersField).column(TERM).column(votedForField).primaryKey(KEY).execute();
         dsl.insertInto(KV).columns(KEY).values(PK).onConflictDoNothing().execute();
 
-        dsl.createTableIfNotExists(LOG_ENTRIES)
-                .column(INDEX)
-                .primaryKey(INDEX)
-                .column(logEntryField)
-                .execute();
+        dsl.createTableIfNotExists(LOG_ENTRIES).column(INDEX).column(logEntryField).primaryKey(INDEX).execute();
 
-        dsl.createTableIfNotExists(SNAPSHOT_CHUNKS)
-                .primaryKey(INDEX, CHUNK_INDEX)
-                .columns(INDEX, CHUNK_INDEX)
-                .column(chunkField)
-                .execute();
+        dsl.createTableIfNotExists(SNAPSHOT_CHUNKS).columns(INDEX, CHUNK_INDEX).column(chunkField)
+                .primaryKey(INDEX, CHUNK_INDEX).execute();
 
-        dsl.createTableIfNotExists(SNAPSHOTS)
-                .primaryKey(INDEX, CHUNK_COUNT)
-                .columns(INDEX, CHUNK_COUNT)
-                .execute();
+        dsl.createTableIfNotExists(SNAPSHOTS).columns(INDEX, CHUNK_COUNT).primaryKey(INDEX, CHUNK_COUNT).execute();
 
         dsl.connection(Connection::commit);
     }
 
-    public static RaftSqliteStore create(
-            File sqliteDb, RaftModelFactory raftModelFactory, StoreModelSerializer modelSerializer) {
+    public static RaftSqliteStore create(File sqliteDb, RaftModelFactory raftModelFactory,
+            StoreModelSerializer modelSerializer) {
         SQLiteConfig config = new SQLiteConfig();
         config.setPragma(Pragma.JOURNAL_MODE, JournalMode.WAL.getValue());
         config.setPragma(Pragma.LOCKING_MODE, LockingMode.EXCLUSIVE.getValue());
@@ -162,10 +136,7 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
 
     @Override
     public void persistAndFlushLocalEndpoint(RaftEndpoint localEndpoint, boolean localEndpointVoting) {
-        dsl.update(KV)
-                .set(localEndpointField, localEndpoint)
-                .set(LOCAL_ENDPOINT_VOTING, localEndpointVoting)
-                .execute();
+        dsl.update(KV).set(localEndpointField, localEndpoint).set(LOCAL_ENDPOINT_VOTING, localEndpointVoting).execute();
         dsl.connection(Connection::commit);
     }
 
@@ -183,27 +154,22 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
 
     @Override
     public void persistLogEntry(@Nonnull LogEntry logEntry) {
-        dsl.insertInto(LOG_ENTRIES, INDEX, logEntryField)
-                .values(logEntry.getIndex(), logEntry)
-                .execute();
+        dsl.insertInto(LOG_ENTRIES, INDEX, logEntryField).values(logEntry.getIndex(), logEntry).execute();
     }
 
     @Override
     public void persistSnapshotChunk(@Nonnull SnapshotChunk snapshotChunk) {
         dsl.insertInto(SNAPSHOT_CHUNKS, INDEX, CHUNK_INDEX, chunkField)
-                .values(snapshotChunk.getIndex(), snapshotChunk.getSnapshotChunkIndex(), snapshotChunk)
-                .execute();
+                .values(snapshotChunk.getIndex(), snapshotChunk.getSnapshotChunkIndex(), snapshotChunk).execute();
         dsl.insertInto(SNAPSHOTS, INDEX, CHUNK_COUNT)
-                .values(snapshotChunk.getIndex(), snapshotChunk.getSnapshotChunkCount())
-                .onConflictDoNothing()
+                .values(snapshotChunk.getIndex(), snapshotChunk.getSnapshotChunkCount()).onConflictDoNothing()
                 .execute();
         tryToCleanUpOldSnapshots = true;
     }
 
     // Visible for testing
     Optional<Long> getMaxCommittedSnapshotIndex() {
-        return Optional.ofNullable(
-                dsl.select(DSL.max(INDEX).as(INDEX)).from(completedSnapshots()).fetchOne(INDEX));
+        return Optional.ofNullable(dsl.select(DSL.max(INDEX).as(INDEX)).from(completedSnapshots()).fetchOne(INDEX));
     }
 
     private static <T> Field<T> qualify(Table<?> table, Field<T> field) {
@@ -212,39 +178,31 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
 
     @Override
     public void truncateLogEntriesFrom(long logIndexInclusive) {
-        dsl.deleteFrom(LOG_ENTRIES)
-                .where(INDEX.greaterOrEqual(logIndexInclusive))
-                .execute();
+        dsl.deleteFrom(LOG_ENTRIES).where(INDEX.greaterOrEqual(logIndexInclusive)).execute();
     }
 
+    /**
+     * This returns the completed snapshot offers by returning those snapshots for
+     * which the number of persisted chunks is equal to the total number of chunks.
+     */
     @SuppressWarnings("VarUsage")
     private Select<? extends Record1<Long>> completedSnapshots() {
         Table<?> tempTable = DSL.table("t");
-        var blocks = dsl.select(
-                        qualify(SNAPSHOT_CHUNKS, INDEX),
-                        DSL.count(qualify(SNAPSHOT_CHUNKS, INDEX)).as(COUNT))
-                .from(SNAPSHOT_CHUNKS)
-                .groupBy(qualify(SNAPSHOT_CHUNKS, INDEX));
-        return dsl.select(qualify(tempTable, INDEX))
-                .from(blocks.asTable(tempTable), SNAPSHOTS)
-                .where(qualify(tempTable, INDEX).eq(qualify(SNAPSHOTS, INDEX)))
-                .and(DSL.field(COUNT).eq(CHUNK_COUNT));
+        var blocks = dsl.select(qualify(SNAPSHOT_CHUNKS, INDEX), DSL.count(qualify(SNAPSHOT_CHUNKS, INDEX)).as(COUNT))
+                .from(SNAPSHOT_CHUNKS).groupBy(qualify(SNAPSHOT_CHUNKS, INDEX));
+        return dsl.select(qualify(tempTable, INDEX)).from(blocks.asTable(tempTable), SNAPSHOTS)
+                .where(qualify(tempTable, INDEX).eq(qualify(SNAPSHOTS, INDEX))).and(DSL.field(COUNT).eq(CHUNK_COUNT));
     }
 
     @Override
     public void truncateSnapshotChunksUntil(long logIndexInclusive) {
-        dsl.deleteFrom(SNAPSHOT_CHUNKS)
-                .where(qualify(SNAPSHOT_CHUNKS, INDEX).le(logIndexInclusive))
-                .and(qualify(SNAPSHOT_CHUNKS, INDEX).notIn(completedSnapshots()))
-                .execute();
+        dsl.deleteFrom(SNAPSHOT_CHUNKS).where(qualify(SNAPSHOT_CHUNKS, INDEX).le(logIndexInclusive))
+                .and(qualify(SNAPSHOT_CHUNKS, INDEX).notIn(completedSnapshots())).execute();
     }
 
     // Visible for testing
     List<SnapshotChunk> getAllSnapshotChunks() {
-        return dsl.select(chunkField)
-                .from(SNAPSHOT_CHUNKS)
-                .orderBy(INDEX, CHUNK_INDEX)
-                .fetch(chunkField);
+        return dsl.select(chunkField).from(SNAPSHOT_CHUNKS).orderBy(INDEX, CHUNK_INDEX).fetch(chunkField);
     }
 
     @Override
@@ -254,12 +212,8 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
             tryToCleanUpOldSnapshots = false;
             Optional<Long> maybeSnapshotIndex = getMaxCommittedSnapshotIndex();
             maybeSnapshotIndex.ifPresent(snapshotIndex -> {
-                dsl.deleteFrom(LOG_ENTRIES)
-                        .where(INDEX.lessOrEqual(snapshotIndex))
-                        .execute();
-                dsl.deleteFrom(SNAPSHOT_CHUNKS)
-                        .where(INDEX.lessThan(snapshotIndex))
-                        .execute();
+                dsl.deleteFrom(LOG_ENTRIES).where(INDEX.lessOrEqual(snapshotIndex)).execute();
+                dsl.deleteFrom(SNAPSHOT_CHUNKS).where(INDEX.lessThan(snapshotIndex)).execute();
                 dsl.deleteFrom(SNAPSHOTS).where(INDEX.lessThan(snapshotIndex)).execute();
                 dsl.connection(Connection::commit);
             });
@@ -267,44 +221,51 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
     }
 
     public Optional<RestoredRaftState> getRestoredRaftState() {
-        var record = dsl.select(
-                        localEndpointField, LOCAL_ENDPOINT_VOTING, initialGroupMembersField, TERM, votedForField)
-                .from(KV)
-                .fetchOne();
+        var record = dsl
+                .select(localEndpointField, LOCAL_ENDPOINT_VOTING, initialGroupMembersField, TERM, votedForField)
+                .from(KV).fetchOne();
 
-        if (record == null
-                || record.get(localEndpointField) == null
-                || record.get(LOCAL_ENDPOINT_VOTING) == null
-                || record.get(initialGroupMembersField) == null
-                || record.get(TERM) == null
+        if (record == null) {
+            // This case isn't expected to happen since the row is created in the
+            // initialization loop. However, a failure at the wrong time on startup could
+            // cause it to occur since SQLite doesn't have transactional DDL.
+            return Optional.empty();
+        }
+
+        if (record.get(localEndpointField) == null || record.get(LOCAL_ENDPOINT_VOTING) == null
+                || record.get(initialGroupMembersField) == null || record.get(TERM) == null
                 || record.get(votedForField) == null) {
+            checkState((record.get(localEndpointField) == null) == (record.get(LOCAL_ENDPOINT_VOTING) == null),
+                    "expected localEndpoint and localEndpointVoting to be both unset, or neither unset");
+            checkState((record.get(TERM) == null) == (record.get(votedForField) == null),
+                    "expected term and votedFor to be both unset, or neither unset");
+            checkState(
+                    record.get(initialGroupMembersField) != null
+                            || (record.get(TERM) == null && record.get(localEndpointField) == null),
+                    "expected initial group members and local endpoint fields to be set "
+                            + "before this node can vote");
             return Optional.empty();
         }
 
         Optional<SnapshotEntry> snapshot = getMaxCommittedSnapshotIndex().map(lastSnapshotted -> {
-            List<SnapshotChunk> snapshotChunks = dsl.select(chunkField)
-                    .from(SNAPSHOT_CHUNKS)
-                    .where(INDEX.eq(lastSnapshotted))
-                    .orderBy(CHUNK_INDEX)
-                    .fetch(chunkField);
+            List<SnapshotChunk> snapshotChunks = dsl.select(chunkField).from(SNAPSHOT_CHUNKS)
+                    .where(INDEX.eq(lastSnapshotted)).orderBy(CHUNK_INDEX).fetch(chunkField);
 
-            return raftModelFactory
-                    .createSnapshotEntryBuilder()
-                    .setSnapshotChunks(snapshotChunks)
-                    .setIndex(lastSnapshotted)
-                    .setTerm(snapshotChunks.get(0).getTerm())
-                    .setGroupMembersView(snapshotChunks.get(0).getGroupMembersView())
-                    .build();
+            return raftModelFactory.createSnapshotEntryBuilder().setSnapshotChunks(snapshotChunks)
+                    .setIndex(lastSnapshotted).setTerm(snapshotChunks.get(0).getTerm())
+                    .setGroupMembersView(snapshotChunks.get(0).getGroupMembersView()).build();
         });
 
-        return Optional.of(new RestoredRaftState(
-                record.get(localEndpointField),
-                record.get(LOCAL_ENDPOINT_VOTING),
-                record.get(initialGroupMembersField),
-                record.get(TERM),
-                record.get(votedForField),
+        return Optional.of(new RestoredRaftState(record.get(localEndpointField), record.get(LOCAL_ENDPOINT_VOTING),
+                record.get(initialGroupMembersField), record.get(TERM), record.get(votedForField),
                 snapshot.orElse(null),
                 dsl.select(logEntryField).from(LOG_ENTRIES).orderBy(INDEX).fetch(logEntryField)));
+    }
+
+    private static void checkState(boolean condition, String errorMessage) {
+        if (!condition) {
+            throw new IllegalStateException(errorMessage);
+        }
     }
 
     private static final class JooqConverterAdapter<T> implements Converter<byte[], T> {

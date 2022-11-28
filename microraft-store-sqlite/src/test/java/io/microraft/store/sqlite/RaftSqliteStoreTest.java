@@ -39,11 +39,8 @@ public class RaftSqliteStoreTest {
     private static final boolean VOTING = true;
 
     private static final RaftGroupMembersView INITIAL_GROUP_MEMBERS = raftModelFactory
-            .createRaftGroupMembersViewBuilder()
-            .setLogIndex(RAFT_INDEX)
-            .setMembers(List.of(ENDPOINT_A, ENDPOINT_B))
-            .setVotingMembers(List.of(ENDPOINT_A))
-            .build();
+            .createRaftGroupMembersViewBuilder().setLogIndex(RAFT_INDEX).setMembers(List.of(ENDPOINT_A, ENDPOINT_B))
+            .setVotingMembers(List.of(ENDPOINT_A)).build();
 
     @Rule
     public final TemporaryFolder tempDir = new TemporaryFolder();
@@ -73,9 +70,7 @@ public class RaftSqliteStoreTest {
             RestoredRaftState restored = store.getRestoredRaftState().get();
             assertThat(restored.getLocalEndpoint()).isEqualTo(ENDPOINT_A);
             assertThat(restored.isLocalEndpointVoting()).isEqualTo(VOTING);
-            assertThat(restored.getInitialGroupMembers())
-                    .usingRecursiveComparison()
-                    .isEqualTo(INITIAL_GROUP_MEMBERS);
+            assertThat(restored.getInitialGroupMembers()).usingRecursiveComparison().isEqualTo(INITIAL_GROUP_MEMBERS);
             assertThat(restored.getTerm()).isEqualTo(TERM);
             assertThat(restored.getVotedMember()).isEqualTo(ENDPOINT_B);
         });
@@ -97,13 +92,11 @@ public class RaftSqliteStoreTest {
             store.persistLogEntry(logEntry(2, 0));
         });
         withRaftStore(store -> {
-            assertThat(store.getRestoredRaftState().get().getLogEntries())
-                    .usingRecursiveFieldByFieldElementComparator()
+            assertThat(store.getRestoredRaftState().get().getLogEntries()).usingRecursiveFieldByFieldElementComparator()
                     .containsExactly(logEntry(0, 0), logEntry(1, 0));
             store.truncateLogEntriesFrom(1);
             store.flush();
-            assertThat(store.getRestoredRaftState().get().getLogEntries())
-                    .usingRecursiveFieldByFieldElementComparator()
+            assertThat(store.getRestoredRaftState().get().getLogEntries()).usingRecursiveFieldByFieldElementComparator()
                     .containsExactly(logEntry(0, 0));
         });
     }
@@ -119,11 +112,9 @@ public class RaftSqliteStoreTest {
             store.persistSnapshotChunk(snapshotChunk(1, 0, 0, 1));
             store.flush();
             // once a snapshot chunk has been flushed, irrelevant log entries can be deleted
-            assertThat(store.getRestoredRaftState().get().getLogEntries())
-                    .usingRecursiveFieldByFieldElementComparator()
+            assertThat(store.getRestoredRaftState().get().getLogEntries()).usingRecursiveFieldByFieldElementComparator()
                     .containsExactly(logEntry(2, 0));
-            assertThat(store.getRestoredRaftState().get().getSnapshotEntry().getOperation())
-                    .usingRecursiveComparison()
+            assertThat(store.getRestoredRaftState().get().getSnapshotEntry().getOperation()).usingRecursiveComparison()
                     .isEqualTo(List.of(snapshotChunk(1, 0, 0, 1)));
         });
         withRaftStore(store -> {
@@ -131,15 +122,13 @@ public class RaftSqliteStoreTest {
             store.flush();
             store.persistSnapshotChunk(snapshotChunk(3, 1, 1, 2));
             store.flush();
-            assertThat(store.getRestoredRaftState().get().getLogEntries())
-                    .usingRecursiveFieldByFieldElementComparator()
+            assertThat(store.getRestoredRaftState().get().getLogEntries()).usingRecursiveFieldByFieldElementComparator()
                     .contains(logEntry(2, 0), logEntry(3, 1));
             // snapshots can be committed out of order
             store.persistSnapshotChunk(snapshotChunk(3, 1, 0, 2));
             store.flush();
             // irrelevant snapshot chunks are deleted
-            assertThat(store.getAllSnapshotChunks())
-                    .usingRecursiveFieldByFieldElementComparator()
+            assertThat(store.getAllSnapshotChunks()).usingRecursiveFieldByFieldElementComparator()
                     .containsExactly(snapshotChunk(3, 1, 0, 2), snapshotChunk(3, 1, 1, 2));
         });
         withRaftStore(store -> {
@@ -149,35 +138,22 @@ public class RaftSqliteStoreTest {
             store.persistSnapshotChunk(snapshotChunk(5, 1, 0, 1));
             // half persisted snapshots are deleted, but completed snapshots are not
             store.truncateSnapshotChunksUntil(5);
-            assertThat(store.getAllSnapshotChunks())
-                    .usingRecursiveFieldByFieldElementComparator()
-                    .containsExactly(
-                            snapshotChunk(2, 2, 0, 1),
-                            snapshotChunk(3, 1, 0, 2),
-                            snapshotChunk(3, 1, 1, 2),
-                            snapshotChunk(5, 1, 0, 1));
+            assertThat(store.getAllSnapshotChunks()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                    snapshotChunk(2, 2, 0, 1), snapshotChunk(3, 1, 0, 2), snapshotChunk(3, 1, 1, 2),
+                    snapshotChunk(5, 1, 0, 1));
         });
     }
 
     private static LogEntry logEntry(long index, int term) {
-        return raftModelFactory
-                .createLogEntryBuilder()
-                .setIndex(index)
-                .setTerm(term)
-                .setOperation(index + " " + term)
+        return raftModelFactory.createLogEntryBuilder().setIndex(index).setTerm(term).setOperation(index + " " + term)
                 .build();
     }
 
     private static SnapshotChunk snapshotChunk(long index, int term, int chunkIndex, int numChunks) {
-        return raftModelFactory
-                .createSnapshotChunkBuilder()
-                .setIndex(index)
-                .setTerm(term)
-                .setSnapshotChunkIndex(chunkIndex)
-                .setSnapshotChunkCount(numChunks)
+        return raftModelFactory.createSnapshotChunkBuilder().setIndex(index).setTerm(term)
+                .setSnapshotChunkIndex(chunkIndex).setSnapshotChunkCount(numChunks)
                 .setGroupMembersView(INITIAL_GROUP_MEMBERS)
-                .setOperation(index + " " + term + " " + chunkIndex + " " + numChunks)
-                .build();
+                .setOperation(index + " " + term + " " + chunkIndex + " " + numChunks).build();
     }
 
     private static void persistInitialState(RaftSqliteStore store) {
@@ -211,9 +187,10 @@ public class RaftSqliteStoreTest {
     }
 
     /**
-     * Uses the json library Jackson for retrofitting serialization on top of the default model.
-     * If the default model ever gets equals methods, then the recursive comparisons in the tests can be removed.
-     * If the default model ever has a baked in persistence mechanism, then the Jackson can be removed.
+     * Uses the json library Jackson for retrofitting serialization on top of the
+     * default model. If the default model ever gets equals methods, then the
+     * recursive comparisons in the tests can be removed. If the default model ever
+     * has a baked in persistence mechanism, then the Jackson can be removed.
      */
     private static final class JacksonSerializer<T> implements StoreModelSerializer.Serializer<T> {
         private static final ObjectMapper objectMapper = new ObjectMapper()
@@ -254,7 +231,8 @@ public class RaftSqliteStoreTest {
         private String id;
 
         @JsonCreator
-        private RaftEndpointMixin(String id) {}
+        private RaftEndpointMixin(String id) {
+        }
     }
 
     @JsonDeserialize(builder = DefaultRaftGroupMembersViewOrBuilder.class)
@@ -268,7 +246,8 @@ public class RaftSqliteStoreTest {
     }
 
     @JsonDeserialize(builder = DefaultLogEntryOrBuilder.class)
-    private static final class LogEntryMixin {}
+    private static final class LogEntryMixin {
+    }
 
     @JsonDeserialize(builder = DefaultSnapshotChunkOrBuilder.class)
     private static final class SnapshotChunkMixin {

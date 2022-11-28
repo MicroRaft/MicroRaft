@@ -8,12 +8,14 @@ import io.microraft.model.log.SnapshotChunk;
 import javax.annotation.Nonnull;
 
 /**
- * Similarly to the {@link io.microraft.model.RaftModelFactory}, users of the SQLite implementation must provide
- * methods for converting a few of their types into binary data for persistence. This logic is expected to be
- * relatively straightforward for the implementer, since similar logic will exist within the
- * {@link io.microraft.transport.Transport}. It should be noted that serialization performed here may need to be
- * deserialized for an indefinite period and so evolution of any relevant types should be considered by the
- * implementer.
+ * Similarly to the {@link io.microraft.model.RaftModelFactory}, users of the
+ * SQLite implementation must provide methods for converting a few of their
+ * types into binary data for persistence. This logic is expected to be
+ * relatively straightforward for the implementer, since similar logic will
+ * exist within the {@link io.microraft.transport.Transport}. It should be noted
+ * that serialization performed here may need to be deserialized for an
+ * indefinite period and so evolution of any relevant types should be considered
+ * by the implementer.
  */
 public interface StoreModelSerializer {
     Serializer<RaftGroupMembersView> raftGroupMembersViewSerializer();

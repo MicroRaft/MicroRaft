@@ -51,6 +51,12 @@
         </dependency>
 
         <dependency>
+           <groupId>io.microraft</groupId>
+           <artifactId>microraft-store-sqlite</artifactId>
+           <version>0.4-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.afloatdb</groupId>
             <artifactId>afloatdb-commons</artifactId>
             <version>0.4-SNAPSHOT</version>

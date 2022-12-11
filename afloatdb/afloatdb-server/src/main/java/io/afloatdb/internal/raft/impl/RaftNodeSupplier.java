@@ -27,6 +27,9 @@ import io.microraft.model.RaftModelFactory;
 import io.microraft.statemachine.StateMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.microraft.persistence.RaftStore;
+import io.microraft.store.sqlite.RaftSqliteStore;
+import io.microraft.persistence.RestoredRaftState;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -36,11 +39,11 @@ import javax.inject.Singleton;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.Optional;
 
 import static io.afloatdb.internal.di.AfloatDBModule.CONFIG_KEY;
 import static io.afloatdb.internal.di.AfloatDBModule.INITIAL_ENDPOINTS_KEY;
 import static io.afloatdb.internal.di.AfloatDBModule.LOCAL_ENDPOINT_KEY;
-
 /**
  * Creates and contains a RaftNode instance in the AfloatDB instance
  */
@@ -57,11 +60,28 @@ public class RaftNodeSupplier implements Supplier<RaftNode> {
             @Named(LOCAL_ENDPOINT_KEY) RaftEndpoint localEndpoint,
             @Named(INITIAL_ENDPOINTS_KEY) Collection<RaftEndpoint> initialGroupMembers, RaftRpcService rpcService,
             StateMachine stateMachine, RaftModelFactory modelFactory, RaftNodeReportSupplier raftNodeReportSupplier,
-            ProcessTerminationLogger processTerminationLogger) {
-        this.raftNode = RaftNode.newBuilder().setGroupId(config.getRaftGroupConfig().getId())
-                .setLocalEndpoint(localEndpoint).setInitialGroupMembers(initialGroupMembers)
+            RaftStoreSupplier raftStoreSupplier, ProcessTerminationLogger processTerminationLogger) {
+        RaftSqliteStore store = raftStoreSupplier.get();
+
+        RaftNode.RaftNodeBuilder builder = RaftNode.newBuilder().setGroupId(config.getRaftGroupConfig().getId())
+
                 .setConfig(config.getRaftConfig()).setTransport(rpcService).setStateMachine(stateMachine)
-                .setModelFactory(modelFactory).setRaftNodeReportListener(raftNodeReportSupplier).build();
+                .setModelFactory(modelFactory).setRaftNodeReportListener(raftNodeReportSupplier).setStore(store);
+
+        Optional<RestoredRaftState> restoredRaftStateOpt = store.getRestoredRaftState();
+        if (restoredRaftStateOpt.isPresent()) {
+            RestoredRaftState restoredRaftState = restoredRaftStateOpt.get();
+            LOGGER.info(
+                    "{} restored local endpoint: {}, voting: {}, initial group members: {}, term: {}, voted for: {}",
+                    localEndpoint.getId(), restoredRaftState.isLocalEndpointVoting(),
+                    restoredRaftState.getInitialGroupMembers(), restoredRaftState.getTerm(),
+                    restoredRaftState.getVotedMember());
+            builder.setRestoredState(restoredRaftState);
+        } else {
+            builder.setLocalEndpoint(localEndpoint).setInitialGroupMembers(initialGroupMembers);
+        }
+
+        this.raftNode = builder.build();
         this.processTerminationLogger = processTerminationLogger;
     }
 

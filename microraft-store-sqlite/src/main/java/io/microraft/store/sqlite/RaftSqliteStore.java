@@ -54,6 +54,7 @@ import org.sqlite.SQLiteConfig.Pragma;
  * </ol>
  */
 public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware {
+
     private static final Table<Record> KV = DSL.table("kv");
 
     private static final Field<String> KEY = DSL.field("key", SQLDataType.VARCHAR);
@@ -109,8 +110,13 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
     public static RaftSqliteStore create(File sqliteDb, RaftModelFactory raftModelFactory,
             StoreModelSerializer modelSerializer) {
         SQLiteConfig config = new SQLiteConfig();
+        // https://www.sqlite.org/pragma.html#pragma_journal_mode
         config.setPragma(Pragma.JOURNAL_MODE, JournalMode.WAL.getValue());
+        // https://www.sqlite.org/pragma.html#pragma_locking_mode
+        // database file will be owned by the connection for the whole life-time of the
+        // connection.
         config.setPragma(Pragma.LOCKING_MODE, LockingMode.EXCLUSIVE.getValue());
+        // https://www.sqlite.org/pragma.html#pragma_synchronous
         config.setPragma(Pragma.SYNCHRONOUS, "EXTRA");
 
         CloseableDSLContext dsl = DSL.using(jdbcUrl(sqliteDb), config.toProperties());
@@ -151,13 +157,15 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
 
     @Override
     public void persistLogEntry(@Nonnull LogEntry logEntry) {
-        dsl.insertInto(LOG_ENTRIES, INDEX, logEntryField).values(logEntry.getIndex(), logEntry).execute();
+        dsl.insertInto(LOG_ENTRIES, INDEX, logEntryField).values(logEntry.getIndex(), logEntry).onDuplicateKeyIgnore()
+                .execute();
     }
 
     @Override
     public void persistSnapshotChunk(@Nonnull SnapshotChunk snapshotChunk) {
         dsl.insertInto(SNAPSHOT_CHUNKS, INDEX, CHUNK_INDEX, CHUNK_COUNT, chunkField).values(snapshotChunk.getIndex(),
-                snapshotChunk.getSnapshotChunkIndex(), snapshotChunk.getSnapshotChunkCount(), snapshotChunk).execute();
+                snapshotChunk.getSnapshotChunkIndex(), snapshotChunk.getSnapshotChunkCount(), snapshotChunk)
+                .onDuplicateKeyIgnore().execute();
         tryToCleanUpOldSnapshots = true;
     }
 

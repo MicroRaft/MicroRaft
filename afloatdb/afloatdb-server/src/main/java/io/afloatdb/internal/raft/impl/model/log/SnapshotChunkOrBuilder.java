@@ -20,6 +20,7 @@ public class SnapshotChunkOrBuilder implements SnapshotChunk, SnapshotChunkBuild
 
     public SnapshotChunkOrBuilder(KVSnapshotChunk snapshotChunk) {
         this.snapshotChunk = snapshotChunk;
+        this.groupMembersView = new RaftGroupMembersViewOrBuilder(snapshotChunk.getGroupMembersView());
     }
 
     public KVSnapshotChunk getSnapshotChunk() {
@@ -63,7 +64,7 @@ public class SnapshotChunkOrBuilder implements SnapshotChunk, SnapshotChunkBuild
 
     @Nonnull
     @Override
-    public SnapshotChunkBuilder setGroupMembersView(RaftGroupMembersView groupMembersView) {
+    public SnapshotChunkBuilder setGroupMembersView(@Nonnull RaftGroupMembersView groupMembersView) {
         builder.setGroupMembersView(((RaftGroupMembersViewOrBuilder) groupMembersView).getGroupMembersView());
         this.groupMembersView = groupMembersView;
         return this;

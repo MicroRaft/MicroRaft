@@ -137,3 +137,6 @@ site-src/microraft-site.zip
 .classpath
 .settings/
 .vscode/
+
+*_basri.conf
+*_basri.sqlite*

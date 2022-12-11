@@ -16,17 +16,18 @@
 
 package io.afloatdb.internal.raft.impl.model.log;
 
+import static java.util.stream.Collectors.toList;
+
 import io.afloatdb.internal.raft.impl.model.AfloatDBEndpoint;
 import io.afloatdb.raft.proto.SnapshotEntryProto;
 import io.microraft.RaftEndpoint;
-import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.RaftGroupMembersView;
+import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotEntry;
 import io.microraft.model.log.SnapshotEntry.SnapshotEntryBuilder;
-
-import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 
 public class SnapshotEntryOrBuilder implements SnapshotEntry, SnapshotEntryBuilder {
 
@@ -37,6 +38,12 @@ public class SnapshotEntryOrBuilder implements SnapshotEntry, SnapshotEntryBuild
 
     public SnapshotEntryOrBuilder() {
         this.builder = SnapshotEntryProto.newBuilder();
+    }
+
+    public SnapshotEntryOrBuilder(SnapshotEntryProto entry) {
+        this.entry = entry;
+        this.snapshotChunks = entry.getSnapshotChunkList().stream().map(SnapshotChunkOrBuilder::new).collect(toList());
+        this.groupMembersView = new RaftGroupMembersViewOrBuilder(entry.getGroupMembersView());
     }
 
     public SnapshotEntryProto getEntry() {
@@ -93,7 +100,7 @@ public class SnapshotEntryOrBuilder implements SnapshotEntry, SnapshotEntryBuild
 
     @Nonnull
     @Override
-    public SnapshotEntryBuilder setGroupMembersView(RaftGroupMembersView groupMembersView) {
+    public SnapshotEntryBuilder setGroupMembersView(@Nonnull RaftGroupMembersView groupMembersView) {
         builder.setGroupMembersView(((RaftGroupMembersViewOrBuilder) groupMembersView).getGroupMembersView());
         this.groupMembersView = groupMembersView;
         return this;
@@ -113,8 +120,7 @@ public class SnapshotEntryOrBuilder implements SnapshotEntry, SnapshotEntryBuild
             return "SnapshotEntry{builder=" + builder + "}";
         }
 
-        return "SnapshotEntry{" + "index=" + getIndex() + ", term=" + getTerm() + ", operation=" + getOperation()
-                + ", groupMembersView=" + getGroupMembersView() + '}';
+        return ("SnapshotEntry{" + "index=" + getIndex() + ", term=" + getTerm() + ", operation=" + getOperation()
+                + ", groupMembersView=" + getGroupMembersView() + '}');
     }
-
 }

@@ -28,7 +28,9 @@ import io.afloatdb.internal.raft.RaftNodeReportSupplier;
 import io.afloatdb.internal.raft.impl.AfloatDBClusterEndpointsPublisher;
 import io.afloatdb.internal.raft.impl.KVStoreStateMachine;
 import io.afloatdb.internal.raft.impl.RaftNodeSupplier;
+import io.afloatdb.internal.raft.impl.RaftStoreSupplier;
 import io.afloatdb.internal.raft.impl.model.ProtoRaftModelFactory;
+import io.afloatdb.internal.raft.impl.model.ProtoStateStoreSerializer;
 import io.afloatdb.internal.rpc.RaftRpcService;
 import io.afloatdb.internal.rpc.RpcServer;
 import io.afloatdb.internal.rpc.impl.AdminService;
@@ -40,8 +42,11 @@ import io.afloatdb.kv.proto.KVServiceGrpc.KVServiceImplBase;
 import io.afloatdb.raft.proto.RaftServiceGrpc.RaftServiceImplBase;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
+import io.microraft.impl.state.RaftState;
 import io.microraft.model.RaftModelFactory;
+import io.microraft.persistence.RaftStore;
 import io.microraft.statemachine.StateMachine;
+import io.microraft.store.sqlite.StoreModelSerializer;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -92,9 +97,10 @@ public class AfloatDBModule extends AbstractModule {
         bind(RaftRpcService.class).to(RaftRpcServiceImpl.class);
         bind(KVServiceImplBase.class).to(KVService.class);
         bind(AdminServiceImplBase.class).to(AdminService.class);
-
+        bind(StoreModelSerializer.class).to(ProtoStateStoreSerializer.class);
+        bind(new TypeLiteral<Supplier<RaftStore>>() {
+        }).to(RaftStoreSupplier.class);
         bind(new TypeLiteral<Supplier<RaftNode>>() {
         }).annotatedWith(named(RAFT_NODE_SUPPLIER_KEY)).to(RaftNodeSupplier.class);
     }
-
 }

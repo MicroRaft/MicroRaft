@@ -34,6 +34,7 @@ public final class AfloatDBConfig {
     private RaftGroupConfig raftGroupConfig;
     private RaftConfig raftConfig;
     private RpcConfig rpcConfig;
+    private PersistenceConfig persistenceConfig;
 
     private AfloatDBConfig() {
     }
@@ -73,11 +74,16 @@ public final class AfloatDBConfig {
         return rpcConfig;
     }
 
+    @Nonnull
+    public PersistenceConfig getPersistenceConfig() {
+        return persistenceConfig;
+    }
+
     @Override
     public String toString() {
         return "AfloatDBConfig{" + "config=" + config + ", localEndpointConfig=" + localEndpointConfig
                 + ", raftGroupConfig=" + raftGroupConfig + ", raftConfig=" + raftConfig + ", rpcConfig=" + rpcConfig
-                + '}';
+                + ", persistenceConfig=" + persistenceConfig + '}';
     }
 
     public static class AfloatDBConfigBuilder {
@@ -115,6 +121,12 @@ public final class AfloatDBConfig {
         }
 
         @Nonnull
+        public AfloatDBConfigBuilder setPersistenceConfig(@Nonnull PersistenceConfig persistenceConfig) {
+            afloatDBConfig.persistenceConfig = requireNonNull(persistenceConfig);
+            return this;
+        }
+
+        @Nonnull
         public AfloatDBConfig build() {
             if (afloatDBConfig == null) {
                 throw new AfloatDBException("AfloatDBConfig already built!");
@@ -148,6 +160,10 @@ public final class AfloatDBConfig {
                     if (afloatDBConfig.rpcConfig == null && config.hasPath("rpc")) {
                         afloatDBConfig.rpcConfig = RpcConfig.from(config.getConfig("rpc"));
                     }
+
+                    if (afloatDBConfig.persistenceConfig == null && config.hasPath("persistence")) {
+                        afloatDBConfig.persistenceConfig = PersistenceConfig.from(config.getConfig("persistence"));
+                    }
                 }
             } catch (Exception e) {
                 if (e instanceof AfloatDBException) {
@@ -171,6 +187,10 @@ public final class AfloatDBConfig {
 
             if (afloatDBConfig.rpcConfig == null) {
                 afloatDBConfig.rpcConfig = RpcConfig.newBuilder().build();
+            }
+
+            if (afloatDBConfig.persistenceConfig == null) {
+                throw new AfloatDBException("Persistence config is missing!");
             }
 
             AfloatDBConfig afloatDBConfig = this.afloatDBConfig;

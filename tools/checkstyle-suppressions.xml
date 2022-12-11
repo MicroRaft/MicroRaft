@@ -14,6 +14,7 @@
     <suppress checks="Javadoc(Package|Method|Type|Variable)" files="io[\\/]microraft[\\/]tutorial[\\/]"/>
     <suppress checks="Javadoc(Package|Method|Type|Variable)" files="io[\\/]microraft[\\/]faulttolerance[\\/]"/>
 
+    <suppress checks="LineLength" files="target[\\/]"/>
     <suppress checks="LineLength" files="io[\\/]microraft[\\/]tutorial[\\/]"/>
     <suppress checks="LineLength" files="io[\\/]microraft[\\/]faulttolerance[\\/]"/>
 

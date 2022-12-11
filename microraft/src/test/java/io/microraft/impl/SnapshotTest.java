@@ -54,7 +54,6 @@ import io.microraft.model.message.InstallSnapshotResponse;
 import io.microraft.model.message.RaftMessage;
 import io.microraft.report.RaftGroupMembers;
 import io.microraft.report.RaftNodeReport;
-import io.microraft.test.util.AssertionUtils.AssertTask;
 import io.microraft.test.util.BaseTest;
 import java.util.ArrayList;
 import java.util.List;

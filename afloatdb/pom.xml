@@ -24,21 +24,6 @@
         <module>afloatdb-benchmark</module>
         <module>afloatdb-client-cli</module>
     </modules>
-    <developers>
-        <developer>
-            <id>metanet</id>
-            <name>Ensar Basri Kahveci</name>
-            <email>ebkahveci@gmail.com</email>
-        </developer>
-    </developers>
-
-    <licenses>
-        <license>
-            <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
 
     <properties>
         <root.dir>${project.basedir}</root.dir>

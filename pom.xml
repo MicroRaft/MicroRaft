@@ -84,6 +84,8 @@
         <maven.jacoco.plugin.version>0.8.5</maven.jacoco.plugin.version>
         <maven.checkstyle.plugin.version>3.2.0</maven.checkstyle.plugin.version>
         <maven.formatter.plugin.version>2.21.0</maven.formatter.plugin.version>
+        <maven.checksum.plugin.version>1.4</maven.checksum.plugin.version>
+        <maven.install.plugin.version>3.1.0</maven.install.plugin.version>
     </properties>
 
     <dependencies>
@@ -142,6 +144,12 @@
             <version>${log4j.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>net.ju-n.maven.plugins</groupId>
+            <artifactId>checksum-maven-plugin</artifactId>
+            <version>${maven.checksum.plugin.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -154,6 +162,37 @@
                 </includes>
             </resource>
         </resources>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>net.ju-n.maven.plugins</groupId>
+                    <artifactId>checksum-maven-plugin</artifactId>
+                    <version>${maven.checksum.plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>artifacts</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <fileSets>
+                            <fileSet>
+                                <directory>${project.build.directory}</directory>
+                                <includes>
+                                    <include>*.jar</include>
+                                </includes>
+                            </fileSet>
+                        </fileSets>
+                        <algorithms>
+                            <algorithm>SHA-1</algorithm>
+                            <algorithm>MD5</algorithm>
+                        </algorithms>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
 
         <plugins>
             <plugin>
@@ -245,8 +284,19 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>${maven.install.plugin.version}</version>
+                <configuration>
+                    <createChecksum>true</createChecksum>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+
+
+
 
     <profiles>
         <profile>

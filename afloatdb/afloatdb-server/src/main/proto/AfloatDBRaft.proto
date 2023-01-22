@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package io.afloatdb.raft.proto;
+package io.microraft.afloatdb.raft.proto;
 
 import "RaftEndpoint.proto";
 import "KV.proto";
@@ -34,12 +34,12 @@ message StartNewTermOpProto {
 
 message PutOp {
     string key = 1;
-    io.afloatdb.kv.proto.Val val = 2;
+    io.microraft.afloatdb.kv.proto.Val val = 2;
     bool putIfAbsent = 3;
 }
 
 message PutResult {
-    io.afloatdb.kv.proto.Val oldVal = 1;
+    io.microraft.afloatdb.kv.proto.Val oldVal = 1;
 }
 
 message GetOp {
@@ -48,23 +48,23 @@ message GetOp {
 }
 
 message GetResult {
-    io.afloatdb.kv.proto.Val val = 1;
+    io.microraft.afloatdb.kv.proto.Val val = 1;
 }
 
 message RemoveOp {
     string key = 1;
-    io.afloatdb.kv.proto.Val val = 2;
+    io.microraft.afloatdb.kv.proto.Val val = 2;
 }
 
 message RemoveResult {
     bool success = 1;
-    io.afloatdb.kv.proto.Val oldVal = 2;
+    io.microraft.afloatdb.kv.proto.Val oldVal = 2;
 }
 
 message ReplaceOp {
     string key = 1;
-    io.afloatdb.kv.proto.Val oldVal = 2;
-    io.afloatdb.kv.proto.Val newVal = 3;
+    io.microraft.afloatdb.kv.proto.Val oldVal = 2;
+    io.microraft.afloatdb.kv.proto.Val newVal = 3;
 }
 
 message ReplaceResult {
@@ -104,7 +104,7 @@ message LogEntryProto {
 
 message KVEntry {
     string key = 1;
-    io.afloatdb.kv.proto.Val val = 2;
+    io.microraft.afloatdb.kv.proto.Val val = 2;
 }
 
 message KVSnapshotChunkData {

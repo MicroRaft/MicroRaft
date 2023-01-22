@@ -9,13 +9,13 @@
     </parent>
     
     <modelVersion>4.0.0</modelVersion>
-    <groupId>io.afloatdb</groupId>
+    <groupId>io.microraft.afloatdb</groupId>
     <artifactId>afloatdb-root</artifactId>
     <packaging>pom</packaging>
     <version>0.4-SNAPSHOT</version>
 
     <name>AfloatDB Root</name>
-    <url>https://afloatdb.io</url>
+    <url>https://microraft.io</url>
 
     <modules>
         <module>afloatdb-commons</module>

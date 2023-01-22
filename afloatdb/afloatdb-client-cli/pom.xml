@@ -3,7 +3,7 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <groupId>io.afloatdb</groupId>
+        <groupId>io.microraft.afloatdb</groupId>
         <artifactId>afloatdb-root</artifactId>
         <version>0.4-SNAPSHOT</version>
     </parent>
@@ -15,7 +15,7 @@
 
     <properties>
         <root.dir>${project.parent.basedir}</root.dir>
-        <afloatdb.client.cli.main.class>io.afloatdb.client.AfloatDBClientCliRunner
+        <afloatdb.client.cli.main.class>io.microraft.afloatdb.client.AfloatDBClientCliRunner
         </afloatdb.client.cli.main.class>
 
         <javax.annotation.api.version>1.2</javax.annotation.api.version>
@@ -27,7 +27,7 @@
     <dependencies>
 
         <dependency>
-            <groupId>io.afloatdb</groupId>
+            <groupId>io.microraft.afloatdb</groupId>
             <artifactId>afloatdb-client</artifactId>
             <version>0.4-SNAPSHOT</version>
         </dependency>

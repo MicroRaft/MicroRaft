@@ -8,7 +8,7 @@
         <Root level="INFO">
             <AppenderRef ref="CONSOLE"/>
         </Root>
-        <Logger name="io.afloatdb" level="INFO"/>
+        <Logger name="io.microraft.afloatdb" level="INFO"/>
         <Logger name="io.microraft" level="INFO"/>
         <Logger name="io.grpc" level="INFO"/>
         <Logger name="com.netflix.governator" level="OFF"/>

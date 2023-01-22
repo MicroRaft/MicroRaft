@@ -3,7 +3,7 @@ syntax = "proto3";
 // protoc --go_out=. --go-grpc_out=. KV.proto
 option go_package = "io.microraft/afloatdb/kv";
 
-package io.afloatdb.kv.proto;
+package io.microraft.afloatdb.kv.proto;
 
 option java_multiple_files = true;
 

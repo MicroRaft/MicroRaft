@@ -3,7 +3,7 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <groupId>io.afloatdb</groupId>
+        <groupId>io.microraft.afloatdb</groupId>
         <artifactId>afloatdb-root</artifactId>
         <version>0.4-SNAPSHOT</version>
     </parent>
@@ -16,7 +16,7 @@
     <properties>
         <root.dir>${project.parent.basedir}</root.dir>
 
-        <afloatdb.main.class>io.afloatdb.RunAfloatDB</afloatdb.main.class>
+        <afloatdb.main.class>io.microraft.afloatdb.RunAfloatDB</afloatdb.main.class>
 
         <protobuf.version>3.11.1</protobuf.version>
         <io.grpc.version>1.26.0</io.grpc.version> 
@@ -57,7 +57,7 @@
         </dependency>
 
         <dependency>
-            <groupId>io.afloatdb</groupId>
+            <groupId>io.microraft.afloatdb</groupId>
             <artifactId>afloatdb-commons</artifactId>
             <version>0.4-SNAPSHOT</version>
         </dependency>
@@ -196,7 +196,7 @@
             <!--                <artifactId>native-image-maven-plugin</artifactId>-->
             <!--                <version>19.3.1</version>-->
             <!--                <configuration>-->
-            <!--                    <mainClass>io.afloatdb.RunAfloatDB</mainClass>-->
+            <!--                    <mainClass>io.microraft.afloatdb.RunAfloatDB</mainClass>-->
             <!--                    <imageName>afloatdb</imageName>-->
             <!--                    <buildArgs>&#45;&#45;report-unsupported-elements-at-runtime &#45;&#45;allow-incomplete-classpath &#45;&#45;no-server</buildArgs>-->
             <!--                </configuration>-->

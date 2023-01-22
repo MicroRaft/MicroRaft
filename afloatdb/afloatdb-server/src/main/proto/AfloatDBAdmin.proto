@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package io.afloatdb.admin.proto;
+package io.microraft.afloatdb.admin.proto;
 
 import "RaftEndpoint.proto";
 
@@ -16,14 +16,14 @@ option go_package = "io.microraft/afloatdb/admin";
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/report/RaftGroupMembers.java
 message RaftGroupMembersProto {
     int64 logIndex = 1;
-    repeated io.afloatdb.raft.proto.RaftEndpointProto member = 2;
+    repeated io.microraft.afloatdb.raft.proto.RaftEndpointProto member = 2;
 }
 
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/report/RaftTerm.java
 message RaftTermProto {
     int32 term = 1;
-    io.afloatdb.raft.proto.RaftEndpointProto leaderEndpoint = 2;
-    io.afloatdb.raft.proto.RaftEndpointProto votedEndpoint = 3;
+    io.microraft.afloatdb.raft.proto.RaftEndpointProto leaderEndpoint = 2;
+    io.microraft.afloatdb.raft.proto.RaftEndpointProto votedEndpoint = 3;
 }
 
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/RaftRole.java
@@ -69,7 +69,7 @@ message RaftLogStatsProto {
 message RaftNodeReportProto {
     RaftNodeReportReasonProto reason = 1;
     string groupId = 2;
-    io.afloatdb.raft.proto.RaftEndpointProto endpoint = 3;
+    io.microraft.afloatdb.raft.proto.RaftEndpointProto endpoint = 3;
     RaftGroupMembersProto initialMembers = 4;
     RaftGroupMembersProto committedMembers = 5;
     RaftGroupMembersProto effectiveMembers = 6;
@@ -95,7 +95,7 @@ message GetRaftNodeReportResponse {
 
 message AddRaftEndpointAddressRequest {
     // RaftEndpoint for which the address is going to be specified.
-    io.afloatdb.raft.proto.RaftEndpointProto endpoint = 1;
+    io.microraft.afloatdb.raft.proto.RaftEndpointProto endpoint = 1;
 
     // Address of the RaftEndpoint which will be used by AfloatDB instances to
     // communicate for that RaftEndpoint.
@@ -106,7 +106,7 @@ message AddRaftEndpointAddressResponse {
 }
 
 message AddRaftEndpointRequest {
-    io.afloatdb.raft.proto.RaftEndpointProto endpoint = 1;
+    io.microraft.afloatdb.raft.proto.RaftEndpointProto endpoint = 1;
     bool votingMember = 2;
     int64 groupMembersCommitIndex = 3;
 }
@@ -116,7 +116,7 @@ message AddRaftEndpointResponse {
 }
 
 message RemoveRaftEndpointRequest {
-    io.afloatdb.raft.proto.RaftEndpointProto endpoint = 1;
+    io.microraft.afloatdb.raft.proto.RaftEndpointProto endpoint = 1;
     int64 groupMembersCommitIndex = 2;
 }
 

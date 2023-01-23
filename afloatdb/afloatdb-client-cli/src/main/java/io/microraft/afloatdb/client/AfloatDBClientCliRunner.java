@@ -14,6 +14,9 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
+/**
+ * Main for the command line interface application
+ */
 @Command
 public class AfloatDBClientCliRunner implements Runnable {
 

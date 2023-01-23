@@ -13,9 +13,9 @@ option java_multiple_files = true;
 
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/groupop/UpdateRaftGroupMembersOp.java
 message UpdateRaftGroupMembersOpProto {
-    repeated RaftEndpointProto member = 1;
-    repeated RaftEndpointProto votingMember = 2;
-    RaftEndpointProto endpoint = 3;
+    repeated io.microraft.afloatdb.raft.proto.RaftEndpointProto member = 1;
+    repeated io.microraft.afloatdb.raft.proto.RaftEndpointProto votingMember = 2;
+    io.microraft.afloatdb.raft.proto.RaftEndpointProto endpoint = 3;
 
     // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/MembershipChangeMode.java
     enum MembershipChangeModeProto {
@@ -114,8 +114,8 @@ message KVSnapshotChunkData {
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/log/RaftGroupMembersView.java
 message RaftGroupMembersViewProto {
     int64 logIndex = 1;
-    repeated RaftEndpointProto member = 2;
-    repeated RaftEndpointProto votingMember = 3;
+    repeated io.microraft.afloatdb.raft.proto.RaftEndpointProto member = 2;
+    repeated io.microraft.afloatdb.raft.proto.RaftEndpointProto votingMember = 3;
 }
 
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/log/SnapshotChunk.java
@@ -139,7 +139,7 @@ message SnapshotEntryProto {
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/VoteRequest.java
 message VoteRequestProto {
     string groupId = 1;
-    RaftEndpointProto sender = 2;
+    io.microraft.afloatdb.raft.proto.RaftEndpointProto sender = 2;
     int32 term = 3;
     int32 lastLogTerm = 4;
     int64 lastLogIndex = 5;
@@ -149,7 +149,7 @@ message VoteRequestProto {
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/VoteResponse.java
 message VoteResponseProto {
     string groupId = 1;
-    RaftEndpointProto sender = 2;
+    io.microraft.afloatdb.raft.proto.RaftEndpointProto sender = 2;
     int32 term = 3;
     bool granted = 4;
 }
@@ -157,7 +157,7 @@ message VoteResponseProto {
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/AppendEntriesRequest.java
 message AppendEntriesRequestProto {
     string groupId = 1;
-    RaftEndpointProto sender = 2;
+    io.microraft.afloatdb.raft.proto.RaftEndpointProto sender = 2;
     int32 term = 3;
     int32 prevLogTerm = 4;
     int64 prevLogIndex = 5;
@@ -170,7 +170,7 @@ message AppendEntriesRequestProto {
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/AppendEntriesSuccessResponse.java
 message AppendEntriesSuccessResponseProto {
     string groupId = 1;
-    RaftEndpointProto sender = 2;
+    io.microraft.afloatdb.raft.proto.RaftEndpointProto sender = 2;
     int32 term = 3;
     int64 lastLogIndex = 4;
     int64 querySequenceNumber = 5;
@@ -180,7 +180,7 @@ message AppendEntriesSuccessResponseProto {
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/AppendEntriesFailureResponse.java
 message AppendEntriesFailureResponseProto {
     string groupId = 1;
-    RaftEndpointProto sender = 2;
+    io.microraft.afloatdb.raft.proto.RaftEndpointProto sender = 2;
     int32 term = 3;
     int64 expectedNextIndex = 4;
     int64 querySequenceNumber = 5;
@@ -190,14 +190,14 @@ message AppendEntriesFailureResponseProto {
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/InstallSnapshotRequest.java
 message InstallSnapshotRequestProto {
     string groupId = 1;
-    RaftEndpointProto sender = 2;
+    io.microraft.afloatdb.raft.proto.RaftEndpointProto sender = 2;
     int32 term = 3;
     bool senderLeader = 4;
     int32 snapshotTerm = 5;
     int64 snapshotIndex = 6;
     int32 totalSnapshotChunkCount = 7;
     KVSnapshotChunk snapshotChunk = 8;
-    repeated RaftEndpointProto snapshottedMember = 9;
+    repeated io.microraft.afloatdb.raft.proto.RaftEndpointProto snapshottedMember = 9;
     RaftGroupMembersViewProto groupMembersView = 10;
     int64 querySequenceNumber = 12;
     int64 flowControlSequenceNumber = 13;
@@ -206,7 +206,7 @@ message InstallSnapshotRequestProto {
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/InstallSnapshotResponse.java
 message InstallSnapshotResponseProto {
     string groupId = 1;
-    RaftEndpointProto sender = 2;
+    io.microraft.afloatdb.raft.proto.RaftEndpointProto sender = 2;
     int32 term = 3;
     int64 snapshotIndex = 4;
     int32 requestedSnapshotChunkIndex = 5;
@@ -217,7 +217,7 @@ message InstallSnapshotResponseProto {
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/PreVoteRequest.java
 message PreVoteRequestProto {
     string groupId = 1;
-    RaftEndpointProto sender = 2;
+    io.microraft.afloatdb.raft.proto.RaftEndpointProto sender = 2;
     int32 term = 3;
     int32 lastLogTerm = 4;
     int64 lastLogIndex = 5;
@@ -226,7 +226,7 @@ message PreVoteRequestProto {
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/PreVoteResponse.java
 message PreVoteResponseProto {
     string groupId = 1;
-    RaftEndpointProto sender = 2;
+    io.microraft.afloatdb.raft.proto.RaftEndpointProto sender = 2;
     int32 term = 3;
     bool granted = 4;
 }
@@ -234,7 +234,7 @@ message PreVoteResponseProto {
 // https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/model/message/TriggerLeaderElectionRequest.java
 message TriggerLeaderElectionRequestProto {
     string groupId = 1;
-    RaftEndpointProto sender = 2;
+    io.microraft.afloatdb.raft.proto.RaftEndpointProto sender = 2;
     int32 term = 3;
     int32 lastLogTerm = 4;
     int64 lastLogIndex = 5;

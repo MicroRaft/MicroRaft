@@ -50,7 +50,8 @@ public class AfloatDBConfigTest extends BaseTest {
                 + "        leader-heartbeat-period-secs: 5\n" + "        leader-heartbeat-timeout-secs: 15\n"
                 + "        append-entries-request-batch-size: 1000\n" + "        commit-count-to-take-snapshot: "
                 + "50000\n" + "        max-pending-log-entry-count: 1000\n"
-                + "        raft-node-report-publish-period-secs: 10\n" + "    }\n" + "\n" + "}\n");
+                + "        raft-node-report-publish-period-secs: 10\n" + "    }\n" + "\n"
+                + "}\nafloatdb.persistence.sqlite-file-path: \"kvStore_basri.sqlite\"");
 
         AfloatDBConfig.from(config);
     }
@@ -62,7 +63,8 @@ public class AfloatDBConfigTest extends BaseTest {
                 + "        leader-election-timeout-millis: 2000\n" + "        leader-heartbeat-period-secs: 5\n"
                 + "        leader-heartbeat-timeout-secs: 15\n" + "        append-entries-request-batch-size: 1000\n"
                 + "        commit-count-to-take-snapshot: " + "50000\n" + "        max-pending-log-entry-count: 1000\n"
-                + "        raft-node-report-publish-period-secs: 10\n" + "    }\n" + "\n" + "}\n");
+                + "        raft-node-report-publish-period-secs: 10\n" + "    }\n" + "\n"
+                + "}\nafloatdb.persistence.sqlite-file-path: \"node1_basri.sqlite\"");
 
         AfloatDBConfig.from(config);
     }
@@ -75,7 +77,7 @@ public class AfloatDBConfigTest extends BaseTest {
                         + "        initial-endpoints: [\n" + "            {id: \"node1\", address: \"localhost:6701\"},"
                         + "\n" + "            {id: \"node2\", address: \"localhost:6702\"}," + "\n"
                         + "            {id: \"node3\", address: \"localhost:6703\"}\n" + "        ]\n" + "\n"
-                        + "    }\n" + "\n" + "}\n");
+                        + "    }\n" + "\n" + "}\nafloatdb.persistence.sqlite-file-path: \"node1_basri.sqlite\"");
 
         AfloatDBConfig afloatDBConfig = AfloatDBConfig.from(config);
 
@@ -106,7 +108,8 @@ public class AfloatDBConfigTest extends BaseTest {
                         + "        append-entries-request-batch-size: 150\n" + "        commit-count-to-take-snapshot: "
                         + "1000\n" + "        max-pending-log-entry-count: 50\n"
                         + "        raft-node-report-publish-period-secs: 30\n"
-                        + "transfer-snapshots-from-followers-enabled: false\n" + "    }\n" + "\n" + "}\n");
+                        + "transfer-snapshots-from-followers-enabled: false\n" + "    }\n" + "\n"
+                        + "}\nafloatdb.persistence.sqlite-file-path: \"node1_basri.sqlite\"");
 
         AfloatDBConfig afloatDBConfig = AfloatDBConfig.from(config);
 
@@ -140,7 +143,8 @@ public class AfloatDBConfigTest extends BaseTest {
                 + "            {id: \"node1\", address: \"localhost:6701\"},\n"
                 + "            {id: \"node2\", address: \"localhost:6702\"},\n"
                 + "            {id: \"node3\", address: \"localhost:6703\"}\n" + "        ]\n" + "\n" + "    }\n" + "\n"
-                + "    raft: {\n" + "        leader-election-timeout-millis: 2500\n" + "    }\n" + "\n" + "}\n");
+                + "    raft: {\n" + "        leader-election-timeout-millis: 2500\n" + "    }\n" + "\n"
+                + "}\nafloatdb.persistence.sqlite-file-path: \"node1_basri.sqlite\"");
 
         AfloatDBConfigBuilder builder = AfloatDBConfig.newBuilder();
         builder.setConfig(config);

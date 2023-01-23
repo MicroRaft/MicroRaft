@@ -1,6 +1,5 @@
 package io.microraft.afloatdb;
 
-import com.google.protobuf.ByteString;
 import com.typesafe.config.ConfigFactory;
 import io.microraft.afloatdb.cluster.proto.AfloatDBClusterEndpoints;
 import io.microraft.afloatdb.cluster.proto.AfloatDBClusterEndpointsRequest;
@@ -35,9 +34,14 @@ import io.microraft.report.RaftGroupMembers;
 import io.microraft.report.RaftNodeReport;
 import io.microraft.test.util.BaseTest;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,6 +63,7 @@ import static io.microraft.QueryPolicy.EVENTUAL_CONSISTENCY;
 import static io.microraft.test.util.AssertionUtils.eventually;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class AfloatDBTest extends BaseTest {
@@ -66,17 +71,30 @@ public class AfloatDBTest extends BaseTest {
     private List<AfloatDB> servers = new ArrayList<>();
     private Map<String, ManagedChannel> channels = new HashMap<>();
 
+    private static void deletePersistenceFiles() throws IOException {
+        Files.find(Paths.get("."), 0, (path, basicFileAttributes) -> path.endsWith("_basri.sqlite"))
+                .forEach(path -> assertTrue(path.toFile().delete()));
+    }
+
+    @BeforeClass
+    @AfterClass
+    public void cleanUp() throws IOException {
+        deletePersistenceFiles();
+    }
+
     @Before
-    public void init() {
+    public void init() throws IOException {
+        deletePersistenceFiles();
         servers.add(AfloatDB.bootstrap(CONFIG_1));
         servers.add(AfloatDB.bootstrap(CONFIG_2));
         servers.add(AfloatDB.bootstrap(CONFIG_3));
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws IOException {
         servers.forEach(AfloatDB::shutdown);
         channels.values().forEach(ManagedChannel::shutdownNow);
+        deletePersistenceFiles();
     }
 
     private ManagedChannel createChannel(String address) {
@@ -190,9 +208,9 @@ public class AfloatDBTest extends BaseTest {
 
     private void testJoin(AfloatDB server) {
         String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: "
-                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \""
+                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"afloatdb-test-cluster\"\nafloatdb.group.join-to: \""
                 + server.getConfig().getLocalEndpointConfig().getAddress() + "\"\n"
-                + "persistence.sqlite-file-path: \"node4_basri.sqlite\"";
+                + "afloatdb.persistence.sqlite-file-path: \"node4_basri.sqlite\"";
 
         AfloatDB newServer = AfloatDB.join(AfloatDBConfig.from(ConfigFactory.parseString(configString)), true);
         servers.add(newServer);
@@ -233,9 +251,9 @@ public class AfloatDBTest extends BaseTest {
         crashedFollower.awaitTermination();
 
         String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: "
-                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \""
+                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"afloatdb-test-cluster\"\nafloatdb.group.join-to: \""
                 + leader.getConfig().getLocalEndpointConfig().getAddress() + "\"\n"
-                + "persistence.sqlite-file-path: \"node4_basri.sqlite\"";
+                + "afloatdb.persistence.sqlite-file-path: \"node4_basri.sqlite\"";
 
         AfloatDB.join(AfloatDBConfig.from(ConfigFactory.parseString(configString)), true);
     }
@@ -254,9 +272,9 @@ public class AfloatDBTest extends BaseTest {
         createAdminServiceStub(leader).removeRaftEndpoint(removeEndpointRequest);
 
         String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: "
-                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \""
+                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"afloatdb-test-cluster\"\nafloatdb.group.join-to: \""
                 + leader.getConfig().getLocalEndpointConfig().getAddress() + "\"\n"
-                + "persistence.sqlite-file-path: \"node4_basri.sqlite\"";
+                + "afloatdb.persistence.sqlite-file-path: \"node4_basri.sqlite\"";
 
         AfloatDB newServer = AfloatDB.join(AfloatDBConfig.from(ConfigFactory.parseString(configString)), true);
         servers.add(newServer);
@@ -277,9 +295,9 @@ public class AfloatDBTest extends BaseTest {
         AfloatDB leader = waitUntilLeaderElected(servers);
 
         String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: "
-                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \""
+                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"afloatdb-test-cluster\"\nafloatdb.group.join-to: \""
                 + leader.getConfig().getLocalEndpointConfig().getAddress() + "\"\n"
-                + "persistence.sqlite-file-path: \"node4_basri.sqlite\"";
+                + "afloatdb.persistence.sqlite-file-path: \"node4_basri.sqlite\"";
 
         AfloatDBConfig newServerConfig = AfloatDBConfig.from(ConfigFactory.parseString(configString));
 
@@ -328,9 +346,9 @@ public class AfloatDBTest extends BaseTest {
         });
 
         String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: "
-                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \""
+                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"afloatdb-test-cluster\"\nafloatdb.group.join-to: \""
                 + leader.getConfig().getLocalEndpointConfig().getAddress() + "\"\n"
-                + "persistence.sqlite-file-path: \"node4_basri.sqlite\"";
+                + "afloatdb.persistence.sqlite-file-path: \"node4_basri.sqlite\"";
 
         AfloatDB newServer = AfloatDB.join(AfloatDBConfig.from(ConfigFactory.parseString(configString)), true);
         servers.add(newServer);
@@ -347,9 +365,9 @@ public class AfloatDBTest extends BaseTest {
         AfloatDB leader = waitUntilLeaderElected(servers);
 
         String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: "
-                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \""
+                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"afloatdb-test-cluster\"\nafloatdb.group.join-to: \""
                 + leader.getConfig().getLocalEndpointConfig().getAddress() + "\"\n"
-                + "persistence.sqlite-file-path: \"node4_basri.sqlite\"";
+                + "afloatdb.persistence.sqlite-file-path: \"node4_basri.sqlite\"";
 
         AfloatDB.bootstrap(AfloatDBConfig.from(ConfigFactory.parseString(configString)));
     }
@@ -470,9 +488,9 @@ public class AfloatDBTest extends BaseTest {
         eventually(() -> assertThat(endpointsRef.get()).isNotNull());
 
         String configString = "afloatdb.local-endpoint.id: \"node4\"\nafloatdb.local-endpoint.address: "
-                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"test\"\nafloatdb.group.join-to: \""
+                + "\"localhost:6704\"\n" + "afloatdb.group.id: \"afloatdb-test-cluster\"\nafloatdb.group.join-to: \""
                 + leader.getConfig().getLocalEndpointConfig().getAddress() + "\"\n"
-                + "persistence.sqlite-file-path: \"node4_basri.sqlite\"";
+                + "afloatdb.persistence.sqlite-file-path: \"node4_basri.sqlite\"";
 
         AfloatDB newServer = AfloatDB.join(AfloatDBConfig.from(ConfigFactory.parseString(configString)), true);
         servers.add(newServer);

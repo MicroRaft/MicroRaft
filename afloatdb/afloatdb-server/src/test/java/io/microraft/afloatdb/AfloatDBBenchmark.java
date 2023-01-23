@@ -16,7 +16,6 @@
 
 package io.microraft.afloatdb;
 
-import com.google.protobuf.ByteString;
 import com.typesafe.config.ConfigFactory;
 import io.microraft.afloatdb.config.AfloatDBConfig;
 import io.microraft.afloatdb.kv.proto.Val;

@@ -78,7 +78,7 @@
         <maven.compiler.plugin.version>3.10.1</maven.compiler.plugin.version>
         <maven.spotbugs.plugin.version>3.1.12.2</maven.spotbugs.plugin.version>
         <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
-        <maven.resources.plugin.version>3.1.0</maven.resources.plugin.version>
+        <maven.resources.plugin.version>3.2.0</maven.resources.plugin.version>
         <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
         <maven.javadoc.plugin.version>3.2.0</maven.javadoc.plugin.version>
         <maven.jacoco.plugin.version>0.8.5</maven.jacoco.plugin.version>
@@ -274,7 +274,8 @@
                 <configuration>
                     <encoding>${project.build.sourceEncoding}</encoding>
                     <source>${jdk.version}</source>
-                    <excludePackageNames>io.microraft.impl.*</excludePackageNames>
+                    <sourcepath>src/main/java</sourcepath>
+                    <excludePackageNames>*.impl:*.impl.*:*.afloatdb:*.afloatdb.*</excludePackageNames>
                 </configuration>
             </plugin>
 

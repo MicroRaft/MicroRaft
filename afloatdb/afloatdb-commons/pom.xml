@@ -16,15 +16,16 @@
     <properties>
         <root.dir>${project.parent.basedir}</root.dir>
 
-        <protobuf.version>3.19.6</protobuf.version>
-        <io.grpc.version>1.44.1</io.grpc.version>
+        <protobuf.version>3.21.12</protobuf.version>
+        <io.grpc.version>1.52.1</io.grpc.version>
+
         <guice.version>5.1.0</guice.version>
         <governator.version>1.17.12</governator.version>
         <config.version>1.4.2</config.version>
         <guava.version>31.1-jre</guava.version>
 
-        <os.maven.plugin.version>1.7.0</os.maven.plugin.version>
         <protobuf.maven.plugin.version>0.6.1</protobuf.maven.plugin.version>
+        <os.maven.plugin.version>1.7.0</os.maven.plugin.version>
         <javax.annotation.api.version>1.2</javax.annotation.api.version>
     </properties>
 
@@ -52,9 +53,9 @@
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty-shaded</artifactId>
             <version>${io.grpc.version}</version>
-        </dependency>
-
-        <!--        <dependency>-->
+        </dependency>   
+        
+             <!--        <dependency>-->
         <!--            <groupId>io.grpc</groupId>-->
         <!--            <artifactId>grpc-netty</artifactId>-->
         <!--            <version>1.29.0</version>-->
@@ -128,10 +129,35 @@
                         <goals>
                             <goal>compile</goal>
                             <goal>compile-custom</goal>
+                            <goal>test-compile</goal>
+                            <goal>test-compile-custom</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
+            <!-- <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven.resources.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/classes</outputDirectory>
+                            <includeEmptyDirs>true</includeEmptyDirs>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/src/main/resources</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin> -->
 
             <plugin>
                 <groupId>net.ju-n.maven.plugins</groupId>

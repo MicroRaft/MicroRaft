@@ -16,6 +16,9 @@
 
 package io.microraft.afloatdb;
 
+/**
+ * Thrown by server code
+ */
 public class AfloatDBException extends RuntimeException {
 
     /**

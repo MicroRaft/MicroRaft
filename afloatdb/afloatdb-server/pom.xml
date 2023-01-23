@@ -18,16 +18,16 @@
 
         <afloatdb.main.class>io.microraft.afloatdb.RunAfloatDB</afloatdb.main.class>
 
-        <protobuf.version>3.11.1</protobuf.version>
-        <io.grpc.version>1.26.0</io.grpc.version> 
-        <javax.annotation.api.version>1.2</javax.annotation.api.version>
-
-        <os.maven.plugin.version>1.7.0</os.maven.plugin.version>
-        <protobuf.maven.plugin.version>0.6.1</protobuf.maven.plugin.version>
+        <protobuf.version>3.21.12</protobuf.version>
+        <io.grpc.version>1.52.1</io.grpc.version> 
+        
         <maven.resources.plugin.version>3.2.0</maven.resources.plugin.version>
-        <maven.assembly.plugin.version>3.3.0</maven.assembly.plugin.version>
+        <maven.assembly.plugin.version>3.4.1</maven.assembly.plugin.version>
         <maven.jar.plugin.version>3.2.2</maven.jar.plugin.version>
         <jmh-core.version>1.35</jmh-core.version>
+
+        <protobuf.maven.plugin.version>0.6.1</protobuf.maven.plugin.version>
+        <os.maven.plugin.version>1.7.0</os.maven.plugin.version>
     </properties>
 
     <!-- <repositories>
@@ -61,6 +61,30 @@
             <artifactId>afloatdb-commons</artifactId>
             <version>0.4-SNAPSHOT</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>${protobuf.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-protobuf</artifactId>
+            <version>${io.grpc.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-stub</artifactId>
+            <version>${io.grpc.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-netty-shaded</artifactId>
+            <version>${io.grpc.version}</version>
+        </dependency>   
 
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
@@ -113,6 +137,8 @@
                         <goals>
                             <goal>compile</goal>
                             <goal>compile-custom</goal>
+                            <goal>test-compile</goal>
+                            <goal>test-compile-custom</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -191,6 +217,7 @@
                 <groupId>net.ju-n.maven.plugins</groupId>
                 <artifactId>checksum-maven-plugin</artifactId>
             </plugin>
+
             <!--            <plugin>-->
             <!--                <groupId>org.graalvm.nativeimage</groupId>-->
             <!--                <artifactId>native-image-maven-plugin</artifactId>-->

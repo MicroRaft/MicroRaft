@@ -94,6 +94,7 @@ public class AfloatDBImpl implements AfloatDB {
 
             registerShutdownHook();
         } catch (Throwable t) {
+            LOGGER.error("Could not start server!", t);
             shutdown();
             throw new AfloatDBException("Could not start server!", t);
         }

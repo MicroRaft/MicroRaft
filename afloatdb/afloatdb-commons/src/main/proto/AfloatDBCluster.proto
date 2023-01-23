@@ -4,16 +4,16 @@ package io.microraft.afloatdb.cluster.proto;
 
 option java_multiple_files = true;
 
+message AfloatDBClusterEndpointsRequest {
+    string clientId = 1;
+}
+
 message AfloatDBClusterEndpoints {
     string clusterId = 1;
     int64 endpointsCommitIndex = 2;
     map<string, string> endpoint = 3;
     string leaderId = 4;
     int32 term = 5;
-}
-
-message AfloatDBClusterEndpointsRequest {
-    string clientId = 1;
 }
 
 message AfloatDBClusterEndpointsResponse {

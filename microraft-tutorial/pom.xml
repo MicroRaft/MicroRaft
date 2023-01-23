@@ -15,7 +15,7 @@
 
     <properties>
         <root.dir>${project.parent.basedir}</root.dir>
-        <maven.jar.plugin.version>3.2.0</maven.jar.plugin.version>
+        <maven.jar.plugin.version>3.2.2</maven.jar.plugin.version>
     </properties>
 
     <dependencies>

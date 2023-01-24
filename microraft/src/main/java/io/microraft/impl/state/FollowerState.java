@@ -18,6 +18,7 @@
 package io.microraft.impl.state;
 
 import static java.lang.Math.min;
+import static java.lang.Math.max;
 
 /**
  * State maintained for each follower by the Raft group leader.
@@ -112,7 +113,7 @@ public final class FollowerState {
      */
     public long setRequestBackoff(int minRounds, int maxRounds) {
         assert backoffRound == 0 : "backoff round: " + backoffRound;
-        backoffRound = min((1 << (nextBackoffPower++)) * minRounds, maxRounds);
+        backoffRound = min(max((1 << (nextBackoffPower++)) * minRounds, minRounds), maxRounds);
 
         return ++flowControlSequenceNumber;
     }

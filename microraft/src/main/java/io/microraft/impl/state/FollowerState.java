@@ -105,16 +105,12 @@ public final class FollowerState {
      * snapshot request will be sent to this follower either until it sends a
      * response or the backoff timeout elapses.
      * <p>
-     * If the "extraRound" is true and the backoff state is initialized with only 1
-     * round, one more backoff round is added.
-     * <p>
      * Returns the flow control sequence number to be put into the append entries or
      * install snapshot request which is to be sent to the follower.
      */
     public long setRequestBackoff(int minRounds, int maxRounds) {
         assert backoffRound == 0 : "backoff round: " + backoffRound;
         backoffRound = min(max((1 << (nextBackoffPower++)) * minRounds, minRounds), maxRounds);
-
         return ++flowControlSequenceNumber;
     }
 
@@ -135,7 +131,7 @@ public final class FollowerState {
      * also reset.
      */
     public boolean responseReceived(long flowControlSequenceNumber, long currentTimeMillis) {
-        responseTimestamp = Math.max(responseTimestamp, currentTimeMillis);
+        responseTimestamp = max(responseTimestamp, currentTimeMillis);
         boolean success = this.flowControlSequenceNumber == flowControlSequenceNumber;
         if (success) {
             resetRequestBackoff();

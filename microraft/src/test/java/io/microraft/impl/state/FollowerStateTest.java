@@ -161,4 +161,15 @@ public class FollowerStateTest {
         assertThat(followerState.backoffRound()).isEqualTo(4);
     }
 
+    @Test
+    public void testNoBackoffOverflow() {
+        for (int i = 0; i < 64; i++) {
+            followerState.setRequestBackoff(1, 64);
+            while (followerState.isRequestBackoffSet()) {
+                followerState.completeBackoffRound();
+            }
+
+        }
+    }
+
 }

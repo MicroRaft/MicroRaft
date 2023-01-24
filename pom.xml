@@ -224,8 +224,8 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven.surefire.plugin.version}</version>
                 <configuration>
-                    <forkCount>2</forkCount>
-                    <reuseForks>true</reuseForks>
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
                     <runOrder>random</runOrder>
                     <argLine>
                         ${vmHeapSettings}

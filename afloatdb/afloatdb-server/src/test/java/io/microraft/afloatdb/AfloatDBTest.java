@@ -78,7 +78,7 @@ public class AfloatDBTest extends BaseTest {
 
     @BeforeClass
     @AfterClass
-    public void cleanUp() throws IOException {
+    public static void cleanUp() throws IOException {
         deletePersistenceFiles();
     }
 

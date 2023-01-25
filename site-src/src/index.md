@@ -64,7 +64,7 @@ key-value store, or a distributed lock service. It is a library that offers a
 set of abstractions and functionalities to help you build such high-level
 systems without intertwining your system with Raft code.__
 
-## Getting started
+## Get started
 
 Just run the following command on your terminal for a sneak peek at MicroRaft.
 It starts a 3-node local Raft group, elects a leader, and commits a number of
@@ -80,7 +80,7 @@ Abstractions](docs/main-abstractions.md) section first, and then read the
 [tutorial](docs/tutorial-building-an-atomic-register.md) to build an atomic
 register on top of MicroRaft.
 
-## Using MicroRaft in your project
+## Use MicroRaft in your project
 
 Add MicroRaft to your dependency list:
 
@@ -92,7 +92,7 @@ Add MicroRaft to your dependency list:
 </dependency>
 ~~~~
 
-## Getting involved
+## Get involved
 
 MicroRaft is a new open-source library. Your contribution and feedback is 
 welcome! The development happens on <a href="https://github.com/MicroRaft/MicroRaft"

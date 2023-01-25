@@ -80,6 +80,17 @@ Abstractions](docs/main-abstractions.md) section first, and then read the
 [tutorial](docs/tutorial-building-an-atomic-register.md) to build an atomic
 register on top of MicroRaft.
 
+## Using MicroRaft in your project
+
+Add MicroRaft to your dependency list:
+
+```
+<dependency>
+    <groupId>io.microraft</groupId>
+    <artifactId>microraft</artifactId>
+    <version>0.4</version>
+</depen
+
 ## Getting involved
 
 MicroRaft is a new open-source library. Your contribution and feedback is 

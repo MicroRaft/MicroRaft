@@ -5,14 +5,14 @@
     <parent>
         <groupId>io.microraft</groupId>
         <artifactId>microraft-root</artifactId>
-        <version>0.4-SNAPSHOT</version>
+        <version>0.4</version>
     </parent>
     
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.microraft.afloatdb</groupId>
     <artifactId>afloatdb-root</artifactId>
     <packaging>pom</packaging>
-    <version>0.4-SNAPSHOT</version>
+    <version>0.4</version>
 
     <name>AfloatDB Root</name>
     <url>https://microraft.io</url>
@@ -51,6 +51,7 @@
         <maven.resources.plugin.version>3.2.0</maven.resources.plugin.version>
         <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
         <maven.formatter.plugin.version>2.21.0</maven.formatter.plugin.version>
+        <maven.deploy.plugin.version>3.0.0</maven.deploy.plugin.version>
     </properties>
 
     <dependencies>
@@ -184,6 +185,15 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>${maven.deploy.plugin.version}</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
 
             <!-- <plugin>

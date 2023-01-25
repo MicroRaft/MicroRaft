@@ -4,20 +4,11 @@
     <groupId>io.microraft</groupId>
     <artifactId>microraft-root</artifactId>
     <packaging>pom</packaging>
-    <version>0.4-SNAPSHOT</version>
+    <version>0.4</version>
 
     <name>MicroRaft Root</name>
     <url>https://microraft.io</url>
-
-    <modules>
-        <module>microraft</module>
-        <module>microraft-hocon</module>
-        <module>microraft-yaml</module>
-        <module>microraft-metrics</module>
-        <module>microraft-store-sqlite</module>
-        <module>microraft-tutorial</module>
-        <module>afloatdb</module>
-    </modules>
+    <description>Feature-complete implementation of the Raft consensus algorithm</description>
 
     <developers>
         <developer>
@@ -55,6 +46,16 @@
         <system>Github</system>
         <url>https://github.com/MicroRaft/MicroRaft/issues</url>
     </issueManagement>
+
+    <modules>
+        <module>microraft</module>
+        <module>microraft-hocon</module>
+        <module>microraft-yaml</module>
+        <module>microraft-metrics</module>
+        <module>microraft-store-sqlite</module>
+        <module>microraft-tutorial</module>
+        <module>afloatdb</module>
+    </modules>
 
     <properties>
         <root.dir>${project.basedir}</root.dir>

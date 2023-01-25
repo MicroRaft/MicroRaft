@@ -84,12 +84,13 @@ register on top of MicroRaft.
 
 Add MicroRaft to your dependency list:
 
-```
+~~~~{.xml}
 <dependency>
     <groupId>io.microraft</groupId>
     <artifactId>microraft</artifactId>
     <version>0.4</version>
-</depen
+</dependency>
+~~~~
 
 ## Getting involved
 

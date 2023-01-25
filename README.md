@@ -44,11 +44,11 @@ enhancements:
 * Leadership transfer [(Section 3.10 of the Raft dissertation)](https://github.com/ongardie/dissertation).
 * [Improved majority quorums](https://basri.dev/posts/2020-07-27-improved-majority-quorums-for-raft/)
 
-## Getting started
+## Get started
 
 See [the User Guide](https://microraft.io/docs/setup).
 
-## Using MicroRaft in your project
+## Use MicroRaft in your project
 
 Add MicroRaft to your dependency list:
 
@@ -60,7 +60,7 @@ Add MicroRaft to your dependency list:
 </dependency>
 ```
 
-## Building from source
+## Build from source
 
 Pull the latest code with `gh repo clone MicroRaft/MicroRaft`
 and build with `cd MicroRaft && ./mvnw clean package`.
@@ -80,7 +80,7 @@ for publishing MicroRaft metrics to external systems.
 
 `site-src` contains the source files of [microraft.io](https://microraft.io).
 
-## Contributing to MicroRaft
+## Contribute to MicroRaft
 
 You can see [this guide](CONTRIBUTING.md) for contributing to MicroRaft.
 

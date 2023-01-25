@@ -58,9 +58,17 @@ and build with `cd MicroRaft && ./mvnw clean package`.
 
 ## Use in your own project
 
-Go to https://jitpack.io/#MicroRaft/MicroRaft/ for depending to the latest released JAR.
+Add MicroRaft to your dependency list as follows:
 
-## Source Code Layout 
+```
+<dependency>
+    <groupId>io.microraft</groupId>
+    <artifactId>microraft</artifactId>
+    <version>0.4</version>
+</dependency>
+```
+
+## Source Code Layout
 
 `microraft` module contains the source code of MicroRaft along with its unit 
 and integration test suite. 

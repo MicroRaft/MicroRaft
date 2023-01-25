@@ -1,7 +1,6 @@
 
 [![Java CI with Maven](https://github.com/MicroRaft/MicroRaft/actions/workflows/maven.yml/badge.svg)](https://github.com/MicroRaft/MicroRaft/actions/workflows/maven.yml) [![](https://jitci.com/gh/MicroRaft/MicroRaft/svg)](https://jitci.com/gh/MicroRaft/MicroRaft) [![Integration](license-apache-2.svg)](https://github.com/MicroRaft/MicroRaft/blob/master/LICENSE)
 
-
 ![](microraft.io/src/img/microraft-logo.png)
 
 MicroRaft is a feature-complete and stable open-source implementation of the
@@ -13,24 +12,24 @@ stores, distributed lock services, etc.
 
 MicroRaft works on top of a minimalistic and modular design. __It is a single
 lightweight JAR with a few hundred KBs of size and only logging dependency.__
-It contains an isolated implementation of the Raft consensus algorithm, and 
-a set of accompanying abstractions to run the algorithm in a multi-threaded and 
-distributed environment. These abstractions are defined to isolate the core 
-algorithm from the concerns of persistence, thread-safety, serialization, 
-networking, and actual state machine logic. Users are required to provide their 
+It contains an isolated implementation of the Raft consensus algorithm, and
+a set of accompanying abstractions to run the algorithm in a multi-threaded and
+distributed environment. These abstractions are defined to isolate the core
+algorithm from the concerns of persistence, thread-safety, serialization,
+networking, and actual state machine logic. Users are required to provide their
 own implementations of these abstractions to build their custom CP distributed
 systems with MicroRaft.
 
-__Please note that MicroRaft is not a high-level solution like a distributed 
+__Please note that MicroRaft is not a high-level solution like a distributed
 key-value store or a distributed lock service. It is a core library that offers
-a set of abstractions and functionalities to help you build such high-level 
-systems.__ 
+a set of abstractions and functionalities to help you build such high-level
+systems.__
 
 ## Features
 
-MicroRaft implements the leader election, log replication, log compaction 
+MicroRaft implements the leader election, log replication, log compaction
 (snapshotting), and cluster membership changes components of the Raft consensus
-algorithm. Additionally, it offers a rich set of optimizations and 
+algorithm. Additionally, it offers a rich set of optimizations and
 enhancements:
 
 * Adaptive batching during log replication,
@@ -45,18 +44,11 @@ enhancements:
 * Leadership transfer [(Section 3.10 of the Raft dissertation)](https://github.com/ongardie/dissertation).
 * [Improved majority quorums](https://basri.dev/posts/2020-07-27-improved-majority-quorums-for-raft/)
 
-
-## Getting Started
+## Getting started
 
 See [the User Guide](https://microraft.io/docs/setup). 
 
-
-## Building from Source
-
-Pull the latest code with `gh repo clone MicroRaft/MicroRaft`
-and build with `cd MicroRaft && ./mvnw clean package`.
-
-## Use in your own project
+## Use it in your own project
 
 Add MicroRaft to your dependency list as follows:
 
@@ -68,13 +60,18 @@ Add MicroRaft to your dependency list as follows:
 </dependency>
 ```
 
-## Source Code Layout
+## Building from source
 
-`microraft` module contains the source code of MicroRaft along with its unit 
-and integration test suite. 
+Pull the latest code with `gh repo clone MicroRaft/MicroRaft`
+and build with `cd MicroRaft && ./mvnw clean package`.
 
-`microraft-hocon` and `microraft-yaml` modules are utility libraries for 
-parsing HOCON and YAML files to start Raft nodes. 
+## Source code layout
+
+`microraft` module contains the source code of MicroRaft along with its unit
+and integration test suite.
+
+`microraft-hocon` and `microraft-yaml` modules are utility libraries for
+parsing HOCON and YAML files to start Raft nodes.
 
 `microraft-metrics` module contains the integration with the Micrometer library
 for publishing MicroRaft metrics to external systems.
@@ -83,15 +80,12 @@ for publishing MicroRaft metrics to external systems.
 
 `site-src` contains the source files of [microraft.io](https://microraft.io).
 
-
 ## Contributing to MicroRaft
 
 You can see [this guide](CONTRIBUTING.md) for contributing to MicroRaft.
 
-
 ## License
 
-MicroRaft is available under [the Apache 2 License](https://github.com/MicroRaft/MicroRaft/blob/master/LICENSE). 
+MicroRaft is available under [the Apache 2 License](https://github.com/MicroRaft/MicroRaft/blob/master/LICENSE).
 
-MicroRaft originates from the Raft implementation that powers [Hazelcast IMDG's CP Subsystem module](https://github.com/hazelcast/hazelcast/tree/master/hazelcast/src/main/java/com/hazelcast/cp/internal/raft). You can see [the announcement](https://microraft.io/blog/2021-09-03-introducing-microraft/) for details. 
-
+MicroRaft originates from the Raft implementation that powers [Hazelcast IMDG's CP Subsystem module](https://github.com/hazelcast/hazelcast/tree/master/hazelcast/src/main/java/com/hazelcast/cp/internal/raft). You can see [the announcement](https://microraft.io/blog/2021-09-03-introducing-microraft/) for details.

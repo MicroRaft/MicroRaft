@@ -46,9 +46,9 @@ enhancements:
 
 ## Getting started
 
-See [the User Guide](https://microraft.io/docs/setup). 
+See [the User Guide](https://microraft.io/docs/setup).
 
-## Use it in your own project
+## Using MicroRaft in your own project
 
 Add MicroRaft to your dependency list as follows:
 

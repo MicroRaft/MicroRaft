@@ -39,6 +39,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -72,8 +73,11 @@ public class AfloatDBTest extends BaseTest {
     private Map<String, ManagedChannel> channels = new HashMap<>();
 
     private static void deletePersistenceFiles() throws IOException {
-        Files.find(Paths.get("."), 0, (path, basicFileAttributes) -> path.endsWith("_basri.sqlite"))
-                .forEach(path -> assertTrue(path.toFile().delete()));
+        for (File file : new File(".").listFiles()) {
+            if (file.isFile() && file.getName().endsWith("_basri.sqlite")) {
+                assertTrue(file.delete());
+            }
+        }
     }
 
     @BeforeClass

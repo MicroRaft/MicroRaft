@@ -615,7 +615,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
         }
 
         @Override
-        public void truncateSnapshotChunksUntil(long logIndexInclusive) {
+        public void deleteSnapshotChunks(long logIndex, int snapshotChunkCount) {
             recordCall();
         }
 

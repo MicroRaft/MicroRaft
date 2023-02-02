@@ -107,9 +107,9 @@ public interface RaftStore {
      * missing entries are no longer available from the leader. In that case the
      * leader will send its snapshot entry instead.
      * <p>
-     * In another rare failure scenario, Raft must delete a range of the highest
-     * entries, rolling back the index of the next persisted entry. Consider the
-     * following case where Raft persists 3 log entries and then deletes entries
+     * In another rare failure scenario, MicroRaft must delete a range of the
+     * highest entries, rolling back the index of the next persisted entry. Consider
+     * the following case where Raft persists 3 log entries and then deletes entries
      * from index=2:
      * <ul>
      * <li>persistLogEntry(1)
@@ -139,7 +139,7 @@ public interface RaftStore {
      * A snapshot is persisted with at least 1 chunk. The number of chunks in a
      * snapshot is provided via {@link SnapshotChunk#getSnapshotChunkCount()}. A
      * snapshot is considered to be complete when all of its chunks are provided to
-     * this method in any order, and {@link #flush()} could be called afterwards.
+     * this method in any order, and {@link #flush()} will be called afterwards.
      * <p>
      * After a snapshot is persisted at <em>index=i</em> and {@link #flush()} is
      * called, the log entry at <em>index=i</em>, all the preceding log entries, and
@@ -201,20 +201,25 @@ public interface RaftStore {
     void truncateLogEntriesFrom(long logIndexInclusive) throws IOException;
 
     /**
-     * Rolls back the persisted snapshot chunks only when all of the expected
-     * snapshot chunks are not already persisted. A truncated snapshot chunk is no
-     * longer valid and must not be restored (or at least must be ignored during the
-     * restore process).
+     * Deletes persisted snapshot chunks at the given log index.
      *
-     * @param logIndexInclusive
-     *            the log index value until which the log entries must be truncated
+     * MicroRaft calls this method when it detects that it needs to start installing
+     * a new snapshot while there is a snapshot being persisted. Those snapshot
+     * chunks are no longer valid and must not be restored (or at least must be
+     * ignored during the restore process).
+     *
+     * This is merely an optimization method and its side-effects do not need to be
+     * flushed when this method returns.
+     *
+     * @param logIndex
+     *            the log index value at which some snapshot chunks are persisted.
+     * @param snapshotChunkCount
+     *            the number of snapshot chunks that could have been persisted.
      *
      * @throws IOException
-     *             if any failure occurs during truncating the log entries
-     *
-     * @see #persistSnapshotChunk(SnapshotChunk)
+     *             if any failure occurs during deletion.
      */
-    void truncateSnapshotChunksUntil(long logIndexInclusive) throws IOException;
+    void deleteSnapshotChunks(long logIndex, int snapshotChunkCount) throws IOException;
 
     /**
      * Forces all buffered (in any layer) Raft log changes to be written to the
@@ -228,7 +233,7 @@ public interface RaftStore {
      *
      * @see #persistLogEntry(LogEntry)
      * @see #persistSnapshotChunk(SnapshotChunk)
-     * @see #truncateSnapshotChunksUntil(long)
+     * @see #deleteSnapshotChunks(long)
      * @see #truncateLogEntriesFrom(long)
      */
     void flush() throws IOException;

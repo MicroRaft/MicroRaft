@@ -211,7 +211,8 @@ public class InstallSnapshotRequestHandler extends AbstractMessageHandler<Instal
         } else if (snapshotChunkCollector.getSnapshotIndex() < request.getSnapshotIndex()) {
             if (snapshotChunkCollector.getChunks().size() > 0) {
                 try {
-                    state.store().truncateSnapshotChunksUntil(snapshotChunkCollector.getSnapshotIndex());
+                    state.store().deleteSnapshotChunks(snapshotChunkCollector.getSnapshotIndex(),
+                            snapshotChunkCollector.getChunkCount());
                     LOGGER.warn("{} truncated {} snapshot chunks at log index: {}", localEndpointStr(),
                             snapshotChunkCollector.getChunks().size(), snapshotChunkCollector.getSnapshotIndex());
                 } catch (IOException e) {

@@ -102,9 +102,9 @@ public class RaftSqliteStoreTest {
     }
 
     @Test
-    public void testSnapshots() {
+    public void testSnapshots() throws IOException {
+        withRaftStore(RaftSqliteStoreTest::persistInitialState);
         withRaftStore(store -> {
-            persistInitialState(store);
             store.persistLogEntry(logEntry(0, 0));
             store.persistLogEntry(logEntry(1, 0));
             store.persistLogEntry(logEntry(2, 0));
@@ -117,30 +117,72 @@ public class RaftSqliteStoreTest {
             assertThat(store.getRestoredRaftState().get().getSnapshotEntry().getOperation()).usingRecursiveComparison()
                     .isEqualTo(List.of(snapshotChunk(1, 0, 0, 1)));
         });
+        sqlite = new File(tempDir.newFolder(), "sqlite.db");
+        withRaftStore(RaftSqliteStoreTest::persistInitialState);
         withRaftStore(store -> {
             store.persistLogEntry(logEntry(3, 1));
             store.flush();
             store.persistSnapshotChunk(snapshotChunk(3, 1, 1, 2));
             store.flush();
             assertThat(store.getRestoredRaftState().get().getLogEntries()).usingRecursiveFieldByFieldElementComparator()
-                    .contains(logEntry(2, 0), logEntry(3, 1));
+                    .contains(logEntry(3, 1));
             // snapshots can be committed out of order
             store.persistSnapshotChunk(snapshotChunk(3, 1, 0, 2));
             store.flush();
             // irrelevant snapshot chunks are deleted
             assertThat(store.getAllSnapshotChunks()).usingRecursiveFieldByFieldElementComparator()
                     .containsExactly(snapshotChunk(3, 1, 0, 2), snapshotChunk(3, 1, 1, 2));
+            assertThat(store.getRestoredRaftState().get().getLogEntries()).isEmpty();
         });
+        sqlite = new File(tempDir.newFolder(), "sqlite.db");
+        withRaftStore(RaftSqliteStoreTest::persistInitialState);
+        withRaftStore(store -> {
+            store.persistSnapshotChunk(snapshotChunk(1, 1, 0, 1));
+            store.flush();
+            store.persistSnapshotChunk(snapshotChunk(2, 1, 0, 3));
+            store.persistSnapshotChunk(snapshotChunk(2, 1, 2, 3));
+            store.deleteSnapshotChunks(2, 1);
+            store.flush();
+            assertThat(store.getAllSnapshotChunks()).usingRecursiveFieldByFieldElementComparator()
+                    .containsExactly(snapshotChunk(1, 1, 0, 1));
+        });
+        sqlite = new File(tempDir.newFolder(), "sqlite.db");
+        withRaftStore(RaftSqliteStoreTest::persistInitialState);
+        withRaftStore(store -> {
+            store.persistSnapshotChunk(snapshotChunk(1, 1, 0, 1));
+            store.flush();
+            store.persistSnapshotChunk(snapshotChunk(2, 1, 0, 3));
+            store.persistSnapshotChunk(snapshotChunk(2, 1, 2, 3));
+            store.deleteSnapshotChunks(1, 1);
+            store.persistSnapshotChunk(snapshotChunk(3, 1, 0, 1));
+            store.flush();
+            assertThat(store.getAllSnapshotChunks()).usingRecursiveFieldByFieldElementComparator()
+                    .containsExactly(snapshotChunk(3, 1, 0, 1));
+        });
+        sqlite = new File(tempDir.newFolder(), "sqlite.db");
+        withRaftStore(RaftSqliteStoreTest::persistInitialState);
         withRaftStore(store -> {
             store.persistSnapshotChunk(snapshotChunk(1, 1, 0, 2));
-            store.persistSnapshotChunk(snapshotChunk(2, 2, 0, 1));
-            store.persistSnapshotChunk(snapshotChunk(4, 1, 0, 2));
-            store.persistSnapshotChunk(snapshotChunk(5, 1, 0, 1));
-            // half persisted snapshots are deleted, but completed snapshots are not
-            store.truncateSnapshotChunksUntil(5);
-            assertThat(store.getAllSnapshotChunks()).usingRecursiveFieldByFieldElementComparator().containsExactly(
-                    snapshotChunk(2, 2, 0, 1), snapshotChunk(3, 1, 0, 2), snapshotChunk(3, 1, 1, 2),
-                    snapshotChunk(5, 1, 0, 1));
+            store.deleteSnapshotChunks(1, 2);
+            store.persistSnapshotChunk(snapshotChunk(2, 1, 0, 2));
+            store.deleteSnapshotChunks(2, 2);
+            store.flush();
+            assertThat(store.getAllSnapshotChunks()).isEmpty();
+        });
+    }
+
+    @Test
+    public void testRestoreCleansUpRedundantLogEntriesAndSnapshotChunks() {
+        withRaftStore(RaftSqliteStoreTest::persistInitialState);
+        withRaftStore(store -> {
+            store.persistLogEntry(logEntry(1, 1));
+            store.persistSnapshotChunk(snapshotChunk(2, 1, 0, 2));
+            store.persistSnapshotChunk(snapshotChunk(3, 1, 0, 1));
+            store.rawFlush();
+
+            assertThat(store.getRestoredRaftState().get().getLogEntries()).isEmpty();
+            assertThat(store.getAllSnapshotChunks()).usingRecursiveFieldByFieldElementComparator()
+                    .containsExactly(snapshotChunk(3, 1, 0, 1));
         });
     }
 

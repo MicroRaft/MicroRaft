@@ -198,27 +198,17 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
     }
 
     @Override
-    public void truncateSnapshotChunksUntil(long logIndexInclusive) {
-        dsl.deleteFrom(SNAPSHOT_CHUNKS).where(qualify(SNAPSHOT_CHUNKS, INDEX).le(logIndexInclusive))
-                .and(qualify(SNAPSHOT_CHUNKS, INDEX).notIn(completedSnapshots())).execute();
-    }
-
-    // Visible for testing
-    List<SnapshotChunk> getAllSnapshotChunks() {
-        return dsl.select(chunkField).from(SNAPSHOT_CHUNKS).orderBy(INDEX, CHUNK_INDEX).fetch(chunkField);
+    public void deleteSnapshotChunks(long logIndex, int snapshotChunkCount) {
+        dsl.deleteFrom(SNAPSHOT_CHUNKS).where(qualify(SNAPSHOT_CHUNKS, INDEX).eq(logIndex)).execute();
     }
 
     @Override
     public void flush() {
-        dsl.connection(Connection::commit);
+        rawFlush();
         if (tryToCleanUpOldSnapshots) {
             tryToCleanUpOldSnapshots = false;
             Optional<Long> maybeSnapshotIndex = getMaxCommittedSnapshotIndex();
-            maybeSnapshotIndex.ifPresent(snapshotIndex -> {
-                dsl.deleteFrom(LOG_ENTRIES).where(INDEX.lessOrEqual(snapshotIndex)).execute();
-                dsl.deleteFrom(SNAPSHOT_CHUNKS).where(INDEX.lessThan(snapshotIndex)).execute();
-                dsl.connection(Connection::commit);
-            });
+            maybeSnapshotIndex.ifPresent(this::truncateUntil);
         }
     }
 
@@ -258,16 +248,36 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
                     .setGroupMembersView(snapshotChunks.get(0).getGroupMembersView()).build();
         });
 
+        snapshot.map(SnapshotEntry::getIndex).ifPresent(this::truncateUntil);
+
         return Optional.of(new RestoredRaftState(record.get(localEndpointField), record.get(LOCAL_ENDPOINT_VOTING),
                 record.get(initialGroupMembersField), record.get(TERM), record.get(votedForField),
                 snapshot.orElse(null),
                 dsl.select(logEntryField).from(LOG_ENTRIES).orderBy(INDEX).fetch(logEntryField)));
     }
 
+    // Visible for testing
+    List<SnapshotChunk> getAllSnapshotChunks() {
+        return dsl.select(chunkField).from(SNAPSHOT_CHUNKS).orderBy(INDEX, CHUNK_INDEX).fetch(chunkField);
+    }
+
+    // Visible for testing
+    void rawFlush() {
+        dsl.connection(Connection::commit);
+    }
+
     private static void checkState(boolean condition, String errorMessage) {
         if (!condition) {
             throw new IllegalStateException(errorMessage);
         }
+    }
+
+    private void truncateUntil(long snapshotIndex) {
+        // we know there is a snapshot persisted successfully at the given index,
+        // so we can delete everything before it.
+        dsl.deleteFrom(LOG_ENTRIES).where(INDEX.lessOrEqual(snapshotIndex)).execute();
+        dsl.deleteFrom(SNAPSHOT_CHUNKS).where(INDEX.lessThan(snapshotIndex)).execute();
+        dsl.connection(Connection::commit);
     }
 
     private static final class JooqConverterAdapter<T> implements Converter<byte[], T> {

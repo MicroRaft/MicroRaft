@@ -94,7 +94,7 @@ public final class InMemoryRaftStore implements RaftStore {
     }
 
     @Override
-    public synchronized void truncateSnapshotChunksUntil(long logIndexInclusive) {
+    public synchronized void deleteSnapshotChunks(long logIndex, int snapshotChunkCount) {
         snapshotChunks.clear();
     }
 

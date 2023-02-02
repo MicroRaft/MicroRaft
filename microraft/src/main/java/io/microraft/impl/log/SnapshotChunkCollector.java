@@ -168,6 +168,10 @@ public final class SnapshotChunkCollector {
         return snapshotTerm;
     }
 
+    public int getChunkCount() {
+        return chunkCount;
+    }
+
     public List<SnapshotChunk> getChunks() {
         return chunks;
     }

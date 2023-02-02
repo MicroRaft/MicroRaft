@@ -56,7 +56,7 @@ public class NopRaftStore implements RaftStore {
     }
 
     @Override
-    public void truncateSnapshotChunksUntil(long logIndexInclusive) {
+    public void deleteSnapshotChunks(long logIndex, int snapshotChunkCount) {
     }
 
     @Override

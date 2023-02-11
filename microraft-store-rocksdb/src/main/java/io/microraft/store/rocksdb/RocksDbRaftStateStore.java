@@ -27,6 +27,7 @@ import org.rocksdb.RocksIterator;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -61,6 +62,8 @@ public class RocksDbRaftStateStore implements RaftStore, RaftNodeLifecycleAware 
     // https://github.com/facebook/rocksdb/wiki/Write-Ahead-Log
     // https://github.com/facebook/rocksdb/wiki/WAL-Recovery-Modes
     private static final WriteOptions ASYNC_WRITE = new WriteOptions().setSync(false).setDisableWAL(true);
+    // private static final WriteOptions ASYNC_WRITE = new
+    // WriteOptions().setSync(false);
     // Sync write ensures the data is fdatasync()'ed to the disk.
     private static final WriteOptions SYNC_WRITE = new WriteOptions().setSync(true);
 
@@ -106,31 +109,54 @@ public class RocksDbRaftStateStore implements RaftStore, RaftNodeLifecycleAware 
     private final RaftStoreSerializer serializer;
     private final RaftModelFactory modelFactory;
     private final Options dbOptions = new Options();
+    private final boolean skipInitOnRaftNodeStart;
     private RocksDB db;
     private SnapshotPersistenceState ongoingSnapshot;
 
     public static RocksDbRaftStateStore create(String dbDirPath, RaftStoreSerializer serializer,
             RaftModelFactory modelFactory) {
         try {
+            Files.createDirectories(Paths.get(dbDirPath));
             File dbDir = new File(dbDirPath);
+            LOGGER.info("DIR: " + dbDir);
             Files.createDirectories(dbDir.getParentFile().toPath());
             Files.createDirectories(dbDir.getAbsoluteFile().toPath());
-            return new RocksDbRaftStateStore(dbDirPath, serializer, modelFactory);
+            RocksDbRaftStateStore store = new RocksDbRaftStateStore(dbDirPath, serializer, modelFactory, true);
+            store.init();
+            return store;
         } catch (IOException e) {
             throw new RaftException("Could not create RocksDBRaftStateStore at: " + dbDirPath, null, e);
         }
     }
 
     public RocksDbRaftStateStore(String dbDirPath, RaftStoreSerializer serializer, RaftModelFactory modelFactory) {
+        this(dbDirPath, serializer, modelFactory, false);
+    }
+
+    private RocksDbRaftStateStore(String dbDirPath, RaftStoreSerializer serializer, RaftModelFactory modelFactory,
+            boolean skipInitOnRaftNodeStart) {
         this.dbDirPath = dbDirPath;
         this.serializer = serializer;
         this.modelFactory = modelFactory;
         this.dbOptions.setCreateIfMissing(true);
-        this.dbOptions.optimizeForSmallDb();
+        this.dbOptions.setWriteBufferSize(4 * 1024 * 1024);
+        this.dbOptions.setDbWriteBufferSize(16 * 1024 * 1024);
+        this.dbOptions.setTargetFileSizeBase(64 * 1024 * 1024);
+        this.dbOptions.setMaxBytesForLevelBase(512 * 1024 * 1024);
+        // this.dbOptions.optimizeLevelStyleCompaction();
+        // this.dbOptions.optimizeForSmallDb();
+        this.skipInitOnRaftNodeStart = skipInitOnRaftNodeStart;
     }
 
     @Override
     public void onRaftNodeStart() {
+        if (skipInitOnRaftNodeStart) {
+            return;
+        }
+        init();
+    }
+
+    void init() {
         try {
             db = RocksDB.open(dbOptions, dbDirPath);
             LOGGER.info("RocksDB initialized for dir: {}", dbDirPath);

@@ -14,6 +14,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -38,6 +40,8 @@ import io.microraft.persistence.RaftStoreSerializer;
 import io.microraft.persistence.RestoredRaftState;
 
 public class RaftSqliteStoreTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RaftSqliteStoreTest.class);
+
     private static final RaftModelFactory RAFT_MODEL_FACTORY = new DefaultRaftModelFactory();
 
     private static final RaftEndpoint ENDPOINT_A = LocalRaftEndpoint.newEndpoint();
@@ -192,6 +196,21 @@ public class RaftSqliteStoreTest {
             assertThat(store.getAllSnapshotChunks()).usingRecursiveFieldByFieldElementComparator()
                     .containsExactly(snapshotChunk(3, 1, 0, 1));
         });
+    }
+
+    @Test
+    public void testStressWrites() throws IOException {
+        RaftSqliteStore store = RaftSqliteStore.create(sqlite, RAFT_MODEL_FACTORY, JacksonModelSerializer.INSTANCE);
+        int entryCount = 50000;
+        for (int i = 0; i < entryCount; i++) {
+            if (i % 100 == 0) {
+                LOGGER.info("i=" + i);
+            }
+            store.persistLogEntry(logEntry(i, 1));
+            // if (i % 50 == 0) {
+            store.flush();
+            // }
+        }
     }
 
     private static LogEntry logEntry(long index, int term) {

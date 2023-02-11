@@ -26,6 +26,8 @@ import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
@@ -39,6 +41,8 @@ import javax.annotation.Nonnull;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RocksDbRaftStateStoreTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RocksDbRaftStateStoreTest.class);
+
     private static final RaftModelFactory RAFT_MODEL_FACTORY = new DefaultRaftModelFactory();
 
     private static final RaftEndpoint ENDPOINT_A = LocalRaftEndpoint.newEndpoint();
@@ -304,6 +308,20 @@ public class RocksDbRaftStateStoreTest {
         Optional<RestoredRaftState> restoredStateOpt = store.getRestoredRaftState(false /* truncateStaleData */);
         assertThat(restoredStateOpt.isPresent()).isTrue();
         assertThat(restoredStateOpt.get().getSnapshotEntry()).isNull();
+    }
+
+    @Test
+    public void testStressWrites() throws IOException {
+        int entryCount = 50000;
+        for (int i = 0; i < entryCount; i++) {
+            if (i % 100 == 0) {
+                LOGGER.info("i=" + i);
+            }
+            store.persistLogEntry(logEntry(i, 1));
+            // if (i % 50 == 0) {
+            store.flush();
+            // }
+        }
     }
 
     private void assertInitialGroupMembers(RestoredRaftState state, RaftGroupMembersView expected) {

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>io.microraft</groupId>
+        <artifactId>microraft-root</artifactId>
+        <version>0.5-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <name>MicroRaft RocksDB store</name>
+    <artifactId>microraft-store-rocksdb</artifactId>
+    <packaging>jar</packaging>
+
+    <properties>
+        <root.dir>${project.parent.basedir}</root.dir>
+        <rocksdb.version>7.9.2</rocksdb.version>
+        <jackson.version>2.14.1</jackson.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.microraft</groupId>
+            <artifactId>microraft</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.rocksdb</groupId>
+            <artifactId>rocksdbjni</artifactId>
+            <version>${rocksdb.version}</version>
+        </dependency>        
+
+        <dependency>
+            <groupId>io.microraft</groupId>
+            <artifactId>microraft</artifactId>
+            <version>${project.parent.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+</project>

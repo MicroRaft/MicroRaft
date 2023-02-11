@@ -53,6 +53,7 @@
         <module>microraft-yaml</module>
         <module>microraft-metrics</module>
         <module>microraft-store-sqlite</module>
+        <module>microraft-store-rocksdb</module>
         <module>microraft-tutorial</module>
     </modules>
 

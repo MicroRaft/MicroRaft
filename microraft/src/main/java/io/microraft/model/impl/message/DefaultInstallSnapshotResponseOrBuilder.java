@@ -21,6 +21,7 @@ import io.microraft.model.message.InstallSnapshotResponse;
 import io.microraft.model.message.InstallSnapshotResponse.InstallSnapshotResponseBuilder;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 
 import static java.util.Objects.requireNonNull;
 
@@ -59,26 +60,31 @@ public class DefaultInstallSnapshotResponseOrBuilder
         return sender;
     }
 
+    @Nonnegative
     @Override
     public int getTerm() {
         return term;
     }
 
+    @Nonnegative
     @Override
     public long getSnapshotIndex() {
         return snapshotIndex;
     }
 
+    @Nonnegative
     @Override
     public int getRequestedSnapshotChunkIndex() {
         return requestedSnapshotChunkIndex;
     }
 
+    @Nonnegative
     @Override
     public long getQuerySequenceNumber() {
         return querySequenceNumber;
     }
 
+    @Nonnegative
     @Override
     public long getFlowControlSequenceNumber() {
         return flowControlSequenceNumber;
@@ -100,35 +106,35 @@ public class DefaultInstallSnapshotResponseOrBuilder
 
     @Nonnull
     @Override
-    public InstallSnapshotResponseBuilder setTerm(int term) {
+    public InstallSnapshotResponseBuilder setTerm(@Nonnegative int term) {
         builder.term = term;
         return this;
     }
 
     @Nonnull
     @Override
-    public InstallSnapshotResponseBuilder setSnapshotIndex(long snapshotIndex) {
+    public InstallSnapshotResponseBuilder setSnapshotIndex(@Nonnegative long snapshotIndex) {
         builder.snapshotIndex = snapshotIndex;
         return this;
     }
 
     @Nonnull
     @Override
-    public InstallSnapshotResponseBuilder setRequestedSnapshotChunkIndex(int requestedSnapshotChunkIndex) {
+    public InstallSnapshotResponseBuilder setRequestedSnapshotChunkIndex(@Nonnegative int requestedSnapshotChunkIndex) {
         builder.requestedSnapshotChunkIndex = requestedSnapshotChunkIndex;
         return this;
     }
 
     @Nonnull
     @Override
-    public InstallSnapshotResponseBuilder setQuerySequenceNumber(long querySequenceNumber) {
+    public InstallSnapshotResponseBuilder setQuerySequenceNumber(@Nonnegative long querySequenceNumber) {
         builder.querySequenceNumber = querySequenceNumber;
         return this;
     }
 
     @Nonnull
     @Override
-    public InstallSnapshotResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber) {
+    public InstallSnapshotResponseBuilder setFlowControlSequenceNumber(@Nonnegative long flowControlSequenceNumber) {
         builder.flowControlSequenceNumber = flowControlSequenceNumber;
         return this;
     }

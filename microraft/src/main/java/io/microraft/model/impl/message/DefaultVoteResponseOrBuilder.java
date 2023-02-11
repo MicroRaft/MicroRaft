@@ -21,6 +21,7 @@ import io.microraft.model.message.VoteResponse;
 import io.microraft.model.message.VoteResponse.VoteResponseBuilder;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 
 import static java.util.Objects.requireNonNull;
 
@@ -52,6 +53,7 @@ public class DefaultVoteResponseOrBuilder implements VoteResponse, VoteResponseB
         return sender;
     }
 
+    @Nonnegative
     @Override
     public int getTerm() {
         return term;
@@ -78,7 +80,7 @@ public class DefaultVoteResponseOrBuilder implements VoteResponse, VoteResponseB
 
     @Nonnull
     @Override
-    public VoteResponseBuilder setTerm(int term) {
+    public VoteResponseBuilder setTerm(@Nonnegative int term) {
         builder.term = term;
         return this;
     }

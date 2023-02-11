@@ -19,6 +19,7 @@ package io.microraft.model.log;
 import io.microraft.statemachine.StateMachine;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 import java.util.function.Consumer;
 
 /**
@@ -34,8 +35,10 @@ import java.util.function.Consumer;
  */
 public interface SnapshotChunk extends BaseLogEntry {
 
+    @Nonnegative
     int getSnapshotChunkIndex();
 
+    @Nonnegative
     int getSnapshotChunkCount();
 
     @Nonnull

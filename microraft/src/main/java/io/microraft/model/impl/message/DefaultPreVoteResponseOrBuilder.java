@@ -21,6 +21,7 @@ import io.microraft.model.message.PreVoteResponse;
 import io.microraft.model.message.PreVoteResponse.PreVoteResponseBuilder;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 
 import static java.util.Objects.requireNonNull;
 
@@ -53,6 +54,7 @@ public class DefaultPreVoteResponseOrBuilder implements PreVoteResponse, PreVote
         return sender;
     }
 
+    @Nonnegative
     @Override
     public int getTerm() {
         return term;
@@ -79,7 +81,7 @@ public class DefaultPreVoteResponseOrBuilder implements PreVoteResponse, PreVote
 
     @Nonnull
     @Override
-    public PreVoteResponseBuilder setTerm(int term) {
+    public PreVoteResponseBuilder setTerm(@Nonnegative int term) {
         builder.term = term;
         return this;
     }

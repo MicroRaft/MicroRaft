@@ -20,6 +20,7 @@ import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.LogEntry.LogEntryBuilder;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 
 import static java.util.Objects.requireNonNull;
 
@@ -38,14 +39,14 @@ public class DefaultLogEntryOrBuilder extends DefaultAbstractLogEntry implements
 
     @Nonnull
     @Override
-    public LogEntryBuilder setIndex(long index) {
+    public LogEntryBuilder setIndex(@Nonnegative long index) {
         builder.index = index;
         return this;
     }
 
     @Nonnull
     @Override
-    public LogEntryBuilder setTerm(int term) {
+    public LogEntryBuilder setTerm(@Nonnegative int term) {
         builder.term = term;
         return this;
     }

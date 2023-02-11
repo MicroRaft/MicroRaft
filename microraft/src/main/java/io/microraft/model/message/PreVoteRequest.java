@@ -19,6 +19,7 @@ package io.microraft.model.message;
 import io.microraft.RaftEndpoint;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 
 /**
  * Raft message for the PreVoteRequest RPC.
@@ -30,8 +31,10 @@ import javax.annotation.Nonnull;
  */
 public interface PreVoteRequest extends RaftMessage {
 
+    @Nonnegative
     int getLastLogTerm();
 
+    @Nonnegative
     long getLastLogIndex();
 
     /**
@@ -46,13 +49,13 @@ public interface PreVoteRequest extends RaftMessage {
         PreVoteRequestBuilder setSender(@Nonnull RaftEndpoint sender);
 
         @Nonnull
-        PreVoteRequestBuilder setTerm(int term);
+        PreVoteRequestBuilder setTerm(@Nonnegative int term);
 
         @Nonnull
-        PreVoteRequestBuilder setLastLogTerm(int lastLogTerm);
+        PreVoteRequestBuilder setLastLogTerm(@Nonnegative int lastLogTerm);
 
         @Nonnull
-        PreVoteRequestBuilder setLastLogIndex(long lastLogIndex);
+        PreVoteRequestBuilder setLastLogIndex(@Nonnegative long lastLogIndex);
 
     }
 

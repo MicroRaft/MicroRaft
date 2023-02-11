@@ -20,6 +20,7 @@ import io.microraft.RaftEndpoint;
 import io.microraft.impl.handler.AppendEntriesRequestHandler;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 
 /**
  * Response for a failed {@link AppendEntriesRequest}.
@@ -33,10 +34,13 @@ import javax.annotation.Nonnull;
  */
 public interface AppendEntriesFailureResponse extends RaftMessage {
 
+    @Nonnegative
     long getExpectedNextIndex();
 
+    @Nonnegative
     long getQuerySequenceNumber();
 
+    @Nonnegative
     long getFlowControlSequenceNumber();
 
     /**
@@ -51,16 +55,16 @@ public interface AppendEntriesFailureResponse extends RaftMessage {
         AppendEntriesFailureResponseBuilder setSender(@Nonnull RaftEndpoint sender);
 
         @Nonnull
-        AppendEntriesFailureResponseBuilder setTerm(int term);
+        AppendEntriesFailureResponseBuilder setTerm(@Nonnegative int term);
 
         @Nonnull
-        AppendEntriesFailureResponseBuilder setExpectedNextIndex(long expectedNextIndex);
+        AppendEntriesFailureResponseBuilder setExpectedNextIndex(@Nonnegative long expectedNextIndex);
 
         @Nonnull
-        AppendEntriesFailureResponseBuilder setQuerySequenceNumber(long querySequenceNumber);
+        AppendEntriesFailureResponseBuilder setQuerySequenceNumber(@Nonnegative long querySequenceNumber);
 
         @Nonnull
-        AppendEntriesFailureResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
+        AppendEntriesFailureResponseBuilder setFlowControlSequenceNumber(@Nonnegative long flowControlSequenceNumber);
 
     }
 

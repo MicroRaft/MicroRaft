@@ -21,6 +21,7 @@ import io.microraft.impl.handler.AppendEntriesRequestHandler;
 import io.microraft.model.log.LogEntry;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 import java.util.List;
 
 /**
@@ -37,17 +38,22 @@ import java.util.List;
  */
 public interface AppendEntriesRequest extends RaftMessage {
 
+    @Nonnegative
     int getPreviousLogTerm();
 
+    @Nonnegative
     long getPreviousLogIndex();
 
+    @Nonnegative
     long getCommitIndex();
 
     @Nonnull
     List<LogEntry> getLogEntries();
 
+    @Nonnegative
     long getQuerySequenceNumber();
 
+    @Nonnegative
     long getFlowControlSequenceNumber();
 
     /**
@@ -62,25 +68,25 @@ public interface AppendEntriesRequest extends RaftMessage {
         AppendEntriesRequestBuilder setSender(@Nonnull RaftEndpoint sender);
 
         @Nonnull
-        AppendEntriesRequestBuilder setTerm(int term);
+        AppendEntriesRequestBuilder setTerm(@Nonnegative int term);
 
         @Nonnull
-        AppendEntriesRequestBuilder setPreviousLogTerm(int previousLogTerm);
+        AppendEntriesRequestBuilder setPreviousLogTerm(@Nonnegative int previousLogTerm);
 
         @Nonnull
-        AppendEntriesRequestBuilder setPreviousLogIndex(long previousLogIndex);
+        AppendEntriesRequestBuilder setPreviousLogIndex(@Nonnegative long previousLogIndex);
 
         @Nonnull
-        AppendEntriesRequestBuilder setCommitIndex(long commitIndex);
+        AppendEntriesRequestBuilder setCommitIndex(@Nonnegative long commitIndex);
 
         @Nonnull
         AppendEntriesRequestBuilder setLogEntries(@Nonnull List<LogEntry> logEntries);
 
         @Nonnull
-        AppendEntriesRequestBuilder setQuerySequenceNumber(long querySequenceNumber);
+        AppendEntriesRequestBuilder setQuerySequenceNumber(@Nonnegative long querySequenceNumber);
 
         @Nonnull
-        AppendEntriesRequestBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
+        AppendEntriesRequestBuilder setFlowControlSequenceNumber(@Nonnegative long flowControlSequenceNumber);
 
     }
 

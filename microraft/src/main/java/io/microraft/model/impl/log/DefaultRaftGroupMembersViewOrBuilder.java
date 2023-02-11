@@ -21,6 +21,7 @@ import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.RaftGroupMembersView.RaftGroupMembersViewBuilder;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 import java.util.Collection;
 
 import static java.util.Objects.requireNonNull;
@@ -32,6 +33,7 @@ public class DefaultRaftGroupMembersViewOrBuilder implements RaftGroupMembersVie
     private Collection<RaftEndpoint> votingMembers;
     private DefaultRaftGroupMembersViewOrBuilder builder = this;
 
+    @Nonnegative
     @Override
     public long getLogIndex() {
         return logIndex;
@@ -51,7 +53,7 @@ public class DefaultRaftGroupMembersViewOrBuilder implements RaftGroupMembersVie
 
     @Nonnull
     @Override
-    public RaftGroupMembersViewBuilder setLogIndex(long logIndex) {
+    public RaftGroupMembersViewBuilder setLogIndex(@Nonnegative long logIndex) {
         builder.logIndex = logIndex;
         return this;
     }

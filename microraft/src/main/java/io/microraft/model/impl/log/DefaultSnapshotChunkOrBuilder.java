@@ -21,6 +21,7 @@ import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotChunk.SnapshotChunkBuilder;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 
 import static java.util.Objects.requireNonNull;
 
@@ -44,11 +45,13 @@ public class DefaultSnapshotChunkOrBuilder implements SnapshotChunk, SnapshotChu
     private RaftGroupMembersView groupMembersView;
     private DefaultSnapshotChunkOrBuilder builder = this;
 
+    @Nonnegative
     @Override
     public long getIndex() {
         return index;
     }
 
+    @Nonnegative
     @Override
     public int getTerm() {
         return term;
@@ -60,11 +63,13 @@ public class DefaultSnapshotChunkOrBuilder implements SnapshotChunk, SnapshotChu
         return operation;
     }
 
+    @Nonnegative
     @Override
     public int getSnapshotChunkIndex() {
         return snapshotChunkIndex;
     }
 
+    @Nonnegative
     @Override
     public int getSnapshotChunkCount() {
         return snapshotChunkCount;
@@ -78,14 +83,14 @@ public class DefaultSnapshotChunkOrBuilder implements SnapshotChunk, SnapshotChu
 
     @Nonnull
     @Override
-    public SnapshotChunkBuilder setIndex(long index) {
+    public SnapshotChunkBuilder setIndex(@Nonnegative long index) {
         builder.index = index;
         return this;
     }
 
     @Nonnull
     @Override
-    public SnapshotChunkBuilder setTerm(int term) {
+    public SnapshotChunkBuilder setTerm(@Nonnegative int term) {
         builder.term = term;
         return this;
     }
@@ -99,14 +104,14 @@ public class DefaultSnapshotChunkOrBuilder implements SnapshotChunk, SnapshotChu
 
     @Nonnull
     @Override
-    public SnapshotChunkBuilder setSnapshotChunkIndex(int snapshotChunkIndex) {
+    public SnapshotChunkBuilder setSnapshotChunkIndex(@Nonnegative int snapshotChunkIndex) {
         builder.snapshotChunkIndex = snapshotChunkIndex;
         return this;
     }
 
     @Nonnull
     @Override
-    public SnapshotChunkBuilder setSnapshotChunkCount(int snapshotChunkCount) {
+    public SnapshotChunkBuilder setSnapshotChunkCount(@Nonnegative int snapshotChunkCount) {
         builder.snapshotChunkCount = snapshotChunkCount;
         return this;
     }

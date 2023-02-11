@@ -20,6 +20,7 @@ import io.microraft.RaftEndpoint;
 import io.microraft.model.RaftModel;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 import java.util.Collection;
 
 /**
@@ -33,6 +34,7 @@ public interface RaftGroupMembersView extends RaftModel {
      *
      * @return the Raft log index that contains this Raft group member list
      */
+    @Nonnegative
     long getLogIndex();
 
     /**

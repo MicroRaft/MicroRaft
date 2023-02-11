@@ -19,6 +19,7 @@ package io.microraft.model.message;
 import io.microraft.RaftEndpoint;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 
 /**
  * Response for {@link InstallSnapshotRequest}.
@@ -34,12 +35,16 @@ import javax.annotation.Nonnull;
  */
 public interface InstallSnapshotResponse extends RaftMessage {
 
+    @Nonnegative
     long getSnapshotIndex();
 
+    @Nonnegative
     int getRequestedSnapshotChunkIndex();
 
+    @Nonnegative
     long getQuerySequenceNumber();
 
+    @Nonnegative
     long getFlowControlSequenceNumber();
 
     /**
@@ -54,19 +59,19 @@ public interface InstallSnapshotResponse extends RaftMessage {
         InstallSnapshotResponseBuilder setSender(@Nonnull RaftEndpoint sender);
 
         @Nonnull
-        InstallSnapshotResponseBuilder setTerm(int term);
+        InstallSnapshotResponseBuilder setTerm(@Nonnegative int term);
 
         @Nonnull
-        InstallSnapshotResponseBuilder setSnapshotIndex(long snapshotIndex);
+        InstallSnapshotResponseBuilder setSnapshotIndex(@Nonnegative long snapshotIndex);
 
         @Nonnull
-        InstallSnapshotResponseBuilder setRequestedSnapshotChunkIndex(int requestedSnapshotChunkIndex);
+        InstallSnapshotResponseBuilder setRequestedSnapshotChunkIndex(@Nonnegative int requestedSnapshotChunkIndex);
 
         @Nonnull
-        InstallSnapshotResponseBuilder setQuerySequenceNumber(long querySequenceNumber);
+        InstallSnapshotResponseBuilder setQuerySequenceNumber(@Nonnegative long querySequenceNumber);
 
         @Nonnull
-        InstallSnapshotResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
+        InstallSnapshotResponseBuilder setFlowControlSequenceNumber(@Nonnegative long flowControlSequenceNumber);
 
     }
 

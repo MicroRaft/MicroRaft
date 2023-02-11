@@ -21,6 +21,7 @@ import io.microraft.model.message.AppendEntriesSuccessResponse;
 import io.microraft.model.message.AppendEntriesSuccessResponse.AppendEntriesSuccessResponseBuilder;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 
 import static java.util.Objects.requireNonNull;
 
@@ -58,21 +59,25 @@ public class DefaultAppendEntriesSuccessResponseOrBuilder
         return sender;
     }
 
+    @Nonnegative
     @Override
     public int getTerm() {
         return term;
     }
 
+    @Nonnegative
     @Override
     public long getLastLogIndex() {
         return lastLogIndex;
     }
 
+    @Nonnegative
     @Override
     public long getQuerySequenceNumber() {
         return querySequenceNumber;
     }
 
+    @Nonnegative
     @Override
     public long getFlowControlSequenceNumber() {
         return flowControlSequenceNumber;
@@ -94,28 +99,29 @@ public class DefaultAppendEntriesSuccessResponseOrBuilder
 
     @Nonnull
     @Override
-    public AppendEntriesSuccessResponseBuilder setTerm(int term) {
+    public AppendEntriesSuccessResponseBuilder setTerm(@Nonnegative int term) {
         builder.term = term;
         return this;
     }
 
     @Nonnull
     @Override
-    public AppendEntriesSuccessResponseBuilder setLastLogIndex(long lastLogIndex) {
+    public AppendEntriesSuccessResponseBuilder setLastLogIndex(@Nonnegative long lastLogIndex) {
         builder.lastLogIndex = lastLogIndex;
         return this;
     }
 
     @Nonnull
     @Override
-    public AppendEntriesSuccessResponseBuilder setQuerySequenceNumber(long querySequenceNumber) {
+    public AppendEntriesSuccessResponseBuilder setQuerySequenceNumber(@Nonnegative long querySequenceNumber) {
         builder.querySequenceNumber = querySequenceNumber;
         return this;
     }
 
     @Nonnull
     @Override
-    public AppendEntriesSuccessResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber) {
+    public AppendEntriesSuccessResponseBuilder setFlowControlSequenceNumber(
+            @Nonnegative long flowControlSequenceNumber) {
         builder.flowControlSequenceNumber = flowControlSequenceNumber;
         return this;
     }

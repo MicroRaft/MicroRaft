@@ -21,6 +21,7 @@ import io.microraft.model.message.TriggerLeaderElectionRequest;
 import io.microraft.model.message.TriggerLeaderElectionRequest.TriggerLeaderElectionRequestBuilder;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 
 import static java.util.Objects.requireNonNull;
 
@@ -57,16 +58,19 @@ public class DefaultTriggerLeaderElectionRequestOrBuilder
         return sender;
     }
 
+    @Nonnegative
     @Override
     public int getTerm() {
         return term;
     }
 
+    @Nonnegative
     @Override
     public int getLastLogTerm() {
         return lastLogTerm;
     }
 
+    @Nonnegative
     @Override
     public long getLastLogIndex() {
         return lastLogIndex;
@@ -88,21 +92,21 @@ public class DefaultTriggerLeaderElectionRequestOrBuilder
 
     @Nonnull
     @Override
-    public TriggerLeaderElectionRequestBuilder setTerm(int term) {
+    public TriggerLeaderElectionRequestBuilder setTerm(@Nonnegative int term) {
         builder.term = term;
         return this;
     }
 
     @Nonnull
     @Override
-    public TriggerLeaderElectionRequestBuilder setLastLogTerm(int lastLogTerm) {
+    public TriggerLeaderElectionRequestBuilder setLastLogTerm(@Nonnegative int lastLogTerm) {
         builder.lastLogTerm = lastLogTerm;
         return this;
     }
 
     @Nonnull
     @Override
-    public TriggerLeaderElectionRequestBuilder setLastLogIndex(long lastLogIndex) {
+    public TriggerLeaderElectionRequestBuilder setLastLogIndex(@Nonnegative long lastLogIndex) {
         builder.lastLogIndex = lastLogIndex;
         return this;
     }

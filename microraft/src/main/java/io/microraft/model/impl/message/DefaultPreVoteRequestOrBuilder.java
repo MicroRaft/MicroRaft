@@ -21,6 +21,7 @@ import io.microraft.model.message.PreVoteRequest;
 import io.microraft.model.message.PreVoteRequest.PreVoteRequestBuilder;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 
 import static java.util.Objects.requireNonNull;
 
@@ -54,16 +55,19 @@ public class DefaultPreVoteRequestOrBuilder implements PreVoteRequest, PreVoteRe
         return sender;
     }
 
+    @Nonnegative
     @Override
     public int getTerm() {
         return nextTerm;
     }
 
+    @Nonnegative
     @Override
     public int getLastLogTerm() {
         return lastLogTerm;
     }
 
+    @Nonnegative
     @Override
     public long getLastLogIndex() {
         return lastLogIndex;
@@ -85,21 +89,21 @@ public class DefaultPreVoteRequestOrBuilder implements PreVoteRequest, PreVoteRe
 
     @Nonnull
     @Override
-    public PreVoteRequestBuilder setTerm(int term) {
+    public PreVoteRequestBuilder setTerm(@Nonnegative int term) {
         builder.nextTerm = term;
         return this;
     }
 
     @Nonnull
     @Override
-    public PreVoteRequestBuilder setLastLogTerm(int lastLogTerm) {
+    public PreVoteRequestBuilder setLastLogTerm(@Nonnegative int lastLogTerm) {
         builder.lastLogTerm = lastLogTerm;
         return this;
     }
 
     @Nonnull
     @Override
-    public PreVoteRequestBuilder setLastLogIndex(long lastLogIndex) {
+    public PreVoteRequestBuilder setLastLogIndex(@Nonnegative long lastLogIndex) {
         builder.lastLogIndex = lastLogIndex;
         return this;
     }

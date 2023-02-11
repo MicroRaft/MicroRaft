@@ -19,6 +19,7 @@ package io.microraft.model.message;
 import io.microraft.RaftEndpoint;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 
 /**
  * Raft message for the VoteRequest RPC.
@@ -31,8 +32,10 @@ import javax.annotation.Nonnull;
  */
 public interface VoteRequest extends RaftMessage {
 
+    @Nonnegative
     int getLastLogTerm();
 
+    @Nonnegative
     long getLastLogIndex();
 
     boolean isSticky();
@@ -49,13 +52,13 @@ public interface VoteRequest extends RaftMessage {
         VoteRequestBuilder setSender(@Nonnull RaftEndpoint sender);
 
         @Nonnull
-        VoteRequestBuilder setTerm(int term);
+        VoteRequestBuilder setTerm(@Nonnegative int term);
 
         @Nonnull
-        VoteRequestBuilder setLastLogTerm(int lastLogTerm);
+        VoteRequestBuilder setLastLogTerm(@Nonnegative int lastLogTerm);
 
         @Nonnull
-        VoteRequestBuilder setLastLogIndex(long lastLogIndex);
+        VoteRequestBuilder setLastLogIndex(@Nonnegative long lastLogIndex);
 
         @Nonnull
         VoteRequestBuilder setSticky(boolean sticky);

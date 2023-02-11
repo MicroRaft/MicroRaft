@@ -19,6 +19,7 @@ package io.microraft.model.message;
 import io.microraft.RaftEndpoint;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 
 /**
  * Response for {@link PreVoteRequest}.
@@ -45,7 +46,7 @@ public interface PreVoteResponse extends RaftMessage {
         PreVoteResponseBuilder setSender(@Nonnull RaftEndpoint sender);
 
         @Nonnull
-        PreVoteResponseBuilder setTerm(int term);
+        PreVoteResponseBuilder setTerm(@Nonnegative int term);
 
         @Nonnull
         PreVoteResponseBuilder setGranted(boolean granted);

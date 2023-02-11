@@ -21,6 +21,7 @@ import io.microraft.model.message.AppendEntriesFailureResponse;
 import io.microraft.model.message.AppendEntriesFailureResponse.AppendEntriesFailureResponseBuilder;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 
 import static java.util.Objects.requireNonNull;
 
@@ -61,21 +62,25 @@ public class DefaultAppendEntriesFailureResponseOrBuilder
         return sender;
     }
 
+    @Nonnegative
     @Override
     public int getTerm() {
         return term;
     }
 
+    @Nonnegative
     @Override
     public long getExpectedNextIndex() {
         return expectedNextIndex;
     }
 
+    @Nonnegative
     @Override
     public long getQuerySequenceNumber() {
         return querySequenceNumber;
     }
 
+    @Nonnegative
     @Override
     public long getFlowControlSequenceNumber() {
         return flowControlSequenceNumber;
@@ -97,28 +102,29 @@ public class DefaultAppendEntriesFailureResponseOrBuilder
 
     @Nonnull
     @Override
-    public AppendEntriesFailureResponseBuilder setTerm(int term) {
+    public AppendEntriesFailureResponseBuilder setTerm(@Nonnegative int term) {
         builder.term = term;
         return this;
     }
 
     @Nonnull
     @Override
-    public AppendEntriesFailureResponseBuilder setExpectedNextIndex(long expectedNextIndex) {
+    public AppendEntriesFailureResponseBuilder setExpectedNextIndex(@Nonnegative long expectedNextIndex) {
         builder.expectedNextIndex = expectedNextIndex;
         return this;
     }
 
     @Nonnull
     @Override
-    public AppendEntriesFailureResponseBuilder setQuerySequenceNumber(long querySequenceNumber) {
+    public AppendEntriesFailureResponseBuilder setQuerySequenceNumber(@Nonnegative long querySequenceNumber) {
         builder.querySequenceNumber = querySequenceNumber;
         return this;
     }
 
     @Nonnull
     @Override
-    public AppendEntriesFailureResponseBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber) {
+    public AppendEntriesFailureResponseBuilder setFlowControlSequenceNumber(
+            @Nonnegative long flowControlSequenceNumber) {
         builder.flowControlSequenceNumber = flowControlSequenceNumber;
         return this;
     }

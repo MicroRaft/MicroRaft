@@ -22,6 +22,7 @@ import io.microraft.model.log.SnapshotChunk;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.Nonnegative;
 import java.util.Collection;
 
 /**
@@ -41,10 +42,13 @@ public interface InstallSnapshotRequest extends RaftMessage {
 
     boolean isSenderLeader();
 
+    @Nonnegative
     int getSnapshotTerm();
 
+    @Nonnegative
     long getSnapshotIndex();
 
+    @Nonnegative
     int getTotalSnapshotChunkCount();
 
     @Nullable
@@ -56,8 +60,10 @@ public interface InstallSnapshotRequest extends RaftMessage {
     @Nonnull
     RaftGroupMembersView getGroupMembersView();
 
+    @Nonnegative
     long getQuerySequenceNumber();
 
+    @Nonnegative
     long getFlowControlSequenceNumber();
 
     /**
@@ -72,19 +78,19 @@ public interface InstallSnapshotRequest extends RaftMessage {
         InstallSnapshotRequestBuilder setSender(@Nonnull RaftEndpoint sender);
 
         @Nonnull
-        InstallSnapshotRequestBuilder setTerm(int term);
+        InstallSnapshotRequestBuilder setTerm(@Nonnegative int term);
 
         @Nonnull
         InstallSnapshotRequestBuilder setSenderLeader(boolean leader);
 
         @Nonnull
-        InstallSnapshotRequestBuilder setSnapshotTerm(int snapshotTerm);
+        InstallSnapshotRequestBuilder setSnapshotTerm(@Nonnegative int snapshotTerm);
 
         @Nonnull
-        InstallSnapshotRequestBuilder setSnapshotIndex(long snapshotIndex);
+        InstallSnapshotRequestBuilder setSnapshotIndex(@Nonnegative long snapshotIndex);
 
         @Nonnull
-        InstallSnapshotRequestBuilder setTotalSnapshotChunkCount(int totalSnapshotChunkCount);
+        InstallSnapshotRequestBuilder setTotalSnapshotChunkCount(@Nonnegative int totalSnapshotChunkCount);
 
         @Nonnull
         InstallSnapshotRequestBuilder setSnapshotChunk(@Nullable SnapshotChunk snapshotChunk);
@@ -96,10 +102,10 @@ public interface InstallSnapshotRequest extends RaftMessage {
         InstallSnapshotRequestBuilder setGroupMembersView(@Nonnull RaftGroupMembersView groupMembersView);
 
         @Nonnull
-        InstallSnapshotRequestBuilder setQuerySequenceNumber(long querySequenceNumber);
+        InstallSnapshotRequestBuilder setQuerySequenceNumber(@Nonnegative long querySequenceNumber);
 
         @Nonnull
-        InstallSnapshotRequestBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber);
+        InstallSnapshotRequestBuilder setFlowControlSequenceNumber(@Nonnegative long flowControlSequenceNumber);
 
     }
 

@@ -19,6 +19,7 @@ package io.microraft.model.message;
 import io.microraft.RaftEndpoint;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 
 /**
  * Raft message for the leadership transfer logic.
@@ -27,8 +28,10 @@ import javax.annotation.Nonnull;
  */
 public interface TriggerLeaderElectionRequest extends RaftMessage {
 
+    @Nonnegative
     int getLastLogTerm();
 
+    @Nonnegative
     long getLastLogIndex();
 
     /**
@@ -43,13 +46,13 @@ public interface TriggerLeaderElectionRequest extends RaftMessage {
         TriggerLeaderElectionRequestBuilder setSender(@Nonnull RaftEndpoint sender);
 
         @Nonnull
-        TriggerLeaderElectionRequestBuilder setTerm(int term);
+        TriggerLeaderElectionRequestBuilder setTerm(@Nonnegative int term);
 
         @Nonnull
-        TriggerLeaderElectionRequestBuilder setLastLogTerm(int lastLogTerm);
+        TriggerLeaderElectionRequestBuilder setLastLogTerm(@Nonnegative int lastLogTerm);
 
         @Nonnull
-        TriggerLeaderElectionRequestBuilder setLastLogIndex(long lastLogIndex);
+        TriggerLeaderElectionRequestBuilder setLastLogIndex(@Nonnegative long lastLogIndex);
 
     }
 

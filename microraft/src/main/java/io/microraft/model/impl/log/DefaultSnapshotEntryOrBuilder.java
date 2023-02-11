@@ -22,6 +22,7 @@ import io.microraft.model.log.SnapshotEntry;
 import io.microraft.model.log.SnapshotEntry.SnapshotEntryBuilder;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
@@ -44,6 +45,7 @@ public class DefaultSnapshotEntryOrBuilder extends DefaultAbstractLogEntry
     private RaftGroupMembersView groupMembersView;
     private DefaultSnapshotEntryOrBuilder builder = this;
 
+    @Nonnegative
     @Override
     public int getSnapshotChunkCount() {
         return ((List<SnapshotChunk>) getOperation()).size();
@@ -57,14 +59,14 @@ public class DefaultSnapshotEntryOrBuilder extends DefaultAbstractLogEntry
 
     @Nonnull
     @Override
-    public SnapshotEntryBuilder setIndex(long index) {
+    public SnapshotEntryBuilder setIndex(@Nonnegative long index) {
         builder.index = index;
         return this;
     }
 
     @Nonnull
     @Override
-    public SnapshotEntryBuilder setTerm(int term) {
+    public SnapshotEntryBuilder setTerm(@Nonnegative int term) {
         builder.term = term;
         return this;
     }

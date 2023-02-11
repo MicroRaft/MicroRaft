@@ -19,6 +19,7 @@ package io.microraft.model.impl.log;
 import io.microraft.model.log.BaseLogEntry;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 
 /**
  * Base class for Raft log entry implementations.
@@ -33,11 +34,13 @@ public class DefaultAbstractLogEntry implements BaseLogEntry {
     }
 
     @Override
+    @Nonnegative
     public long getIndex() {
         return index;
     }
 
     @Override
+    @Nonnegative
     public int getTerm() {
         return term;
     }

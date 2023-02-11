@@ -22,6 +22,7 @@ import io.microraft.model.RaftModel;
 import io.microraft.model.RaftModelFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 
 /**
  * Implemented by request and response classes of the Raft consensus algorithm
@@ -43,6 +44,7 @@ public interface RaftMessage extends RaftModel {
      *
      * @return the group id of the Raft node which created this message
      */
+    @Nonnull
     Object getGroupId();
 
     /**
@@ -58,6 +60,7 @@ public interface RaftMessage extends RaftModel {
      *
      * @return the term at which the Raft node created this message
      */
+    @Nonnegative
     int getTerm();
 
     /**

@@ -24,6 +24,7 @@ import io.microraft.model.message.InstallSnapshotRequest.InstallSnapshotRequestB
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.Nonnegative;
 import java.util.Collection;
 
 import static java.util.Objects.requireNonNull;
@@ -65,6 +66,7 @@ public class DefaultInstallSnapshotRequestOrBuilder implements InstallSnapshotRe
         return sender;
     }
 
+    @Nonnegative
     @Override
     public int getTerm() {
         return term;
@@ -75,16 +77,19 @@ public class DefaultInstallSnapshotRequestOrBuilder implements InstallSnapshotRe
         return leader;
     }
 
+    @Nonnegative
     @Override
     public int getSnapshotTerm() {
         return snapshotTerm;
     }
 
+    @Nonnegative
     @Override
     public long getSnapshotIndex() {
         return snapshotIndex;
     }
 
+    @Nonnegative
     @Override
     public int getTotalSnapshotChunkCount() {
         return totalSnapshotChunkCount;
@@ -108,11 +113,13 @@ public class DefaultInstallSnapshotRequestOrBuilder implements InstallSnapshotRe
         return groupMembersView;
     }
 
+    @Nonnegative
     @Override
     public long getQuerySequenceNumber() {
         return querySequenceNumber;
     }
 
+    @Nonnegative
     @Override
     public long getFlowControlSequenceNumber() {
         return flowControlSequenceNumber;
@@ -134,7 +141,7 @@ public class DefaultInstallSnapshotRequestOrBuilder implements InstallSnapshotRe
 
     @Nonnull
     @Override
-    public InstallSnapshotRequestBuilder setTerm(int term) {
+    public InstallSnapshotRequestBuilder setTerm(@Nonnegative int term) {
         builder.term = term;
         return this;
     }
@@ -148,21 +155,21 @@ public class DefaultInstallSnapshotRequestOrBuilder implements InstallSnapshotRe
 
     @Nonnull
     @Override
-    public InstallSnapshotRequestBuilder setSnapshotTerm(int snapshotTerm) {
+    public InstallSnapshotRequestBuilder setSnapshotTerm(@Nonnegative int snapshotTerm) {
         builder.snapshotTerm = snapshotTerm;
         return this;
     }
 
     @Nonnull
     @Override
-    public InstallSnapshotRequestBuilder setSnapshotIndex(long snapshotIndex) {
+    public InstallSnapshotRequestBuilder setSnapshotIndex(@Nonnegative long snapshotIndex) {
         builder.snapshotIndex = snapshotIndex;
         return this;
     }
 
     @Nonnull
     @Override
-    public InstallSnapshotRequestBuilder setTotalSnapshotChunkCount(int totalSnapshotChunkCount) {
+    public InstallSnapshotRequestBuilder setTotalSnapshotChunkCount(@Nonnegative int totalSnapshotChunkCount) {
         builder.totalSnapshotChunkCount = totalSnapshotChunkCount;
         return this;
     }
@@ -190,14 +197,14 @@ public class DefaultInstallSnapshotRequestOrBuilder implements InstallSnapshotRe
 
     @Nonnull
     @Override
-    public InstallSnapshotRequestBuilder setQuerySequenceNumber(long querySequenceNumber) {
+    public InstallSnapshotRequestBuilder setQuerySequenceNumber(@Nonnegative long querySequenceNumber) {
         builder.querySequenceNumber = querySequenceNumber;
         return this;
     }
 
     @Nonnull
     @Override
-    public InstallSnapshotRequestBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber) {
+    public InstallSnapshotRequestBuilder setFlowControlSequenceNumber(@Nonnegative long flowControlSequenceNumber) {
         builder.flowControlSequenceNumber = flowControlSequenceNumber;
         return this;
     }

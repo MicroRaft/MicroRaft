@@ -22,6 +22,7 @@ import io.microraft.model.message.AppendEntriesRequest;
 import io.microraft.model.message.AppendEntriesRequest.AppendEntriesRequestBuilder;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
@@ -63,21 +64,25 @@ public class DefaultAppendEntriesRequestOrBuilder implements AppendEntriesReques
         return sender;
     }
 
+    @Nonnegative
     @Override
     public int getTerm() {
         return term;
     }
 
+    @Nonnegative
     @Override
     public int getPreviousLogTerm() {
         return previousLogTerm;
     }
 
+    @Nonnegative
     @Override
     public long getPreviousLogIndex() {
         return previousLogIndex;
     }
 
+    @Nonnegative
     @Override
     public long getCommitIndex() {
         return commitIndex;
@@ -89,11 +94,13 @@ public class DefaultAppendEntriesRequestOrBuilder implements AppendEntriesReques
         return logEntries;
     }
 
+    @Nonnegative
     @Override
     public long getQuerySequenceNumber() {
         return querySequenceNumber;
     }
 
+    @Nonnegative
     @Override
     public long getFlowControlSequenceNumber() {
         return flowControlSequenceNumber;
@@ -115,28 +122,28 @@ public class DefaultAppendEntriesRequestOrBuilder implements AppendEntriesReques
 
     @Nonnull
     @Override
-    public AppendEntriesRequestBuilder setTerm(int term) {
+    public AppendEntriesRequestBuilder setTerm(@Nonnegative int term) {
         builder.term = term;
         return this;
     }
 
     @Nonnull
     @Override
-    public AppendEntriesRequestBuilder setPreviousLogTerm(int previousLogTerm) {
+    public AppendEntriesRequestBuilder setPreviousLogTerm(@Nonnegative int previousLogTerm) {
         builder.previousLogTerm = previousLogTerm;
         return this;
     }
 
     @Nonnull
     @Override
-    public AppendEntriesRequestBuilder setPreviousLogIndex(long previousLogIndex) {
+    public AppendEntriesRequestBuilder setPreviousLogIndex(@Nonnegative long previousLogIndex) {
         builder.previousLogIndex = previousLogIndex;
         return this;
     }
 
     @Nonnull
     @Override
-    public AppendEntriesRequestBuilder setCommitIndex(long commitIndex) {
+    public AppendEntriesRequestBuilder setCommitIndex(@Nonnegative long commitIndex) {
         builder.commitIndex = commitIndex;
         return this;
     }
@@ -150,14 +157,14 @@ public class DefaultAppendEntriesRequestOrBuilder implements AppendEntriesReques
 
     @Nonnull
     @Override
-    public AppendEntriesRequestBuilder setQuerySequenceNumber(long querySequenceNumber) {
+    public AppendEntriesRequestBuilder setQuerySequenceNumber(@Nonnegative long querySequenceNumber) {
         builder.querySequenceNumber = querySequenceNumber;
         return this;
     }
 
     @Nonnull
     @Override
-    public AppendEntriesRequestBuilder setFlowControlSequenceNumber(long flowControlSequenceNumber) {
+    public AppendEntriesRequestBuilder setFlowControlSequenceNumber(@Nonnegative long flowControlSequenceNumber) {
         builder.flowControlSequenceNumber = flowControlSequenceNumber;
         return this;
     }

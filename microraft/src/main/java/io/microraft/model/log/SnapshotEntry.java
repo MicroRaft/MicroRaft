@@ -20,6 +20,7 @@ import io.microraft.statemachine.StateMachine;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.Nonnegative;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -39,6 +40,7 @@ public interface SnapshotEntry extends BaseLogEntry {
         return snapshotEntry != null && snapshotEntry.getIndex() > 0;
     }
 
+    @Nonnegative
     int getSnapshotChunkCount();
 
     @Nonnull

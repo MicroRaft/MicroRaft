@@ -21,6 +21,7 @@ import io.microraft.model.message.VoteRequest;
 import io.microraft.model.message.VoteRequest.VoteRequestBuilder;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nonnegative;
 
 import static java.util.Objects.requireNonNull;
 
@@ -54,16 +55,19 @@ public class DefaultVoteRequestOrBuilder implements VoteRequest, VoteRequestBuil
         return sender;
     }
 
+    @Nonnegative
     @Override
     public int getTerm() {
         return term;
     }
 
+    @Nonnegative
     @Override
     public int getLastLogTerm() {
         return lastLogTerm;
     }
 
+    @Nonnegative
     @Override
     public long getLastLogIndex() {
         return lastLogIndex;
@@ -90,21 +94,21 @@ public class DefaultVoteRequestOrBuilder implements VoteRequest, VoteRequestBuil
 
     @Nonnull
     @Override
-    public VoteRequestBuilder setTerm(int term) {
+    public VoteRequestBuilder setTerm(@Nonnegative int term) {
         builder.term = term;
         return this;
     }
 
     @Nonnull
     @Override
-    public VoteRequestBuilder setLastLogTerm(int lastLogTerm) {
+    public VoteRequestBuilder setLastLogTerm(@Nonnegative int lastLogTerm) {
         builder.lastLogTerm = lastLogTerm;
         return this;
     }
 
     @Nonnull
     @Override
-    public VoteRequestBuilder setLastLogIndex(long lastLogIndex) {
+    public VoteRequestBuilder setLastLogIndex(@Nonnegative long lastLogIndex) {
         builder.lastLogIndex = lastLogIndex;
         return this;
     }

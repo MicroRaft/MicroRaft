@@ -1,15 +1,17 @@
-package io.microraft.store.sqlite;
+package io.microraft.persistence;
 
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
+import io.microraft.model.persistence.RaftEndpointPersistentState;
+import io.microraft.model.persistence.RaftTermPersistentState;
 
 import javax.annotation.Nonnull;
 
 /**
  * Similarly to the {@link io.microraft.model.RaftModelFactory}, users of the
- * SQLite implementation must provide methods for converting a few of their
+ * RaftStore implementations must provide methods for converting a few of their
  * types into binary data for persistence. This logic is expected to be
  * relatively straightforward for the implementer, since similar logic will
  * exist within the {@link io.microraft.transport.Transport}. It should be noted
@@ -17,7 +19,8 @@ import javax.annotation.Nonnull;
  * indefinite period and so evolution of any relevant types should be considered
  * by the implementer.
  */
-public interface StoreModelSerializer {
+public interface RaftStoreSerializer {
+
     Serializer<RaftGroupMembersView> raftGroupMembersViewSerializer();
 
     Serializer<RaftEndpoint> raftEndpointSerializer();
@@ -25,6 +28,10 @@ public interface StoreModelSerializer {
     Serializer<LogEntry> logEntrySerializer();
 
     Serializer<SnapshotChunk> snapshotChunkSerializer();
+
+    Serializer<RaftEndpointPersistentState> raftEndpointPersistentStateSerializer();
+
+    Serializer<RaftTermPersistentState> raftTermPersistentState();
 
     interface Serializer<T> {
         @Nonnull

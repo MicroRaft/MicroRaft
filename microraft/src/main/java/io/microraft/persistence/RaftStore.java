@@ -18,7 +18,6 @@
 package io.microraft.persistence;
 
 import io.microraft.RaftConfig;
-import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.lifecycle.RaftNodeLifecycleAware;
 import io.microraft.model.RaftModel;
@@ -26,10 +25,11 @@ import io.microraft.model.RaftModelFactory;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
+import io.microraft.model.persistence.RaftEndpointPersistentState;
+import io.microraft.model.persistence.RaftTermPersistentState;
 import io.microraft.statemachine.StateMachine;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 
 /**
@@ -64,7 +64,8 @@ public interface RaftStore {
      * @throws IOException
      *             if any failure occurs during persisting the given values
      */
-    void persistAndFlushLocalEndpoint(RaftEndpoint localEndpoint, boolean localEndpointVoting) throws IOException;
+    void persistAndFlushLocalEndpoint(@Nonnull RaftEndpointPersistentState localEndpointPersistentState)
+            throws IOException;
 
     /**
      * Persists and flushes the given initial Raft group members.
@@ -93,7 +94,7 @@ public interface RaftStore {
      * @throws IOException
      *             if any failure occurs during persisting the given values
      */
-    void persistAndFlushTerm(int term, @Nullable RaftEndpoint votedFor) throws IOException;
+    void persistAndFlushTerm(@Nonnull RaftTermPersistentState termPersistentState) throws IOException;
 
     /**
      * Persists the given log entry.

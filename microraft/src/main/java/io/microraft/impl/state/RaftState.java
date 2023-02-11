@@ -24,6 +24,7 @@ import io.microraft.exception.RaftException;
 import io.microraft.impl.log.RaftLog;
 import io.microraft.impl.log.SnapshotChunkCollector;
 import io.microraft.impl.util.OrderedFuture;
+import io.microraft.model.RaftModelFactory;
 import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.RaftGroupMembersView.RaftGroupMembersViewBuilder;
 import io.microraft.model.log.SnapshotEntry;
@@ -74,6 +75,8 @@ public final class RaftState {
      * term when entry was received by Raft group leader. First log index is 1.
      */
     private final RaftLog log;
+
+    private final RaftModelFactory modelFactory;
 
     /**
      * Latest committed group members of the Raft group.
@@ -151,7 +154,7 @@ public final class RaftState {
     private SnapshotChunkCollector snapshotChunkCollector;
 
     private RaftState(Object groupId, RaftEndpoint localEndpoint, RaftGroupMembersView initialGroupMembers,
-            int logCapacity, RaftStore store) {
+            int logCapacity, RaftStore store, RaftModelFactory modelFactory) {
         this.groupId = requireNonNull(groupId);
         this.localEndpoint = requireNonNull(localEndpoint);
         if (requireNonNull(initialGroupMembers).getLogIndex() != 0) {
@@ -167,12 +170,14 @@ public final class RaftState {
         this.termState = RaftTermState.INITIAL;
         this.store = requireNonNull(store);
         this.log = RaftLog.create(logCapacity, store);
+        this.modelFactory = modelFactory;
     }
 
-    private RaftState(Object groupId, RestoredRaftState restoredState, int logCapacity, RaftStore store) {
+    private RaftState(Object groupId, RestoredRaftState restoredState, int logCapacity, RaftStore store,
+            RaftModelFactory modelFactory) {
         this.groupId = requireNonNull(groupId);
-        this.localEndpoint = requireNonNull(restoredState).getLocalEndpoint();
-        this.role = restoredState.isLocalEndpointVoting() ? FOLLOWER : LEARNER;
+        this.localEndpoint = requireNonNull(restoredState).getLocalEndpointPersistentState().getLocalEndpoint();
+        this.role = restoredState.getLocalEndpointPersistentState().isVoting() ? FOLLOWER : LEARNER;
         RaftGroupMembersView initialGroupMembers = restoredState.getInitialGroupMembers();
         if (requireNonNull(initialGroupMembers).getLogIndex() != 0) {
             throw new IllegalArgumentException(
@@ -182,7 +187,8 @@ public final class RaftState {
                 initialGroupMembers.getVotingMembers(), this.localEndpoint);
         this.committedGroupMembers = this.initialGroupMembers;
         this.effectiveGroupMembers = this.committedGroupMembers;
-        this.termState = RaftTermState.restore(restoredState.getTerm(), restoredState.getVotedMember());
+        this.termState = RaftTermState.restore(restoredState.getTermPersistentState().getTerm(),
+                restoredState.getTermPersistentState().getVotedFor());
 
         SnapshotEntry snapshot = restoredState.getSnapshotEntry();
         if (isNonInitial(snapshot)) {
@@ -193,24 +199,27 @@ public final class RaftState {
 
         this.store = requireNonNull(store);
         this.log = RaftLog.restore(logCapacity, snapshot, restoredState.getLogEntries(), store);
+        this.modelFactory = modelFactory;
     }
 
     public static RaftState create(Object groupId, RaftEndpoint localEndpoint, RaftGroupMembersView initialGroupMembers,
-            int logCapacity) {
-        return create(groupId, localEndpoint, initialGroupMembers, logCapacity, new NopRaftStore());
+            int logCapacity, RaftModelFactory modelFactory) {
+        return create(groupId, localEndpoint, initialGroupMembers, logCapacity, new NopRaftStore(), modelFactory);
     }
 
     public static RaftState create(Object groupId, RaftEndpoint localEndpoint, RaftGroupMembersView initialGroupMembers,
-            int logCapacity, RaftStore store) {
-        return new RaftState(groupId, localEndpoint, initialGroupMembers, logCapacity, store);
+            int logCapacity, RaftStore store, RaftModelFactory modelFactory) {
+        return new RaftState(groupId, localEndpoint, initialGroupMembers, logCapacity, store, modelFactory);
     }
 
-    public static RaftState restore(Object groupId, RestoredRaftState restoredState, int logCapacity) {
-        return restore(groupId, restoredState, logCapacity, new NopRaftStore());
+    public static RaftState restore(Object groupId, RestoredRaftState restoredState, int logCapacity,
+            RaftModelFactory modelFactory) {
+        return restore(groupId, restoredState, logCapacity, new NopRaftStore(), modelFactory);
     }
 
-    public static RaftState restore(Object groupId, RestoredRaftState restoredState, int logCapacity, RaftStore store) {
-        return new RaftState(groupId, restoredState, logCapacity, store);
+    public static RaftState restore(Object groupId, RestoredRaftState restoredState, int logCapacity, RaftStore store,
+            RaftModelFactory modelFactory) {
+        return new RaftState(groupId, restoredState, logCapacity, store, modelFactory);
     }
 
     /**
@@ -373,7 +382,8 @@ public final class RaftState {
      * @see RaftStore#persistAndFlushInitialGroupMembers(RaftGroupMembersView)
      */
     public void persistInitialState(RaftGroupMembersViewBuilder initialGroupMembersBuilder) throws IOException {
-        store.persistAndFlushLocalEndpoint(localEndpoint, role != LEARNER);
+        store.persistAndFlushLocalEndpoint(modelFactory.createRaftEndpointPersistentStateBuilder()
+                .setLocalEndpoint(localEndpoint).setVoting(role != LEARNER).build());
         initialGroupMembersBuilder.setLogIndex(initialGroupMembers.getLogIndex())
                 .setMembers(initialGroupMembers.getMembers()).setVotingMembers(initialGroupMembers.getVotingMembers());
         store.persistAndFlushInitialGroupMembers(initialGroupMembersBuilder.build());
@@ -411,7 +421,8 @@ public final class RaftState {
 
     private void persistTerm() {
         try {
-            store.persistAndFlushTerm(term(), votedEndpoint());
+            store.persistAndFlushTerm(modelFactory.createRaftTermPersistentStateBuilder().setTerm(term())
+                    .setVotedFor(votedEndpoint()).build());
         } catch (IOException e) {
             throw new RaftException(e);
         }
@@ -468,7 +479,8 @@ public final class RaftState {
         if (role == LEADER || role == CANDIDATE) {
             throw new IllegalStateException("Cannot promote to voting member while the role is " + role);
         } else if (role == LEARNER) {
-            store.persistAndFlushLocalEndpoint(localEndpoint, true);
+            store.persistAndFlushLocalEndpoint(modelFactory.createRaftEndpointPersistentStateBuilder()
+                    .setLocalEndpoint(localEndpoint).setVoting(true).build());
             role = FOLLOWER;
         }
     }
@@ -477,7 +489,8 @@ public final class RaftState {
         if (role == LEADER) {
             throw new IllegalStateException("Cannot revert voting member promotion while the role is " + role);
         } else if (role != LEARNER) {
-            store.persistAndFlushLocalEndpoint(localEndpoint, false);
+            store.persistAndFlushLocalEndpoint(modelFactory.createRaftEndpointPersistentStateBuilder()
+                    .setLocalEndpoint(localEndpoint).setVoting(false).build());
             role = LEARNER;
         }
     }

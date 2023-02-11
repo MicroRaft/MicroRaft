@@ -7,11 +7,15 @@ import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotEntry;
+import io.microraft.model.persistence.RaftEndpointPersistentState;
+import io.microraft.model.persistence.RaftTermPersistentState;
 import io.microraft.persistence.RaftStore;
 import io.microraft.persistence.RestoredRaftState;
+import io.microraft.persistence.RaftStoreSerializer;
 
 import java.io.File;
 import java.sql.Connection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nonnull;
@@ -77,7 +81,7 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
     private final RaftModelFactory raftModelFactory;
     private boolean tryToCleanUpOldSnapshots = false;
 
-    public RaftSqliteStore(CloseableDSLContext dsl, StoreModelSerializer modelSerializer,
+    public RaftSqliteStore(CloseableDSLContext dsl, RaftStoreSerializer modelSerializer,
             RaftModelFactory raftModelFactory) {
         this.dsl = dsl;
         this.raftModelFactory = raftModelFactory;
@@ -108,7 +112,7 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
     }
 
     public static RaftSqliteStore create(File sqliteDb, RaftModelFactory raftModelFactory,
-            StoreModelSerializer modelSerializer) {
+            RaftStoreSerializer modelSerializer) {
         SQLiteConfig config = new SQLiteConfig();
         // https://www.sqlite.org/pragma.html#pragma_journal_mode
         config.setPragma(Pragma.JOURNAL_MODE, JournalMode.WAL.getValue());
@@ -138,8 +142,9 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
     }
 
     @Override
-    public void persistAndFlushLocalEndpoint(RaftEndpoint localEndpoint, boolean localEndpointVoting) {
-        dsl.update(KV).set(localEndpointField, localEndpoint).set(LOCAL_ENDPOINT_VOTING, localEndpointVoting).execute();
+    public void persistAndFlushLocalEndpoint(@Nonnull RaftEndpointPersistentState localEndpointPersistentState) {
+        dsl.update(KV).set(localEndpointField, localEndpointPersistentState.getLocalEndpoint())
+                .set(LOCAL_ENDPOINT_VOTING, localEndpointPersistentState.isVoting()).execute();
         dsl.connection(Connection::commit);
     }
 
@@ -150,8 +155,9 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
     }
 
     @Override
-    public void persistAndFlushTerm(int term, @Nullable RaftEndpoint votedFor) {
-        dsl.update(KV).set(TERM, term).set(votedForField, votedFor).execute();
+    public void persistAndFlushTerm(@Nonnull RaftTermPersistentState termPersistentState) {
+        dsl.update(KV).set(TERM, termPersistentState.getTerm()).set(votedForField, termPersistentState.getVotedFor())
+                .execute();
         dsl.connection(Connection::commit);
     }
 
@@ -242,6 +248,7 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
         Optional<SnapshotEntry> snapshot = getMaxCommittedSnapshotIndex().map(lastSnapshotted -> {
             List<SnapshotChunk> snapshotChunks = dsl.select(chunkField).from(SNAPSHOT_CHUNKS)
                     .where(INDEX.eq(lastSnapshotted)).orderBy(CHUNK_INDEX).fetch(chunkField);
+            snapshotChunks.sort(Comparator.comparingInt(SnapshotChunk::getSnapshotChunkIndex));
 
             return raftModelFactory.createSnapshotEntryBuilder().setSnapshotChunks(snapshotChunks)
                     .setIndex(lastSnapshotted).setTerm(snapshotChunks.get(0).getTerm())
@@ -250,9 +257,14 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
 
         snapshot.map(SnapshotEntry::getIndex).ifPresent(this::truncateUntil);
 
-        return Optional.of(new RestoredRaftState(record.get(localEndpointField), record.get(LOCAL_ENDPOINT_VOTING),
-                record.get(initialGroupMembersField), record.get(TERM), record.get(votedForField),
-                snapshot.orElse(null),
+        RaftEndpointPersistentState localEndpointPersistentState = raftModelFactory
+                .createRaftEndpointPersistentStateBuilder().setLocalEndpoint(record.get(localEndpointField))
+                .setVoting(record.get(LOCAL_ENDPOINT_VOTING)).build();
+        RaftTermPersistentState termPersistentState = raftModelFactory.createRaftTermPersistentStateBuilder()
+                .setTerm(record.get(TERM)).setVotedFor(record.get(votedForField)).build();
+
+        return Optional.of(new RestoredRaftState(localEndpointPersistentState, record.get(initialGroupMembersField),
+                termPersistentState, snapshot.orElse(null),
                 dsl.select(logEntryField).from(LOG_ENTRIES).orderBy(INDEX).fetch(logEntryField)));
     }
 
@@ -281,10 +293,10 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
     }
 
     private static final class JooqConverterAdapter<T> implements Converter<byte[], T> {
-        private final StoreModelSerializer.Serializer<T> serializer;
+        private final RaftStoreSerializer.Serializer<T> serializer;
         private final Class<T> clazz;
 
-        private JooqConverterAdapter(StoreModelSerializer.Serializer<T> serializer, Class<T> clazz) {
+        private JooqConverterAdapter(RaftStoreSerializer.Serializer<T> serializer, Class<T> clazz) {
             this.serializer = serializer;
             this.clazz = clazz;
         }

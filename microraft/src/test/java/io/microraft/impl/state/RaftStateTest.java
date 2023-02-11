@@ -20,6 +20,7 @@ package io.microraft.impl.state;
 import io.microraft.RaftEndpoint;
 import io.microraft.impl.local.LocalRaftEndpoint;
 import io.microraft.impl.log.RaftLog;
+import io.microraft.model.impl.DefaultRaftModelFactory;
 import io.microraft.model.impl.log.DefaultLogEntryOrBuilder;
 import io.microraft.model.impl.log.DefaultRaftGroupMembersViewOrBuilder;
 import io.microraft.model.log.RaftGroupMembersView;
@@ -58,7 +59,7 @@ public class RaftStateTest {
 
     @Before
     public void setup() {
-        state = RaftState.create("default", localEndpoint, groupMembers, 100);
+        state = RaftState.create("default", localEndpoint, groupMembers, 100, new DefaultRaftModelFactory());
     }
 
     @Test
@@ -217,7 +218,7 @@ public class RaftStateTest {
         groupMembers = new DefaultRaftGroupMembersViewOrBuilder().setLogIndex(0).setMembers(initialEndpoints)
                 .setVotingMembers(initialEndpoints).build();
 
-        state = RaftState.create("default", localEndpoint, groupMembers, 100);
+        state = RaftState.create("default", localEndpoint, groupMembers, 100, new DefaultRaftModelFactory());
 
         int majorityQuorumSize = majority(memberCount);
         assertThat(state.leaderElectionQuorumSize()).isEqualTo(majorityQuorumSize);
@@ -237,7 +238,7 @@ public class RaftStateTest {
         groupMembers = new DefaultRaftGroupMembersViewOrBuilder().setLogIndex(0).setMembers(initialEndpoints)
                 .setVotingMembers(initialEndpoints).build();
 
-        state = RaftState.create("default", localEndpoint, groupMembers, 100);
+        state = RaftState.create("default", localEndpoint, groupMembers, 100, new DefaultRaftModelFactory());
 
         int majorityQuorumSize = majority(memberCount);
         assertThat(state.leaderElectionQuorumSize()).isEqualTo(majorityQuorumSize);
@@ -248,7 +249,7 @@ public class RaftStateTest {
     public void test_initialStateOfJoinedMember() {
         localEndpoint = newEndpoint();
 
-        state = RaftState.create("default", localEndpoint, groupMembers, 100);
+        state = RaftState.create("default", localEndpoint, groupMembers, 100, new DefaultRaftModelFactory());
 
         List<RaftEndpoint> newMemberList = new ArrayList<>(initialEndpoints);
         newMemberList.add(localEndpoint);
@@ -278,7 +279,7 @@ public class RaftStateTest {
     public void test_promotionToVotingMember() {
         localEndpoint = newEndpoint();
 
-        state = RaftState.create("default", localEndpoint, groupMembers, 100);
+        state = RaftState.create("default", localEndpoint, groupMembers, 100, new DefaultRaftModelFactory());
 
         List<RaftEndpoint> newMemberList = new ArrayList<>(initialEndpoints);
         newMemberList.add(localEndpoint);
@@ -293,7 +294,7 @@ public class RaftStateTest {
     public void test_revertVotingMemberPromotion() {
         localEndpoint = newEndpoint();
 
-        state = RaftState.create("default", localEndpoint, groupMembers, 100);
+        state = RaftState.create("default", localEndpoint, groupMembers, 100, new DefaultRaftModelFactory());
 
         List<RaftEndpoint> newMemberList = new ArrayList<>(initialEndpoints);
         newMemberList.add(localEndpoint);
@@ -308,7 +309,7 @@ public class RaftStateTest {
     public void test_revertVotingMemberPromotionFailsWhileCandidate() {
         localEndpoint = newEndpoint();
 
-        state = RaftState.create("default", localEndpoint, groupMembers, 100);
+        state = RaftState.create("default", localEndpoint, groupMembers, 100, new DefaultRaftModelFactory());
 
         List<RaftEndpoint> newMemberList = new ArrayList<>(initialEndpoints);
         newMemberList.add(localEndpoint);

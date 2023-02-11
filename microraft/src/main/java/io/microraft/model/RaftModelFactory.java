@@ -34,6 +34,8 @@ import io.microraft.model.message.PreVoteResponse.PreVoteResponseBuilder;
 import io.microraft.model.message.TriggerLeaderElectionRequest.TriggerLeaderElectionRequestBuilder;
 import io.microraft.model.message.VoteRequest.VoteRequestBuilder;
 import io.microraft.model.message.VoteResponse.VoteResponseBuilder;
+import io.microraft.model.persistence.RaftEndpointPersistentState.RaftEndpointPersistentStateBuilder;
+import io.microraft.model.persistence.RaftTermPersistentState.RaftTermPersistentStateBuilder;
 import io.microraft.persistence.RaftStore;
 import io.microraft.transport.Transport;
 
@@ -101,5 +103,11 @@ public interface RaftModelFactory {
 
     @Nonnull
     RaftGroupMembersViewBuilder createRaftGroupMembersViewBuilder();
+
+    @Nonnull
+    RaftEndpointPersistentStateBuilder createRaftEndpointPersistentStateBuilder();
+
+    @Nonnull
+    RaftTermPersistentStateBuilder createRaftTermPersistentStateBuilder();
 
 }

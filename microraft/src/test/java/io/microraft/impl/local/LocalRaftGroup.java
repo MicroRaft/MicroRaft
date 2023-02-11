@@ -246,20 +246,23 @@ public final class LocalRaftGroup {
      */
     public RaftNodeImpl restoreNode(RestoredRaftState restoredState, RaftStore store) {
         boolean exists = nodeContexts.values().stream()
-                .filter(ctx -> ctx.getLocalEndpoint().equals(restoredState.getLocalEndpoint()))
+                .filter(ctx -> ctx.getLocalEndpoint()
+                        .equals(restoredState.getLocalEndpointPersistentState().getLocalEndpoint()))
                 .anyMatch(RaftNodeContext::isExecutorRunning);
 
         if (exists) {
-            throw new IllegalStateException(restoredState.getLocalEndpoint() + " is already running!");
+            throw new IllegalStateException(
+                    restoredState.getLocalEndpointPersistentState().getLocalEndpoint() + " is already running!");
         }
 
         requireNonNull(restoredState);
 
-        LocalTransport transport = new LocalTransport(restoredState.getLocalEndpoint());
+        LocalTransport transport = new LocalTransport(
+                restoredState.getLocalEndpointPersistentState().getLocalEndpoint());
         SimpleStateMachine stateMachine = new SimpleStateMachine(newTermEntryEnabled);
         RaftNodeImpl node = (RaftNodeImpl) RaftNode.newBuilder().setGroupId("default").setRestoredState(restoredState)
                 .setConfig(config).setTransport(transport).setStateMachine(stateMachine).setStore(store).build();
-        nodeContexts.put(restoredState.getLocalEndpoint(),
+        nodeContexts.put(restoredState.getLocalEndpointPersistentState().getLocalEndpoint(),
                 new RaftNodeContext((DefaultRaftNodeExecutor) node.getExecutor(), transport, stateMachine, node));
 
         node.start();

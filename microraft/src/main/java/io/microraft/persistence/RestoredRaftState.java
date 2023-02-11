@@ -17,15 +17,18 @@
 
 package io.microraft.persistence;
 
-import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotEntry;
+import io.microraft.model.persistence.RaftEndpointPersistentState;
+import io.microraft.model.persistence.RaftTermPersistentState;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Contains restored state of a {@link RaftNode}. All the fields in this class
@@ -33,33 +36,25 @@ import java.util.List;
  */
 public final class RestoredRaftState {
 
-    private final RaftEndpoint localEndpoint;
-    private final boolean localEndpointVoting;
+    private final RaftEndpointPersistentState localEndpointPersistentState;
     private final RaftGroupMembersView initialGroupMembers;
-    private final int term;
-    private final RaftEndpoint votedMember;
+    private final RaftTermPersistentState termPersistentState;
     private final SnapshotEntry snapshotEntry;
     private final List<LogEntry> entries;
 
-    public RestoredRaftState(@Nonnull RaftEndpoint localEndpoint, boolean localEndpointVoting,
-            @Nonnull RaftGroupMembersView initialGroupMembers, int term, @Nullable RaftEndpoint votedMember,
+    public RestoredRaftState(@Nonnull RaftEndpointPersistentState localEndpointPersistentState,
+            @Nonnull RaftGroupMembersView initialGroupMembers, @Nonnull RaftTermPersistentState termPersistentState,
             @Nullable SnapshotEntry snapshotEntry, @Nonnull List<LogEntry> entries) {
-        this.localEndpoint = localEndpoint;
-        this.localEndpointVoting = localEndpointVoting;
-        this.initialGroupMembers = initialGroupMembers;
-        this.term = term;
-        this.votedMember = votedMember;
+        this.localEndpointPersistentState = requireNonNull(localEndpointPersistentState);
+        this.initialGroupMembers = requireNonNull(initialGroupMembers);
+        this.termPersistentState = termPersistentState;
         this.snapshotEntry = snapshotEntry;
-        this.entries = entries;
+        this.entries = requireNonNull(entries);
     }
 
     @Nonnull
-    public RaftEndpoint getLocalEndpoint() {
-        return localEndpoint;
-    }
-
-    public boolean isLocalEndpointVoting() {
-        return localEndpointVoting;
+    public RaftEndpointPersistentState getLocalEndpointPersistentState() {
+        return localEndpointPersistentState;
     }
 
     @Nonnull
@@ -67,13 +62,9 @@ public final class RestoredRaftState {
         return initialGroupMembers;
     }
 
-    public int getTerm() {
-        return term;
-    }
-
-    @Nullable
-    public RaftEndpoint getVotedMember() {
-        return votedMember;
+    @Nonnull
+    public RaftTermPersistentState getTermPersistentState() {
+        return termPersistentState;
     }
 
     @Nullable

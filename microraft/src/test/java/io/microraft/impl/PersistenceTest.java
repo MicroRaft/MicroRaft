@@ -88,8 +88,9 @@ public class PersistenceTest extends BaseTest {
         eventually(() -> {
             for (RaftNodeImpl node : group.getNodes()) {
                 RestoredRaftState restoredState = getRestoredState(node);
-                assertThat(restoredState.getLocalEndpoint()).isEqualTo(node.getLocalEndpoint());
-                assertThat(restoredState.getTerm()).isEqualTo(term1);
+                assertThat(restoredState.getLocalEndpointPersistentState().getLocalEndpoint())
+                        .isEqualTo(node.getLocalEndpoint());
+                assertThat(restoredState.getTermPersistentState().getTerm()).isEqualTo(term1);
                 assertThat(restoredState.getInitialGroupMembers().getMembers()).isEqualTo(endpoints);
             }
         });
@@ -110,8 +111,9 @@ public class PersistenceTest extends BaseTest {
         eventually(() -> {
             for (RaftNodeImpl node : followers) {
                 RestoredRaftState restoredState = getRestoredState(node);
-                assertThat(restoredState.getTerm()).isEqualTo(term2);
-                assertThat(restoredState.getVotedMember()).isEqualTo(newLeader.getLeaderEndpoint());
+                assertThat(restoredState.getTermPersistentState().getTerm()).isEqualTo(term2);
+                assertThat(restoredState.getTermPersistentState().getVotedFor())
+                        .isEqualTo(newLeader.getLeaderEndpoint());
             }
         });
     }

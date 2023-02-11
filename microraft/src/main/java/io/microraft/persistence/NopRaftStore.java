@@ -17,13 +17,13 @@
 
 package io.microraft.persistence;
 
-import io.microraft.RaftEndpoint;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
+import io.microraft.model.persistence.RaftEndpointPersistentState;
+import io.microraft.model.persistence.RaftTermPersistentState;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * Used when a Raft node works transiently (its state is not persisted).
@@ -31,7 +31,7 @@ import javax.annotation.Nullable;
 public class NopRaftStore implements RaftStore {
 
     @Override
-    public void persistAndFlushLocalEndpoint(RaftEndpoint localEndpoint, boolean localEndpointVoting) {
+    public void persistAndFlushLocalEndpoint(@Nonnull RaftEndpointPersistentState localEndpointPersistentState) {
 
     }
 
@@ -40,7 +40,7 @@ public class NopRaftStore implements RaftStore {
     }
 
     @Override
-    public void persistAndFlushTerm(int term, @Nullable RaftEndpoint votedFor) {
+    public void persistAndFlushTerm(@Nonnull RaftTermPersistentState termPersistentState) {
     }
 
     @Override

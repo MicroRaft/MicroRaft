@@ -26,6 +26,8 @@ import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotEntry;
 import io.microraft.persistence.RaftStore;
 import io.microraft.persistence.RestoredRaftState;
+import io.microraft.model.persistence.RaftEndpointPersistentState;
+import io.microraft.model.persistence.RaftTermPersistentState;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,16 +37,16 @@ import java.util.List;
 
 import static java.util.Comparator.comparingInt;
 
+import java.io.IOException;
+
 /**
  * A very simple in-memory {@link RaftStore} implementation used for testing.
  */
 public final class InMemoryRaftStore implements RaftStore {
 
-    private RaftEndpoint localEndpoint;
-    private boolean localEndpointVoting;
+    private RaftEndpointPersistentState localEndpointPersistentState;
     private RaftGroupMembersView initialGroupMembers;
-    private int term;
-    private RaftEndpoint votedFor;
+    private RaftTermPersistentState termPersistentState;
     private RaftLog raftLog;
     private List<SnapshotChunk> snapshotChunks = new ArrayList<>();
 
@@ -53,9 +55,8 @@ public final class InMemoryRaftStore implements RaftStore {
     }
 
     @Override
-    public void persistAndFlushLocalEndpoint(RaftEndpoint localEndpoint, boolean localEndpointVoting) {
-        this.localEndpoint = localEndpoint;
-        this.localEndpointVoting = localEndpointVoting;
+    public void persistAndFlushLocalEndpoint(@Nonnull RaftEndpointPersistentState localEndpointPersistentState) {
+        this.localEndpointPersistentState = localEndpointPersistentState;
     }
 
     @Override
@@ -64,9 +65,8 @@ public final class InMemoryRaftStore implements RaftStore {
     }
 
     @Override
-    public synchronized void persistAndFlushTerm(int term, @Nullable RaftEndpoint votedFor) {
-        this.term = term;
-        this.votedFor = votedFor;
+    public synchronized void persistAndFlushTerm(@Nonnull RaftTermPersistentState termPersistentState) {
+        this.termPersistentState = termPersistentState;
     }
 
     @Override
@@ -110,7 +110,7 @@ public final class InMemoryRaftStore implements RaftStore {
             entries = Collections.emptyList();
         }
 
-        return new RestoredRaftState(localEndpoint, localEndpointVoting, initialGroupMembers, term, votedFor,
+        return new RestoredRaftState(localEndpointPersistentState, initialGroupMembers, termPersistentState,
                 raftLog.snapshotEntry(), entries);
     }
 

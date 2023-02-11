@@ -11,10 +11,15 @@ import io.microraft.model.impl.DefaultRaftModelFactory;
 import io.microraft.model.impl.log.DefaultLogEntryOrBuilder;
 import io.microraft.model.impl.log.DefaultRaftGroupMembersViewOrBuilder;
 import io.microraft.model.impl.log.DefaultSnapshotChunkOrBuilder;
+import io.microraft.model.impl.persistence.DefaultRaftEndpointPersistentStateOrBuilder;
+import io.microraft.model.impl.persistence.DefaultRaftTermPersistentStateOrBuilder;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
+import io.microraft.model.persistence.RaftEndpointPersistentState;
+import io.microraft.model.persistence.RaftTermPersistentState;
 import io.microraft.persistence.RestoredRaftState;
+import io.microraft.persistence.RaftStoreSerializer;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,7 +35,7 @@ import java.util.function.Consumer;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RaftSqliteStoreTest {
-    private static final RaftModelFactory raftModelFactory = new DefaultRaftModelFactory();
+    private static final RaftModelFactory RAFT_MODEL_FACTORY = new DefaultRaftModelFactory();
 
     private static final RaftEndpoint ENDPOINT_A = LocalRaftEndpoint.newEndpoint();
     private static final RaftEndpoint ENDPOINT_B = LocalRaftEndpoint.newEndpoint();
@@ -38,7 +43,7 @@ public class RaftSqliteStoreTest {
     private static final int TERM = 235;
     private static final boolean VOTING = true;
 
-    private static final RaftGroupMembersView INITIAL_GROUP_MEMBERS = raftModelFactory
+    private static final RaftGroupMembersView INITIAL_GROUP_MEMBERS = RAFT_MODEL_FACTORY
             .createRaftGroupMembersViewBuilder().setLogIndex(RAFT_INDEX).setMembers(List.of(ENDPOINT_A, ENDPOINT_B))
             .setVotingMembers(List.of(ENDPOINT_A)).build();
 
@@ -53,7 +58,7 @@ public class RaftSqliteStoreTest {
     }
 
     private void withRaftStore(Consumer<RaftSqliteStore> consumer) {
-        RaftSqliteStore store = RaftSqliteStore.create(sqlite, raftModelFactory, JacksonModelSerializer.INSTANCE);
+        RaftSqliteStore store = RaftSqliteStore.create(sqlite, RAFT_MODEL_FACTORY, JacksonModelSerializer.INSTANCE);
         consumer.accept(store);
         store.onRaftNodeTerminate();
     }
@@ -68,11 +73,11 @@ public class RaftSqliteStoreTest {
         withRaftStore(RaftSqliteStoreTest::persistInitialState);
         withRaftStore(store -> {
             RestoredRaftState restored = store.getRestoredRaftState().get();
-            assertThat(restored.getLocalEndpoint()).isEqualTo(ENDPOINT_A);
-            assertThat(restored.isLocalEndpointVoting()).isEqualTo(VOTING);
+            assertThat(restored.getLocalEndpointPersistentState().getLocalEndpoint()).isEqualTo(ENDPOINT_A);
+            assertThat(restored.getLocalEndpointPersistentState().isVoting()).isEqualTo(VOTING);
             assertThat(restored.getInitialGroupMembers()).usingRecursiveComparison().isEqualTo(INITIAL_GROUP_MEMBERS);
-            assertThat(restored.getTerm()).isEqualTo(TERM);
-            assertThat(restored.getVotedMember()).isEqualTo(ENDPOINT_B);
+            assertThat(restored.getTermPersistentState().getTerm()).isEqualTo(TERM);
+            assertThat(restored.getTermPersistentState().getVotedFor()).isEqualTo(ENDPOINT_B);
         });
     }
 
@@ -187,24 +192,26 @@ public class RaftSqliteStoreTest {
     }
 
     private static LogEntry logEntry(long index, int term) {
-        return raftModelFactory.createLogEntryBuilder().setIndex(index).setTerm(term).setOperation(index + " " + term)
+        return RAFT_MODEL_FACTORY.createLogEntryBuilder().setIndex(index).setTerm(term).setOperation(index + " " + term)
                 .build();
     }
 
     private static SnapshotChunk snapshotChunk(long index, int term, int chunkIndex, int numChunks) {
-        return raftModelFactory.createSnapshotChunkBuilder().setIndex(index).setTerm(term)
+        return RAFT_MODEL_FACTORY.createSnapshotChunkBuilder().setIndex(index).setTerm(term)
                 .setSnapshotChunkIndex(chunkIndex).setSnapshotChunkCount(numChunks)
                 .setGroupMembersView(INITIAL_GROUP_MEMBERS)
                 .setOperation(index + " " + term + " " + chunkIndex + " " + numChunks).build();
     }
 
     private static void persistInitialState(RaftSqliteStore store) {
-        store.persistAndFlushLocalEndpoint(ENDPOINT_A, VOTING);
+        store.persistAndFlushLocalEndpoint(new DefaultRaftEndpointPersistentStateOrBuilder()
+                .setLocalEndpoint(ENDPOINT_A).setVoting(VOTING).build());
         store.persistAndFlushInitialGroupMembers(INITIAL_GROUP_MEMBERS);
-        store.persistAndFlushTerm(TERM, ENDPOINT_B);
+        store.persistAndFlushTerm(
+                new DefaultRaftTermPersistentStateOrBuilder().setTerm(TERM).setVotedFor(ENDPOINT_A).build());
     }
 
-    private enum JacksonModelSerializer implements StoreModelSerializer {
+    private enum JacksonModelSerializer implements RaftStoreSerializer {
         INSTANCE;
 
         @Override
@@ -226,6 +233,15 @@ public class RaftSqliteStoreTest {
         public Serializer<SnapshotChunk> snapshotChunkSerializer() {
             return new JacksonSerializer<>(DefaultSnapshotChunkOrBuilder.class);
         }
+
+        @Override
+        public Serializer<RaftEndpointPersistentState> raftEndpointPersistentStateSerializer() {
+            return new JacksonSerializer<>(DefaultRaftEndpointPersistentStateOrBuilder.class);
+        }
+
+        public Serializer<RaftTermPersistentState> raftTermPersistentState() {
+            return new JacksonSerializer<>(DefaultRaftTermPersistentStateOrBuilder.class);
+        }
     }
 
     /**
@@ -234,7 +250,7 @@ public class RaftSqliteStoreTest {
      * recursive comparisons in the tests can be removed. If the default model ever
      * has a baked in persistence mechanism, then the Jackson can be removed.
      */
-    private static final class JacksonSerializer<T> implements StoreModelSerializer.Serializer<T> {
+    private static final class JacksonSerializer<T> implements RaftStoreSerializer.Serializer<T> {
         private static final ObjectMapper objectMapper = new ObjectMapper()
                 .addMixIn(LocalRaftEndpoint.class, RaftEndpointMixin.class)
                 .addMixIn(DefaultRaftGroupMembersViewOrBuilder.class, RaftGroupMembersViewMixin.class)
@@ -296,4 +312,5 @@ public class RaftSqliteStoreTest {
         @JsonDeserialize(as = DefaultRaftGroupMembersViewOrBuilder.class)
         private RaftGroupMembersView groupMembersView;
     }
+
 }

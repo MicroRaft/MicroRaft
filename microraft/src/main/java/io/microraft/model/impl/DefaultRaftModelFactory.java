@@ -48,6 +48,10 @@ import io.microraft.model.message.PreVoteResponse.PreVoteResponseBuilder;
 import io.microraft.model.message.TriggerLeaderElectionRequest.TriggerLeaderElectionRequestBuilder;
 import io.microraft.model.message.VoteRequest.VoteRequestBuilder;
 import io.microraft.model.message.VoteResponse.VoteResponseBuilder;
+import io.microraft.model.persistence.RaftEndpointPersistentState.RaftEndpointPersistentStateBuilder;
+import io.microraft.model.persistence.RaftTermPersistentState.RaftTermPersistentStateBuilder;
+import io.microraft.model.impl.persistence.DefaultRaftEndpointPersistentStateOrBuilder;
+import io.microraft.model.impl.persistence.DefaultRaftTermPersistentStateOrBuilder;
 
 import javax.annotation.Nonnull;
 
@@ -146,6 +150,18 @@ public class DefaultRaftModelFactory implements RaftModelFactory {
     @Override
     public RaftGroupMembersViewBuilder createRaftGroupMembersViewBuilder() {
         return new DefaultRaftGroupMembersViewOrBuilder();
+    }
+
+    @Nonnull
+    @Override
+    public RaftEndpointPersistentStateBuilder createRaftEndpointPersistentStateBuilder() {
+        return new DefaultRaftEndpointPersistentStateOrBuilder();
+    }
+
+    @Nonnull
+    @Override
+    public RaftTermPersistentStateBuilder createRaftTermPersistentStateBuilder() {
+        return new DefaultRaftTermPersistentStateOrBuilder();
     }
 
 }

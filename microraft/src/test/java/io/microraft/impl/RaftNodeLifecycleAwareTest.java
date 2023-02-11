@@ -41,6 +41,8 @@ import io.microraft.model.message.RaftMessage;
 import io.microraft.model.message.TriggerLeaderElectionRequest.TriggerLeaderElectionRequestBuilder;
 import io.microraft.model.message.VoteRequest.VoteRequestBuilder;
 import io.microraft.model.message.VoteResponse.VoteResponseBuilder;
+import io.microraft.model.persistence.RaftEndpointPersistentState;
+import io.microraft.model.persistence.RaftTermPersistentState;
 import io.microraft.persistence.RaftStore;
 import io.microraft.report.RaftNodeReport;
 import io.microraft.report.RaftNodeReportListener;
@@ -53,6 +55,8 @@ import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletionException;
@@ -585,7 +589,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
         }
 
         @Override
-        public void persistAndFlushLocalEndpoint(RaftEndpoint localEndpoint, boolean localEndpointVoting) {
+        public void persistAndFlushLocalEndpoint(@Nonnull RaftEndpointPersistentState localEndpointPersistentState) {
             recordCall();
         }
 
@@ -595,7 +599,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
         }
 
         @Override
-        public void persistAndFlushTerm(int term, @Nullable RaftEndpoint votedFor) {
+        public void persistAndFlushTerm(@Nonnull RaftTermPersistentState termPersistentState) {
             recordCall();
         }
 
@@ -630,6 +634,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
                 persistCall = lastPersistCall;
             }
         }
+
     }
 
 }

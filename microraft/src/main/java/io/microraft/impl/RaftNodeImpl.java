@@ -203,7 +203,7 @@ public final class RaftNodeImpl implements RaftNode {
         this.maxPendingLogEntryCount = config.getMaxPendingLogEntryCount();
         this.maxLogEntryCountToKeepAfterSnapshot = getMaxLogEntryCountToKeepAfterSnapshot(commitCountToTakeSnapshot);
         int logCapacity = getLogCapacity(commitCountToTakeSnapshot, maxPendingLogEntryCount);
-        this.state = RaftState.create(groupId, localEndpoint, initialGroupMembers, logCapacity, store);
+        this.state = RaftState.create(groupId, localEndpoint, initialGroupMembers, logCapacity, store, modelFactory);
         this.maxBackoffRounds = getMaxBackoffRounds(config);
         this.random = requireNonNull(random);
         this.clock = requireNonNull(clock);
@@ -223,14 +223,15 @@ public final class RaftNodeImpl implements RaftNode {
         this.store = requireNonNull(store);
         this.raftNodeReportListener = requireNonNull(raftNodeReportListener);
         this.config = requireNonNull(config);
-        this.localEndpointStr = restoredState.getLocalEndpoint().getId() + "<" + groupId + ">";
+        this.localEndpointStr = restoredState.getLocalEndpointPersistentState().getLocalEndpoint().getId() + "<"
+                + groupId + ">";
         this.leaderHeartbeatTimeoutMillis = SECONDS.toMillis(config.getLeaderHeartbeatTimeoutSecs());
         this.commitCountToTakeSnapshot = config.getCommitCountToTakeSnapshot();
         this.appendEntriesRequestBatchSize = config.getAppendEntriesRequestBatchSize();
         this.maxPendingLogEntryCount = config.getMaxPendingLogEntryCount();
         this.maxLogEntryCountToKeepAfterSnapshot = getMaxLogEntryCountToKeepAfterSnapshot(commitCountToTakeSnapshot);
         int logCapacity = getLogCapacity(commitCountToTakeSnapshot, maxPendingLogEntryCount);
-        this.state = RaftState.restore(groupId, restoredState, logCapacity, store);
+        this.state = RaftState.restore(groupId, restoredState, logCapacity, store, modelFactory);
         this.maxBackoffRounds = getMaxBackoffRounds(config);
         this.random = requireNonNull(random);
         this.clock = requireNonNull(clock);

@@ -275,7 +275,7 @@
                     <encoding>${project.build.sourceEncoding}</encoding>
                     <source>${jdk.version}</source>
                     <sourcepath>src/main/java</sourcepath>
-                    <excludePackageNames>*.impl:*.impl.*:*.afloatdb:*.afloatdb.*</excludePackageNames>
+                    <excludePackageNames>io.microraft.model.*:*.impl:*.impl.*</excludePackageNames>
                 </configuration>
             </plugin>
 

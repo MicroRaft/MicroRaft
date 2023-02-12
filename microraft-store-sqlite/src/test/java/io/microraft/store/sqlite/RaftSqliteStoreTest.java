@@ -208,7 +208,7 @@ public class RaftSqliteStoreTest {
                 .setLocalEndpoint(ENDPOINT_A).setVoting(VOTING).build());
         store.persistAndFlushInitialGroupMembers(INITIAL_GROUP_MEMBERS);
         store.persistAndFlushTerm(
-                new DefaultRaftTermPersistentStateOrBuilder().setTerm(TERM).setVotedFor(ENDPOINT_A).build());
+                new DefaultRaftTermPersistentStateOrBuilder().setTerm(TERM).setVotedFor(ENDPOINT_B).build());
     }
 
     private enum JacksonModelSerializer implements RaftStoreSerializer {

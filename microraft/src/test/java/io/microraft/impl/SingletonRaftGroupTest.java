@@ -16,32 +16,6 @@
 
 package io.microraft.impl;
 
-import io.microraft.Ordered;
-import io.microraft.QueryPolicy;
-import io.microraft.RaftConfig;
-import io.microraft.RaftNode;
-import io.microraft.RaftRole;
-import io.microraft.impl.local.LocalRaftGroup;
-import io.microraft.impl.local.SimpleStateMachine;
-import io.microraft.model.log.BaseLogEntry;
-import io.microraft.model.message.AppendEntriesRequest;
-import io.microraft.model.message.AppendEntriesSuccessResponse;
-import io.microraft.persistence.RaftStore;
-import io.microraft.persistence.RestoredRaftState;
-import io.microraft.report.RaftGroupMembers;
-import io.microraft.report.RaftNodeReport;
-import io.microraft.test.util.BaseTest;
-import org.junit.After;
-import org.junit.Test;
-
-import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-
 import static io.microraft.MembershipChangeMode.ADD_LEARNER;
 import static io.microraft.MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER;
 import static io.microraft.MembershipChangeMode.REMOVE_MEMBER;
@@ -58,6 +32,33 @@ import static io.microraft.test.util.RaftTestUtils.getRaftStore;
 import static io.microraft.test.util.RaftTestUtils.getRestoredState;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+
+import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+
+import org.junit.After;
+import org.junit.Test;
+
+import io.microraft.Ordered;
+import io.microraft.QueryPolicy;
+import io.microraft.RaftConfig;
+import io.microraft.RaftNode;
+import io.microraft.RaftRole;
+import io.microraft.impl.local.LocalRaftGroup;
+import io.microraft.impl.local.SimpleStateMachine;
+import io.microraft.model.log.BaseLogEntry;
+import io.microraft.model.message.AppendEntriesRequest;
+import io.microraft.model.message.AppendEntriesSuccessResponse;
+import io.microraft.persistence.RaftStore;
+import io.microraft.persistence.RestoredRaftState;
+import io.microraft.report.RaftGroupMembers;
+import io.microraft.report.RaftNodeReport;
+import io.microraft.test.util.BaseTest;
 
 public class SingletonRaftGroupTest extends BaseTest {
 

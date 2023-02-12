@@ -16,15 +16,16 @@
 
 package io.microraft.model.impl.log;
 
+import static java.util.Objects.requireNonNull;
+
+import java.util.Collection;
+
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.RaftGroupMembersView.RaftGroupMembersViewBuilder;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nonnegative;
-import java.util.Collection;
-
-import static java.util.Objects.requireNonNull;
 
 public class DefaultRaftGroupMembersViewOrBuilder implements RaftGroupMembersView, RaftGroupMembersViewBuilder {
 

@@ -16,6 +16,17 @@
 
 package io.microraft.impl;
 
+import static io.microraft.RaftConfig.DEFAULT_RAFT_CONFIG;
+import static io.microraft.report.RaftGroupMembers.MAX_LEARNER_COUNT;
+import static java.util.Objects.requireNonNull;
+
+import java.time.Clock;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Random;
+
+import javax.annotation.Nonnull;
+
 import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
@@ -33,16 +44,6 @@ import io.microraft.persistence.RestoredRaftState;
 import io.microraft.report.RaftNodeReportListener;
 import io.microraft.statemachine.StateMachine;
 import io.microraft.transport.Transport;
-
-import javax.annotation.Nonnull;
-import java.time.Clock;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Random;
-
-import static io.microraft.RaftConfig.DEFAULT_RAFT_CONFIG;
-import static io.microraft.report.RaftGroupMembers.MAX_LEARNER_COUNT;
-import static java.util.Objects.requireNonNull;
 
 /**
  * Builder for {@link RaftNode}.

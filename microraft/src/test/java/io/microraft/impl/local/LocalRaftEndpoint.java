@@ -1,11 +1,12 @@
 package io.microraft.impl.local;
 
-import io.microraft.RaftEndpoint;
+import static java.util.Objects.requireNonNull;
 
-import javax.annotation.Nonnull;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.util.Objects.requireNonNull;
+import javax.annotation.Nonnull;
+
+import io.microraft.RaftEndpoint;
 
 public final class LocalRaftEndpoint implements RaftEndpoint {
 

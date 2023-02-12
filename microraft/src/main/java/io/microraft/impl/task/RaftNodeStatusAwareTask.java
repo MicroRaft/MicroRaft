@@ -17,16 +17,17 @@
 
 package io.microraft.impl.task;
 
+import static io.microraft.RaftNodeStatus.INITIAL;
+import static io.microraft.RaftNodeStatus.isTerminal;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNodeStatus;
 import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.state.RaftState;
 import io.microraft.model.RaftModelFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static io.microraft.RaftNodeStatus.INITIAL;
-import static io.microraft.RaftNodeStatus.isTerminal;
 
 /**
  * The base class for the tasks that should not run on some Raft node statuses.

@@ -16,19 +16,20 @@
 
 package io.microraft.faulttolerance;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+
+import org.junit.After;
+import org.junit.Test;
+
 import io.microraft.Ordered;
 import io.microraft.RaftConfig;
 import io.microraft.RaftNode;
 import io.microraft.exception.CannotReplicateException;
 import io.microraft.impl.local.LocalRaftGroup;
 import io.microraft.impl.local.SimpleStateMachine;
-import org.junit.After;
-import org.junit.Test;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /*
 

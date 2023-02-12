@@ -17,6 +17,20 @@
 
 package io.microraft.impl.log;
 
+import static io.microraft.impl.local.LocalRaftEndpoint.newEndpoint;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.unmodifiableList;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Collection;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.model.impl.log.DefaultLogEntryOrBuilder;
 import io.microraft.model.impl.log.DefaultRaftGroupMembersViewOrBuilder;
@@ -27,19 +41,6 @@ import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotEntry;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
-import java.util.Collection;
-import java.util.List;
-
-import static io.microraft.impl.local.LocalRaftEndpoint.newEndpoint;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-import static java.util.Collections.unmodifiableList;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class RaftLogTest {
 

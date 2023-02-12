@@ -17,29 +17,6 @@
 
 package io.microraft.impl;
 
-import io.microraft.MembershipChangeMode;
-import io.microraft.Ordered;
-import io.microraft.RaftConfig;
-import io.microraft.RaftEndpoint;
-import io.microraft.RaftRole;
-import io.microraft.impl.local.InMemoryRaftStore;
-import io.microraft.impl.local.LocalRaftGroup;
-import io.microraft.impl.local.SimpleStateMachine;
-import io.microraft.model.log.LogEntry;
-import io.microraft.model.log.SnapshotEntry;
-import io.microraft.model.message.AppendEntriesRequest;
-import io.microraft.model.message.PreVoteRequest;
-import io.microraft.persistence.RestoredRaftState;
-import io.microraft.report.RaftGroupMembers;
-import io.microraft.test.util.BaseTest;
-import org.junit.After;
-import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import static io.microraft.MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER;
 import static io.microraft.MembershipChangeMode.REMOVE_MEMBER;
 import static io.microraft.RaftRole.FOLLOWER;
@@ -60,6 +37,30 @@ import static io.microraft.test.util.RaftTestUtils.getTerm;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.junit.After;
+import org.junit.Test;
+
+import io.microraft.MembershipChangeMode;
+import io.microraft.Ordered;
+import io.microraft.RaftConfig;
+import io.microraft.RaftEndpoint;
+import io.microraft.RaftRole;
+import io.microraft.impl.local.InMemoryRaftStore;
+import io.microraft.impl.local.LocalRaftGroup;
+import io.microraft.impl.local.SimpleStateMachine;
+import io.microraft.model.log.LogEntry;
+import io.microraft.model.log.SnapshotEntry;
+import io.microraft.model.message.AppendEntriesRequest;
+import io.microraft.model.message.PreVoteRequest;
+import io.microraft.persistence.RestoredRaftState;
+import io.microraft.report.RaftGroupMembers;
+import io.microraft.test.util.BaseTest;
 
 public class PersistenceTest extends BaseTest {
 

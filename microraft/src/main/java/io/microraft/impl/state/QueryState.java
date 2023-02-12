@@ -17,9 +17,6 @@
 
 package io.microraft.impl.state;
 
-import io.microraft.RaftEndpoint;
-import io.microraft.impl.util.OrderedFuture;
-
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,6 +24,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import io.microraft.RaftEndpoint;
+import io.microraft.impl.util.OrderedFuture;
 
 /**
  * This class is used to keep query operations until a heartbeat round is

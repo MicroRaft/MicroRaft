@@ -16,6 +16,8 @@
 
 package io.microraft.model;
 
+import javax.annotation.Nonnull;
+
 import io.microraft.RaftNode;
 import io.microraft.lifecycle.RaftNodeLifecycleAware;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp.UpdateRaftGroupMembersOpBuilder;
@@ -38,8 +40,6 @@ import io.microraft.model.persistence.RaftEndpointPersistentState.RaftEndpointPe
 import io.microraft.model.persistence.RaftTermPersistentState.RaftTermPersistentStateBuilder;
 import io.microraft.persistence.RaftStore;
 import io.microraft.transport.Transport;
-
-import javax.annotation.Nonnull;
 
 /**
  * Used for creating {@link RaftModel} objects with the builder pattern.

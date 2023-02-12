@@ -17,6 +17,13 @@
 
 package io.microraft.test.util;
 
+import static org.junit.Assert.assertNotNull;
+
+import java.lang.reflect.Field;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
+import java.util.function.Function;
+
 import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
@@ -34,13 +41,6 @@ import io.microraft.model.log.SnapshotEntry;
 import io.microraft.persistence.RaftStore;
 import io.microraft.persistence.RestoredRaftState;
 import io.microraft.report.RaftNodeReport;
-
-import java.lang.reflect.Field;
-import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
-import java.util.function.Function;
-
-import static org.junit.Assert.assertNotNull;
 
 public final class RaftTestUtils {
 

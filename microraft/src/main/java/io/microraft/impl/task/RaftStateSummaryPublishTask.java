@@ -17,11 +17,11 @@
 
 package io.microraft.impl.task;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import io.microraft.impl.RaftNodeImpl;
 import io.microraft.report.RaftNodeReport;
 import io.microraft.report.RaftNodeReport.RaftNodeReportReason;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Publishes a {@link RaftNodeReport} for the current state of the Raft node

@@ -16,10 +16,10 @@
 
 package io.microraft.impl.state;
 
+import static java.util.Objects.requireNonNull;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.report.RaftTerm;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Contains a snapshot of a Raft node's current state in a term.

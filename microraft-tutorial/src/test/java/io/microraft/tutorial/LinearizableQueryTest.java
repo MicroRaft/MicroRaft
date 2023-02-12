@@ -16,15 +16,16 @@
 
 package io.microraft.tutorial;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.Test;
+
 import io.microraft.Ordered;
 import io.microraft.QueryPolicy;
 import io.microraft.RaftNode;
 import io.microraft.statemachine.StateMachine;
 import io.microraft.tutorial.atomicregister.OperableAtomicRegister;
 import io.microraft.tutorial.atomicregister.OperableAtomicRegister.AtomicRegisterOperation;
-import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /*
 

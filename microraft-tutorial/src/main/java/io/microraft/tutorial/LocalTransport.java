@@ -16,19 +16,21 @@
 
 package io.microraft.tutorial;
 
+import static io.microraft.RaftNodeStatus.TERMINATED;
+import static java.util.Objects.requireNonNull;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.annotation.Nonnull;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.model.message.RaftMessage;
 import io.microraft.transport.Transport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static io.microraft.RaftNodeStatus.TERMINATED;
-import static java.util.Objects.requireNonNull;
 
 /**
  * A very simple {@link Transport} implementation used in the tutorial.

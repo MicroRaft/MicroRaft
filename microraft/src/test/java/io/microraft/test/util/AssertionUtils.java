@@ -17,13 +17,13 @@
 
 package io.microraft.test.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import static java.lang.Integer.getInteger;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.fail;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class AssertionUtils {
 

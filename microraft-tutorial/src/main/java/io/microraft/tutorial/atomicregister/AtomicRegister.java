@@ -17,11 +17,12 @@
 
 package io.microraft.tutorial.atomicregister;
 
-import io.microraft.statemachine.StateMachine;
-
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.function.Consumer;
+
+import javax.annotation.Nonnull;
+
+import io.microraft.statemachine.StateMachine;
 
 /**
  * This is the base class for our atomic register implementation. In this class,

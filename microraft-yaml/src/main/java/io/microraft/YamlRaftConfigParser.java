@@ -16,18 +16,6 @@
 
 package io.microraft;
 
-import io.microraft.RaftConfig.RaftConfigBuilder;
-import org.yaml.snakeyaml.Yaml;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-
 import static io.microraft.YamlRaftConfigFields.APPEND_ENTRIES_REQUEST_BATCH_SIZE_FIELD_NAME;
 import static io.microraft.YamlRaftConfigFields.COMMIT_COUNT_TO_TAKE_SNAPSHOT_FIELD_NAME;
 import static io.microraft.YamlRaftConfigFields.LEADER_ELECTION_TIMEOUT_MILLIS_FIELD_NAME;
@@ -38,6 +26,19 @@ import static io.microraft.YamlRaftConfigFields.RAFT_CONFIG_CONTAINER_NAME;
 import static io.microraft.YamlRaftConfigFields.RAFT_NODE_REPORT_PUBLISH_PERIOD_SECS_FIELD_NAME;
 import static io.microraft.YamlRaftConfigFields.TRANSFER_SNAPSHOTS_FROM_FOLLOWERS_ENABLED_FIELD_NAME;
 import static java.util.Objects.requireNonNull;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+
+import org.yaml.snakeyaml.Yaml;
+
+import io.microraft.RaftConfig.RaftConfigBuilder;
 
 /**
  * {@link RaftConfig} parser for YAML files.

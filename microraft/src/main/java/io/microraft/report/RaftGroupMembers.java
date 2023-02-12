@@ -16,11 +16,12 @@
 
 package io.microraft.report;
 
-import io.microraft.RaftEndpoint;
-import io.microraft.RaftRole;
+import java.util.Collection;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
+
+import io.microraft.RaftEndpoint;
+import io.microraft.RaftRole;
 
 /**
  * Represents member list of a Raft group with an index identifying on which log

@@ -17,32 +17,6 @@
 
 package io.microraft.impl;
 
-import io.microraft.Ordered;
-import io.microraft.RaftConfig;
-import io.microraft.RaftEndpoint;
-import io.microraft.RaftNode;
-import io.microraft.RaftRole;
-import io.microraft.exception.CannotReplicateException;
-import io.microraft.exception.IndeterminateStateException;
-import io.microraft.exception.NotLeaderException;
-import io.microraft.impl.local.LocalRaftGroup;
-import io.microraft.impl.local.SimpleStateMachine;
-import io.microraft.model.message.AppendEntriesRequest;
-import io.microraft.model.message.AppendEntriesSuccessResponse;
-import io.microraft.model.message.VoteRequest;
-import io.microraft.test.util.BaseTest;
-import org.junit.After;
-import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeoutException;
-
 import static io.microraft.impl.local.SimpleStateMachine.applyValue;
 import static io.microraft.test.util.AssertionUtils.allTheTime;
 import static io.microraft.test.util.AssertionUtils.eventually;
@@ -58,6 +32,33 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
+
+import org.junit.After;
+import org.junit.Test;
+
+import io.microraft.Ordered;
+import io.microraft.RaftConfig;
+import io.microraft.RaftEndpoint;
+import io.microraft.RaftNode;
+import io.microraft.RaftRole;
+import io.microraft.exception.CannotReplicateException;
+import io.microraft.exception.IndeterminateStateException;
+import io.microraft.exception.NotLeaderException;
+import io.microraft.impl.local.LocalRaftGroup;
+import io.microraft.impl.local.SimpleStateMachine;
+import io.microraft.model.message.AppendEntriesRequest;
+import io.microraft.model.message.AppendEntriesSuccessResponse;
+import io.microraft.model.message.VoteRequest;
+import io.microraft.test.util.BaseTest;
 
 public class RaftTest extends BaseTest {
 

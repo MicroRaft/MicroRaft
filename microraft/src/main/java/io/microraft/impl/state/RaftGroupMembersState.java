@@ -17,19 +17,20 @@
 
 package io.microraft.impl.state;
 
-import io.microraft.RaftEndpoint;
-import io.microraft.model.log.RaftGroupMembersView;
-import io.microraft.model.log.RaftGroupMembersView.RaftGroupMembersViewBuilder;
-import io.microraft.report.RaftGroupMembers;
+import static java.util.Collections.unmodifiableSet;
+import static java.util.Objects.requireNonNull;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import static java.util.Collections.unmodifiableSet;
-import static java.util.Objects.requireNonNull;
+import javax.annotation.Nonnull;
+
+import io.microraft.RaftEndpoint;
+import io.microraft.model.log.RaftGroupMembersView;
+import io.microraft.model.log.RaftGroupMembersView.RaftGroupMembersViewBuilder;
+import io.microraft.report.RaftGroupMembers;
 
 /**
  * Contains member list of a Raft group.

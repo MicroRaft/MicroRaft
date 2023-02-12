@@ -1,8 +1,8 @@
 package io.microraft.impl.state;
 
-import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.Test;
 
 public class FollowerStateTest {
     private static final long TIME = 12345;

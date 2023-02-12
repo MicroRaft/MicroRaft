@@ -17,10 +17,10 @@
 
 package io.microraft;
 
+import java.io.Serializable;
+
 import io.microraft.exception.CannotReplicateException;
 import io.microraft.report.RaftNodeReport;
-
-import java.io.Serializable;
 
 /**
  * Contains the configuration parameters for MicroRaft's implementation.

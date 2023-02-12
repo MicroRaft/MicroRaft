@@ -17,13 +17,13 @@
 
 package io.microraft.persistence;
 
+import javax.annotation.Nonnull;
+
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.persistence.RaftEndpointPersistentState;
 import io.microraft.model.persistence.RaftTermPersistentState;
-
-import javax.annotation.Nonnull;
 
 /**
  * Used when a Raft node works transiently (its state is not persisted).

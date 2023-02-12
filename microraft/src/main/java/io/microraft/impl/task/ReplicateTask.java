@@ -17,6 +17,14 @@
 
 package io.microraft.impl.task;
 
+import static io.microraft.RaftNodeStatus.INITIAL;
+import static io.microraft.RaftNodeStatus.UPDATING_RAFT_GROUP_MEMBER_LIST;
+import static io.microraft.RaftNodeStatus.isTerminal;
+import static io.microraft.RaftRole.LEADER;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.microraft.RaftNode;
 import io.microraft.RaftNodeStatus;
 import io.microraft.exception.CannotReplicateException;
@@ -28,13 +36,6 @@ import io.microraft.impl.state.RaftState;
 import io.microraft.impl.util.OrderedFuture;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp;
 import io.microraft.model.log.LogEntry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static io.microraft.RaftNodeStatus.INITIAL;
-import static io.microraft.RaftNodeStatus.UPDATING_RAFT_GROUP_MEMBER_LIST;
-import static io.microraft.RaftNodeStatus.isTerminal;
-import static io.microraft.RaftRole.LEADER;
 
 /**
  * Appends the given operation to the log of the given leader Raft node and

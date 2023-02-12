@@ -17,6 +17,13 @@
 
 package io.microraft.impl.handler;
 
+import static io.microraft.RaftRole.LEADER;
+
+import javax.annotation.Nonnull;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.state.FollowerState;
@@ -24,12 +31,6 @@ import io.microraft.impl.state.LeaderState;
 import io.microraft.model.message.AppendEntriesFailureResponse;
 import io.microraft.model.message.AppendEntriesRequest;
 import io.microraft.model.message.InstallSnapshotRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-
-import static io.microraft.RaftRole.LEADER;
 
 /**
  * Handles an {@link AppendEntriesFailureResponse} which can be sent as a

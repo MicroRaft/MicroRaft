@@ -17,6 +17,14 @@
 
 package io.microraft;
 
+import java.time.Clock;
+import java.util.Collection;
+import java.util.Random;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeoutException;
+
+import javax.annotation.Nonnull;
+
 import io.microraft.exception.CannotReplicateException;
 import io.microraft.exception.IndeterminateStateException;
 import io.microraft.exception.LaggingCommitIndexException;
@@ -38,13 +46,6 @@ import io.microraft.report.RaftNodeReportListener;
 import io.microraft.report.RaftTerm;
 import io.microraft.statemachine.StateMachine;
 import io.microraft.transport.Transport;
-
-import javax.annotation.Nonnull;
-import java.time.Clock;
-import java.util.Collection;
-import java.util.Random;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeoutException;
 
 /**
  * A Raft node runs the Raft consensus algorithm as a member of a Raft group.

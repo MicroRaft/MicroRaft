@@ -17,17 +17,18 @@
 
 package io.microraft.impl.util;
 
-import io.microraft.Ordered;
-import io.microraft.test.util.BaseTest;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import org.junit.Test;
+
+import io.microraft.Ordered;
+import io.microraft.test.util.BaseTest;
 
 public class OrderedFutureTest extends BaseTest {
 

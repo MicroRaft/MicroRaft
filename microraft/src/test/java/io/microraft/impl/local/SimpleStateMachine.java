@@ -17,9 +17,6 @@
 
 package io.microraft.impl.local;
 
-import io.microraft.statemachine.StateMachine;
-
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -28,6 +25,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Consumer;
+
+import javax.annotation.Nonnull;
+
+import io.microraft.statemachine.StateMachine;
 
 /**
  * A simple {@link StateMachine} implementation used for testing.

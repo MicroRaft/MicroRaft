@@ -16,6 +16,11 @@
 
 package io.microraft.impl.local;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+
+import org.junit.Test;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.AppendEntriesFailureResponse;
 import io.microraft.model.message.AppendEntriesRequest;
@@ -28,10 +33,6 @@ import io.microraft.model.message.TriggerLeaderElectionRequest;
 import io.microraft.model.message.VoteRequest;
 import io.microraft.model.message.VoteResponse;
 import io.microraft.test.util.BaseTest;
-import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 public class FirewallTest extends BaseTest {
 

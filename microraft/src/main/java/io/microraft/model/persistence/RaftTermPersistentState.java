@@ -1,12 +1,11 @@
 package io.microraft.model.persistence;
 
-import io.microraft.model.RaftModel;
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import io.microraft.RaftEndpoint;
-
-import javax.annotation.Nullable;
-import javax.annotation.Nonnull;
-import javax.annotation.Nonnegative;
+import io.microraft.model.RaftModel;
 
 public interface RaftTermPersistentState extends RaftModel {
 

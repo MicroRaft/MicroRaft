@@ -17,25 +17,6 @@
 
 package io.microraft.impl;
 
-import io.microraft.Ordered;
-import io.microraft.RaftConfig;
-import io.microraft.RaftNode;
-import io.microraft.exception.CannotReplicateException;
-import io.microraft.exception.LaggingCommitIndexException;
-import io.microraft.exception.NotLeaderException;
-import io.microraft.impl.local.LocalRaftGroup;
-import io.microraft.model.message.AppendEntriesFailureResponse;
-import io.microraft.model.message.AppendEntriesRequest;
-import io.microraft.model.message.AppendEntriesSuccessResponse;
-import io.microraft.model.message.InstallSnapshotRequest;
-import io.microraft.test.util.BaseTest;
-import org.junit.After;
-import org.junit.Test;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-
 import static io.microraft.MembershipChangeMode.ADD_LEARNER;
 import static io.microraft.QueryPolicy.LINEARIZABLE;
 import static io.microraft.RaftRole.FOLLOWER;
@@ -49,6 +30,26 @@ import static io.microraft.test.util.RaftTestUtils.getRole;
 import static io.microraft.test.util.RaftTestUtils.getSnapshotEntry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+
+import org.junit.After;
+import org.junit.Test;
+
+import io.microraft.Ordered;
+import io.microraft.RaftConfig;
+import io.microraft.RaftNode;
+import io.microraft.exception.CannotReplicateException;
+import io.microraft.exception.LaggingCommitIndexException;
+import io.microraft.exception.NotLeaderException;
+import io.microraft.impl.local.LocalRaftGroup;
+import io.microraft.model.message.AppendEntriesFailureResponse;
+import io.microraft.model.message.AppendEntriesRequest;
+import io.microraft.model.message.AppendEntriesSuccessResponse;
+import io.microraft.model.message.InstallSnapshotRequest;
+import io.microraft.test.util.BaseTest;
 
 public class LinearizableQueryTest extends BaseTest {
 

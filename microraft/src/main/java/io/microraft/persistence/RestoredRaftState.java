@@ -17,18 +17,19 @@
 
 package io.microraft.persistence;
 
+import static java.util.Objects.requireNonNull;
+
+import java.util.List;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import io.microraft.RaftNode;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotEntry;
 import io.microraft.model.persistence.RaftEndpointPersistentState;
 import io.microraft.model.persistence.RaftTermPersistentState;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.List;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Contains restored state of a {@link RaftNode}. All the fields in this class

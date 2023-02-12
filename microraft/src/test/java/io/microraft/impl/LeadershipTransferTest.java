@@ -17,6 +17,23 @@
 
 package io.microraft.impl;
 
+import static io.microraft.MembershipChangeMode.ADD_LEARNER;
+import static io.microraft.MembershipChangeMode.REMOVE_MEMBER;
+import static io.microraft.RaftRole.FOLLOWER;
+import static io.microraft.impl.local.SimpleStateMachine.applyValue;
+import static io.microraft.test.util.RaftTestUtils.getRole;
+import static io.microraft.test.util.RaftTestUtils.getTerm;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeoutException;
+
+import org.junit.After;
+import org.junit.Test;
+
 import io.microraft.Ordered;
 import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
@@ -27,22 +44,6 @@ import io.microraft.impl.local.LocalRaftEndpoint;
 import io.microraft.impl.local.LocalRaftGroup;
 import io.microraft.model.message.AppendEntriesRequest;
 import io.microraft.test.util.BaseTest;
-import org.junit.After;
-import org.junit.Test;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.TimeoutException;
-
-import static io.microraft.MembershipChangeMode.ADD_LEARNER;
-import static io.microraft.MembershipChangeMode.REMOVE_MEMBER;
-import static io.microraft.RaftRole.FOLLOWER;
-import static io.microraft.impl.local.SimpleStateMachine.applyValue;
-import static io.microraft.test.util.RaftTestUtils.getRole;
-import static io.microraft.test.util.RaftTestUtils.getTerm;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
 
 public class LeadershipTransferTest extends BaseTest {
 

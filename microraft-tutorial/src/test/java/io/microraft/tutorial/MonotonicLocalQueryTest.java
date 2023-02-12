@@ -16,18 +16,19 @@
 
 package io.microraft.tutorial;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
+import java.util.concurrent.CompletionException;
+
+import org.junit.Test;
+
 import io.microraft.Ordered;
 import io.microraft.QueryPolicy;
 import io.microraft.RaftNode;
 import io.microraft.exception.LaggingCommitIndexException;
 import io.microraft.statemachine.StateMachine;
 import io.microraft.tutorial.atomicregister.OperableAtomicRegister;
-import org.junit.Test;
-
-import java.util.concurrent.CompletionException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 /*
 

@@ -17,20 +17,6 @@
 
 package io.microraft.impl;
 
-import io.microraft.Ordered;
-import io.microraft.RaftEndpoint;
-import io.microraft.RaftNode;
-import io.microraft.exception.CannotReplicateException;
-import io.microraft.exception.LaggingCommitIndexException;
-import io.microraft.exception.NotLeaderException;
-import io.microraft.impl.local.LocalRaftGroup;
-import io.microraft.model.message.AppendEntriesRequest;
-import io.microraft.test.util.BaseTest;
-import org.junit.After;
-import org.junit.Test;
-
-import java.util.concurrent.CompletionException;
-
 import static io.microraft.MembershipChangeMode.ADD_LEARNER;
 import static io.microraft.QueryPolicy.BOUNDED_STALENESS;
 import static io.microraft.QueryPolicy.EVENTUAL_CONSISTENCY;
@@ -42,6 +28,21 @@ import static io.microraft.test.util.RaftTestUtils.TEST_RAFT_CONFIG;
 import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
+
+import java.util.concurrent.CompletionException;
+
+import org.junit.After;
+import org.junit.Test;
+
+import io.microraft.Ordered;
+import io.microraft.RaftEndpoint;
+import io.microraft.RaftNode;
+import io.microraft.exception.CannotReplicateException;
+import io.microraft.exception.LaggingCommitIndexException;
+import io.microraft.exception.NotLeaderException;
+import io.microraft.impl.local.LocalRaftGroup;
+import io.microraft.model.message.AppendEntriesRequest;
+import io.microraft.test.util.BaseTest;
 
 public class LocalQueryTest extends BaseTest {
 

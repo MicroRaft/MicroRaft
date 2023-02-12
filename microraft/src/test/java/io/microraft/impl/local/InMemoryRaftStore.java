@@ -17,27 +17,24 @@
 
 package io.microraft.impl.local;
 
-import io.microraft.RaftEndpoint;
+import static java.util.Comparator.comparingInt;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import javax.annotation.Nonnull;
+
 import io.microraft.impl.log.RaftLog;
 import io.microraft.model.impl.log.DefaultSnapshotEntryOrBuilder;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotEntry;
-import io.microraft.persistence.RaftStore;
-import io.microraft.persistence.RestoredRaftState;
 import io.microraft.model.persistence.RaftEndpointPersistentState;
 import io.microraft.model.persistence.RaftTermPersistentState;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static java.util.Comparator.comparingInt;
-
-import java.io.IOException;
+import io.microraft.persistence.RaftStore;
+import io.microraft.persistence.RestoredRaftState;
 
 /**
  * A very simple in-memory {@link RaftStore} implementation used for testing.

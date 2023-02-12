@@ -16,14 +16,14 @@
 
 package io.microraft.model.impl.message;
 
+import static java.util.Objects.requireNonNull;
+
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.TriggerLeaderElectionRequest;
 import io.microraft.model.message.TriggerLeaderElectionRequest.TriggerLeaderElectionRequestBuilder;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nonnegative;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * The default impl of the {@link TriggerLeaderElectionRequest} and

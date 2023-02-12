@@ -16,16 +16,17 @@
 
 package io.microraft.tutorial;
 
+import static io.microraft.QueryPolicy.EVENTUAL_CONSISTENCY;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.Test;
+
 import io.microraft.Ordered;
 import io.microraft.RaftConfig;
 import io.microraft.RaftNode;
 import io.microraft.report.RaftLogStats;
 import io.microraft.statemachine.StateMachine;
 import io.microraft.tutorial.atomicregister.SnapshotableAtomicRegister;
-import org.junit.Test;
-
-import static io.microraft.QueryPolicy.EVENTUAL_CONSISTENCY;
-import static org.assertj.core.api.Assertions.assertThat;
 
 /*
 

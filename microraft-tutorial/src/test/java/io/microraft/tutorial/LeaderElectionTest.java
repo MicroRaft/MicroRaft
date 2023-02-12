@@ -16,12 +16,13 @@
 
 package io.microraft.tutorial;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.Test;
+
 import io.microraft.RaftNode;
 import io.microraft.statemachine.StateMachine;
 import io.microraft.tutorial.atomicregister.AtomicRegister;
-import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /*
 

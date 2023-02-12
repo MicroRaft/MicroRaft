@@ -17,10 +17,11 @@
 
 package io.microraft.impl.task;
 
-import io.microraft.impl.RaftNodeImpl;
-import io.microraft.model.message.PreVoteRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.microraft.impl.RaftNodeImpl;
+import io.microraft.model.message.PreVoteRequest;
 
 /**
  * Scheduled when the current leader is null, unreachable, or unknown.

@@ -18,7 +18,7 @@
 
 package io.microraft.impl.util;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import static java.util.Objects.requireNonNull;
 
 import java.util.AbstractCollection;
 import java.util.AbstractSet;
@@ -30,7 +30,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.LongFunction;
 
-import static java.util.Objects.requireNonNull;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * {@link java.util.Map} implementation specialised for {@code long} keys using

@@ -16,12 +16,13 @@
 
 package io.microraft.executor;
 
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Nonnull;
+
 import io.microraft.RaftNode;
 import io.microraft.executor.impl.DefaultRaftNodeExecutor;
 import io.microraft.lifecycle.RaftNodeLifecycleAware;
-
-import javax.annotation.Nonnull;
-import java.util.concurrent.TimeUnit;
 
 /**
  * The abstraction used by {@link RaftNode} to execute the Raft consensus

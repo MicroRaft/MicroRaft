@@ -16,12 +16,13 @@
 
 package io.microraft.model.groupop;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import io.microraft.MembershipChangeMode;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
-
-import javax.annotation.Nonnull;
-import java.util.Collection;
 
 /**
  * Updates member list of a Raft group.

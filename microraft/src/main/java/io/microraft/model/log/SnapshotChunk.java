@@ -16,11 +16,12 @@
 
 package io.microraft.model.log;
 
-import io.microraft.statemachine.StateMachine;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nonnegative;
 import java.util.function.Consumer;
+
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+
+import io.microraft.statemachine.StateMachine;
 
 /**
  * Represents a snapshot chunk.

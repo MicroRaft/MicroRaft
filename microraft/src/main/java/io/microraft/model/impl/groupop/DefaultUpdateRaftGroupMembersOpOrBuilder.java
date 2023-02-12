@@ -16,15 +16,16 @@
 
 package io.microraft.model.impl.groupop;
 
+import static java.util.Objects.requireNonNull;
+
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import io.microraft.MembershipChangeMode;
 import io.microraft.RaftEndpoint;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp.UpdateRaftGroupMembersOpBuilder;
-
-import javax.annotation.Nonnull;
-import java.util.Collection;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * The default impl of the {@link UpdateRaftGroupMembersOp} and

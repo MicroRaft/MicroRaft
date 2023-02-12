@@ -16,6 +16,8 @@
 
 package io.microraft.transport;
 
+import javax.annotation.Nonnull;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.executor.RaftNodeExecutor;
@@ -23,8 +25,6 @@ import io.microraft.lifecycle.RaftNodeLifecycleAware;
 import io.microraft.model.RaftModel;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.model.message.RaftMessage;
-
-import javax.annotation.Nonnull;
 
 /**
  * Used for communicating Raft nodes with each other.

@@ -16,10 +16,10 @@
 
 package io.microraft.model.impl.log;
 
-import io.microraft.model.log.BaseLogEntry;
-
-import javax.annotation.Nonnull;
 import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+
+import io.microraft.model.log.BaseLogEntry;
 
 /**
  * Base class for Raft log entry implementations.

@@ -17,9 +17,9 @@
 
 package io.microraft.exception;
 
-import io.microraft.RaftEndpoint;
-
 import java.util.Collection;
+
+import io.microraft.RaftEndpoint;
 
 /**
  * Thrown when a membership change is triggered with an expected group members

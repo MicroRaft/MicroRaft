@@ -16,10 +16,10 @@
 
 package io.microraft.model.message;
 
-import io.microraft.RaftEndpoint;
-
-import javax.annotation.Nonnull;
 import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+
+import io.microraft.RaftEndpoint;
 
 /**
  * Response for {@link InstallSnapshotRequest}.

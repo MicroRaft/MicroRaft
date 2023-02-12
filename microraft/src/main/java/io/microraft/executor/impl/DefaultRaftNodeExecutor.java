@@ -18,13 +18,15 @@ package io.microraft.executor.impl;
 
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 
-import io.microraft.RaftNode;
-import io.microraft.executor.RaftNodeExecutor;
-import io.microraft.lifecycle.RaftNodeLifecycleAware;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.annotation.Nonnull;
+
+import io.microraft.RaftNode;
+import io.microraft.executor.RaftNodeExecutor;
+import io.microraft.lifecycle.RaftNodeLifecycleAware;
 
 /**
  * The default implementation of {@link RaftNodeExecutor}.

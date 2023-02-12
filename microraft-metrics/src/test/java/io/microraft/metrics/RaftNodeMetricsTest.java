@@ -16,6 +16,19 @@
 
 package io.microraft.metrics;
 
+import static io.microraft.test.util.AssertionUtils.sleepMillis;
+
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.logging.LoggingMeterRegistry;
 import io.micrometer.core.instrument.logging.LoggingRegistryConfig;
@@ -29,18 +42,6 @@ import io.microraft.impl.local.SimpleStateMachine;
 import io.microraft.report.RaftTerm;
 import io.microraft.statemachine.StateMachine;
 import io.microraft.test.util.BaseTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static io.microraft.test.util.AssertionUtils.sleepMillis;
 
 public class RaftNodeMetricsTest extends BaseTest {
 

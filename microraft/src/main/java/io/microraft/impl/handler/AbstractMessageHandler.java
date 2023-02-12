@@ -16,11 +16,11 @@
 
 package io.microraft.impl.handler;
 
+import javax.annotation.Nonnull;
+
 import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.task.RaftNodeStatusAwareTask;
 import io.microraft.model.message.RaftMessage;
-
-import javax.annotation.Nonnull;
 
 /**
  * Base class for {@link RaftMessage} handlers.

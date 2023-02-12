@@ -17,12 +17,13 @@
 
 package io.microraft.impl.state;
 
-import io.microraft.RaftEndpoint;
-import io.microraft.impl.local.LocalRaftEndpoint;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import io.microraft.RaftEndpoint;
+import io.microraft.impl.local.LocalRaftEndpoint;
 
 public class CandidateStateTest {
 

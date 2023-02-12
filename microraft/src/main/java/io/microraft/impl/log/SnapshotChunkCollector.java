@@ -16,15 +16,8 @@
 
 package io.microraft.impl.log;
 
-import io.microraft.RaftEndpoint;
-import io.microraft.impl.handler.InstallSnapshotRequestHandler;
-import io.microraft.impl.handler.InstallSnapshotResponseHandler;
-import io.microraft.model.log.RaftGroupMembersView;
-import io.microraft.model.log.SnapshotChunk;
-import io.microraft.model.log.SnapshotEntry;
-import io.microraft.model.log.SnapshotEntry.SnapshotEntryBuilder;
-import io.microraft.model.message.InstallSnapshotRequest;
-import io.microraft.model.message.InstallSnapshotResponse;
+import static java.util.Comparator.comparingInt;
+import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,8 +31,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import static java.util.Comparator.comparingInt;
-import static java.util.Objects.requireNonNull;
+import io.microraft.RaftEndpoint;
+import io.microraft.impl.handler.InstallSnapshotRequestHandler;
+import io.microraft.impl.handler.InstallSnapshotResponseHandler;
+import io.microraft.model.log.RaftGroupMembersView;
+import io.microraft.model.log.SnapshotChunk;
+import io.microraft.model.log.SnapshotEntry;
+import io.microraft.model.log.SnapshotEntry.SnapshotEntryBuilder;
+import io.microraft.model.message.InstallSnapshotRequest;
+import io.microraft.model.message.InstallSnapshotResponse;
 
 /**
  * Collects received snapshot chunks during a snapshot installation process.

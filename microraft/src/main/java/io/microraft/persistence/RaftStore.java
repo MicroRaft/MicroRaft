@@ -17,6 +17,10 @@
 
 package io.microraft.persistence;
 
+import java.io.IOException;
+
+import javax.annotation.Nonnull;
+
 import io.microraft.RaftConfig;
 import io.microraft.RaftNode;
 import io.microraft.lifecycle.RaftNodeLifecycleAware;
@@ -28,9 +32,6 @@ import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.persistence.RaftEndpointPersistentState;
 import io.microraft.model.persistence.RaftTermPersistentState;
 import io.microraft.statemachine.StateMachine;
-
-import javax.annotation.Nonnull;
-import java.io.IOException;
 
 /**
  * This interface is used for persisting only the internal state of the Raft

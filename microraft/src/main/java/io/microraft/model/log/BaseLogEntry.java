@@ -16,11 +16,11 @@
 
 package io.microraft.model.log;
 
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+
 import io.microraft.model.RaftModel;
 import io.microraft.model.RaftModelFactory;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nonnegative;
 
 /**
  * Base class for Raft log entries.

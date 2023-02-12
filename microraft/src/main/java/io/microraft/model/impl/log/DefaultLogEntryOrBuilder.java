@@ -16,13 +16,13 @@
 
 package io.microraft.model.impl.log;
 
+import static java.util.Objects.requireNonNull;
+
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.LogEntry.LogEntryBuilder;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nonnegative;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * The default impl of the {@link LogEntry} and {@link LogEntryBuilder}

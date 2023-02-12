@@ -17,12 +17,12 @@
 
 package io.microraft.impl.state;
 
-import io.microraft.RaftEndpoint;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+
+import io.microraft.RaftEndpoint;
 
 /**
  * State maintained by the Raft group leader.

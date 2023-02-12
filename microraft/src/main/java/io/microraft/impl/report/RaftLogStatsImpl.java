@@ -16,14 +16,14 @@
 
 package io.microraft.impl.report;
 
+import static java.util.Objects.requireNonNull;
+
+import java.util.Map;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.BaseLogEntry;
 import io.microraft.model.log.SnapshotEntry;
 import io.microraft.report.RaftLogStats;
-
-import java.util.Map;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Contains statistics about a Raft node's local Raft log.

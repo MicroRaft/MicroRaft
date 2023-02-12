@@ -16,6 +16,21 @@
 
 package io.microraft.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+
+import javax.annotation.Nonnull;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.RaftNodeStatus;
@@ -49,22 +64,6 @@ import io.microraft.report.RaftNodeReportListener;
 import io.microraft.statemachine.StateMachine;
 import io.microraft.test.util.BaseTest;
 import io.microraft.transport.Transport;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 public class RaftNodeLifecycleAwareTest extends BaseTest {
 

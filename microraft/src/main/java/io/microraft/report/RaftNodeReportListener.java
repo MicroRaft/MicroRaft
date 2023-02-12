@@ -16,10 +16,10 @@
 
 package io.microraft.report;
 
+import java.util.function.Consumer;
+
 import io.microraft.RaftNode;
 import io.microraft.lifecycle.RaftNodeLifecycleAware;
-
-import java.util.function.Consumer;
 
 /**
  * Used for informing external systems about events related to the execution of

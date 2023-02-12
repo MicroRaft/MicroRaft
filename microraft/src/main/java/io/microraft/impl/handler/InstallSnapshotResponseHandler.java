@@ -16,19 +16,20 @@
 
 package io.microraft.impl.handler;
 
+import static io.microraft.RaftRole.FOLLOWER;
+import static io.microraft.RaftRole.LEADER;
+import static io.microraft.RaftRole.LEARNER;
+
+import javax.annotation.Nonnull;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.state.FollowerState;
 import io.microraft.impl.state.LeaderState;
 import io.microraft.model.message.InstallSnapshotRequest;
 import io.microraft.model.message.InstallSnapshotResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-
-import static io.microraft.RaftRole.FOLLOWER;
-import static io.microraft.RaftRole.LEADER;
-import static io.microraft.RaftRole.LEARNER;
 
 /**
  * Handles an {@link InstallSnapshotResponse} sent by a Raft follower and

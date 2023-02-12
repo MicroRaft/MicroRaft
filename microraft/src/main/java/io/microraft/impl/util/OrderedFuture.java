@@ -16,10 +16,10 @@
 
 package io.microraft.impl.util;
 
+import java.util.concurrent.CompletableFuture;
+
 import io.microraft.Ordered;
 import io.microraft.RaftNode;
-
-import java.util.concurrent.CompletableFuture;
 
 /**
  * A utility class to implement {@link CompletableFuture} and {@link Ordered}

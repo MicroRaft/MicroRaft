@@ -16,9 +16,9 @@
 
 package io.microraft.report;
 
-import io.microraft.RaftEndpoint;
-
 import javax.annotation.Nullable;
+
+import io.microraft.RaftEndpoint;
 
 /**
  * Contains a snapshot of a Raft node's current state in a term.

@@ -17,24 +17,6 @@
 
 package io.microraft.impl.state;
 
-import io.microraft.RaftEndpoint;
-import io.microraft.impl.local.LocalRaftEndpoint;
-import io.microraft.impl.log.RaftLog;
-import io.microraft.model.impl.DefaultRaftModelFactory;
-import io.microraft.model.impl.log.DefaultLogEntryOrBuilder;
-import io.microraft.model.impl.log.DefaultRaftGroupMembersViewOrBuilder;
-import io.microraft.model.log.RaftGroupMembersView;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-
 import static io.microraft.RaftRole.CANDIDATE;
 import static io.microraft.RaftRole.FOLLOWER;
 import static io.microraft.RaftRole.LEADER;
@@ -43,6 +25,25 @@ import static io.microraft.impl.local.LocalRaftEndpoint.newEndpoint;
 import static io.microraft.test.util.RaftTestUtils.majority;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import io.microraft.RaftEndpoint;
+import io.microraft.impl.local.LocalRaftEndpoint;
+import io.microraft.impl.log.RaftLog;
+import io.microraft.model.impl.DefaultRaftModelFactory;
+import io.microraft.model.impl.log.DefaultLogEntryOrBuilder;
+import io.microraft.model.impl.log.DefaultRaftGroupMembersViewOrBuilder;
+import io.microraft.model.log.RaftGroupMembersView;
 
 public class RaftStateTest {
     private static final long TIME = 12345;

@@ -16,16 +16,17 @@
 
 package io.microraft.model.impl.log;
 
+import static java.util.Objects.requireNonNull;
+
+import java.util.List;
+
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+
 import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotEntry;
 import io.microraft.model.log.SnapshotEntry.SnapshotEntryBuilder;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nonnegative;
-import java.util.List;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * The default impl of the {@link SnapshotEntry} and

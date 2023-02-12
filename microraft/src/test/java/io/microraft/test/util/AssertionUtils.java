@@ -64,14 +64,6 @@ public final class AssertionUtils {
         fail("eventually() failed without AssertionError!");
     }
 
-    public static void sleepMillis(long millis) {
-        try {
-            MILLISECONDS.sleep(millis);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
     public static void allTheTime(AssertTask task, long durationSeconds) {
         for (int i = 0; i < durationSeconds; i++) {
             try {
@@ -83,12 +75,27 @@ public final class AssertionUtils {
         }
     }
 
-    public static void sleepSeconds(int seconds) {
-        try {
-            SECONDS.sleep(seconds);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+    public static void sleepMillis(long millis) {
+        if (millis <= 0) {
+            return;
         }
+
+        long now = System.currentTimeMillis();
+        long deadline = now + millis;
+        while (now < deadline) {
+            try {
+                MILLISECONDS.sleep(deadline - now);
+                now = Math.max(now, System.currentTimeMillis());
+            } catch (InterruptedException e) {
+                LOGGER.info("Interrupted while sleeping {} millis.", millis);
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+    }
+
+    public static void sleepSeconds(int seconds) {
+        sleepMillis(seconds * 1000);
     }
 
     @FunctionalInterface

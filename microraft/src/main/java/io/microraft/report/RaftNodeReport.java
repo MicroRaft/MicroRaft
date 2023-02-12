@@ -16,6 +16,9 @@
 
 package io.microraft.report;
 
+import java.util.Map;
+import java.util.Optional;
+
 import javax.annotation.Nonnull;
 
 import io.microraft.RaftConfig;
@@ -104,7 +107,10 @@ public interface RaftNodeReport {
     RaftGroupMembers getEffectiveMembers();
 
     /**
-     * Returns the role of the Raft node in the current term.
+     * Returns the role of the Raft node in the current term. If the returned role
+     * is {@link RafRole#LEADER}, it means the local Raft node has received
+     * heartbeats from the majority in the last
+     * {@link RaftConfig#leaderHeartbeatTimeoutSecs} seconds.
      *
      * @return the role of the Raft node in the current term
      */
@@ -136,6 +142,40 @@ public interface RaftNodeReport {
      */
     @Nonnull
     RaftLogStats getLog();
+
+    /**
+     * Returns timestamps of latest heartbeats sent by the non-leader nodes to the
+     * leader Raft node, including both {@link RaftRole#FOLLOWER} and
+     * {@link RaftRole#LEARNER} nodes. The leader node's RaftEndpoint is not present
+     * in the map. This map is returned non-empty only by the leader Raft node.
+     *
+     * @return timestamps of latest heartbeats sent by the non-leader nodes
+     */
+    @Nonnull
+    Map<RaftEndpoint, Long> getHeartbeatTimestamps();
+
+    /**
+     * Returns earliest heartbeat timestamp of the replication quorum. This method
+     * returns a non-empty value only for the leader Raft node. For instance, this
+     * method returns 8 for the following heartbeat timestamps of 5 Raft nodes, A
+     * (leader) ts = -, B (follower) ts = 10, C (follower) ts = 8, D (follower) ts =
+     * 6, E (follower) ts = 4. Please note that {@link RaftRole#LEARNER} nodes and
+     * their heartbeats are excluded in quorum calculations.
+     *
+     * @return earliest heartbeat timestamp of the replication quorum
+     */
+    @Nonnull
+    Optional<Long> getQuorumHeartbeatTimestamp();
+
+    /**
+     * Returns timestamp of the latest heartbeat received from the leader Raft node.
+     * This method returns a non-empty value only from a non-leader Raft node if it
+     * has ever received a heartbeat from the leader.
+     *
+     * @return timestamp of the latest heartbeat received from the leader Raft node
+     */
+    @Nonnull
+    Optional<Long> getLeaderHeartbeatTimestamp();
 
     /**
      * Denotes the reason for a given report

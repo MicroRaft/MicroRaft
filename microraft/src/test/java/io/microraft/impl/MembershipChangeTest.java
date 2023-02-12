@@ -42,6 +42,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -130,6 +131,9 @@ public class MembershipChangeTest extends BaseTest {
         assertThat(newNode.getEffectiveMembers().getMembers()).isEqualTo(leader.getEffectiveMembers().getMembers());
         assertThat(newNode.getEffectiveMembers().getLogIndex()).isEqualTo(leader.getEffectiveMembers().getLogIndex());
         assertThat(newNode.getEffectiveMembers().getMajorityQuorumSize()).isEqualTo(1 + majority(initialMemberCount));
+
+        Map<RaftEndpoint, Long> heartbeatTimestamps = leader.getReport().join().getResult().getHeartbeatTimestamps();
+        assertThat(heartbeatTimestamps).containsKey(newNode.getLocalEndpoint());
     }
 
     @Test(timeout = 300_000)
@@ -184,6 +188,9 @@ public class MembershipChangeTest extends BaseTest {
         assertThat(newNode.getEffectiveMembers().getMembers()).isEqualTo(leader.getEffectiveMembers().getMembers());
         assertThat(newNode.getEffectiveMembers().getLogIndex()).isEqualTo(leader.getEffectiveMembers().getLogIndex());
         assertThat(newNode.getEffectiveMembers().getMajorityQuorumSize()).isEqualTo(majority(initialMemberCount));
+
+        Map<RaftEndpoint, Long> heartbeatTimestamps = leader.getReport().join().getResult().getHeartbeatTimestamps();
+        assertThat(heartbeatTimestamps).containsKey(newNode.getLocalEndpoint());
     }
 
     @Test(timeout = 300_000)
@@ -231,6 +238,10 @@ public class MembershipChangeTest extends BaseTest {
         long commitIndex = getCommitIndex(leader);
         eventually(() -> assertThat(getCommitIndex(newNode1)).isEqualTo(commitIndex));
         eventually(() -> assertThat(getCommitIndex(newNode2)).isEqualTo(commitIndex));
+
+        Map<RaftEndpoint, Long> heartbeatTimestamps = leader.getReport().join().getResult().getHeartbeatTimestamps();
+        assertThat(heartbeatTimestamps).containsKey(newNode1.getLocalEndpoint());
+        assertThat(heartbeatTimestamps).containsKey(newNode2.getLocalEndpoint());
 
         assertThat(newNode1.getReport().join().getResult().getRole()).isEqualTo(LEARNER);
         assertThat(newNode2.getReport().join().getResult().getRole()).isEqualTo(FOLLOWER);
@@ -306,6 +317,10 @@ public class MembershipChangeTest extends BaseTest {
         eventually(() -> assertThat(getCommitIndex(newNode1)).isEqualTo(commitIndex));
         eventually(() -> assertThat(getCommitIndex(newNode2)).isEqualTo(commitIndex));
 
+        Map<RaftEndpoint, Long> heartbeatTimestamps = leader.getReport().join().getResult().getHeartbeatTimestamps();
+        assertThat(heartbeatTimestamps).containsKey(newNode1.getLocalEndpoint());
+        assertThat(heartbeatTimestamps).containsKey(newNode2.getLocalEndpoint());
+
         assertThat(newNode1.getReport().join().getResult().getRole()).isEqualTo(LEARNER);
         assertThat(newNode2.getReport().join().getResult().getRole()).isEqualTo(LEARNER);
 
@@ -375,6 +390,11 @@ public class MembershipChangeTest extends BaseTest {
         eventually(() -> assertThat(getCommitIndex(newNode1)).isEqualTo(commitIndex));
         eventually(() -> assertThat(getCommitIndex(newNode2)).isEqualTo(commitIndex));
         eventually(() -> assertThat(getCommitIndex(newNode3)).isEqualTo(commitIndex));
+
+        Map<RaftEndpoint, Long> heartbeatTimestamps = leader.getReport().join().getResult().getHeartbeatTimestamps();
+        assertThat(heartbeatTimestamps).containsKey(newNode1.getLocalEndpoint());
+        assertThat(heartbeatTimestamps).containsKey(newNode2.getLocalEndpoint());
+        assertThat(heartbeatTimestamps).containsKey(newNode3.getLocalEndpoint());
 
         assertThat(newNode1.getReport().join().getResult().getRole()).isEqualTo(LEARNER);
         assertThat(newNode2.getReport().join().getResult().getRole()).isEqualTo(LEARNER);

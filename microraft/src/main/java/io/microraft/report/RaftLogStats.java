@@ -80,10 +80,7 @@ public interface RaftLogStats {
 
     /**
      * Returns the indices of the last known appended Raft log entries on the
-     * followers.
-     * <p>
-     * This map is non-empty only for the leader Raft node. Followers return an
-     * empty map.
+     * followers. This map is non-empty only for the leader Raft node.
      *
      * @return the indices of the last known appended Raft log entries on the
      *         followers

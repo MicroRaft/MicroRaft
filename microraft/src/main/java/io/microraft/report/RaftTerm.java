@@ -34,7 +34,9 @@ public interface RaftTerm {
 
     /**
      * Returns the known Raft leader endpoint in the current term, or null if
-     * unknown.
+     * unknown. For a non-leader Raft node, if this method returns a non-null Raft
+     * endpoint, it means the local Raft node has recently received a heartbeat from
+     * the leader.
      *
      * @return the known Raft leader endpoint in the current term, or null if
      *         unknown

@@ -18,6 +18,9 @@ package io.microraft.impl.report;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Map;
+import java.util.Optional;
+
 import javax.annotation.Nonnull;
 
 import io.microraft.RaftEndpoint;
@@ -43,10 +46,15 @@ public final class RaftNodeReportImpl implements RaftNodeReport {
     private final RaftNodeStatus status;
     private final RaftTerm term;
     private final RaftLogStats log;
+    private final Map<RaftEndpoint, Long> heartbeatTimestamps;
+    private final Optional<Long> quorumHeartbeatTimestamp;
+    private final Optional<Long> leaderHeartbeatTimestamp;
 
     public RaftNodeReportImpl(RaftNodeReportReason reason, Object groupId, RaftEndpoint localEndpoint,
             RaftGroupMembers initialMembers, RaftGroupMembers committedMembers, RaftGroupMembers effectiveMembers,
-            RaftRole role, RaftNodeStatus status, RaftTerm term, RaftLogStats log) {
+            RaftRole role, RaftNodeStatus status, RaftTerm term, RaftLogStats log,
+            Map<RaftEndpoint, Long> heartbeatTimestamps, Optional<Long> quorumHeartbeatTimestamp,
+            Optional<Long> leaderHeartbeatTimestamp) {
         this.reason = requireNonNull(reason);
         this.groupId = requireNonNull(groupId);
         this.localEndpoint = requireNonNull(localEndpoint);
@@ -57,6 +65,9 @@ public final class RaftNodeReportImpl implements RaftNodeReport {
         this.status = requireNonNull(status);
         this.term = requireNonNull(term);
         this.log = requireNonNull(log);
+        this.heartbeatTimestamps = requireNonNull(heartbeatTimestamps);
+        this.quorumHeartbeatTimestamp = requireNonNull(quorumHeartbeatTimestamp);
+        this.leaderHeartbeatTimestamp = requireNonNull(leaderHeartbeatTimestamp);
     }
 
     @Nonnull
@@ -119,12 +130,33 @@ public final class RaftNodeReportImpl implements RaftNodeReport {
         return log;
     }
 
+    @Nonnull
+    @Override
+    public Map<RaftEndpoint, Long> getHeartbeatTimestamps() {
+        return heartbeatTimestamps;
+    }
+
+    @Nonnull
+    @Override
+    public Optional<Long> getQuorumHeartbeatTimestamp() {
+        return quorumHeartbeatTimestamp;
+    }
+
+    @Nonnull
+    @Override
+    public Optional<Long> getLeaderHeartbeatTimestamp() {
+        return leaderHeartbeatTimestamp;
+    }
+
     @Override
     public String toString() {
         return "RaftNodeReport{" + "reason=" + reason + ", groupId=" + groupId + ", localEndpoint=" + localEndpoint
                 + ", initialMembers=" + initialMembers + ", committedMembers=" + committedMembers
                 + ", effectiveMembers=" + effectiveMembers + ", role=" + role + ", status=" + status + ", term=" + term
-                + ", log=" + log + '}';
+                + ", log=" + log + ", heartbeatTimestamps=" + heartbeatTimestamps + ", quorumHeartbeatTimestamp="
+                + (quorumHeartbeatTimestamp.isPresent() ? quorumHeartbeatTimestamp.get() : "-")
+                + ", leaderHeartbeatTimestamp="
+                + (leaderHeartbeatTimestamp.isPresent() ? leaderHeartbeatTimestamp.get() : "-") + '}';
     }
 
 }

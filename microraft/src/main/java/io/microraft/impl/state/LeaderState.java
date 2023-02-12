@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import io.microraft.RaftEndpoint;
 
@@ -154,18 +155,31 @@ public final class LeaderState {
      * Returns the earliest append entries response timestamp of the log replication
      * quorum nodes.
      */
-    public long quorumResponseTimestamp(int quorumSize) {
+    public long quorumResponseTimestamp(int quorumSize, long localNodeTimestamp) {
         long[] timestamps = new long[followerStates.size() + 1];
         int i = 0;
-        // for the local RaftNode
-        timestamps[i] = Long.MAX_VALUE;
+        long maxFollowerTimestamp = 0;
         for (FollowerState followerState : followerStates.values()) {
-            timestamps[++i] = followerState.responseTimestamp();
+            long followerTimestamp = followerState.responseTimestamp();
+            maxFollowerTimestamp = Math.max(maxFollowerTimestamp, followerTimestamp);
+            timestamps[i++] = followerTimestamp;
         }
+        // this is for the local RaftNode. all timestmaps are local,
+        // hence local RaftNode's timestamp cannot be smaller than
+        // any of the follower timestamps.
+        timestamps[i] = Math.max(maxFollowerTimestamp, localNodeTimestamp);
 
         Arrays.sort(timestamps);
 
         return timestamps[timestamps.length - quorumSize];
+    }
+
+    /**
+     * Returns response timestamps of all followers.
+     */
+    public Map<RaftEndpoint, Long> responseTimestamps() {
+        return followerStates.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().responseTimestamp()));
     }
 
 }

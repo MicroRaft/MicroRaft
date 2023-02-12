@@ -37,6 +37,7 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -84,8 +85,20 @@ public class SingletonRaftGroupTest extends BaseTest {
         List<RaftNodeReport> reports = group.getRaftNodeReports(leader.getLocalEndpoint());
         assertThat(reports).hasSize(3);
         assertThat(reports.get(0).getRole()).isEqualTo(RaftRole.FOLLOWER);
+        assertThat(reports.get(0).getLeaderHeartbeatTimestamp()).isEmpty();
+        assertThat(reports.get(0).getQuorumHeartbeatTimestamp()).isEmpty();
+        assertThat(reports.get(0).getHeartbeatTimestamps()).isEmpty();
         assertThat(reports.get(1).getRole()).isEqualTo(RaftRole.CANDIDATE);
+        assertThat(reports.get(1).getLeaderHeartbeatTimestamp()).isEmpty();
+        assertThat(reports.get(1).getQuorumHeartbeatTimestamp()).isEmpty();
+        assertThat(reports.get(1).getHeartbeatTimestamps()).isEmpty();
         assertThat(reports.get(2).getRole()).isEqualTo(RaftRole.LEADER);
+        assertThat(reports.get(2).getLeaderHeartbeatTimestamp()).isEmpty();
+        assertThat(reports.get(2).getQuorumHeartbeatTimestamp()).isPresent();
+        assertThat(reports.get(2).getHeartbeatTimestamps()).isEmpty();
+
+        Optional<Long> quorumTimestamp = reports.get(2).getQuorumHeartbeatTimestamp();
+        assertThat(quorumTimestamp.get()).isGreaterThan(0).isLessThan(Long.MAX_VALUE);
 
         allTheTime(() -> assertThat(leader.getLeaderEndpoint()).isEqualTo(leader.getLocalEndpoint()),
                 2 * config.getLeaderHeartbeatTimeoutSecs());
@@ -101,6 +114,9 @@ public class SingletonRaftGroupTest extends BaseTest {
 
         Object val = group.getStateMachine(leader.getLocalEndpoint()).get(result.getCommitIndex());
         assertThat(val).isEqualTo(expectedVal);
+
+        Optional<Long> quorumTimestamp = leader.getReport().join().getResult().getQuorumHeartbeatTimestamp();
+        assertThat(quorumTimestamp.get()).isGreaterThan(0).isLessThan(Long.MAX_VALUE);
     }
 
     @Test(timeout = 300_000)

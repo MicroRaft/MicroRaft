@@ -50,6 +50,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
@@ -769,9 +770,19 @@ public final class RaftNodeImpl implements RaftNode {
     }
 
     private RaftNodeReportImpl newReport(RaftNodeReportReason reason) {
+        Map<RaftEndpoint, Long> heartbeatTimestamps = state.leaderState() != null
+                ? state.leaderState().responseTimestamps()
+                : Collections.emptyMap();
+        Optional<Long> quorumTimestamp = getQuorumHeartbeatTimestamp();
+        // non-empty if this node is not leader and received at least one heartbeat from
+        // the leader.
+        Optional<Long> leaderHeartbeatTimestamp = (quorumTimestamp.isEmpty() && this.lastLeaderHeartbeatTimestamp > 0)
+                ? Optional.of(Math.min(this.lastLeaderHeartbeatTimestamp, clock.millis()))
+                : Optional.empty();
+
         return new RaftNodeReportImpl(requireNonNull(reason), groupId, state.localEndpoint(), state.initialMembers(),
                 state.committedGroupMembers(), state.effectiveGroupMembers(), state.role(), status, state.termState(),
-                newLogReport());
+                newLogReport(), heartbeatTimestamps, quorumTimestamp, leaderHeartbeatTimestamp);
     }
 
     private RaftLogStatsImpl newLogReport() {
@@ -1760,21 +1771,30 @@ public final class RaftNodeImpl implements RaftNode {
     }
 
     public boolean demoteToFollowerIfQuorumHeartbeatTimeoutElapsed() {
-        LeaderState leaderState = state.leaderState();
-        if (leaderState == null) {
+        Optional<Long> quorumTimestamp = getQuorumHeartbeatTimestamp();
+        if (quorumTimestamp.isEmpty()) {
             return true;
         }
 
-        long quorumTimestamp = leaderState.quorumResponseTimestamp(state.logReplicationQuorumSize());
-        boolean demoteToFollower = isLeaderHeartbeatTimeoutElapsed(quorumTimestamp);
+        boolean demoteToFollower = isLeaderHeartbeatTimeoutElapsed(quorumTimestamp.get());
         if (demoteToFollower) {
-            LOGGER.warn("{} Demoting to {} since not received append entries responses from majority recently.",
-                    localEndpointStr, FOLLOWER);
+            LOGGER.warn(
+                    "{} Demoting to {} since not received append entries responses from majority recently. Latest quorum timestamp: {}",
+                    localEndpointStr, FOLLOWER, quorumTimestamp.get());
             toFollower(state.term());
             invalidateFuturesFrom(state.commitIndex() + 1, new IndeterminateStateException());
         }
 
         return demoteToFollower;
+    }
+
+    private Optional<Long> getQuorumHeartbeatTimestamp() {
+        LeaderState leaderState = state.leaderState();
+        if (leaderState == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(leaderState.quorumResponseTimestamp(state.logReplicationQuorumSize(), clock.millis()));
     }
 
     /**

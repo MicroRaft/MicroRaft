@@ -16,9 +16,9 @@
 
 package io.microraft.report;
 
-import io.microraft.RaftEndpoint;
-
 import java.util.Map;
+
+import io.microraft.RaftEndpoint;
 
 /**
  * Contains statistics about a Raft node's Raft log.

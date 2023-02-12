@@ -1,9 +1,25 @@
 package io.microraft.store.sqlite;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Consumer;
+
+import javax.annotation.Nonnull;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.impl.local.LocalRaftEndpoint;
 import io.microraft.model.RaftModelFactory;
@@ -18,21 +34,8 @@ import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.persistence.RaftEndpointPersistentState;
 import io.microraft.model.persistence.RaftTermPersistentState;
-import io.microraft.persistence.RestoredRaftState;
 import io.microraft.persistence.RaftStoreSerializer;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import javax.annotation.Nonnull;
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import io.microraft.persistence.RestoredRaftState;
 
 public class RaftSqliteStoreTest {
     private static final RaftModelFactory RAFT_MODEL_FACTORY = new DefaultRaftModelFactory();

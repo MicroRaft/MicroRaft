@@ -17,6 +17,16 @@
 
 package io.microraft.impl.state;
 
+import static io.microraft.RaftRole.CANDIDATE;
+import static io.microraft.RaftRole.FOLLOWER;
+import static io.microraft.RaftRole.LEADER;
+import static io.microraft.RaftRole.LEARNER;
+import static io.microraft.model.log.SnapshotEntry.isNonInitial;
+import static java.util.Objects.requireNonNull;
+
+import java.io.IOException;
+import java.util.Collection;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftRole;
 import io.microraft.exception.NotLeaderException;
@@ -31,16 +41,6 @@ import io.microraft.model.log.SnapshotEntry;
 import io.microraft.persistence.NopRaftStore;
 import io.microraft.persistence.RaftStore;
 import io.microraft.persistence.RestoredRaftState;
-
-import java.io.IOException;
-import java.util.Collection;
-
-import static io.microraft.RaftRole.CANDIDATE;
-import static io.microraft.RaftRole.FOLLOWER;
-import static io.microraft.RaftRole.LEADER;
-import static io.microraft.RaftRole.LEARNER;
-import static io.microraft.model.log.SnapshotEntry.isNonInitial;
-import static java.util.Objects.requireNonNull;
 
 /**
  * State maintained by each Raft node.

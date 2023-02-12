@@ -17,12 +17,12 @@
 
 package io.microraft.impl.task;
 
+import java.util.Map.Entry;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.state.FollowerState;
 import io.microraft.impl.state.LeaderState;
-
-import java.util.Map.Entry;
 
 /**
  * If the append entries request backoff period is active for any follower, this

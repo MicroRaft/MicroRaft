@@ -17,14 +17,15 @@
 
 package io.microraft.impl.handler;
 
-import io.microraft.impl.RaftNodeImpl;
-import io.microraft.model.message.RaftMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static java.util.Objects.requireNonNull;
 
 import javax.annotation.Nonnull;
 
-import static java.util.Objects.requireNonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import io.microraft.impl.RaftNodeImpl;
+import io.microraft.model.message.RaftMessage;
 
 /**
  * Base class for Raft RPC response handlers.

@@ -17,6 +17,19 @@
 
 package io.microraft.impl.task;
 
+import static io.microraft.RaftNodeStatus.INITIAL;
+import static io.microraft.RaftNodeStatus.isTerminal;
+import static io.microraft.RaftRole.LEADER;
+import static io.microraft.RaftRole.LEARNER;
+import static io.microraft.report.RaftGroupMembers.MAX_LEARNER_COUNT;
+import static java.util.stream.Collectors.toList;
+
+import java.util.Collection;
+import java.util.LinkedHashSet;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.microraft.MembershipChangeMode;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNodeStatus;
@@ -28,18 +41,6 @@ import io.microraft.impl.state.RaftState;
 import io.microraft.impl.util.OrderedFuture;
 import io.microraft.model.groupop.RaftGroupOp;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
-import java.util.LinkedHashSet;
-
-import static io.microraft.RaftNodeStatus.INITIAL;
-import static io.microraft.RaftNodeStatus.isTerminal;
-import static io.microraft.RaftRole.LEADER;
-import static io.microraft.RaftRole.LEARNER;
-import static io.microraft.report.RaftGroupMembers.MAX_LEARNER_COUNT;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Executed to add or remove a member to the Raft group.

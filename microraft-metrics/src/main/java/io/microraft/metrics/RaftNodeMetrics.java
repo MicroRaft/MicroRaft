@@ -16,6 +16,18 @@
 
 package io.microraft.metrics;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+
+import javax.annotation.Nonnull;
+
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.MultiGauge;
@@ -30,17 +42,6 @@ import io.microraft.RaftRole;
 import io.microraft.report.RaftNodeReport;
 import io.microraft.report.RaftNodeReport.RaftNodeReportReason;
 import io.microraft.report.RaftNodeReportListener;
-
-import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
-
-import static java.util.Arrays.asList;
-import static java.util.Collections.unmodifiableList;
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Collect metrics reported by Raft nodes and publishes them to Metric

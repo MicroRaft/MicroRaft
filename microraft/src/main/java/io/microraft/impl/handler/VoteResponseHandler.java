@@ -17,6 +17,13 @@
 
 package io.microraft.impl.handler;
 
+import static io.microraft.RaftRole.CANDIDATE;
+
+import javax.annotation.Nonnull;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.microraft.RaftRole;
 import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.state.CandidateState;
@@ -24,12 +31,6 @@ import io.microraft.impl.state.RaftState;
 import io.microraft.model.message.VoteRequest;
 import io.microraft.model.message.VoteResponse;
 import io.microraft.statemachine.StateMachine;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-
-import static io.microraft.RaftRole.CANDIDATE;
 
 /**
  * Handles a {@link VoteResponse} sent for a {@link VoteRequest}.

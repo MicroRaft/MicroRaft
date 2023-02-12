@@ -16,11 +16,11 @@
 
 package io.microraft.model.message;
 
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.impl.handler.AppendEntriesRequestHandler;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nonnegative;
 
 /**
  * Response for a failed {@link AppendEntriesRequest}.

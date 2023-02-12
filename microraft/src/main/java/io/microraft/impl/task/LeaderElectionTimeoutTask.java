@@ -17,11 +17,12 @@
 
 package io.microraft.impl.task;
 
-import io.microraft.impl.RaftNodeImpl;
+import static io.microraft.RaftRole.CANDIDATE;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static io.microraft.RaftRole.CANDIDATE;
+import io.microraft.impl.RaftNodeImpl;
 
 /**
  * Scheduled by {@link LeaderElectionTask} to trigger leader election again if a

@@ -16,14 +16,15 @@
 
 package io.microraft.model.message;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.Nonnegative;
-import java.util.Collection;
 
 /**
  * Raft message for the InstallSnapshot RPC.

@@ -16,16 +16,17 @@
 
 package io.microraft.model.impl.message;
 
+import static java.util.Objects.requireNonNull;
+
+import java.util.List;
+
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.message.AppendEntriesRequest;
 import io.microraft.model.message.AppendEntriesRequest.AppendEntriesRequestBuilder;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nonnegative;
-import java.util.List;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * The default impl of the {@link AppendEntriesRequest} and

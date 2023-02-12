@@ -17,12 +17,12 @@
 
 package io.microraft.model.message;
 
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.model.RaftModel;
 import io.microraft.model.RaftModelFactory;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nonnegative;
 
 /**
  * Implemented by request and response classes of the Raft consensus algorithm

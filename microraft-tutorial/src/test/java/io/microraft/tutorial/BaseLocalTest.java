@@ -16,23 +16,24 @@
 
 package io.microraft.tutorial;
 
-import io.microraft.RaftConfig;
-import io.microraft.RaftEndpoint;
-import io.microraft.RaftNode;
-import io.microraft.RaftNodeStatus;
-import io.microraft.report.RaftTerm;
-import io.microraft.statemachine.StateMachine;
-import org.junit.After;
-import org.junit.Before;
+import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.Objects.requireNonNull;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.junit.Assert.fail;
+import org.junit.After;
+import org.junit.Before;
+
+import io.microraft.RaftConfig;
+import io.microraft.RaftEndpoint;
+import io.microraft.RaftNode;
+import io.microraft.RaftNodeStatus;
+import io.microraft.report.RaftTerm;
+import io.microraft.statemachine.StateMachine;
 
 public abstract class BaseLocalTest {
 

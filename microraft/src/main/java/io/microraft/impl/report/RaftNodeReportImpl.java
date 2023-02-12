@@ -16,6 +16,10 @@
 
 package io.microraft.impl.report;
 
+import static java.util.Objects.requireNonNull;
+
+import javax.annotation.Nonnull;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNodeStatus;
 import io.microraft.RaftRole;
@@ -23,10 +27,6 @@ import io.microraft.report.RaftGroupMembers;
 import io.microraft.report.RaftLogStats;
 import io.microraft.report.RaftNodeReport;
 import io.microraft.report.RaftTerm;
-
-import javax.annotation.Nonnull;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Contains a snapshot of a Raft node's internal state.

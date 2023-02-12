@@ -16,12 +16,6 @@
 
 package io.microraft;
 
-import com.typesafe.config.Config;
-import io.microraft.RaftConfig.RaftConfigBuilder;
-
-import javax.annotation.Nonnull;
-
-import static com.typesafe.config.ConfigException.WrongType;
 import static io.microraft.HoconRaftConfigFields.APPEND_ENTRIES_REQUEST_BATCH_SIZE_FIELD_NAME;
 import static io.microraft.HoconRaftConfigFields.COMMIT_COUNT_TO_TAKE_SNAPSHOT_FIELD_NAME;
 import static io.microraft.HoconRaftConfigFields.LEADER_ELECTION_TIMEOUT_MILLIS_FIELD_NAME;
@@ -32,6 +26,13 @@ import static io.microraft.HoconRaftConfigFields.RAFT_CONFIG_CONTAINER_NAME;
 import static io.microraft.HoconRaftConfigFields.RAFT_NODE_REPORT_PUBLISH_PERIOD_SECS_FIELD_NAME;
 import static io.microraft.HoconRaftConfigFields.TRANSFER_SNAPSHOTS_FROM_FOLLOWERS_ENABLED_FIELD_NAME;
 import static java.util.Objects.requireNonNull;
+
+import javax.annotation.Nonnull;
+
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigException.WrongType;
+
+import io.microraft.RaftConfig.RaftConfigBuilder;
 
 /**
  * {@link RaftConfig} parser for HOCON files

@@ -17,6 +17,23 @@
 
 package io.microraft.impl.handler;
 
+import static io.microraft.RaftNodeStatus.ACTIVE;
+import static io.microraft.RaftNodeStatus.UPDATING_RAFT_GROUP_MEMBER_LIST;
+import static io.microraft.RaftRole.FOLLOWER;
+import static io.microraft.RaftRole.LEARNER;
+import static java.lang.Math.min;
+import static java.util.Collections.emptyList;
+import static java.util.Objects.requireNonNull;
+
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.List;
+import java.util.Map.Entry;
+
+import javax.annotation.Nonnull;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.log.RaftLog;
@@ -27,21 +44,6 @@ import io.microraft.model.message.AppendEntriesFailureResponse;
 import io.microraft.model.message.AppendEntriesRequest;
 import io.microraft.model.message.AppendEntriesSuccessResponse;
 import io.microraft.model.message.RaftMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.List;
-import java.util.Map.Entry;
-
-import static io.microraft.RaftNodeStatus.ACTIVE;
-import static io.microraft.RaftNodeStatus.UPDATING_RAFT_GROUP_MEMBER_LIST;
-import static io.microraft.RaftRole.FOLLOWER;
-import static io.microraft.RaftRole.LEARNER;
-import static java.lang.Math.min;
-import static java.util.Collections.emptyList;
-import static java.util.Objects.requireNonNull;
 
 /**
  * Handles an {@link AppendEntriesRequest} sent by the Raft group leader and

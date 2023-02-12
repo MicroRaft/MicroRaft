@@ -16,11 +16,7 @@
 
 package io.microraft;
 
-import io.microraft.test.util.BaseTest;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.yaml.snakeyaml.Yaml;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -28,7 +24,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.yaml.snakeyaml.Yaml;
+
+import io.microraft.test.util.BaseTest;
 
 public class YamlRaftConfigParserTest extends BaseTest {
 

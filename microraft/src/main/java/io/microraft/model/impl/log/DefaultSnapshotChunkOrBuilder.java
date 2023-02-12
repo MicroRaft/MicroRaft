@@ -16,14 +16,14 @@
 
 package io.microraft.model.impl.log;
 
+import static java.util.Objects.requireNonNull;
+
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+
 import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotChunk.SnapshotChunkBuilder;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nonnegative;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * The default impl of the {@link SnapshotChunk} and

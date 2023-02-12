@@ -1,12 +1,12 @@
 package io.microraft.model.impl.persistence;
 
-import io.microraft.RaftEndpoint;
-import io.microraft.model.persistence.RaftEndpointPersistentState;
-import io.microraft.model.persistence.RaftEndpointPersistentState.RaftEndpointPersistentStateBuilder;;
+import static java.util.Objects.requireNonNull;
 
 import javax.annotation.Nonnull;
 
-import static java.util.Objects.requireNonNull;
+import io.microraft.RaftEndpoint;
+import io.microraft.model.persistence.RaftEndpointPersistentState;
+import io.microraft.model.persistence.RaftEndpointPersistentState.RaftEndpointPersistentStateBuilder;
 
 /**
  * The default impl of the {@link RaftEndpointPersistentState} and

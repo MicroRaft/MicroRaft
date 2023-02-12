@@ -16,6 +16,8 @@
 
 package io.microraft.model.impl;
 
+import javax.annotation.Nonnull;
+
 import io.microraft.model.RaftModel;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp.UpdateRaftGroupMembersOpBuilder;
@@ -34,6 +36,8 @@ import io.microraft.model.impl.message.DefaultPreVoteResponseOrBuilder;
 import io.microraft.model.impl.message.DefaultTriggerLeaderElectionRequestOrBuilder;
 import io.microraft.model.impl.message.DefaultVoteRequestOrBuilder;
 import io.microraft.model.impl.message.DefaultVoteResponseOrBuilder;
+import io.microraft.model.impl.persistence.DefaultRaftEndpointPersistentStateOrBuilder;
+import io.microraft.model.impl.persistence.DefaultRaftTermPersistentStateOrBuilder;
 import io.microraft.model.log.LogEntry.LogEntryBuilder;
 import io.microraft.model.log.RaftGroupMembersView.RaftGroupMembersViewBuilder;
 import io.microraft.model.log.SnapshotChunk.SnapshotChunkBuilder;
@@ -50,10 +54,6 @@ import io.microraft.model.message.VoteRequest.VoteRequestBuilder;
 import io.microraft.model.message.VoteResponse.VoteResponseBuilder;
 import io.microraft.model.persistence.RaftEndpointPersistentState.RaftEndpointPersistentStateBuilder;
 import io.microraft.model.persistence.RaftTermPersistentState.RaftTermPersistentStateBuilder;
-import io.microraft.model.impl.persistence.DefaultRaftEndpointPersistentStateOrBuilder;
-import io.microraft.model.impl.persistence.DefaultRaftTermPersistentStateOrBuilder;
-
-import javax.annotation.Nonnull;
 
 /**
  * The default implementation of {@link RaftModelFactory}.

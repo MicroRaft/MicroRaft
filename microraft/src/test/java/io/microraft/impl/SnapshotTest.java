@@ -35,6 +35,17 @@ import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.function.Function;
+
+import org.junit.After;
+import org.junit.Test;
+
 import io.microraft.Ordered;
 import io.microraft.RaftConfig;
 import io.microraft.RaftNode;
@@ -55,15 +66,6 @@ import io.microraft.model.message.RaftMessage;
 import io.microraft.report.RaftGroupMembers;
 import io.microraft.report.RaftNodeReport;
 import io.microraft.test.util.BaseTest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.function.Function;
-import org.junit.After;
-import org.junit.Test;
 
 public class SnapshotTest extends BaseTest {
 

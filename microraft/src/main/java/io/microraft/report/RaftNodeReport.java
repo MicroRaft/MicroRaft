@@ -16,6 +16,8 @@
 
 package io.microraft.report;
 
+import javax.annotation.Nonnull;
+
 import io.microraft.RaftConfig;
 import io.microraft.RaftConfig.RaftConfigBuilder;
 import io.microraft.RaftEndpoint;
@@ -23,8 +25,6 @@ import io.microraft.RaftNode;
 import io.microraft.RaftNodeStatus;
 import io.microraft.RaftRole;
 import io.microraft.statemachine.StateMachine;
-
-import javax.annotation.Nonnull;
 
 /**
  * Contains information about a Raft node's local state related to the execution

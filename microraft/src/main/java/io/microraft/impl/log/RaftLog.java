@@ -17,6 +17,13 @@
 
 package io.microraft.impl.log;
 
+import static io.microraft.model.log.SnapshotEntry.isNonInitial;
+import static java.util.Objects.requireNonNull;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import io.microraft.exception.RaftException;
 import io.microraft.impl.util.ArrayRingbuffer;
 import io.microraft.model.impl.log.DefaultSnapshotEntryOrBuilder;
@@ -25,13 +32,6 @@ import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.SnapshotEntry;
 import io.microraft.persistence.NopRaftStore;
 import io.microraft.persistence.RaftStore;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static io.microraft.model.log.SnapshotEntry.isNonInitial;
-import static java.util.Objects.requireNonNull;
 
 /**
  * {@code RaftLog} keeps and maintains Raft log entries and snapshot.

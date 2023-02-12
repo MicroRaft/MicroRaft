@@ -17,6 +17,14 @@
 
 package io.microraft.impl.handler;
 
+import static io.microraft.RaftRole.LEARNER;
+import static java.util.Objects.requireNonNull;
+
+import javax.annotation.Nonnull;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.task.LeaderElectionTask;
@@ -24,13 +32,6 @@ import io.microraft.model.log.BaseLogEntry;
 import io.microraft.model.message.VoteRequest;
 import io.microraft.model.message.VoteResponse;
 import io.microraft.model.message.VoteResponse.VoteResponseBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-
-import static io.microraft.RaftRole.LEARNER;
-import static java.util.Objects.requireNonNull;
 
 /**
  * Handles a {@link VoteRequest} sent by a candidate and responds with a

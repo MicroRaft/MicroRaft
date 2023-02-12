@@ -16,10 +16,10 @@
 
 package io.microraft.model;
 
+import java.io.Serializable;
+
 import io.microraft.model.log.BaseLogEntry;
 import io.microraft.model.message.RaftMessage;
-
-import java.io.Serializable;
 
 /**
  * The base interface for the objects that hit network and persistent storage.

@@ -17,8 +17,8 @@
 
 package io.microraft.impl.state;
 
-import static java.lang.Math.min;
 import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 /**
  * State maintained for each follower by the Raft group leader.

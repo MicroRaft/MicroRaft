@@ -16,13 +16,14 @@
 
 package io.microraft.model.log;
 
-import io.microraft.statemachine.StateMachine;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.Nonnegative;
 import java.util.List;
 import java.util.function.Consumer;
+
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import io.microraft.statemachine.StateMachine;
 
 /**
  * Represents a snapshot in the Raft log.

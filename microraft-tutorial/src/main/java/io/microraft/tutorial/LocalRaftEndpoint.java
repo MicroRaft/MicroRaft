@@ -17,12 +17,13 @@
 
 package io.microraft.tutorial;
 
-import io.microraft.RaftEndpoint;
+import static java.util.Objects.requireNonNull;
 
-import javax.annotation.Nonnull;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.util.Objects.requireNonNull;
+import javax.annotation.Nonnull;
+
+import io.microraft.RaftEndpoint;
 
 /**
  * A very simple {@link RaftEndpoint} implementation used in the tutorial.

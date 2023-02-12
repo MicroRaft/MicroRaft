@@ -1,9 +1,9 @@
 package io.microraft.model.persistence;
 
-import io.microraft.model.RaftModel;
-import io.microraft.RaftEndpoint;
-
 import javax.annotation.Nonnull;
+
+import io.microraft.RaftEndpoint;
+import io.microraft.model.RaftModel;
 
 public interface RaftEndpointPersistentState extends RaftModel {
 

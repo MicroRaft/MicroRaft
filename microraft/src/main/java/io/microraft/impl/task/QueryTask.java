@@ -17,6 +17,13 @@
 
 package io.microraft.impl.task;
 
+import static io.microraft.RaftNodeStatus.INITIAL;
+import static io.microraft.RaftNodeStatus.isTerminal;
+import static io.microraft.RaftRole.LEADER;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.microraft.QueryPolicy;
 import io.microraft.RaftNodeStatus;
 import io.microraft.exception.LaggingCommitIndexException;
@@ -27,12 +34,6 @@ import io.microraft.impl.state.RaftState;
 import io.microraft.impl.util.OrderedFuture;
 import io.microraft.model.groupop.RaftGroupOp;
 import io.microraft.statemachine.StateMachine;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static io.microraft.RaftNodeStatus.INITIAL;
-import static io.microraft.RaftNodeStatus.isTerminal;
-import static io.microraft.RaftRole.LEADER;
 
 /**
  * Scheduled by {@link RaftNodeImpl#query(Object, QueryPolicy, long)} to perform

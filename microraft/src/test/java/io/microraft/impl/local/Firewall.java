@@ -17,17 +17,18 @@
 
 package io.microraft.impl.local;
 
-import io.microraft.RaftEndpoint;
-import io.microraft.model.message.RaftMessage;
+import static java.util.Collections.newSetFromMap;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-import static java.util.Collections.newSetFromMap;
+import javax.annotation.Nonnull;
+
+import io.microraft.RaftEndpoint;
+import io.microraft.model.message.RaftMessage;
 
 /**
  * Used for blocking and altering Raft messages sent between Raft nodes during

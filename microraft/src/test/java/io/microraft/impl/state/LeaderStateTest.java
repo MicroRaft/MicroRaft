@@ -17,18 +17,19 @@
 
 package io.microraft.impl.state;
 
-import io.microraft.RaftEndpoint;
-import org.junit.Before;
-import org.junit.Test;
+import static io.microraft.impl.local.LocalRaftEndpoint.newEndpoint;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import static io.microraft.impl.local.LocalRaftEndpoint.newEndpoint;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Before;
+import org.junit.Test;
+
+import io.microraft.RaftEndpoint;
 
 public class LeaderStateTest {
     private static final int TIME = 12345;

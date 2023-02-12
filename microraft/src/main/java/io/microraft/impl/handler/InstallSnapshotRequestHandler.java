@@ -16,6 +16,23 @@
 
 package io.microraft.impl.handler;
 
+import static io.microraft.RaftRole.FOLLOWER;
+import static io.microraft.RaftRole.LEARNER;
+import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.toList;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.exception.RaftException;
 import io.microraft.impl.RaftNodeImpl;
@@ -27,21 +44,6 @@ import io.microraft.model.message.AppendEntriesSuccessResponse;
 import io.microraft.model.message.InstallSnapshotRequest;
 import io.microraft.model.message.InstallSnapshotResponse;
 import io.microraft.model.message.RaftMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-
-import static io.microraft.RaftRole.FOLLOWER;
-import static io.microraft.RaftRole.LEARNER;
-import static java.util.Objects.requireNonNull;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Handles an {@link InstallSnapshotRequest} which could be sent by the leader

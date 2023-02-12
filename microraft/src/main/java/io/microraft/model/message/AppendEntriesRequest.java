@@ -16,13 +16,14 @@
 
 package io.microraft.model.message;
 
+import java.util.List;
+
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.impl.handler.AppendEntriesRequestHandler;
 import io.microraft.model.log.LogEntry;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nonnegative;
-import java.util.List;
 
 /**
  * Raft message for the AppendEntries RPC.

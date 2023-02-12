@@ -16,18 +16,19 @@
 
 package io.microraft.model.impl.message;
 
+import static java.util.Objects.requireNonNull;
+
+import java.util.Collection;
+
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import io.microraft.RaftEndpoint;
 import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.message.InstallSnapshotRequest;
 import io.microraft.model.message.InstallSnapshotRequest.InstallSnapshotRequestBuilder;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.Nonnegative;
-import java.util.Collection;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * The default impl of the {@link InstallSnapshotRequest} and

@@ -16,6 +16,17 @@
 
 package io.microraft.faulttolerance;
 
+import static io.microraft.impl.local.LocalRaftGroup.IN_MEMORY_RAFT_STATE_STORE_FACTORY;
+import static io.microraft.test.util.AssertionUtils.eventually;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+
+import org.junit.After;
+import org.junit.Test;
+
 import io.microraft.Ordered;
 import io.microraft.QueryPolicy;
 import io.microraft.RaftConfig;
@@ -29,16 +40,6 @@ import io.microraft.persistence.RaftStore;
 import io.microraft.persistence.RestoredRaftState;
 import io.microraft.report.RaftNodeReport;
 import io.microraft.test.util.RaftTestUtils;
-import org.junit.After;
-import org.junit.Test;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-
-import static io.microraft.impl.local.LocalRaftGroup.IN_MEMORY_RAFT_STATE_STORE_FACTORY;
-import static io.microraft.test.util.AssertionUtils.eventually;
-import static org.assertj.core.api.Assertions.assertThat;
 
 /*
 

@@ -17,30 +17,6 @@
 
 package io.microraft.impl;
 
-import io.microraft.Ordered;
-import io.microraft.RaftConfig;
-import io.microraft.RaftEndpoint;
-import io.microraft.RaftNode;
-import io.microraft.exception.CannotReplicateException;
-import io.microraft.exception.IndeterminateStateException;
-import io.microraft.exception.NotLeaderException;
-import io.microraft.impl.local.LocalRaftGroup;
-import io.microraft.impl.local.SimpleStateMachine;
-import io.microraft.impl.state.RaftGroupMembersState;
-import io.microraft.model.message.AppendEntriesFailureResponse;
-import io.microraft.model.message.AppendEntriesRequest;
-import io.microraft.model.message.AppendEntriesSuccessResponse;
-import io.microraft.model.message.PreVoteRequest;
-import io.microraft.model.message.VoteRequest;
-import io.microraft.report.RaftGroupMembers;
-import io.microraft.test.util.BaseTest;
-import org.junit.After;
-import org.junit.Test;
-
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-
 import static io.microraft.MembershipChangeMode.ADD_LEARNER;
 import static io.microraft.MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER;
 import static io.microraft.MembershipChangeMode.REMOVE_MEMBER;
@@ -64,6 +40,31 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+
+import org.junit.After;
+import org.junit.Test;
+
+import io.microraft.Ordered;
+import io.microraft.RaftConfig;
+import io.microraft.RaftEndpoint;
+import io.microraft.RaftNode;
+import io.microraft.exception.CannotReplicateException;
+import io.microraft.exception.IndeterminateStateException;
+import io.microraft.exception.NotLeaderException;
+import io.microraft.impl.local.LocalRaftGroup;
+import io.microraft.impl.local.SimpleStateMachine;
+import io.microraft.impl.state.RaftGroupMembersState;
+import io.microraft.model.message.AppendEntriesFailureResponse;
+import io.microraft.model.message.AppendEntriesRequest;
+import io.microraft.model.message.AppendEntriesSuccessResponse;
+import io.microraft.model.message.PreVoteRequest;
+import io.microraft.model.message.VoteRequest;
+import io.microraft.report.RaftGroupMembers;
+import io.microraft.test.util.BaseTest;
 
 public class MembershipChangeTest extends BaseTest {
 

@@ -1,23 +1,11 @@
 package io.microraft.store.sqlite;
 
-import io.microraft.RaftEndpoint;
-import io.microraft.lifecycle.RaftNodeLifecycleAware;
-import io.microraft.model.RaftModelFactory;
-import io.microraft.model.log.LogEntry;
-import io.microraft.model.log.RaftGroupMembersView;
-import io.microraft.model.log.SnapshotChunk;
-import io.microraft.model.log.SnapshotEntry;
-import io.microraft.model.persistence.RaftEndpointPersistentState;
-import io.microraft.model.persistence.RaftTermPersistentState;
-import io.microraft.persistence.RaftStore;
-import io.microraft.persistence.RestoredRaftState;
-import io.microraft.persistence.RaftStoreSerializer;
-
 import java.io.File;
 import java.sql.Connection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -35,6 +23,19 @@ import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteConfig.JournalMode;
 import org.sqlite.SQLiteConfig.LockingMode;
 import org.sqlite.SQLiteConfig.Pragma;
+
+import io.microraft.RaftEndpoint;
+import io.microraft.lifecycle.RaftNodeLifecycleAware;
+import io.microraft.model.RaftModelFactory;
+import io.microraft.model.log.LogEntry;
+import io.microraft.model.log.RaftGroupMembersView;
+import io.microraft.model.log.SnapshotChunk;
+import io.microraft.model.log.SnapshotEntry;
+import io.microraft.model.persistence.RaftEndpointPersistentState;
+import io.microraft.model.persistence.RaftTermPersistentState;
+import io.microraft.persistence.RaftStore;
+import io.microraft.persistence.RaftStoreSerializer;
+import io.microraft.persistence.RestoredRaftState;
 
 /**
  * An implementation of a RaftStore which uses SQLite for persistence. A user of

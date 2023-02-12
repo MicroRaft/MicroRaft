@@ -17,6 +17,15 @@
 
 package io.microraft.impl.task;
 
+import static io.microraft.RaftNodeStatus.ACTIVE;
+import static io.microraft.RaftNodeStatus.isTerminal;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
+import java.util.concurrent.TimeoutException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNodeStatus;
@@ -27,14 +36,6 @@ import io.microraft.impl.state.RaftState;
 import io.microraft.impl.util.OrderedFuture;
 import io.microraft.model.log.BaseLogEntry;
 import io.microraft.model.message.RaftMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.TimeoutException;
-
-import static io.microraft.RaftNodeStatus.ACTIVE;
-import static io.microraft.RaftNodeStatus.isTerminal;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Triggers the leadership transfer process for the given Raft endpoint. If the

@@ -17,18 +17,19 @@
 
 package io.microraft.impl.handler;
 
+import static io.microraft.RaftRole.FOLLOWER;
+
+import javax.annotation.Nonnull;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.state.CandidateState;
 import io.microraft.impl.task.LeaderElectionTask;
 import io.microraft.impl.task.PreVoteTask;
 import io.microraft.model.message.PreVoteRequest;
 import io.microraft.model.message.PreVoteResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-
-import static io.microraft.RaftRole.FOLLOWER;
 
 /**
  * Handles a {@link PreVoteResponse} sent for a {@link PreVoteRequest}.

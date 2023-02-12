@@ -17,14 +17,15 @@
 
 package io.microraft.statemachine;
 
+import java.util.List;
+import java.util.function.Consumer;
+
+import javax.annotation.Nonnull;
+
 import io.microraft.RaftConfig;
 import io.microraft.RaftNode;
 import io.microraft.executor.RaftNodeExecutor;
 import io.microraft.lifecycle.RaftNodeLifecycleAware;
-
-import javax.annotation.Nonnull;
-import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * The abstraction used by {@link RaftNode} instances to execute operations on

@@ -32,6 +32,17 @@ public class LaggingCommitIndexException extends RaftException {
 
     private static final long serialVersionUID = -2244714904905721002L;
 
+    /**
+     * Creates an instance of this exception.
+     *
+     * @param commitIndex
+     *            the current commit index of the RaftNode which throws this
+     *            exception
+     * @param expectedCommitIndex
+     *            the commit index expected by the caller
+     * @param leader
+     *            the leader endpoint if it is known, null otherwise
+     */
     public LaggingCommitIndexException(long commitIndex, long expectedCommitIndex, RaftEndpoint leader) {
         super("Commit index: " + commitIndex + " is smaller than min commit index: " + expectedCommitIndex, leader);
     }

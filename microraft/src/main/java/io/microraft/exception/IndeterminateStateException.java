@@ -40,10 +40,20 @@ public class IndeterminateStateException extends RaftException {
 
     private static final long serialVersionUID = -736303015926722821L;
 
+    /**
+     * Creates an instance of the exception.
+     */
     public IndeterminateStateException() {
         this(null);
     }
 
+    /**
+     * Creates an instance of the exception. The leader endpoint can be passed if it
+     * is known.
+     *
+     * @param leader
+     *            the leader endpoint if it is known, null otherwise
+     */
     public IndeterminateStateException(RaftEndpoint leader) {
         super(leader);
     }

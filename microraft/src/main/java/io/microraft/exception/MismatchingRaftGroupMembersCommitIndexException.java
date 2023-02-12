@@ -35,16 +35,34 @@ public class MismatchingRaftGroupMembersCommitIndexException extends RaftExcepti
     private final long commitIndex;
     private final Collection<RaftEndpoint> members;
 
+    /**
+     * Creates an instance of this exception
+     *
+     * @param commitIndex
+     *            the commit index of the current Raft group members
+     * @param members
+     *            the current Raft group members knwon by the Raft node
+     */
     public MismatchingRaftGroupMembersCommitIndexException(long commitIndex, Collection<RaftEndpoint> members) {
         super("commit index: " + commitIndex + " members: " + members, null);
         this.commitIndex = commitIndex;
         this.members = members;
     }
 
+    /**
+     * Returns the commit index of the current Raft group members.
+     *
+     * @return the commit index of the current Raft group members.
+     */
     public long getCommitIndex() {
         return commitIndex;
     }
 
+    /**
+     * Returns the current Raft group members knwon by the Raft node
+     *
+     * @return the current Raft group members knwon by the Raft node
+     */
     public Collection<RaftEndpoint> getMembers() {
         return members;
     }

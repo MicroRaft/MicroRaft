@@ -28,6 +28,14 @@ public class NotLeaderException extends RaftException {
 
     private static final long serialVersionUID = 1817579502149525710L;
 
+    /**
+     * Creates an instance of this exception
+     *
+     * @param local
+     *            Raft endpoint of the local Raft node
+     * @param leader
+     *            Raft endpoint of the leader known by the local Raft node
+     */
     public NotLeaderException(RaftEndpoint local, RaftEndpoint leader) {
         super(local + " is not LEADER. Known leader is: " + (leader != null ? leader : "N/A"), leader);
     }

@@ -55,11 +55,8 @@ public interface RaftStore {
      * <p>
      * When this method returns, all the provided data has become durable.
      *
-     * @param localEndpoint
-     *            the Raft endpoint of the local Raft node to persist
-     * @param localEndpointVoting
-     *            the flag that denotes whether if the local Raft node is a voting
-     *            or non-voting member
+     * @param localEndpointPersistentState
+     *            the local endpoint state to be persisted
      *
      * @throws IOException
      *             if any failure occurs during persisting the given values
@@ -86,10 +83,9 @@ public interface RaftStore {
      * <p>
      * When this method returns, all the provided data has become durable.
      *
-     * @param term
-     *            the term value to persist
-     * @param votedFor
-     *            the voted Raft endpoint to persist
+     * @param termPersistentState
+     *            the term state to be persisted
+     *
      *
      * @throws IOException
      *             if any failure occurs during persisting the given values
@@ -234,7 +230,7 @@ public interface RaftStore {
      *
      * @see #persistLogEntry(LogEntry)
      * @see #persistSnapshotChunk(SnapshotChunk)
-     * @see #deleteSnapshotChunks(long)
+     * @see #deleteSnapshotChunks(long, int)
      * @see #truncateLogEntriesFrom(long)
      */
     void flush() throws IOException;

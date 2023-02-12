@@ -28,20 +28,50 @@ public class RaftException extends RuntimeException {
 
     private final RaftEndpoint leader;
 
+    /**
+     * Creates an instance of this exception
+     *
+     * @param cause
+     *            reason of this exception to be thrown
+     */
     public RaftException(Throwable cause) {
         super(cause);
         this.leader = null;
     }
 
+    /**
+     * Creates an instance of this exception
+     *
+     * @param leader
+     *            Raft endpoint of the leader known by the local Raft node
+     */
     public RaftException(RaftEndpoint leader) {
         this.leader = leader;
     }
 
+    /**
+     * Creates an instance of this exception
+     *
+     * @param message
+     *            exception message
+     * @param leader
+     *            Raft endpoint of the leader known by the local Raft node
+     */
     public RaftException(String message, RaftEndpoint leader) {
         super(message);
         this.leader = leader;
     }
 
+    /**
+     * Creates an instance of this exception
+     *
+     * @param message
+     *            exception message
+     * @param leader
+     *            Raft endpoint of the leader known by the local Raft node
+     * @param cause
+     *            reason of this exception to be thrown
+     */
     public RaftException(String message, RaftEndpoint leader, Throwable cause) {
         super(message, cause);
         this.leader = leader;

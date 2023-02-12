@@ -150,6 +150,33 @@ public final class RaftConfig implements Serializable {
      */
     private final int raftNodeReportPublishPeriodSecs;
 
+    /**
+     * Creates a config object
+     *
+     * @param leaderElectionTimeoutMillis
+     *            duration of leader election rounds in milliseconds
+     * @param leaderHeartbeatPeriodSecs
+     *            duration in seconds for a Raft leader node to send periodic
+     *            heartbeat requests to its followers in order to denote its
+     *            liveliness
+     * @param leaderHeartbeatTimeoutSecs
+     *            duration in seconds for a follower to decide on failure of the
+     *            current leader and start a new leader election round
+     * @param appendEntriesRequestBatchSize
+     *            maximum number of Raft log entries that can be sent as a batch in
+     *            a single append entries request
+     * @param commitCountToTakeSnapshot
+     *            number of new commits to initiate a new snapshot after the last
+     *            snapshot taken
+     * @param maxPendingLogEntryCount
+     *            maximum number of pending log entries in the leader's Raft log
+     *            before temporarily rejecting new requests of clients
+     * @param transferSnapshotsFromFollowersEnabled
+     *            enable / disable parallel snapshot transfer from followers
+     * @param raftNodeReportPublishPeriodSecs
+     *            how frequently a Raft node publishes a report of its internal Raft
+     *            state
+     */
     public RaftConfig(long leaderElectionTimeoutMillis, long leaderHeartbeatPeriodSecs, long leaderHeartbeatTimeoutSecs,
             int appendEntriesRequestBatchSize, int commitCountToTakeSnapshot, int maxPendingLogEntryCount,
             boolean transferSnapshotsFromFollowersEnabled, int raftNodeReportPublishPeriodSecs) {

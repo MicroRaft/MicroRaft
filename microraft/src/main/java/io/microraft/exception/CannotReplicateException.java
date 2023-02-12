@@ -38,6 +38,13 @@ public class CannotReplicateException extends RaftException {
 
     private static final long serialVersionUID = 4407025930140337716L;
 
+    /**
+     * Creates an instance of the exception. The leader endpoint can be passed if it
+     * is known.
+     *
+     * @param leader
+     *            the leader endpoint if it is known, null otherwise
+     */
     public CannotReplicateException(RaftEndpoint leader) {
         super("Cannot replicate new operations for now", leader);
     }

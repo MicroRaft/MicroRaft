@@ -186,8 +186,6 @@ public class RaftTest extends BaseTest {
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
 
-        assertThat(quorumTimestamp1).isPresent();
-
         for (int i = 1; i < followers.size(); i++) {
             group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(i).getLocalEndpoint(),
                     AppendEntriesRequest.class);

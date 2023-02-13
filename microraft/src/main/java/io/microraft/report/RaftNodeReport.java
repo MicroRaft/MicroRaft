@@ -108,7 +108,7 @@ public interface RaftNodeReport {
 
     /**
      * Returns the role of the Raft node in the current term. If the returned role
-     * is {@link RafRole#LEADER}, it means the local Raft node has received
+     * is {@link RaftRole#LEADER}, it means the local Raft node has received
      * heartbeats from the majority in the last
      * {@link RaftConfig#leaderHeartbeatTimeoutSecs} seconds.
      *

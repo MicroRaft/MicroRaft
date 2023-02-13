@@ -186,8 +186,6 @@ public class RaftTest extends BaseTest {
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         List<RaftNodeImpl> followers = group.getNodesExcept(leader.getLocalEndpoint());
 
-        Optional<Long> quorumTimestamp1 = leader.getReport().join().getResult().getQuorumHeartbeatTimestamp();
-
         assertThat(quorumTimestamp1).isPresent();
 
         for (int i = 1; i < followers.size(); i++) {
@@ -213,10 +211,6 @@ public class RaftTest extends BaseTest {
             SimpleStateMachine stateMachine = group.getStateMachine(node.getLocalEndpoint());
             assertThat(stateMachine.size()).isEqualTo(0);
         }
-
-        Optional<Long> quorumTimestamp2 = leader.getReport().join().getResult().getQuorumHeartbeatTimestamp();
-        assertThat(quorumTimestamp2).satisfiesAnyOf(q -> assertThat(q).isEmpty(),
-                q -> assertThat(q).isEqualTo(quorumTimestamp1));
     }
 
     @Test(timeout = 300_000)

@@ -88,7 +88,7 @@ Add MicroRaft to your dependency list:
 <dependency>
     <groupId>io.microraft</groupId>
     <artifactId>microraft</artifactId>
-    <version>0.4</version>
+    <version>0.5</version>
 </dependency>
 ~~~~
 

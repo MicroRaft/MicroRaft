@@ -36,7 +36,7 @@ cd ..
 try test -d ${SITE_DIR}
 
 try mkdir -p $JAVADOC_TARGET
-try cp -avr ${JAVADOC_SOURCE}/* $JAVADOC_TARGET
+try cp -avR ${JAVADOC_SOURCE}/* $JAVADOC_TARGET
 try test -f ${JAVADOC_TARGET}/index.html
 
 ls -l $SITE_DIR

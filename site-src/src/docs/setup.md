@@ -1,23 +1,14 @@
 
 # Setup
 
-MicroRaft JARs are available via [Jitpack](https://jitpack.io/#MicroRaft/MicroRaft). If you are
+MicroRaft JARs are available via Maven Central. If you are
 using Maven, just add the following lines to your your `pom.xml`:
 
 ~~~~{.xml}
-<repositories>
-	<repository>
-		<id>jitpack.io</id>
-		<url>https://jitpack.io</url>
-	</repository>
-</repositories>
-~~~~
-
-~~~~{.xml}
 <dependency>
-    <groupId>com.github.MicroRaft</groupId>
-	<artifactId>MicroRaft</artifactId>
-	<version>v0.1</version>
+    <groupId>io.microraft</groupId>
+	<artifactId>microraft</artifactId>
+	<version>0.5</version>
 </dependency>
 ~~~~
 

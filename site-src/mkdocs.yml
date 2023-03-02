@@ -6,7 +6,7 @@ copyright: 'MicroRaft, 2021. Open-sourced by <a href="https://twitter.com/metane
 docs_dir: src
 use_directory_urls: true
 theme: flatly
-google_analytics: ["UA-485423-8", "MicroRaft"]
+google_analytics: ["UA-485423-8", "auto"]
 
 plugins:
   - search

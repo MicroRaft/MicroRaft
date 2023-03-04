@@ -198,7 +198,7 @@ public class InstallSnapshotRequestHandler extends AbstractMessageHandler<Instal
 
         SnapshotChunkCollector snapshotChunkCollector = state.snapshotChunkCollector();
         if (snapshotChunkCollector == null) {
-            snapshotChunkCollector = new SnapshotChunkCollector(request);
+            snapshotChunkCollector = new SnapshotChunkCollector(state.store(), request);
             state.snapshotChunkCollector(snapshotChunkCollector);
 
             return snapshotChunkCollector;
@@ -223,7 +223,7 @@ public class InstallSnapshotRequestHandler extends AbstractMessageHandler<Instal
                 }
             }
 
-            snapshotChunkCollector = new SnapshotChunkCollector(request);
+            snapshotChunkCollector = new SnapshotChunkCollector(state.store(), request);
             state.snapshotChunkCollector(snapshotChunkCollector);
         } else {
             snapshotChunkCollector.updateSnapshottedMembers(request.getSnapshottedMembers());
@@ -241,24 +241,18 @@ public class InstallSnapshotRequestHandler extends AbstractMessageHandler<Instal
     private boolean handleSnapshotChunks(InstallSnapshotRequest request,
             SnapshotChunkCollector snapshotChunkCollector) {
         SnapshotChunk snapshotChunk = request.getSnapshotChunk();
-        if (snapshotChunkCollector.handleReceivedSnapshotChunk(request.getSender(), request.getSnapshotIndex(),
-                snapshotChunk)) {
-            if (snapshotChunk != null) {
-                try {
-                    state.store().persistSnapshotChunk(snapshotChunk);
-                    // we will flush() after all snapshot chunks are persisted.
-                    LOGGER.debug(
-                            localEndpointStr() + " added new snapshot chunk: " + snapshotChunk.getSnapshotChunkIndex()
-                                    + " at snapshot index: " + request.getSnapshotIndex());
-                } catch (IOException e) {
-                    throw new RaftException("Could not persist snapshot chunk: " + snapshotChunk.getSnapshotChunkIndex()
-                            + " at snapshot index: " + snapshotChunk.getIndex() + " and term: "
-                            + snapshotChunk.getTerm(), node.getLeaderEndpoint(), e);
-                }
+        try {
+            if (snapshotChunkCollector.handleReceivedSnapshotChunk(request.getSender(), request.getSnapshotIndex(),
+                    snapshotChunk) && snapshotChunk != null) {
+                LOGGER.debug(localEndpointStr() + " added new snapshot chunk: " + snapshotChunk.getSnapshotChunkIndex()
+                        + " at snapshot index: " + request.getSnapshotIndex());
             }
+            return snapshotChunkCollector.isSnapshotCompleted();
+        } catch (IOException e) {
+            throw new RaftException("Could not persist snapshot chunk: " + snapshotChunk.getSnapshotChunkIndex()
+                    + " at snapshot index: " + snapshotChunk.getIndex() + " and term: " + snapshotChunk.getTerm(),
+                    node.getLeaderEndpoint(), e);
         }
-
-        return snapshotChunkCollector.isSnapshotCompleted();
     }
 
     private void requestMissingSnapshotChunks(InstallSnapshotRequest request,

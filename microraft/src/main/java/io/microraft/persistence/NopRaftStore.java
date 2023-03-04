@@ -17,6 +17,9 @@
 
 package io.microraft.persistence;
 
+import java.io.IOException;
+import java.util.List;
+
 import javax.annotation.Nonnull;
 
 import io.microraft.model.log.LogEntry;
@@ -44,7 +47,7 @@ public class NopRaftStore implements RaftStore {
     }
 
     @Override
-    public void persistLogEntry(@Nonnull LogEntry logEntry) {
+    public void persistLogEntries(@Nonnull List<LogEntry> logEntries) throws IOException {
     }
 
     @Override
@@ -53,6 +56,10 @@ public class NopRaftStore implements RaftStore {
 
     @Override
     public void truncateLogEntriesFrom(long logIndexInclusive) {
+    }
+
+    @Override
+    public void truncateLogEntriesUntil(long logIndexInclusive) {
     }
 
     @Override

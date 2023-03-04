@@ -22,14 +22,12 @@ import io.microraft.impl.log.RaftLog;
 import io.microraft.impl.state.LeaderState;
 
 /**
- * Flushes the leader Raft node's local Raft log and tries to advance the commit
- * index.
- * <p>
- * Silently returns if the Raft node is no longer the leader.
+ * Flushes the Raft node's local Raft log to the persistent storage and tries to
+ * advance the commit index if the Raft node is the leader.
  */
-public class LeaderFlushTask extends RaftNodeStatusAwareTask {
+public class FlushTask extends RaftNodeStatusAwareTask {
 
-    public LeaderFlushTask(RaftNodeImpl node) {
+    public FlushTask(RaftNodeImpl node) {
         super(node);
     }
 

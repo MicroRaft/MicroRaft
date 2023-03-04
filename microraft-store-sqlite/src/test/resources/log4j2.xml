@@ -1,0 +1,14 @@
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="CONSOLE" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%tn] %level - [%-8c{1}] %msg%n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="DEBUG">
+            <AppenderRef ref="CONSOLE"/>
+        </Root>
+        <Logger name="io.microraft" level="INFO"/>
+        <Logger name="org.jooq" level="DEBUG"/>
+    </Loggers>
+</Configuration>

@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -23,6 +24,7 @@ import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteConfig.JournalMode;
 import org.sqlite.SQLiteConfig.LockingMode;
 import org.sqlite.SQLiteConfig.Pragma;
+import org.sqlite.SQLiteConfig.SynchronousMode;
 
 import io.microraft.RaftEndpoint;
 import io.microraft.lifecycle.RaftNodeLifecycleAware;
@@ -40,8 +42,8 @@ import io.microraft.persistence.RestoredRaftState;
 /**
  * An implementation of a RaftStore which uses SQLite for persistence. A user of
  * this class is advised to construct this class, and then use
- * {@link RaftSqliteStore#getRestoredRaftState()} to acquire any previously
- * persisted state.
+ * {@link RaftSqliteStore#getRestoredRaftState(boolean)} to acquire any
+ * previously persisted state.
  * <p>
  * At time of writing, this store prioritizes:
  * <ul>
@@ -80,7 +82,6 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
     private final Field<SnapshotChunk> chunkField;
     private final CloseableDSLContext dsl;
     private final RaftModelFactory raftModelFactory;
-    private boolean tryToCleanUpOldSnapshots = false;
 
     public RaftSqliteStore(CloseableDSLContext dsl, RaftStoreSerializer modelSerializer,
             RaftModelFactory raftModelFactory) {
@@ -112,6 +113,9 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
         dsl.connection(Connection::commit);
     }
 
+    /**
+     * Creates and initializes the SQLite based RaftStore implementation.
+     */
     public static RaftSqliteStore create(File sqliteDb, RaftModelFactory raftModelFactory,
             RaftStoreSerializer modelSerializer) {
         SQLiteConfig config = new SQLiteConfig();
@@ -163,9 +167,13 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
     }
 
     @Override
-    public void persistLogEntry(@Nonnull LogEntry logEntry) {
-        dsl.insertInto(LOG_ENTRIES, INDEX, logEntryField).values(logEntry.getIndex(), logEntry).onDuplicateKeyIgnore()
-                .execute();
+    @SuppressWarnings("VarUsage")
+    public void persistLogEntries(@Nonnull List<LogEntry> logEntries) {
+        var statement = dsl.insertInto(LOG_ENTRIES, INDEX, logEntryField);
+        for (LogEntry entry : logEntries) {
+            statement.values(entry.getIndex(), entry);
+        }
+        statement.onDuplicateKeyIgnore().execute();
     }
 
     @Override
@@ -173,7 +181,6 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
         dsl.insertInto(SNAPSHOT_CHUNKS, INDEX, CHUNK_INDEX, CHUNK_COUNT, chunkField).values(snapshotChunk.getIndex(),
                 snapshotChunk.getSnapshotChunkIndex(), snapshotChunk.getSnapshotChunkCount(), snapshotChunk)
                 .onDuplicateKeyIgnore().execute();
-        tryToCleanUpOldSnapshots = true;
     }
 
     // Visible for testing
@@ -186,8 +193,13 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
     }
 
     @Override
-    public void truncateLogEntriesFrom(long logIndexInclusive) {
+    public void truncateLogEntriesFrom(@Nonnegative long logIndexInclusive) {
         dsl.deleteFrom(LOG_ENTRIES).where(INDEX.greaterOrEqual(logIndexInclusive)).execute();
+    }
+
+    @Override
+    public void truncateLogEntriesUntil(@Nonnegative long logIndexInclusive) {
+        dsl.deleteFrom(LOG_ENTRIES).where(INDEX.lessOrEqual(logIndexInclusive)).execute();
     }
 
     /**
@@ -205,21 +217,16 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
     }
 
     @Override
-    public void deleteSnapshotChunks(long logIndex, int snapshotChunkCount) {
+    public void deleteSnapshotChunks(@Nonnegative long logIndex, @Nonnegative int snapshotChunkCount) {
         dsl.deleteFrom(SNAPSHOT_CHUNKS).where(qualify(SNAPSHOT_CHUNKS, INDEX).eq(logIndex)).execute();
     }
 
     @Override
     public void flush() {
-        rawFlush();
-        if (tryToCleanUpOldSnapshots) {
-            tryToCleanUpOldSnapshots = false;
-            Optional<Long> maybeSnapshotIndex = getMaxCommittedSnapshotIndex();
-            maybeSnapshotIndex.ifPresent(this::truncateUntil);
-        }
+        dsl.connection(Connection::commit);
     }
 
-    public Optional<RestoredRaftState> getRestoredRaftState() {
+    public Optional<RestoredRaftState> getRestoredRaftState(boolean truncateStaleData) {
         var record = dsl
                 .select(localEndpointField, LOCAL_ENDPOINT_VOTING, initialGroupMembersField, TERM, votedForField)
                 .from(KV).fetchOne();
@@ -256,7 +263,9 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
                     .setGroupMembersView(snapshotChunks.get(0).getGroupMembersView()).build();
         });
 
-        snapshot.map(SnapshotEntry::getIndex).ifPresent(this::truncateUntil);
+        if (truncateStaleData) {
+            snapshot.map(SnapshotEntry::getIndex).ifPresent(this::truncateUntil);
+        }
 
         RaftEndpointPersistentState localEndpointPersistentState = raftModelFactory
                 .createRaftEndpointPersistentStateBuilder().setLocalEndpoint(record.get(localEndpointField))
@@ -288,7 +297,7 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
     private void truncateUntil(long snapshotIndex) {
         // we know there is a snapshot persisted successfully at the given index,
         // so we can delete everything before it.
-        dsl.deleteFrom(LOG_ENTRIES).where(INDEX.lessOrEqual(snapshotIndex)).execute();
+        truncateLogEntriesUntil(snapshotIndex);
         dsl.deleteFrom(SNAPSHOT_CHUNKS).where(INDEX.lessThan(snapshotIndex)).execute();
         dsl.connection(Connection::commit);
     }

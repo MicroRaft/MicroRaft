@@ -18,7 +18,9 @@
 package io.microraft.persistence;
 
 import java.io.IOException;
+import java.util.List;
 
+import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 
 import io.microraft.RaftConfig;
@@ -94,7 +96,7 @@ public interface RaftStore {
     void persistAndFlushTerm(@Nonnull RaftTermPersistentState termPersistentState) throws IOException;
 
     /**
-     * Persists the given log entry.
+     * Persists the given log entries.
      * <p>
      * Log entries are appended to the Raft log with sequential log indices. The
      * first log index is 1.
@@ -105,21 +107,19 @@ public interface RaftStore {
      * missing entries are no longer available from the leader. In that case the
      * leader will send its snapshot entry instead.
      * <p>
-     * In another rare failure scenario, MicroRaft must delete a range of the
-     * highest entries, rolling back the index of the next persisted entry. Consider
-     * the following case where Raft persists 3 log entries and then deletes entries
-     * from index=2:
+     * In another rare failure scenario, MicroRaft can delete a range of the latest
+     * entries which are uncommitted and roll back to a previous log index which is
+     * known to be committed. Consider the following case where Raft persists 3 log
+     * entries and then deletes entries from index=2:
      * <ul>
-     * <li>persistLogEntry(1)
-     * <li>persistLogEntry(2)
-     * <li>persistLogEntry(3)
+     * <li>persistLogEntries(1, 2, 3)
      * <li>truncateLogEntriesFrom(2)
      * </ul>
      * After this call sequence log indices will remain sequential and the next
-     * persistLogEntry() call will be for <em>index=2</em>.
+     * persistLogEntries() call will be for <em>index=2</em>.
      *
-     * @param logEntry
-     *            the log entry object to persist
+     * @param logEntries
+     *            the list of log entries to be persisted
      *
      * @throws IOException
      *             if any failure occurs during persisting the given log entry
@@ -129,7 +129,8 @@ public interface RaftStore {
      * @see #truncateLogEntriesFrom(long)
      * @see RaftConfig
      */
-    void persistLogEntry(@Nonnull LogEntry logEntry) throws IOException;
+
+    void persistLogEntries(@Nonnull List<LogEntry> logEntries) throws IOException;
 
     /**
      * Persists the given snapshot chunk.
@@ -139,23 +140,16 @@ public interface RaftStore {
      * snapshot is considered to be complete when all of its chunks are provided to
      * this method in any order, and {@link #flush()} will be called afterwards.
      * <p>
-     * After a snapshot is persisted at <em>index=i</em> and {@link #flush()} is
-     * called, the log entry at <em>index=i</em>, all the preceding log entries, and
-     * all the preceding snapshots are no longer needed and can be evicted from
-     * storage. Failing to evict stale entries and snapshots do not cause a
-     * consistency problem, but can increase the time to recover after a crash or
-     * restart. Therefore eviction can be done in a background task.
-     * <p>
      * MicroRaft takes snapshots at a predetermined interval, controlled by
      * {@link RaftConfig#getCommitCountToTakeSnapshot()}. For instance, if it is
      * 100, snapshots will occur at indices 100, 200, 300, and so on.
      * <p>
-     * The snapshot index can lag behind the index of the highest log entry that was
-     * already persisted and flushed, but there is an upper bound to this
+     * The snapshot index can lag behind the index of the highest log entry which
+     * was already persisted and flushed, but there is an upper bound to this
      * difference, controlled by {@link RaftConfig#getMaxPendingLogEntryCount()}.
      * For instance, if it is 10, and a {@code persistSnapshot()} call is made with
      * <em>snapshotIndex=100</em>, the index of the preceding
-     * {@code persistLogEntry()} call can be at most 110.
+     * {@code persistLogEntries()} call can be at most 110.
      * <p>
      * On the other hand, the snapshot index can also be ahead of the highest log
      * entry. This can happen when a Raft follower has fallen so far behind the
@@ -170,7 +164,7 @@ public interface RaftStore {
      *             if any failure occurs during persisting the given snapshot chunk
      *
      * @see #flush()
-     * @see #persistLogEntry(LogEntry)
+     * @see #persistLogEntries(List)
      * @see RaftConfig
      */
     void persistSnapshotChunk(@Nonnull SnapshotChunk snapshotChunk) throws IOException;
@@ -193,21 +187,37 @@ public interface RaftStore {
      *             if any failure occurs during truncating the log entries
      *
      * @see #flush()
-     * @see #persistLogEntry(LogEntry)
+     * @see #persistLogEntries(List)
      * @see RaftConfig
      */
-    void truncateLogEntriesFrom(long logIndexInclusive) throws IOException;
+    void truncateLogEntriesFrom(@Nonnegative long logIndexInclusive) throws IOException;
+
+    /**
+     * MicroRaft calls this method after it successfully persists and flushes a
+     * snapshot. This method is used for deleting log entries that are before the
+     * snapshot index and are not needed to be restored.
+     *
+     * This is merely an optimization method and its side-effects can be sync'ed to
+     * the storage when {@link #flush()} is called,
+     *
+     * @param logIndexInclusive
+     *            the log index value until which the log entries must be truncated
+     *
+     * @throws IOException
+     *             if any failure occurs during truncating the log entries
+     */
+    void truncateLogEntriesUntil(@Nonnegative long logIndexInclusive) throws IOException;
 
     /**
      * Deletes persisted snapshot chunks at the given log index.
      *
      * MicroRaft calls this method when it detects that it needs to start installing
-     * a new snapshot while there is a snapshot being persisted. Those snapshot
-     * chunks are no longer valid and must not be restored (or at least must be
-     * ignored during the restore process).
+     * a newer snapshot while there is a snapshot persisted partially. Those
+     * snapshot chunks are no longer valid and must not be restored (or at least
+     * must be ignored during the restore process).
      *
-     * This is merely an optimization method and its side-effects do not need to be
-     * flushed when this method returns.
+     * This is merely an optimization method and its side-effects can be sync'ed to
+     * the storage when {@link #flush()} is called.
      *
      * @param logIndex
      *            the log index value at which some snapshot chunks are persisted.
@@ -217,19 +227,19 @@ public interface RaftStore {
      * @throws IOException
      *             if any failure occurs during deletion.
      */
-    void deleteSnapshotChunks(long logIndex, int snapshotChunkCount) throws IOException;
+    void deleteSnapshotChunks(@Nonnegative long logIndex, @Nonnegative int snapshotChunkCount) throws IOException;
 
     /**
      * Forces all buffered (in any layer) Raft log changes to be written to the
      * storage and returns after those changes are written.
      * <p>
-     * When this method returns, all the changes done via the other methods have
-     * become durable.
+     * When this method returns, all the changes previously done via the other
+     * methods have become durable.
      *
      * @throws IOException
      *             if any failure occurs during the flush operation
      *
-     * @see #persistLogEntry(LogEntry)
+     * @see #persistLogEntries(List)
      * @see #persistSnapshotChunk(SnapshotChunk)
      * @see #deleteSnapshotChunks(long, int)
      * @see #truncateLogEntriesFrom(long)

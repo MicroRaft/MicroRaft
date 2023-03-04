@@ -17,11 +17,11 @@
 
 package io.microraft.impl.local;
 
-import static java.util.Comparator.comparingInt;
-
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 
 import javax.annotation.Nonnull;
 
@@ -41,14 +41,44 @@ import io.microraft.persistence.RestoredRaftState;
  */
 public final class InMemoryRaftStore implements RaftStore {
 
+    private static class SnapshotPersistenceState {
+
+        final int term;
+        final long snapshotIndex;
+        final int chunkCount;
+        final RaftGroupMembersView membersView;
+        final NavigableMap<Integer, SnapshotChunk> chunks = new TreeMap<>();
+
+        SnapshotPersistenceState(int term, long snapshotIndex, int chunkCount, RaftGroupMembersView membersView) {
+            this.term = term;
+            this.snapshotIndex = snapshotIndex;
+            this.chunkCount = chunkCount;
+            this.membersView = membersView;
+        }
+
+        boolean isCompleted() {
+            return chunks.size() == chunkCount;
+        }
+
+        SnapshotEntry toSnapshotEntry() {
+            if (isCompleted()) {
+                return new DefaultSnapshotEntryOrBuilder().setTerm(term).setIndex(snapshotIndex)
+                        .setSnapshotChunks(new ArrayList<>(chunks.values())).setGroupMembersView(membersView).build();
+            }
+
+            return null;
+        }
+
+    }
+
     private RaftEndpointPersistentState localEndpointPersistentState;
     private RaftGroupMembersView initialGroupMembers;
     private RaftTermPersistentState termPersistentState;
-    private RaftLog raftLog;
-    private List<SnapshotChunk> snapshotChunks = new ArrayList<>();
+    private List<LogEntry> entries = new ArrayList<>();
+    private SnapshotPersistenceState snapshotPersistenceState;
+    private SnapshotEntry flushedSnapshotEntry;
 
-    public InMemoryRaftStore(int logCapacity) {
-        this.raftLog = RaftLog.create(logCapacity);
+    public InMemoryRaftStore() {
     }
 
     @Override
@@ -67,48 +97,69 @@ public final class InMemoryRaftStore implements RaftStore {
     }
 
     @Override
-    public synchronized void persistLogEntry(@Nonnull LogEntry logEntry) {
-        raftLog.appendEntry(logEntry);
+    public synchronized void persistLogEntries(@Nonnull List<LogEntry> logEntries) {
+        entries.addAll(logEntries);
     }
 
     @Override
     public synchronized void persistSnapshotChunk(@Nonnull SnapshotChunk snapshotChunk) {
-        snapshotChunks.add(snapshotChunk);
-
-        if (snapshotChunk.getSnapshotChunkCount() == snapshotChunks.size()) {
-            snapshotChunks.sort(comparingInt(SnapshotChunk::getSnapshotChunkIndex));
-            SnapshotEntry snapshotEntry = new DefaultSnapshotEntryOrBuilder().setTerm(snapshotChunk.getTerm())
-                    .setIndex(snapshotChunk.getIndex()).setSnapshotChunks(snapshotChunks)
-                    .setGroupMembersView(snapshotChunk.getGroupMembersView()).build();
-            raftLog.setSnapshot(snapshotEntry);
-            snapshotChunks = new ArrayList<>();
+        if (snapshotPersistenceState == null || snapshotPersistenceState.snapshotIndex != snapshotChunk.getIndex()) {
+            snapshotPersistenceState = new SnapshotPersistenceState(snapshotChunk.getTerm(), snapshotChunk.getIndex(),
+                    snapshotChunk.getSnapshotChunkCount(), snapshotChunk.getGroupMembersView());
         }
+
+        snapshotPersistenceState.chunks.put(snapshotChunk.getSnapshotChunkIndex(), snapshotChunk);
     }
 
     @Override
     public synchronized void truncateLogEntriesFrom(long logIndexInclusive) {
-        raftLog.truncateEntriesFrom(logIndexInclusive);
+        List<LogEntry> newEntries = new ArrayList<>();
+        for (LogEntry entry : entries) {
+            if (entry.getIndex() < logIndexInclusive) {
+                newEntries.add(entry);
+            }
+        }
+        entries = newEntries;
+    }
+
+    @Override
+    public synchronized void truncateLogEntriesUntil(long logIndexInclusive) throws IOException {
+        List<LogEntry> newEntries = new ArrayList<>();
+        for (LogEntry entry : entries) {
+            if (entry.getIndex() > logIndexInclusive) {
+                newEntries.add(entry);
+            }
+        }
+        entries = newEntries;
     }
 
     @Override
     public synchronized void deleteSnapshotChunks(long logIndex, int snapshotChunkCount) {
-        snapshotChunks.clear();
+        if (snapshotPersistenceState != null && snapshotPersistenceState.snapshotIndex == logIndex) {
+            snapshotPersistenceState = null;
+        }
     }
 
     @Override
     public synchronized void flush() {
+        if (snapshotPersistenceState != null) {
+            SnapshotEntry entry = snapshotPersistenceState.toSnapshotEntry();
+            if (entry != null) {
+                flushedSnapshotEntry = entry;
+            }
+        }
     }
 
     public synchronized RestoredRaftState toRestoredRaftState() {
-        List<LogEntry> entries;
-        if (raftLog.snapshotIndex() < raftLog.lastLogOrSnapshotIndex()) {
-            entries = raftLog.getLogEntriesBetween(raftLog.snapshotIndex() + 1, raftLog.lastLogOrSnapshotIndex());
-        } else {
-            entries = Collections.emptyList();
+        List<LogEntry> restoredEntries = new ArrayList<>();
+        for (LogEntry entry : entries) {
+            if (flushedSnapshotEntry == null || entry.getIndex() > flushedSnapshotEntry.getIndex()) {
+                restoredEntries.add(entry);
+            }
         }
 
         return new RestoredRaftState(localEndpointPersistentState, initialGroupMembers, termPersistentState,
-                raftLog.snapshotEntry(), entries);
+                flushedSnapshotEntry, restoredEntries);
     }
 
 }

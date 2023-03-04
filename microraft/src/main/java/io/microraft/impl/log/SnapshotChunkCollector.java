@@ -19,6 +19,7 @@ package io.microraft.impl.log;
 import static java.util.Comparator.comparingInt;
 import static java.util.Objects.requireNonNull;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,6 +41,7 @@ import io.microraft.model.log.SnapshotEntry;
 import io.microraft.model.log.SnapshotEntry.SnapshotEntryBuilder;
 import io.microraft.model.message.InstallSnapshotRequest;
 import io.microraft.model.message.InstallSnapshotResponse;
+import io.microraft.persistence.RaftStore;
 
 /**
  * Collects received snapshot chunks during a snapshot installation process.
@@ -53,6 +55,7 @@ import io.microraft.model.message.InstallSnapshotResponse;
  */
 public final class SnapshotChunkCollector {
 
+    private final RaftStore store;
     private final long snapshotIndex;
     private final int snapshotTerm;
     private final int chunkCount;
@@ -63,13 +66,14 @@ public final class SnapshotChunkCollector {
     private final Map<RaftEndpoint, Integer> requestedMembers = new HashMap<>();
     private final Set<RaftEndpoint> unresponsiveMembers = new HashSet<>();
 
-    public SnapshotChunkCollector(InstallSnapshotRequest request) {
-        this(request.getSnapshotIndex(), request.getSnapshotTerm(), request.getTotalSnapshotChunkCount(),
+    public SnapshotChunkCollector(RaftStore store, InstallSnapshotRequest request) {
+        this(store, request.getSnapshotIndex(), request.getSnapshotTerm(), request.getTotalSnapshotChunkCount(),
                 request.getSnapshottedMembers(), request.getGroupMembersView());
     }
 
-    private SnapshotChunkCollector(long snapshotIndex, int snapshotTerm, int chunkCount,
+    private SnapshotChunkCollector(RaftStore store, long snapshotIndex, int snapshotTerm, int chunkCount,
             Collection<RaftEndpoint> snapshottedMembers, RaftGroupMembersView groupMembersView) {
+        this.store = store;
         this.snapshotIndex = snapshotIndex;
         this.snapshotTerm = snapshotTerm;
         this.chunkCount = chunkCount;
@@ -89,7 +93,8 @@ public final class SnapshotChunkCollector {
         this.unresponsiveMembers.retainAll(snapshottedMembers);
     }
 
-    public boolean handleReceivedSnapshotChunk(RaftEndpoint endpoint, long snapshotIndex, SnapshotChunk snapshotChunk) {
+    public boolean handleReceivedSnapshotChunk(RaftEndpoint endpoint, long snapshotIndex, SnapshotChunk snapshotChunk)
+            throws IOException {
         requireNonNull(endpoint);
         if (this.snapshotIndex != snapshotIndex) {
             throw new IllegalArgumentException("Invalid snapshot chunk at snapshot index: " + snapshotIndex
@@ -101,15 +106,23 @@ public final class SnapshotChunkCollector {
         // Un-mark the unresponsive endpoint even if the given chunk is already here
         unresponsiveMembers.remove(endpoint);
 
-        if (snapshotChunk == null || !missingChunkIndices.remove(snapshotChunk.getSnapshotChunkIndex())) {
+        if (snapshotChunk == null || !missingChunkIndices.contains(snapshotChunk.getSnapshotChunkIndex())) {
             return false;
         }
 
-        chunks.add(snapshotChunk);
         requestedMembers.remove(endpoint, snapshotChunk.getSnapshotChunkIndex());
 
-        if (missingChunkIndices.isEmpty()) {
+        store.persistSnapshotChunk(snapshotChunk);
+
+        // we are modifying the memory state after the chunk is persisted.
+        // if the persistence call fails, the memory state will remain intact.
+        missingChunkIndices.remove(snapshotChunk.getSnapshotChunkIndex());
+        chunks.add(snapshotChunk);
+        if (isSnapshotCompleted()) {
             chunks.sort(comparingInt(SnapshotChunk::getSnapshotChunkIndex));
+            // we need to flush here since all chunks are persisted now.
+            // RaftNode will install the snapshot to its RaftLog.
+            store.flush();
         }
 
         return true;
@@ -189,7 +202,7 @@ public final class SnapshotChunkCollector {
 
     // for testing
     public SnapshotChunkCollector copy() {
-        SnapshotChunkCollector copy = new SnapshotChunkCollector(snapshotIndex, snapshotTerm, chunkCount,
+        SnapshotChunkCollector copy = new SnapshotChunkCollector(store, snapshotIndex, snapshotTerm, chunkCount,
                 snapshottedMembers, groupMembersView);
         copy.chunks.addAll(chunks);
         copy.missingChunkIndices.addAll(missingChunkIndices);

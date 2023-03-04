@@ -19,6 +19,7 @@ package io.microraft.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletionException;
@@ -603,7 +604,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
         }
 
         @Override
-        public void persistLogEntry(@Nonnull LogEntry logEntry) {
+        public void persistLogEntries(@Nonnull List<LogEntry> logEntries) throws IOException {
             recordCall();
         }
 
@@ -614,6 +615,11 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
 
         @Override
         public void truncateLogEntriesFrom(long logIndexInclusive) {
+            recordCall();
+        }
+
+        @Override
+        public void truncateLogEntriesUntil(long logIndexInclusive) {
             recordCall();
         }
 

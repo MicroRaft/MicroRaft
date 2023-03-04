@@ -95,7 +95,7 @@ import io.microraft.impl.state.RaftTermState;
 import io.microraft.impl.task.HeartbeatTask;
 import io.microraft.impl.task.LeaderBackoffResetTask;
 import io.microraft.impl.task.LeaderElectionTimeoutTask;
-import io.microraft.impl.task.LeaderFlushTask;
+import io.microraft.impl.task.FlushTask;
 import io.microraft.impl.task.MembershipChangeTask;
 import io.microraft.impl.task.PreVoteTask;
 import io.microraft.impl.task.PreVoteTimeoutTask;
@@ -566,7 +566,7 @@ public final class RaftNodeImpl implements RaftNode {
 
     private void initTasks() {
         if (!(store instanceof NopRaftStore)) {
-            leaderFlushTask = new LeaderFlushTask(this);
+            leaderFlushTask = new FlushTask(this);
         }
         leaderBackoffResetTask = new LeaderBackoffResetTask(this);
         executor.schedule(new HeartbeatTask(this), config.getLeaderHeartbeatPeriodSecs(), SECONDS);
@@ -1045,18 +1045,49 @@ public final class RaftNodeImpl implements RaftNode {
             snapshotChunks.add(snapshotChunk);
 
             try {
-                state.store().persistSnapshotChunk(snapshotChunk);
+                store.persistSnapshotChunk(snapshotChunk);
             } catch (IOException e) {
-                throw new RaftException(e);
+                throw new RaftException(
+                        "Persist failed at snapshot index: " + snapshotIndex + ", chunk index: " + chunkIndex,
+                        getLeaderEndpoint(), e);
             }
         }
+
+        try {
+            store.flush();
+        } catch (IOException e) {
+            throw new RaftException("Flush failed at snapshot index: " + snapshotIndex, getLeaderEndpoint(), e);
+        }
+
+        // we flushed the snapshot to the storage.
+        // it is safe to modify the memory state now.
 
         SnapshotEntry snapshotEntry = modelFactory.createSnapshotEntryBuilder().setTerm(snapshotTerm)
                 .setIndex(snapshotIndex).setSnapshotChunks(snapshotChunks).setGroupMembersView(groupMembersView)
                 .build();
 
+        long highestLogIndexToTruncate = findHighestLogIndexToTruncateUntilSnapshotIndex(snapshotIndex);
+        // the following call will also modify the persistent state
+        // to truncate stale log entries. we will schedule an async flush
+        // task below.
+        int truncatedEntryCount = log.setSnapshot(snapshotEntry, highestLogIndexToTruncate);
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(localEndpointStr + " " + snapshotEntry + " is taken. " + truncatedEntryCount + " entries are "
+                    + "truncated.");
+        }
+
+        publishRaftNodeReport(RaftNodeReportReason.TAKE_SNAPSHOT);
+
+        // this will flush the truncation of the stale log entries
+        // asynchronously. if this node is the leader, it can append new log
+        // entries in the meantime, this task will flush them to the storage.
+        executor.submit(new FlushTask(this));
+    }
+
+    private long findHighestLogIndexToTruncateUntilSnapshotIndex(long snapshotIndex) {
         long limit = Math.max(FIRST_VALID_LOG_INDEX, snapshotIndex - maxLogEntryCountToKeepAfterSnapshot);
-        long highestLogIndexToTruncate = limit;
+        long truncationIndex = limit;
         LeaderState leaderState = state.leaderState();
         if (leaderState != null) {
             long[] matchIndices = leaderState.matchIndices(state.remoteVotingMembers());
@@ -1072,7 +1103,7 @@ public final class RaftNodeImpl implements RaftNode {
                 // that is bigger than (commitIndex - maxNumberOfLogsToKeepAfterSnapshot).
                 // If there is no such follower (all of the minority followers are far behind),
                 // then there is no need to keep the old log entries.
-                highestLogIndexToTruncate = Arrays.stream(matchIndices)
+                truncationIndex = Arrays.stream(matchIndices)
                         // No need to keep any log entry if all followers are up to date
                         .filter(i -> i < snapshotIndex).filter(i -> i > limit)
                         // We should not delete the smallest matchIndex
@@ -1080,18 +1111,13 @@ public final class RaftNodeImpl implements RaftNode {
             }
         }
 
-        int truncatedEntryCount = log.setSnapshot(snapshotEntry, highestLogIndexToTruncate);
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(localEndpointStr + " " + snapshotEntry + " is taken. " + truncatedEntryCount + " entries are "
-                    + "truncated.");
-        }
-
-        publishRaftNodeReport(RaftNodeReportReason.TAKE_SNAPSHOT);
+        return truncationIndex;
     }
 
     /**
-     * Installs the snapshot sent by the leader if it's not already installed.
+     * Installs the snapshot sent by the leader if it's not already installed. This
+     * method assumes that the given snapshot is already persisted and flushed to
+     * the storage.
      *
      * @param snapshotEntry
      *            the snapshot entry object to install to the local Raft node
@@ -1104,17 +1130,18 @@ public final class RaftNodeImpl implements RaftNode {
                     + " because the current commit index is: " + commitIndex);
         }
 
-        state.commitIndex(snapshotEntry.getIndex());
         RaftLog log = state.log();
         int truncated = log.setSnapshot(snapshotEntry);
+
+        // local state is updated here after log.setSnapshot() because
+        // the storage might fail.
+        state.commitIndex(snapshotEntry.getIndex());
         state.snapshotChunkCollector(null);
 
         if (truncated > 0) {
             LOGGER.info("{} {} entries are truncated to install snapshot at commit index: {}", localEndpointStr,
                     truncated, snapshotEntry.getIndex());
         }
-
-        log.flush();
 
         List<Object> chunkOperations = ((List<SnapshotChunk>) snapshotEntry.getOperation()).stream()
                 .map(SnapshotChunk::getOperation).collect(toList());
@@ -1123,12 +1150,11 @@ public final class RaftNodeImpl implements RaftNode {
         ++installSnapshotCount;
         publishRaftNodeReport(RaftNodeReportReason.INSTALL_SNAPSHOT);
 
-        // If I am installing a snapshot, it means I am still present in the last member
-        // list,
-        // but it is possible that the last entry I appended before the snapshot could
-        // be a membership change.
-        // Because of this, I need to update my status.
-        // Nevertheless, I may not be present in the restored member list, which is ok.
+        // If I am installing a snapshot, it means I am still present
+        // in the last member list, but it is possible that the last entry
+        // I appended before the snapshot could be a membership change.
+        // Because of this, I need to update my status. Nevertheless, I may
+        // not be present in the restored member list, which is ok.
 
         setStatus(ACTIVE);
         if (state.installGroupMembers(snapshotEntry.getGroupMembersView())) {
@@ -1139,6 +1165,11 @@ public final class RaftNodeImpl implements RaftNode {
         invalidateFuturesUntil(snapshotEntry.getIndex(), new IndeterminateStateException(state.leader()));
 
         LOGGER.info("{} snapshot is installed at commit index: {}", localEndpointStr, snapshotEntry.getIndex());
+
+        // log.setSnapshot() truncates stale log entries from disk.
+        // we are submitting an async flush task here to flush those
+        // changes to the storage.
+        executor.submit(new FlushTask(this));
     }
 
     /**

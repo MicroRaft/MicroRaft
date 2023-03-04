@@ -68,9 +68,7 @@ public final class LocalRaftGroup {
 
     public static final BiFunction<RaftEndpoint, RaftConfig, RaftStore> IN_MEMORY_RAFT_STATE_STORE_FACTORY = (endpoint,
             config) -> {
-        int commitCountToTakeSnapshot = config.getCommitCountToTakeSnapshot();
-        int maxPendingLogEntryCount = config.getMaxPendingLogEntryCount();
-        return new InMemoryRaftStore(getLogCapacity(commitCountToTakeSnapshot, maxPendingLogEntryCount));
+        return new InMemoryRaftStore();
     };
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LocalRaftGroup.class);

@@ -187,7 +187,8 @@ public final class RaftLog {
             try {
                 store.truncateLogEntriesFrom(entryIndex);
             } catch (IOException e) {
-                throw new RaftException(e);
+                throw new RaftException("Failed to truncate log entries in persistence from index=" + entryIndex, null,
+                        e);
             }
         }
 
@@ -228,14 +229,31 @@ public final class RaftLog {
      *             if the Raft log has no enough available capacity
      */
     public void appendEntries(List<LogEntry> entries) {
-        int lastTerm = lastLogOrSnapshotTerm();
-        long lastIndex = lastLogOrSnapshotIndex();
+        if (entries.isEmpty()) {
+            return;
+        }
 
+        validateForAppend(entries);
+        try {
+            store.persistLogEntries(entries);
+        } catch (IOException e) {
+            throw new RaftException("Could not persist entries from start index: " + entries.get(0).getIndex()
+                    + ", entry count: " + entries.size(), null, e);
+        }
+
+        // we are modifying the memory state after the entries are persisted.
+        entries.forEach(log::add);
+        dirty = true;
+    }
+
+    private void validateForAppend(List<LogEntry> entries) {
         if (!checkAvailableCapacity(entries.size())) {
             throw new IllegalStateException("Not enough capacity! Capacity: " + log.getCapacity() + ", Size: "
                     + log.size() + ", New entries:" + " " + entries.size());
         }
 
+        int lastTerm = lastLogOrSnapshotTerm();
+        long lastIndex = lastLogOrSnapshotIndex();
         for (LogEntry entry : entries) {
             if (entry.getTerm() < lastTerm) {
                 throw new IllegalArgumentException(
@@ -245,17 +263,9 @@ public final class RaftLog {
                         + " since its index is bigger than (lastLogIndex + 1): " + (lastIndex + 1));
             }
 
-            log.add(entry);
-            try {
-                store.persistLogEntry(entry);
-            } catch (IOException e) {
-                throw new RaftException(e);
-            }
             lastIndex++;
             lastTerm = Math.max(lastTerm, entry.getTerm());
         }
-
-        dirty |= entries.size() > 0;
     }
 
     /**
@@ -309,13 +319,14 @@ public final class RaftLog {
                     + " since its index is bigger than (lastLogIndex + 1): " + (lastIndex + 1));
         }
 
-        log.add(entry);
         try {
-            store.persistLogEntry(entry);
+            store.persistLogEntries(List.of(entry));
         } catch (IOException e) {
-            throw new RaftException(e);
+            throw new RaftException("Failed to persist log entry at index: " + entry.getIndex(), null, e);
         }
 
+        // we are modifying the memory state after the entries are persisted.
+        log.add(entry);
         dirty = true;
     }
 
@@ -330,27 +341,27 @@ public final class RaftLog {
      *             than last log index, or if {@code toEntryIndex} is greater than
      *             last log index.
      */
-    public List<LogEntry> getLogEntriesBetween(long fromEntryIndex, long toEntryIndex) {
-        if (fromEntryIndex > toEntryIndex) {
+    public List<LogEntry> getLogEntriesBetween(long fromIndexInclusive, long toIndexInclusive) {
+        if (fromIndexInclusive > toIndexInclusive) {
             throw new IllegalArgumentException(
-                    "Illegal from entry index: " + fromEntryIndex + ", to entry index: " + toEntryIndex);
-        } else if (!containsLogEntry(fromEntryIndex)) {
-            throw new IllegalArgumentException("Illegal from entry index: " + fromEntryIndex);
+                    "Illegal from entry index: " + fromIndexInclusive + ", to entry index: " + toIndexInclusive);
+        } else if (!containsLogEntry(fromIndexInclusive)) {
+            throw new IllegalArgumentException("Illegal from entry index: " + fromIndexInclusive);
         }
 
         long lastLogIndex = lastLogOrSnapshotIndex();
-        if (fromEntryIndex > lastLogIndex) {
+        if (fromIndexInclusive > lastLogIndex) {
             throw new IllegalArgumentException(
-                    "Illegal from entry index: " + fromEntryIndex + ", last log index: " + lastLogIndex);
-        } else if (toEntryIndex > lastLogIndex) {
+                    "Illegal from entry index: " + fromIndexInclusive + ", last log index: " + lastLogIndex);
+        } else if (toIndexInclusive > lastLogIndex) {
             throw new IllegalArgumentException(
-                    "Illegal to entry index: " + toEntryIndex + ", last log index: " + lastLogIndex);
+                    "Illegal to entry index: " + toIndexInclusive + ", last log index: " + lastLogIndex);
         }
 
-        assert ((int) (toEntryIndex - fromEntryIndex)) >= 0
-                : "Int overflow! From: " + fromEntryIndex + ", to: " + toEntryIndex;
-        long offset = toSequence(fromEntryIndex);
-        int entryCount = (int) (toEntryIndex - fromEntryIndex + 1);
+        assert ((int) (toIndexInclusive - fromIndexInclusive)) >= 0
+                : "Int overflow! From: " + fromIndexInclusive + ", to: " + toIndexInclusive;
+        long offset = toSequence(fromIndexInclusive);
+        int entryCount = (int) (toIndexInclusive - fromIndexInclusive + 1);
         List<LogEntry> entries = new ArrayList<>(entryCount);
         for (int i = 0; i < entryCount; i++) {
             entries.add(log.read(offset + i));
@@ -361,7 +372,9 @@ public final class RaftLog {
 
     /**
      * Installs the snapshot entry and truncates log entries those are included in
-     * snapshot (entries whose indexes are smaller than the snapshot's index).
+     * snapshot (entries whose indexes are smaller than the snapshot's index). The
+     * given snapshot is already persisted and flushed to the storage before calling
+     * this method.
      *
      * @return truncated log entries after snapshot is installed
      *
@@ -373,12 +386,42 @@ public final class RaftLog {
         return setSnapshot(snapshot, snapshot.getIndex());
     }
 
+    /**
+     * Installs the snapshot entry and truncates log entries until the given index
+     * which is smaller than or equal to the snapshot index. The given snapshot is
+     * already persisted and flushed to the storage before calling this method.
+     *
+     * @return truncated log entries after snapshot is installed
+     *
+     * @throws IllegalArgumentException
+     *             if the snapshot's index is smaller than or equal to the current
+     *             snapshot index
+     */
     public int setSnapshot(SnapshotEntry snapshot, long truncateUpToIndex) {
         if (snapshot.getIndex() <= snapshotIndex()) {
             throw new IllegalArgumentException(
                     "Illegal index: " + snapshot.getIndex() + ", current snapshot index: " + snapshotIndex());
         }
 
+        try {
+            store.truncateLogEntriesUntil(truncateUpToIndex);
+        } catch (IOException e) {
+            throw new RaftException("Failed to truncate log entries from persistence until index=" + truncateUpToIndex,
+                    null, e);
+        }
+
+        int truncatedEntryCount = truncateLogEntriesUntil(truncateUpToIndex);
+        this.snapshot = snapshot;
+
+        // snapshot chunks are already persisted and flushed before this
+        // method is called. however, we also truncated log entries,
+        // hence setting the dirty flag.
+        dirty = true;
+
+        return truncatedEntryCount;
+    }
+
+    private int truncateLogEntriesUntil(long truncateUpToIndex) {
         long newHeadSeq = toSequence(truncateUpToIndex) + 1;
         long newTailSeq = Math.max(log.tailSequence(), newHeadSeq - 1);
 
@@ -392,11 +435,6 @@ public final class RaftLog {
         log.setHeadSequence(newHeadSeq);
         log.setTailSequence(newTailSeq);
 
-        this.snapshot = snapshot;
-        // snapshot chunks are already persisted to disk before
-        // setSnapshot() is called.
-        dirty = true;
-
         return (int) (prevSize - log.size());
     }
 
@@ -409,7 +447,7 @@ public final class RaftLog {
                 store.flush();
                 dirty = false;
             } catch (IOException e) {
-                throw new RaftException(e);
+                throw new RaftException("Failed to flush", null, e);
             }
         }
     }

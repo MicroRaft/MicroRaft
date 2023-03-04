@@ -721,6 +721,7 @@ public class RaftTest extends BaseTest {
             for (RaftNodeImpl node : followers) {
                 assertThat(node.getLeaderEndpoint()).isNotNull().isNotEqualTo(leader.getLocalEndpoint());
             }
+            assertThat(leader.getLeaderEndpoint()).isNull();
         });
 
         List<CompletableFuture<Ordered<Object>>> isolatedFutures = new ArrayList<>();

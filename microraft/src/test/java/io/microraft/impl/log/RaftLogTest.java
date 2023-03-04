@@ -263,7 +263,7 @@ public class RaftLogTest {
     }
 
     @Test
-    public void getEntry_withZeroIndex() {
+    public void getEntry_withInitialInvalidIndex() {
         exception.expect(IllegalArgumentException.class);
         log.getLogEntry(0);
     }

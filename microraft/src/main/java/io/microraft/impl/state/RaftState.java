@@ -402,29 +402,26 @@ public final class RaftState {
             role = FOLLOWER;
         }
 
+        RaftTermState newTermState = termState.switchTo(term);
+        persistTerm(newTermState);
         preCandidateState = null;
         LeaderState currentLeaderState = leaderState;
         leaderState = null;
         candidateState = null;
         completeLeadershipTransfer(null);
-        setTerm(term);
+        termState = newTermState;
         if (currentLeaderState != null) {
             // this is done here to read the updated leader field
             currentLeaderState.queryState().fail(new NotLeaderException(localEndpoint, leader()));
         }
-        persistTerm();
     }
 
-    private void setTerm(int newTerm) {
-        termState = termState.switchTo(newTerm);
-    }
-
-    private void persistTerm() {
+    private void persistTerm(RaftTermState termStateToPersist) {
         try {
-            store.persistAndFlushTerm(modelFactory.createRaftTermPersistentStateBuilder().setTerm(term())
-                    .setVotedFor(votedEndpoint()).build());
+            store.persistAndFlushTerm(modelFactory.createRaftTermPersistentStateBuilder()
+                    .setTerm(termStateToPersist.getTerm()).setVotedFor(termStateToPersist.getVotedEndpoint()).build());
         } catch (IOException e) {
-            throw new RaftException(e);
+            throw new RaftException("Failed to persist " + termStateToPersist, null, e);
         }
     }
 
@@ -465,14 +462,16 @@ public final class RaftState {
             throw new IllegalStateException(LEARNER + " cannot become " + CANDIDATE);
         }
 
-        role = CANDIDATE;
         preCandidateState = null;
+        int newTerm = term() + 1;
+        RaftTermState newTermState = termState.switchTo(newTerm);
+        persistTerm(newTermState);
+        termState = newTermState;
         leaderState = null;
+        grantVote(newTerm, localEndpoint);
+        role = CANDIDATE;
         candidateState = new CandidateState(leaderElectionQuorumSize());
         candidateState.grantVote(localEndpoint);
-        int newTerm = term() + 1;
-        setTerm(newTerm);
-        grantVote(newTerm, localEndpoint);
     }
 
     private void promoteToVotingMember() throws IOException {
@@ -523,8 +522,9 @@ public final class RaftState {
      * Persist a vote for the endpoint in current term during leader election.
      */
     public void grantVote(int term, RaftEndpoint member) {
-        termState = termState.grantVote(term, member);
-        persistTerm();
+        RaftTermState newTermState = termState.grantVote(term, member);
+        persistTerm(newTermState);
+        termState = newTermState;
     }
 
     /**
@@ -617,7 +617,7 @@ public final class RaftState {
             try {
                 promoteToVotingMember();
             } catch (IOException e) {
-                throw new RaftException(e);
+                throw new RaftException("Promotion to voting member failed", null, e);
             }
         }
     }
@@ -643,14 +643,14 @@ public final class RaftState {
         assert this.committedGroupMembers != this.effectiveGroupMembers;
         boolean demoteToNonVotingMember = !this.committedGroupMembers.getVotingMembers().contains(this.localEndpoint)
                 && this.effectiveGroupMembers.getVotingMembers().contains(this.localEndpoint);
-        this.effectiveGroupMembers = this.committedGroupMembers;
         if (demoteToNonVotingMember) {
             try {
                 demoteToNonVotingMember();
             } catch (IOException e) {
-                throw new RaftException(e);
+                throw new RaftException("Demotion to non-voting member failed", null, e);
             }
         }
+        this.effectiveGroupMembers = this.committedGroupMembers;
         // there is no leader state to clean up
     }
 
@@ -670,8 +670,6 @@ public final class RaftState {
         RaftGroupMembersState previousGroupMembers = this.effectiveGroupMembers;
         RaftGroupMembersState groupMembers = new RaftGroupMembersState(groupMembersView.getLogIndex(),
                 groupMembersView.getMembers(), groupMembersView.getVotingMembers(), localEndpoint);
-        this.committedGroupMembers = groupMembers;
-        this.effectiveGroupMembers = groupMembers;
 
         if (changed) {
             try {
@@ -685,9 +683,14 @@ public final class RaftState {
                     demoteToNonVotingMember();
                 }
             } catch (IOException e) {
-                throw new RaftException(e);
+                throw new RaftException(
+                        "Persisting voting member status failed while installing group members: " + groupMembersView,
+                        null, e);
             }
         }
+
+        this.committedGroupMembers = groupMembers;
+        this.effectiveGroupMembers = groupMembers;
 
         return changed;
     }

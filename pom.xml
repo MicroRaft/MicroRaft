@@ -75,6 +75,8 @@
         <assertj.version>3.23.1</assertj.version>
         <findbugs.annotations.version>3.0.1</findbugs.annotations.version>
 
+        <surefire.fork.count>4</surefire.fork.count>
+
         <maven.compiler.plugin.version>3.10.1</maven.compiler.plugin.version>
         <maven.spotbugs.plugin.version>3.1.12.2</maven.spotbugs.plugin.version>
         <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
@@ -224,7 +226,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven.surefire.plugin.version}</version>
                 <configuration>
-                    <forkCount>2</forkCount>
+                    <forkCount>${surefire.fork.count}</forkCount>
                     <reuseForks>false</reuseForks>
                     <runOrder>random</runOrder>
                     <argLine>

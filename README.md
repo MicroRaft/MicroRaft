@@ -1,5 +1,5 @@
 
-[![Java CI with Maven](https://github.com/MicroRaft/MicroRaft/actions/workflows/maven.yml/badge.svg)](https://github.com/MicroRaft/MicroRaft/actions/workflows/maven.yml) [![Integration](license-apache-2.svg)](https://github.com/MicroRaft/MicroRaft/blob/master/LICENSE)
+[![Java CI with Maven](https://github.com/MicroRaft/MicroRaft/actions/workflows/maven.yml/badge.svg)](https://github.com/MicroRaft/MicroRaft/actions/workflows/maven.yml) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/MicroRaft/MicroRaft/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/MicroRaft/MicroRaft/tree/master) [![Integration](license-apache-2.svg)](https://github.com/MicroRaft/MicroRaft/blob/master/LICENSE)
 
 ![](microraft.io/src/img/microraft-logo.png)
 

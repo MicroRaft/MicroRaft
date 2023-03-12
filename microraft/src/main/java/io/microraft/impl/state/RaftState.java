@@ -510,6 +510,12 @@ public final class RaftState {
          * of size N * 2, we can commit log entries after collecting acks from N nodes.
          * Since leader elections are done with majority quorums (N + 1), we still
          * guarantee that a new leader will always have all committed log entries.
+         * 
+         * Here, we treat the 2-node group as a special case 
+         * and use the normal majority quorum calculation, where also the log 
+         * replication logic uses the 2-node quorum. The reason is to ensure 
+         * that the replicated data is guaranteed to have another copy in case
+         * the leader unrecoverably crashes.
          */
         int quorumSize = leaderElectionQuorumSize();
         return effectiveGroupMembers.votingMemberCount() % 2 != 0

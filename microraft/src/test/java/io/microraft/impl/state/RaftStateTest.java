@@ -23,7 +23,6 @@ import static io.microraft.RaftRole.LEADER;
 import static io.microraft.RaftRole.LEARNER;
 import static io.microraft.impl.local.LocalRaftEndpoint.newEndpoint;
 import static io.microraft.test.util.RaftTestUtils.majority;
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
@@ -53,7 +52,7 @@ public class RaftStateTest {
 
     private LocalRaftEndpoint localEndpoint = newEndpoint();
     private Collection<RaftEndpoint> initialEndpoints = new LinkedHashSet<>(
-            asList(localEndpoint, newEndpoint(), newEndpoint(), newEndpoint(), newEndpoint()));
+            List.of(localEndpoint, newEndpoint(), newEndpoint(), newEndpoint(), newEndpoint()));
     private RaftGroupMembersView groupMembers = new DefaultRaftGroupMembersViewOrBuilder().setLogIndex(0)
             .setMembers(initialEndpoints).setVotingMembers(initialEndpoints).build();
     private RaftState state;

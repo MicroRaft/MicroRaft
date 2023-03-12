@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
@@ -88,14 +87,14 @@ public class RaftSqliteStoreTest {
     public void testLogEntryFlushing() {
         withRaftStore(RaftSqliteStoreTest::persistInitialState);
         withRaftStore(store -> {
-            store.persistLogEntries(Arrays.asList(logEntry(1, 1), logEntry(2, 1), logEntry(3, 1)));
+            store.persistLogEntries(List.of(logEntry(1, 1), logEntry(2, 1), logEntry(3, 1)));
             store.flush();
         });
         withRaftStore(store -> {
             assertThat(store.getRestoredRaftState(false).get().getLogEntries())
                     .usingRecursiveFieldByFieldElementComparator()
                     .containsExactly(logEntry(1, 1), logEntry(2, 1), logEntry(3, 1));
-            store.persistLogEntries(Arrays.asList(logEntry(4, 1), logEntry(5, 1)));
+            store.persistLogEntries(List.of(logEntry(4, 1), logEntry(5, 1)));
             store.flush();
         });
         withRaftStore(store -> {
@@ -115,7 +114,7 @@ public class RaftSqliteStoreTest {
     public void testSnapshots() throws IOException {
         withRaftStore(RaftSqliteStoreTest::persistInitialState);
         withRaftStore(store -> {
-            store.persistLogEntries(Arrays.asList(logEntry(1, 1), logEntry(2, 1), logEntry(3, 1)));
+            store.persistLogEntries(List.of(logEntry(1, 1), logEntry(2, 1), logEntry(3, 1)));
             store.flush();
             store.persistSnapshotChunk(snapshotChunk(2, 0, 0, 1));
             store.flush();
@@ -169,7 +168,7 @@ public class RaftSqliteStoreTest {
     public void testRestoreCleansUpRedundantLogEntriesAndSnapshotChunks() {
         withRaftStore(RaftSqliteStoreTest::persistInitialState);
         withRaftStore(store -> {
-            store.persistLogEntries(Arrays.asList(logEntry(1, 1)));
+            store.persistLogEntries(List.of(logEntry(1, 1)));
             store.persistSnapshotChunk(snapshotChunk(2, 1, 0, 2));
             store.persistSnapshotChunk(snapshotChunk(3, 1, 0, 1));
             store.flush();

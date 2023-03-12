@@ -21,7 +21,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -37,8 +36,7 @@ import io.microraft.statemachine.StateMachine;
 
 public abstract class BaseLocalTest {
 
-    protected List<RaftEndpoint> initialMembers = Arrays.asList(LocalRaftEndpoint.newEndpoint(),
-            LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint());
+    private List<RaftEndpoint> initialMembers;
     protected List<LocalTransport> transports = new ArrayList<>();
     protected List<RaftNode> raftNodes = new ArrayList<>();
 
@@ -79,6 +77,7 @@ public abstract class BaseLocalTest {
 
     @Before
     public void startRaftGroup() {
+        initialMembers = getInitialMembers();
         for (RaftEndpoint endpoint : initialMembers) {
             RaftNode raftNode = createRaftNode(endpoint);
             raftNode.start();
@@ -92,6 +91,11 @@ public abstract class BaseLocalTest {
 
     protected RaftConfig getConfig() {
         return RaftConfig.DEFAULT_RAFT_CONFIG;
+    }
+
+    protected List<RaftEndpoint> getInitialMembers() {
+        return List.of(LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint(),
+                LocalRaftEndpoint.newEndpoint());
     }
 
     protected abstract StateMachine createStateMachine();
@@ -136,6 +140,29 @@ public abstract class BaseLocalTest {
         throw new AssertionError("Could not elect a leader on time!");
     }
 
+    protected final RaftNode getAnyNodeExcept(RaftEndpoint endpoint) {
+        requireNonNull(endpoint);
+
+        return raftNodes.stream().filter(raftNode -> !raftNode.getLocalEndpoint().equals(endpoint)).findFirst()
+                .orElseThrow(IllegalArgumentException::new);
+    }
+
+    protected final void disconnect(RaftEndpoint endpoint1, RaftEndpoint endpoint2) {
+        requireNonNull(endpoint1);
+        requireNonNull(endpoint2);
+
+        getTransport(endpoint1).undiscoverNode(getNode(endpoint2));
+        getTransport(endpoint2).undiscoverNode(getNode(endpoint1));
+    }
+
+    protected final void connect(RaftEndpoint endpoint1, RaftEndpoint endpoint2) {
+        requireNonNull(endpoint1);
+        requireNonNull(endpoint2);
+
+        getTransport(endpoint1).discoverNode(getNode(endpoint2));
+        getTransport(endpoint2).discoverNode(getNode(endpoint1));
+    }
+
     private RaftEndpoint getLeaderEndpoint() {
         RaftEndpoint leaderEndpoint = null;
         int leaderTerm = 0;
@@ -160,29 +187,6 @@ public abstract class BaseLocalTest {
         }
 
         return leaderEndpoint;
-    }
-
-    protected final RaftNode getAnyNodeExcept(RaftEndpoint endpoint) {
-        requireNonNull(endpoint);
-
-        return raftNodes.stream().filter(raftNode -> !raftNode.getLocalEndpoint().equals(endpoint)).findFirst()
-                .orElseThrow(IllegalArgumentException::new);
-    }
-
-    protected final void disconnect(RaftEndpoint endpoint1, RaftEndpoint endpoint2) {
-        requireNonNull(endpoint1);
-        requireNonNull(endpoint2);
-
-        getTransport(endpoint1).undiscoverNode(getNode(endpoint2));
-        getTransport(endpoint2).undiscoverNode(getNode(endpoint1));
-    }
-
-    protected final void connect(RaftEndpoint endpoint1, RaftEndpoint endpoint2) {
-        requireNonNull(endpoint1);
-        requireNonNull(endpoint2);
-
-        getTransport(endpoint1).discoverNode(getNode(endpoint2));
-        getTransport(endpoint2).discoverNode(getNode(endpoint1));
     }
 
     private RaftNode getNode(RaftEndpoint endpoint) {

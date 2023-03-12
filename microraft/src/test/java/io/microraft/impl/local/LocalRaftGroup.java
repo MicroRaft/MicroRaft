@@ -18,14 +18,12 @@
 package io.microraft.impl.local;
 
 import static io.microraft.RaftConfig.DEFAULT_RAFT_CONFIG;
-import static io.microraft.impl.log.RaftLog.getLogCapacity;
 import static io.microraft.test.util.AssertionUtils.eventually;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -510,7 +508,7 @@ public final class LocalRaftGroup {
      *             if no Raft node is found for any of the given endpoints list
      */
     public void splitMembers(RaftEndpoint... endpoints) {
-        splitMembers(Arrays.asList(endpoints));
+        splitMembers(List.of(endpoints));
     }
 
     /**

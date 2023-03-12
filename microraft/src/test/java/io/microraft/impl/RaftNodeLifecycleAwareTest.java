@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
@@ -69,7 +68,7 @@ import io.microraft.transport.Transport;
 public class RaftNodeLifecycleAwareTest extends BaseTest {
 
     private final RaftEndpoint localEndpoint = LocalRaftEndpoint.newEndpoint();
-    private final List<RaftEndpoint> initialMembers = Arrays.asList(localEndpoint, LocalRaftEndpoint.newEndpoint(),
+    private final List<RaftEndpoint> initialMembers = List.of(localEndpoint, LocalRaftEndpoint.newEndpoint(),
             LocalRaftEndpoint.newEndpoint());
 
     private final DelegatingRaftNodeExecutor executor = new DelegatingRaftNodeExecutor();

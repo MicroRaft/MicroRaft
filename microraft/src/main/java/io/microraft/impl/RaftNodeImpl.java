@@ -243,7 +243,7 @@ public final class RaftNodeImpl implements RaftNode {
     }
 
     private void populateLifecycleAwareComponents() {
-        for (Object component : Arrays.asList(executor, transport, stateMachine, store, modelFactory,
+        for (Object component : List.of(executor, transport, stateMachine, store, modelFactory,
                 raftNodeReportListener)) {
             if (component instanceof RaftNodeLifecycleAware) {
                 lifecycleAwareComponents.add((RaftNodeLifecycleAware) component);
@@ -532,6 +532,12 @@ public final class RaftNodeImpl implements RaftNode {
                     setStatus(ACTIVE);
                 }
 
+                LOGGER.info(
+                        "{} -> committed members: {} effective members: {} initial members: {} leader election quorum: {} is local member voting? {} initial voting members: {}",
+                        localEndpointStr, state.committedGroupMembers(), state.effectiveGroupMembers(),
+                        state.initialMembers(), state.leaderElectionQuorumSize(),
+                        state.initialMembers().getVotingMembers().contains(state.localEndpoint()),
+                        state.initialMembers().getVotingMembers());
                 if (state.committedGroupMembers().getLogIndex() == 0 && state.effectiveGroupMembers().getLogIndex() == 0
                         && state.initialMembers().getVotingMembers().contains(state.localEndpoint())
                         && state.leaderElectionQuorumSize() == 1) {
@@ -1424,7 +1430,7 @@ public final class RaftNodeImpl implements RaftNode {
 
     private List<RaftEndpoint> getSnapshottedMembers(LeaderState leaderState, SnapshotEntry snapshotEntry) {
         if (!config.isTransferSnapshotsFromFollowersEnabled()) {
-            return Collections.singletonList(state.localEndpoint());
+            return List.of(state.localEndpoint());
         }
 
         long now = clock.millis();

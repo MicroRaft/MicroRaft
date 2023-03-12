@@ -18,7 +18,6 @@
 package io.microraft.impl.state;
 
 import static io.microraft.impl.local.LocalRaftEndpoint.newEndpoint;
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
@@ -42,7 +41,7 @@ public class LeaderStateTest {
     @Before
     public void setUp() {
         lastLogIndex = 123;
-        remoteEndpoints = asList(newEndpoint(), newEndpoint(), newEndpoint(), newEndpoint());
+        remoteEndpoints = List.of(newEndpoint(), newEndpoint(), newEndpoint(), newEndpoint());
         state = new LeaderState(remoteEndpoints, lastLogIndex, TIME);
     }
 

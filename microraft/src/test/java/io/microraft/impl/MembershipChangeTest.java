@@ -36,7 +36,6 @@ import static io.microraft.test.util.RaftTestUtils.getRole;
 import static io.microraft.test.util.RaftTestUtils.getSnapshotEntry;
 import static io.microraft.test.util.RaftTestUtils.getStatus;
 import static io.microraft.test.util.RaftTestUtils.majority;
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -95,7 +94,7 @@ public class MembershipChangeTest extends BaseTest {
 
         assertThat(result.getCommitIndex()).isEqualTo(getCommitIndex(leader));
 
-        for (RaftGroupMembers groupMembers : asList(result.getResult(), leader.getCommittedMembers(),
+        for (RaftGroupMembers groupMembers : List.of(result.getResult(), leader.getCommittedMembers(),
                 leader.getEffectiveMembers())) {
             assertThat(groupMembers.getMembers()).contains(newNode.getLocalEndpoint());
             assertThat(groupMembers.getVotingMembers()).contains(newNode.getLocalEndpoint());
@@ -152,7 +151,7 @@ public class MembershipChangeTest extends BaseTest {
 
         assertThat(result.getCommitIndex()).isEqualTo(getCommitIndex(leader));
 
-        for (RaftGroupMembers groupMembers : asList(result.getResult(), leader.getCommittedMembers(),
+        for (RaftGroupMembers groupMembers : List.of(result.getResult(), leader.getCommittedMembers(),
                 leader.getEffectiveMembers())) {
             assertThat(groupMembers.getMembers()).contains(newNode.getLocalEndpoint());
             assertThat(groupMembers.getVotingMembers()).doesNotContain(newNode.getLocalEndpoint());
@@ -209,7 +208,7 @@ public class MembershipChangeTest extends BaseTest {
 
         assertThat(result1.getCommitIndex()).isEqualTo(getCommitIndex(leader));
 
-        for (RaftGroupMembers groupMembers : asList(result1.getResult(), leader.getCommittedMembers(),
+        for (RaftGroupMembers groupMembers : List.of(result1.getResult(), leader.getCommittedMembers(),
                 leader.getEffectiveMembers())) {
             assertThat(groupMembers.getMembers()).contains(newNode1.getLocalEndpoint());
             assertThat(groupMembers.getVotingMembers()).doesNotContain(newNode1.getLocalEndpoint());
@@ -226,7 +225,7 @@ public class MembershipChangeTest extends BaseTest {
 
         assertThat(result2.getCommitIndex()).isEqualTo(getCommitIndex(leader));
 
-        for (RaftGroupMembers groupMembers : asList(result2.getResult(), leader.getCommittedMembers(),
+        for (RaftGroupMembers groupMembers : List.of(result2.getResult(), leader.getCommittedMembers(),
                 leader.getEffectiveMembers())) {
             assertThat(groupMembers.getMembers()).contains(newNode1.getLocalEndpoint());
             assertThat(groupMembers.getMembers()).contains(newNode2.getLocalEndpoint());
@@ -257,7 +256,7 @@ public class MembershipChangeTest extends BaseTest {
             }
         });
 
-        for (RaftNodeImpl newNode : asList(newNode1, newNode2)) {
+        for (RaftNodeImpl newNode : List.of(newNode1, newNode2)) {
             SimpleStateMachine stateMachine = group.getStateMachine(newNode.getLocalEndpoint());
             assertThat(stateMachine.size()).isEqualTo(1);
             assertThat(stateMachine.valueSet()).contains("val");
@@ -288,7 +287,7 @@ public class MembershipChangeTest extends BaseTest {
 
         assertThat(result1.getCommitIndex()).isEqualTo(getCommitIndex(leader));
 
-        for (RaftGroupMembers groupMembers : asList(result1.getResult(), leader.getCommittedMembers(),
+        for (RaftGroupMembers groupMembers : List.of(result1.getResult(), leader.getCommittedMembers(),
                 leader.getEffectiveMembers())) {
             assertThat(groupMembers.getMembers()).contains(newNode1.getLocalEndpoint());
             assertThat(groupMembers.getVotingMembers()).doesNotContain(newNode1.getLocalEndpoint());
@@ -304,7 +303,7 @@ public class MembershipChangeTest extends BaseTest {
 
         assertThat(result2.getCommitIndex()).isEqualTo(getCommitIndex(leader));
 
-        for (RaftGroupMembers groupMembers : asList(result2.getResult(), leader.getCommittedMembers(),
+        for (RaftGroupMembers groupMembers : List.of(result2.getResult(), leader.getCommittedMembers(),
                 leader.getEffectiveMembers())) {
             assertThat(groupMembers.getMembers()).contains(newNode1.getLocalEndpoint());
             assertThat(groupMembers.getMembers()).contains(newNode2.getLocalEndpoint());
@@ -335,7 +334,7 @@ public class MembershipChangeTest extends BaseTest {
             }
         });
 
-        for (RaftNodeImpl newNode : asList(newNode1, newNode2)) {
+        for (RaftNodeImpl newNode : List.of(newNode1, newNode2)) {
             SimpleStateMachine stateMachine = group.getStateMachine(newNode.getLocalEndpoint());
             assertThat(stateMachine.size()).isEqualTo(1);
             assertThat(stateMachine.valueSet()).contains("val");
@@ -375,7 +374,7 @@ public class MembershipChangeTest extends BaseTest {
 
         assertThat(result3.getCommitIndex()).isEqualTo(getCommitIndex(leader));
 
-        for (RaftGroupMembers groupMembers : asList(result3.getResult(), leader.getCommittedMembers(),
+        for (RaftGroupMembers groupMembers : List.of(result3.getResult(), leader.getCommittedMembers(),
                 leader.getEffectiveMembers())) {
             assertThat(groupMembers.getMembers()).contains(newNode1.getLocalEndpoint());
             assertThat(groupMembers.getMembers()).contains(newNode2.getLocalEndpoint());
@@ -411,7 +410,7 @@ public class MembershipChangeTest extends BaseTest {
             }
         });
 
-        for (RaftNodeImpl newNode : asList(newNode1, newNode2, newNode3)) {
+        for (RaftNodeImpl newNode : List.of(newNode1, newNode2, newNode3)) {
             SimpleStateMachine stateMachine = group.getStateMachine(newNode.getLocalEndpoint());
             assertThat(stateMachine.size()).isEqualTo(1);
             assertThat(stateMachine.valueSet()).contains("val");
@@ -470,7 +469,7 @@ public class MembershipChangeTest extends BaseTest {
 
         int newMajority = 1 + majority(initialMemberCount);
 
-        for (RaftGroupMembers groupMembers : asList(result2.getResult(), leader.getCommittedMembers(),
+        for (RaftGroupMembers groupMembers : List.of(result2.getResult(), leader.getCommittedMembers(),
                 leader.getEffectiveMembers())) {
             assertThat(groupMembers.getMembers()).contains(newNode.getLocalEndpoint());
             assertThat(groupMembers.getVotingMembers()).contains(newNode.getLocalEndpoint());
@@ -504,7 +503,7 @@ public class MembershipChangeTest extends BaseTest {
         Ordered<RaftGroupMembers> result3 = leader
                 .changeMembership(newNode2.getLocalEndpoint(), ADD_LEARNER, result2.getCommitIndex()).join();
 
-        for (RaftGroupMembers groupMembers : asList(result3.getResult(), leader.getCommittedMembers(),
+        for (RaftGroupMembers groupMembers : List.of(result3.getResult(), leader.getCommittedMembers(),
                 leader.getEffectiveMembers())) {
             assertThat(groupMembers.getMembers()).contains(newNode1.getLocalEndpoint());
             assertThat(groupMembers.getMembers()).contains(newNode2.getLocalEndpoint());
@@ -544,7 +543,7 @@ public class MembershipChangeTest extends BaseTest {
 
         int newMajority = majority(initialMemberCount + 2);
 
-        for (RaftGroupMembers groupMembers : asList(result4.getResult(), leader.getCommittedMembers(),
+        for (RaftGroupMembers groupMembers : List.of(result4.getResult(), leader.getCommittedMembers(),
                 leader.getEffectiveMembers())) {
             assertThat(groupMembers.getMembers()).contains(newNode1.getLocalEndpoint());
             assertThat(groupMembers.getVotingMembers()).contains(newNode1.getLocalEndpoint());
@@ -667,7 +666,7 @@ public class MembershipChangeTest extends BaseTest {
         assertThat(result.getResult().getMembers()).doesNotContain(leavingFollower.getLocalEndpoint());
 
         eventually(() -> {
-            for (RaftNodeImpl node : asList(leader, stayingFollower)) {
+            for (RaftNodeImpl node : List.of(leader, stayingFollower)) {
                 assertThat(getEffectiveGroupMembers(node).isKnownMember(leavingFollower.getLocalEndpoint())).isFalse();
                 assertThat(getCommittedGroupMembers(node).isKnownMember(leavingFollower.getLocalEndpoint())).isFalse();
             }
@@ -699,7 +698,7 @@ public class MembershipChangeTest extends BaseTest {
 
         RaftGroupMembersState effectiveGroupMembers = getEffectiveGroupMembers(leader);
         eventually(() -> {
-            for (RaftNodeImpl node : asList(leader, stayingFollower, newNode)) {
+            for (RaftNodeImpl node : List.of(leader, stayingFollower, newNode)) {
                 assertThat(getStatus(node)).isEqualTo(ACTIVE);
                 assertThat(getEffectiveGroupMembers(node).getMembers()).isEqualTo(effectiveGroupMembers.getMembers());
                 assertThat(getEffectiveGroupMembers(node).getLogIndex()).isEqualTo(effectiveGroupMembers.getLogIndex());
@@ -747,7 +746,7 @@ public class MembershipChangeTest extends BaseTest {
 
         RaftGroupMembersState effectiveGroupMembers = getEffectiveGroupMembers(leader);
         eventually(() -> {
-            for (RaftNodeImpl node : asList(leader, stayingFollower, newNode)) {
+            for (RaftNodeImpl node : List.of(leader, stayingFollower, newNode)) {
                 assertThat(getStatus(node)).isEqualTo(ACTIVE);
                 assertThat(getEffectiveGroupMembers(node).getMembers()).isEqualTo(effectiveGroupMembers.getMembers());
                 assertThat(getEffectiveGroupMembers(node).getLogIndex()).isEqualTo(effectiveGroupMembers.getLogIndex());

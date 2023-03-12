@@ -20,7 +20,6 @@ import static io.microraft.test.util.AssertionUtils.sleepMillis;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -45,7 +44,7 @@ import io.microraft.test.util.BaseTest;
 
 public class RaftNodeMetricsTest extends BaseTest {
 
-    List<RaftEndpoint> initialMembers = Arrays.asList(LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint(),
+    List<RaftEndpoint> initialMembers = List.of(LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint(),
             LocalRaftEndpoint.newEndpoint());
     List<LocalTransport> transports = new ArrayList<>();
     List<RaftNode> raftNodes = new ArrayList<>();

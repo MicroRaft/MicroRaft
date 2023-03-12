@@ -16,8 +16,6 @@
 
 package io.microraft.metrics;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
@@ -130,7 +128,7 @@ public final class RaftNodeMetrics implements RaftNodeReportListener, MeterBinde
      *            The Raft node id to be attached as "raft.node.id" rag
      */
     public RaftNodeMetrics(String groupIdStr, String raftNodeIdStr) {
-        this(asList(Tag.of("raft.group.id", requireNonNull(groupIdStr)),
+        this(List.of(Tag.of("raft.group.id", requireNonNull(groupIdStr)),
                 Tag.of("raft.node.id", requireNonNull(raftNodeIdStr))));
     }
 
@@ -142,7 +140,7 @@ public final class RaftNodeMetrics implements RaftNodeReportListener, MeterBinde
      *            the list of tags to be attached to the published metrics.
      */
     public RaftNodeMetrics(List<Tag> tags) {
-        this.tags = unmodifiableList(new ArrayList<>(requireNonNull(tags)));
+        this.tags = List.copyOf(requireNonNull(tags));
     }
 
     @Override

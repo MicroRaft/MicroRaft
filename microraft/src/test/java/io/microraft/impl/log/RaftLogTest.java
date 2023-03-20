@@ -19,7 +19,6 @@ package io.microraft.impl.log;
 
 import static io.microraft.impl.local.LocalRaftEndpoint.newEndpoint;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
 
 import java.util.Collection;
 import java.util.List;

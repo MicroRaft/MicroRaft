@@ -25,7 +25,6 @@ import java.util.TreeMap;
 
 import javax.annotation.Nonnull;
 
-import io.microraft.impl.log.RaftLog;
 import io.microraft.model.impl.log.DefaultSnapshotEntryOrBuilder;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.RaftGroupMembersView;

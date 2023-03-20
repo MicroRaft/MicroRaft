@@ -92,7 +92,7 @@ public final class ReplicateTask implements Runnable {
             }
 
             long newEntryLogIndex = log.lastLogOrSnapshotIndex() + 1;
-            raftNode.registerFuture(newEntryLogIndex, future);
+            state.registerFuture(newEntryLogIndex, future);
             LogEntry entry = raftNode.getModelFactory().createLogEntryBuilder().setTerm(state.term())
                     .setIndex(newEntryLogIndex).setOperation(operation).build();
             log.appendEntry(entry);

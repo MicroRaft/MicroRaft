@@ -19,15 +19,24 @@ package io.microraft;
 
 /**
  * Policies to decide how a query operation will be executed on the state
- * machine. Each policy offers different consistency guarantees.
+ * machine. Each policy offers a different consistency guarantee.
+ *
+ * @see RaftNode#query(Object, QueryPolicy, long)
+ * @see RaftNode#query(Object, QueryPolicy, java.util.Optional,
+ *      java.util.Optional)
  */
 public enum QueryPolicy {
 
     /**
      * Runs the query on the local state machine of any Raft node.
      * <p>
-     * Reading stale value is highly likely if queries are issued on follower or
-     * learner Raft nodes when the leader Raft node is committing new operations.
+     * Reading stale value is likely if queries are issued on follower or learner
+     * Raft nodes while the leader Raft node is committing new operations.
+     * <p>
+     * Callers can achieve monotonic reads by keeping track of highest commit index
+     * they observed via return values of RaftNode's methods and passing it to
+     * queries. In this case, RaftNode executes a given query only if its local
+     * commit index is greater than equal to the given commit index.
      */
     EVENTUAL_CONSISTENCY,
 
@@ -42,6 +51,11 @@ public enum QueryPolicy {
      * Reading stale value is possible when a follower or a learner Raft node lags
      * behind the leader but the staleness is bounded by the leader heartbeat
      * timeout configuration.
+     * <p>
+     * Callers can achieve monotonic reads by keeping track of highest commit index
+     * they observed via return values of RaftNode's methods and passing it to
+     * queries. In this case, RaftNode executes a given query only if its local
+     * commit index is greater than equal to the given commit index.
      */
     BOUNDED_STALENESS,
 

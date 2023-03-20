@@ -17,16 +17,15 @@
 
 package io.microraft.impl.state;
 
-import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import io.microraft.RaftEndpoint;
 import io.microraft.impl.util.OrderedFuture;
+import io.microraft.statemachine.StateMachine;
 
 /**
  * This class is used to keep query operations until a heartbeat round is
@@ -44,7 +43,7 @@ public final class QueryState {
     /**
      * Queries waiting to be executed.
      */
-    private final List<Entry<Object, OrderedFuture>> queries = new ArrayList<>();
+    private final List<QueryContainer> queries = new ArrayList<>();
     /**
      * The set of followers acknowledged the leader in the current query round.
      */
@@ -80,7 +79,7 @@ public final class QueryState {
             readIndex = commitIndex;
         }
 
-        queries.add(new SimpleImmutableEntry<>(query, resultFuture));
+        queries.add(new QueryContainer(query, resultFuture));
         boolean firstQuery = queries.size() == 1;
         if (firstQuery) {
             querySequenceNumber++;
@@ -166,7 +165,7 @@ public final class QueryState {
     /**
      * Returns the queries waiting to be executed.
      */
-    public Collection<Entry<Object, OrderedFuture>> queries() {
+    public Collection<QueryContainer> queries() {
         return queries;
     }
 
@@ -174,7 +173,9 @@ public final class QueryState {
      * Fails the pending query futures with the given throwable.
      */
     public void fail(Throwable t) {
-        queries.stream().map(Entry::getValue).forEach(f -> f.fail(t));
+        for (QueryContainer query : queries) {
+            query.fail(t);
+        }
         reset();
     }
 
@@ -190,6 +191,29 @@ public final class QueryState {
     public String toString() {
         return "QueryState{" + "readIndex=" + readIndex + ", querySequenceNumber=" + querySequenceNumber
                 + ", queryCount=" + queryCount() + ", acks=" + acks + '}';
+    }
+
+    public static class QueryContainer {
+        final Object operation;
+        final OrderedFuture future;
+
+        public QueryContainer(Object operation, OrderedFuture future) {
+            this.operation = operation;
+            this.future = future;
+        }
+
+        public void run(long commitIndex, StateMachine stateMachine) {
+            try {
+                Object result = stateMachine.runOperation(commitIndex, operation);
+                future.complete(commitIndex, result);
+            } catch (Throwable t) {
+                fail(t);
+            }
+        }
+
+        public void fail(Throwable t) {
+            future.fail(t);
+        }
     }
 
 }

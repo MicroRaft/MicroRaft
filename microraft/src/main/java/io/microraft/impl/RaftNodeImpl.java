@@ -36,23 +36,25 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.shuffle;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import java.io.IOException;
 import java.time.Clock;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -92,6 +94,7 @@ import io.microraft.impl.state.QueryState;
 import io.microraft.impl.state.RaftGroupMembersState;
 import io.microraft.impl.state.RaftState;
 import io.microraft.impl.state.RaftTermState;
+import io.microraft.impl.state.QueryState.QueryContainer;
 import io.microraft.impl.task.HeartbeatTask;
 import io.microraft.impl.task.LeaderBackoffResetTask;
 import io.microraft.impl.task.LeaderElectionTimeoutTask;
@@ -103,7 +106,6 @@ import io.microraft.impl.task.QueryTask;
 import io.microraft.impl.task.RaftStateSummaryPublishTask;
 import io.microraft.impl.task.ReplicateTask;
 import io.microraft.impl.task.TransferLeadershipTask;
-import io.microraft.impl.util.Long2ObjectHashMap;
 import io.microraft.impl.util.OrderedFuture;
 import io.microraft.lifecycle.RaftNodeLifecycleAware;
 import io.microraft.model.RaftModelFactory;
@@ -162,7 +164,6 @@ public final class RaftNodeImpl implements RaftNode {
     private final RaftStore store;
     private final RaftNodeReportListener raftNodeReportListener;
     private final String localEndpointStr;
-    private final Long2ObjectHashMap<OrderedFuture> futures = new Long2ObjectHashMap<>();
 
     private final Random random;
     private final Clock clock;
@@ -616,12 +617,11 @@ public final class RaftNodeImpl implements RaftNode {
             try {
                 if (shouldTerminate) {
                     toFollower(state.term());
-                    invalidateFuturesFrom(state.commitIndex() + 1, new IndeterminateStateException());
-                    setStatus(TERMINATED);
-                    state.completeLeadershipTransfer(newNotLeaderException());
-                } else {
-                    setStatus(TERMINATED);
                 }
+                setStatus(TERMINATED);
+                state.invalidateFuturesFrom(state.commitIndex() + 1, new IndeterminateStateException());
+                state.invalidateScheduledQueries();
+                state.completeLeadershipTransfer(newNotLeaderException());
             } catch (Throwable t) {
                 failure = t;
                 LOGGER.error("Failure during termination of " + localEndpointStr, t);
@@ -704,7 +704,18 @@ public final class RaftNodeImpl implements RaftNode {
     public <T> CompletableFuture<Ordered<T>> query(@Nonnull Object operation, @Nonnull QueryPolicy queryPolicy,
             long minCommitIndex) {
         OrderedFuture<T> future = new OrderedFuture<>();
-        Runnable task = new QueryTask(this, requireNonNull(operation), queryPolicy, minCommitIndex, future);
+        Runnable task = new QueryTask(this, requireNonNull(operation), queryPolicy, Math.max(minCommitIndex, 0L),
+                Optional.empty(), future);
+        return executeIfRunning(task, future);
+    }
+
+    @Nonnull
+    @Override
+    public <T> CompletableFuture<Ordered<T>> query(@Nonnull Object operation, @Nonnull QueryPolicy queryPolicy,
+            Optional<Long> minCommitIndex, Optional<Duration> timeout) {
+        OrderedFuture<T> future = new OrderedFuture<>();
+        Runnable task = new QueryTask(this, requireNonNull(operation), queryPolicy,
+                Math.max(minCommitIndex.orElse(0L), 0L), timeout, future);
         return executeIfRunning(task, future);
     }
 
@@ -821,6 +832,13 @@ public final class RaftNodeImpl implements RaftNode {
 
     private RuntimeException newNotRunningException() {
         return new IllegalStateException(localEndpointStr + " is not running!");
+    }
+
+    public RaftException newLaggingCommitIndexException(long minCommitIndex) {
+        assert minCommitIndex > state.commitIndex()
+                : "Cannot create LaggingCommitIndexException since min commit index: " + minCommitIndex
+                        + " is not greater than commit index: " + state.commitIndex();
+        return new LaggingCommitIndexException(state.commitIndex(), minCommitIndex, state.leader());
     }
 
     /**
@@ -947,7 +965,7 @@ public final class RaftNodeImpl implements RaftNode {
         }
 
         state.lastApplied(logIndex);
-        completeFuture(logIndex, response);
+        state.completeFuture(logIndex, response);
     }
 
     /**
@@ -964,60 +982,6 @@ public final class RaftNodeImpl implements RaftNode {
      */
     public RaftState state() {
         return state;
-    }
-
-    /**
-     * Registers the given future with its {@code entryIndex}. This future will be
-     * notified when the corresponding operation is committed or its log entry is
-     * reverted.
-     *
-     * @param entryIndex
-     *            the log index to register the given future
-     * @param future
-     *            the future object to register
-     */
-    public void registerFuture(long entryIndex, OrderedFuture future) {
-        OrderedFuture f = futures.put(entryIndex, future);
-        assert f == null : localEndpointStr + " future object is already registered for entry index: " + entryIndex;
-    }
-
-    private void completeFuture(long logIndex, Object result) {
-        OrderedFuture f = futures.remove(logIndex);
-        if (f != null) {
-            if (result instanceof Throwable) {
-                f.fail((Throwable) result);
-            } else {
-                f.complete(logIndex, result);
-            }
-        }
-    }
-
-    /**
-     * Completes futures with the given exception for indices greater than or equal
-     * to the given index. Note that the given index is inclusive.
-     *
-     * @param startIndexInclusive
-     *            the (inclusive) starting log index to complete registered futures
-     * @param e
-     *            the RaftException object to complete registered futures
-     */
-    public void invalidateFuturesFrom(long startIndexInclusive, RaftException e) {
-        int count = 0;
-        Iterator<Entry<Long, OrderedFuture>> iterator = futures.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Entry<Long, OrderedFuture> entry = iterator.next();
-            long index = entry.getKey();
-            if (index >= startIndexInclusive) {
-                entry.getValue().fail(e);
-                iterator.remove();
-                count++;
-            }
-        }
-
-        if (count > 0) {
-            LOGGER.warn("{} Invalidated {} futures from log index: {} with: {}", localEndpointStr, count,
-                    startIndexInclusive, e);
-        }
     }
 
     private void takeSnapshot(RaftLog log, long snapshotIndex) {
@@ -1168,9 +1132,10 @@ public final class RaftNodeImpl implements RaftNode {
         }
 
         state.lastApplied(snapshotEntry.getIndex());
-        invalidateFuturesUntil(snapshotEntry.getIndex(), new IndeterminateStateException(state.leader()));
-
         LOGGER.info("{} snapshot is installed at commit index: {}", localEndpointStr, snapshotEntry.getIndex());
+
+        state.invalidateFuturesUntil(snapshotEntry.getIndex(), new IndeterminateStateException(state.leader()));
+        runScheduledQueries();
 
         // log.setSnapshot() truncates stale log entries from disk.
         // we are submitting an async flush task here to flush those
@@ -1646,13 +1611,14 @@ public final class RaftNodeImpl implements RaftNode {
 
         if (status == ACTIVE) {
             applyLogEntries();
+            broadcastAppendEntriesRequest();
             tryRunQueries();
         } else {
             tryRunQueries();
             applyLogEntries();
+            broadcastAppendEntriesRequest();
+            runScheduledQueries();
         }
-
-        broadcastAppendEntriesRequest();
     }
 
     public void tryAckQuery(long querySequenceNumber, RaftEndpoint sender) {
@@ -1688,18 +1654,36 @@ public final class RaftNodeImpl implements RaftNode {
             return;
         }
 
-        Collection<Entry<Object, OrderedFuture>> operations = queryState.queries();
+        Collection<QueryContainer> operations = queryState.queries();
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(localEndpointStr + " running " + operations.size() + " queries at commit index: " + commitIndex
                     + ", query sequence number: " + queryState.querySequenceNumber());
         }
 
-        for (Entry<Object, OrderedFuture> t : operations) {
-            runQuery(t.getKey(), state.commitIndex(), t.getValue());
+        for (QueryContainer query : operations) {
+            query.run(commitIndex, stateMachine);
         }
 
         queryState.reset();
+    }
+
+    public void runScheduledQueries() {
+        if (status == TERMINATED) {
+            state.invalidateScheduledQueries();
+            return;
+        }
+
+        long lastApplied = state.lastApplied();
+        Collection<QueryContainer> queries = state.collectScheduledQueriesToExecute();
+        for (QueryContainer query : queries) {
+            query.run(lastApplied, stateMachine);
+        }
+
+        if (queries.size() > 0 && LOGGER.isDebugEnabled()) {
+            LOGGER.debug("{} executed {} waiting queries at log index: {}.", localEndpointStr, queries.size(),
+                    lastApplied);
+        }
     }
 
     /**
@@ -1720,17 +1704,40 @@ public final class RaftNodeImpl implements RaftNode {
      *             if the current commit index is smaller than the given commit
      *             index
      */
-    public void runQuery(Object operation, long minCommitIndex, OrderedFuture future) {
+    public void runOrScheduleQuery(QueryContainer query, long minCommitIndex, Optional<Duration> timeout) {
         try {
-            long commitIndex = state.commitIndex();
-            if (commitIndex >= minCommitIndex) {
-                Object result = stateMachine.runOperation(commitIndex, operation);
-                future.complete(commitIndex, result);
+            long lastApplied = state.lastApplied();
+            if (lastApplied >= minCommitIndex) {
+                query.run(lastApplied, stateMachine);
+            } else if (timeout.isPresent()) {
+                long timeoutNanos = timeout.get().toNanos();
+                if (timeoutNanos <= 0) {
+                    query.fail(newLaggingCommitIndexException(minCommitIndex));
+                } else {
+                    state.addScheduledQuery(minCommitIndex, query);
+                    executor.schedule(() -> {
+                        try {
+                            if (state.removeScheduledQuery(minCommitIndex, query)) {
+                                if (LOGGER.isDebugEnabled()) {
+                                    LOGGER.debug(
+                                            "{} query waiting to be executed at commit index: {} timed out! Current commit index: {}",
+                                            localEndpointStr, minCommitIndex, state.commitIndex());
+                                }
+                                query.fail(newLaggingCommitIndexException(minCommitIndex));
+                            }
+                        } catch (Throwable t) {
+                            LOGGER.error(localEndpointStr + " timing out of query for expected commit index: "
+                                    + minCommitIndex + " failed.", t);
+                            query.fail(t);
+                        }
+                    }, timeoutNanos, NANOSECONDS);
+                }
             } else {
-                future.fail(new LaggingCommitIndexException(state.commitIndex(), minCommitIndex, state.leader()));
+                query.fail(newLaggingCommitIndexException(minCommitIndex));
             }
         } catch (Throwable t) {
-            future.fail(t);
+            LOGGER.error(localEndpointStr + " query scheduling failed with {}", t);
+            query.fail(t);
         }
     }
 
@@ -1819,7 +1826,7 @@ public final class RaftNodeImpl implements RaftNode {
                     "{} Demoting to {} since not received append entries responses from majority recently. Latest quorum timestamp: {}",
                     localEndpointStr, FOLLOWER, quorumTimestamp.get());
             toFollower(state.term());
-            invalidateFuturesFrom(state.commitIndex() + 1, new IndeterminateStateException());
+            state.invalidateFuturesFrom(state.commitIndex() + 1, new IndeterminateStateException());
         }
 
         return demoteToFollower;
@@ -1832,29 +1839,6 @@ public final class RaftNodeImpl implements RaftNode {
         }
 
         return Optional.of(leaderState.quorumResponseTimestamp(state.logReplicationQuorumSize(), clock.millis()));
-    }
-
-    /**
-     * Completes futures with the given exception for indices smaller than or equal
-     * to the given index. Note that the given index is inclusive.
-     */
-    private void invalidateFuturesUntil(long endIndexInclusive, RaftException e) {
-        int count = 0;
-        Iterator<Entry<Long, OrderedFuture>> iterator = futures.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Entry<Long, OrderedFuture> entry = iterator.next();
-            long index = entry.getKey();
-            if (index <= endIndexInclusive) {
-                entry.getValue().fail(e);
-                iterator.remove();
-                count++;
-            }
-        }
-
-        if (count > 0) {
-            LOGGER.warn("{} Completed {} futures until log index: {} with {}", localEndpointStr, count,
-                    endIndexInclusive, e);
-        }
     }
 
     /**
@@ -1904,4 +1888,5 @@ public final class RaftNodeImpl implements RaftNode {
     public Clock getClock() {
         return clock;
     }
+
 }

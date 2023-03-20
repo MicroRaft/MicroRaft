@@ -135,12 +135,17 @@ public class AppendEntriesRequestHandler extends AbstractMessageHandler<AppendEn
                     .setFlowControlSequenceNumber(request.getFlowControlSequenceNumber()).build();
             node.send(leader, response);
         } finally {
-            if (state.commitIndex() > oldCommitIndex) {
+            boolean commitIndexAdvanced = (state.commitIndex() > oldCommitIndex);
+            if (commitIndexAdvanced) {
                 node.applyLogEntries();
             }
 
             if (newLogEntries.size() > 0) {
                 prepareGroupOp(newLogEntries, state.commitIndex());
+            }
+
+            if (commitIndexAdvanced) {
+                node.runScheduledQueries();
             }
         }
     }
@@ -215,7 +220,7 @@ public class AppendEntriesRequestHandler extends AbstractMessageHandler<AppendEn
                                 truncatedEntries.size(), requestEntry.getIndex());
                     }
 
-                    node.invalidateFuturesFrom(requestEntry.getIndex(), node.newNotLeaderException());
+                    state.invalidateFuturesFrom(requestEntry.getIndex(), node.newNotLeaderException());
                     revertPreparedGroupOp(truncatedEntries);
                     newLogEntries = request.getLogEntries().subList(i, requestEntryCount);
                     log.flush();
@@ -262,13 +267,11 @@ public class AppendEntriesRequestHandler extends AbstractMessageHandler<AppendEn
                 .filter(logEntry -> logEntry.getIndex() > commitIndex && logEntry.getOperation() instanceof RaftGroupOp)
                 .findFirst().ifPresent(logEntry -> {
                     Object operation = logEntry.getOperation();
-                    if (operation instanceof UpdateRaftGroupMembersOp) {
-                        node.setStatus(UPDATING_RAFT_GROUP_MEMBER_LIST);
-                        UpdateRaftGroupMembersOp groupOp = (UpdateRaftGroupMembersOp) operation;
-                        node.updateGroupMembers(logEntry.getIndex(), groupOp.getMembers(), groupOp.getVotingMembers());
-                    } else {
-                        assert false : "Invalid Raft group operation: " + operation + " in " + node.getGroupId();
-                    }
+                    assert (operation instanceof UpdateRaftGroupMembersOp)
+                            : "Invalid Raft group operation: " + operation + " in " + node.getGroupId();
+                    node.setStatus(UPDATING_RAFT_GROUP_MEMBER_LIST);
+                    UpdateRaftGroupMembersOp groupOp = (UpdateRaftGroupMembersOp) operation;
+                    node.updateGroupMembers(logEntry.getIndex(), groupOp.getMembers(), groupOp.getVotingMembers());
                 });
     }
 

@@ -25,14 +25,30 @@ import static io.microraft.model.log.SnapshotEntry.isNonInitial;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.Map.Entry;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftRole;
+import io.microraft.exception.LaggingCommitIndexException;
 import io.microraft.exception.NotLeaderException;
 import io.microraft.exception.RaftException;
 import io.microraft.impl.log.RaftLog;
 import io.microraft.impl.log.SnapshotChunkCollector;
+import io.microraft.impl.util.Long2ObjectHashMap;
 import io.microraft.impl.util.OrderedFuture;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.model.log.RaftGroupMembersView;
@@ -41,12 +57,15 @@ import io.microraft.model.log.SnapshotEntry;
 import io.microraft.persistence.NopRaftStore;
 import io.microraft.persistence.RaftStore;
 import io.microraft.persistence.RestoredRaftState;
+import io.microraft.impl.state.QueryState.QueryContainer;
 
 /**
  * State maintained by each Raft node.
  */
 @SuppressWarnings({"checkstyle:methodcount"})
 public final class RaftState {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RaftState.class);
 
     /**
      * Unique ID of the Raft group that this Raft node belongs to
@@ -77,6 +96,20 @@ public final class RaftState {
     private final RaftLog log;
 
     private final RaftModelFactory modelFactory;
+
+    /**
+     * Future objects to complete with the results of operations committed and
+     * executed on the state machine. Key is the commit index.
+     */
+    private final Long2ObjectHashMap<OrderedFuture> futures = new Long2ObjectHashMap<>();
+
+    /**
+     * Queries to be executed on the state machine on commit indices which are
+     * greater than the current commit index. These queries are registered with a
+     * timeout, so if the commit index does not advance enough before the timeout, a
+     * query's result future is completed with an exception.
+     */
+    private final NavigableMap<Long, Set<QueryContainer>> scheduledQueries = new TreeMap<>();
 
     /**
      * Latest committed group members of the Raft group.
@@ -510,12 +543,11 @@ public final class RaftState {
          * of size N * 2, we can commit log entries after collecting acks from N nodes.
          * Since leader elections are done with majority quorums (N + 1), we still
          * guarantee that a new leader will always have all committed log entries.
-         * 
-         * Here, we treat the 2-node group as a special case 
-         * and use the normal majority quorum calculation, where also the log 
-         * replication logic uses the 2-node quorum. The reason is to ensure 
-         * that the replicated data is guaranteed to have another copy in case
-         * the leader unrecoverably crashes.
+         *
+         * Here, we treat the 2-node group as a special case and use the normal majority
+         * quorum calculation, where also the log replication logic uses the 2-node
+         * quorum. The reason is to ensure that the replicated data is guaranteed to
+         * have another copy in case the leader unrecoverably crashes.
          */
         int quorumSize = leaderElectionQuorumSize();
         return effectiveGroupMembers.votingMemberCount() % 2 != 0
@@ -747,4 +779,189 @@ public final class RaftState {
         return store;
     }
 
+    /**
+     * Registers the given future with its {@code entryIndex}. This future will be
+     * notified when the corresponding operation is committed or its log entry is
+     * reverted.
+     *
+     * @param logIndex
+     *            the log index to register the given future
+     * @param future
+     *            the future object to register
+     */
+    public void registerFuture(long logIndex, OrderedFuture future) {
+        OrderedFuture f = futures.put(logIndex, future);
+        assert f == null : localEndpoint + " future object is already registered for log index: " + logIndex;
+    }
+
+    /**
+     * If there is a future object at the given log index, it is completed with the
+     * given result. Future objects are registered only in the leader node.
+     *
+     * @param logIndex
+     *            the log index to complete the future at
+     * @param result
+     *            the result to object the future at the given log index
+     */
+    public void completeFuture(long logIndex, Object result) {
+        OrderedFuture f = futures.remove(logIndex);
+        if (f != null) {
+            if (result instanceof Throwable) {
+                f.fail((Throwable) result);
+            } else {
+                f.complete(logIndex, result);
+            }
+        }
+    }
+
+    /**
+     * Completes futures with the given exception for indices greater than or equal
+     * to the given index. Note that the given index is inclusive.
+     *
+     * @param startIndexInclusive
+     *            the (inclusive) starting log index to complete registered futures
+     * @param e
+     *            the RaftException object to complete registered futures
+     */
+    public void invalidateFuturesFrom(long startIndexInclusive, RaftException e) {
+        int count = 0;
+        Iterator<Entry<Long, OrderedFuture>> iterator = futures.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Entry<Long, OrderedFuture> entry = iterator.next();
+            long index = entry.getKey();
+            if (index >= startIndexInclusive) {
+                entry.getValue().fail(e);
+                iterator.remove();
+                count++;
+            }
+        }
+
+        if (count > 0) {
+            LOGGER.warn("{} Invalidated {} futures from log index: {} with: {}", localEndpoint, count,
+                    startIndexInclusive, e);
+        }
+    }
+
+    /**
+     * Completes futures with the given exception for indices smaller than or equal
+     * to the given index. Note that the given index is inclusive.
+     *
+     * @param endIndexInclusive
+     *            the log index (inclusive) until which all waiting futures will be
+     *            completed
+     * @param e
+     *            the error to complete the waiting futures
+     */
+    public void invalidateFuturesUntil(long endIndexInclusive, RaftException e) {
+        int count = 0;
+        Iterator<Entry<Long, OrderedFuture>> iterator = futures.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Entry<Long, OrderedFuture> entry = iterator.next();
+            long index = entry.getKey();
+            if (index <= endIndexInclusive) {
+                entry.getValue().fail(e);
+                iterator.remove();
+                count++;
+            }
+        }
+
+        if (count > 0) {
+            LOGGER.warn("{} Completed {} futures until log index: {} with {}", localEndpoint, count, endIndexInclusive,
+                    e);
+        }
+    }
+
+    /**
+     * Adds a query object which is going to be executed when the commit index
+     * becomes equal to or greater than the given commit index.
+     *
+     * @param minCommitIndex
+     *            the minimum commit index to execute the given query
+     * @param query
+     *            the query to be executed
+     */
+    public void addScheduledQuery(long minCommitIndex, QueryContainer query) {
+        scheduledQueries.computeIfAbsent(minCommitIndex, (v) -> new LinkedHashSet<>(1)).add(query);
+    }
+
+    /**
+     * Completes futures of the all queries waiting to be executed at a future
+     * commit index.
+     *
+     * @param t
+     *            the error to complete the futures of the queries waiting to be
+     *            executed.
+     */
+    public void invalidateScheduledQueries() {
+        if (scheduledQueries.isEmpty()) {
+            return;
+        }
+
+        int invalidated = 0;
+        for (Map.Entry<Long, Set<QueryContainer>> entry : scheduledQueries.entrySet()) {
+            for (QueryContainer query : entry.getValue()) {
+                query.fail(new LaggingCommitIndexException(lastApplied, entry.getKey(), leader()));
+            }
+            invalidated += entry.getValue().size();
+        }
+
+        scheduledQueries.clear();
+        if (invalidated > 0) {
+            LOGGER.warn("{} invalidated {} waiting queries.", localEndpoint, invalidated);
+        }
+    }
+
+    /**
+     * Tries to remove the given query at the given minimum commit index and returns
+     * true if successful. The given query might have been already executed, in
+     * which case returns false.
+     *
+     * @param minCommitIndex
+     *            the minimum commit index to execute the given query
+     * @param query
+     *            the query to be executed
+     * @return true if successfully removed the given query, false otherwise
+     */
+    public boolean removeScheduledQuery(long minCommitIndex, QueryContainer query) {
+        if (scheduledQueries.isEmpty()) {
+            return false;
+        }
+
+        Set<QueryContainer> queries = scheduledQueries.get(minCommitIndex);
+        if (queries == null) {
+            return false;
+        }
+
+        if (queries.remove(query)) {
+            if (queries.isEmpty()) {
+                scheduledQueries.remove(minCommitIndex);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Removes and returns all queries waiting to be executed at a log index which
+     * is less than equal to the current commit index.
+     *
+     * @return the queries to be executed now.
+     */
+    public Collection<QueryContainer> collectScheduledQueriesToExecute() {
+        if (scheduledQueries.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        NavigableMap<Long, Set<QueryContainer>> queriesToExecute = scheduledQueries.headMap(lastApplied, true);
+        if (queriesToExecute.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<QueryContainer> queries = new ArrayList<>();
+        queriesToExecute.values().forEach(queries::addAll);
+
+        return queries;
+    }
 }

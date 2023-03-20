@@ -18,7 +18,9 @@
 package io.microraft;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
@@ -197,7 +199,8 @@ public interface RaftNode {
      * The returned future is completed with {@link IllegalStateException} if this
      * Raft node has already started.
      *
-     * @return the future object to be notified after this Raft node starts
+     * @return the future object to be completed after this Raft node starts its
+     *         execution
      */
     @Nonnull
     CompletableFuture<Ordered<Object>> start();
@@ -207,17 +210,15 @@ public interface RaftNode {
      * {@link RaftNodeStatus#TERMINATED} and makes the Raft node stops executing the
      * Raft consensus algorithm.
      *
-     * @return the future object to be notified after this Raft node terminates
+     * @return the future object to be completed after this Raft node terminates
      */
     @Nonnull
     CompletableFuture<Ordered<Object>> terminate();
 
     /**
-     * Handles the given Raft message which can be either a Raft RPC request or a
-     * response.
-     * <p>
-     * Silently ignores the given Raft message if this Raft node has already
-     * terminated or left the Raft group.
+     * Asynchronously handles the given Raft message which can be either a Raft RPC
+     * request or a response, or silently ignores the given Raft message if this
+     * Raft node has already terminated or left the Raft group.
      *
      * @param message
      *            the object sent by another Raft node of this Raft group
@@ -232,14 +233,13 @@ public interface RaftNode {
     /**
      * Replicates, commits, and executes the given operation via this Raft node. The
      * given operation is executed once it is committed in the Raft group, and the
-     * returned future object is notified with its execution result.
+     * returned future object is completed with its execution result, along with the
+     * commit index.
      * <p>
-     * Please note that the given operation must be deterministic.
+     * The given operation must be deterministic, otherwise state machines
+     * maintained by each Raft node in the Raft group can diverge.
      * <p>
-     * The returned future is notified with an {@link Ordered} object that contains
-     * the log index on which the given operation is committed and executed.
-     * <p>
-     * The returned future be can notified with {@link NotLeaderException},
+     * The returned future be can completed with {@link NotLeaderException},
      * {@link CannotReplicateException} or {@link IndeterminateStateException}.
      * Please see individual exception classes for more information.
      *
@@ -248,8 +248,8 @@ public interface RaftNode {
      * @param <T>
      *            type of the result of the operation execution
      *
-     * @return the future to be notified with the result of the operation execution,
-     *         or the exception if the replication fails
+     * @return the future to be completed with the result of the operation
+     *         execution, or the exception if the replication fails
      *
      * @see NotLeaderException
      * @see CannotReplicateException
@@ -259,25 +259,29 @@ public interface RaftNode {
     <T> CompletableFuture<Ordered<T>> replicate(@Nonnull Object operation);
 
     /**
-     * Executes the given query operation based on the given query policy.
+     * Executes the given query with the given query policy.
      * <p>
-     * The returned future is notified with an {@link Ordered} object that contains
-     * the commit index on which the given query is executed.
+     * The returned future is completed with an {@link Ordered} object that contains
+     * the commit index on which the given query is executed and the result of the
+     * query.
      * <p>
-     * If the caller is providing a query policy which is weaker than
-     * {@link QueryPolicy#LINEARIZABLE}, it can also provide a minimum commit index.
-     * Then, the local Raft node executes the given query only if its local commit
-     * index is greater than or equal to the required commit index. If the local
-     * commit index is smaller than the required commit index, then the returned
-     * future is notified with {@link LaggingCommitIndexException} so that the
-     * caller could retry its query on the same Raft node after some time or forward
-     * it to another Raft node. This mechanism enables callers to execute queries on
-     * Raft nodes without hitting the log replication quorum and preserve
-     * monotonicity of query results. Please see the <i>Section: 6.4 Processing
-     * read-only queries more efficiently</i> of the Raft dissertation for more
-     * details.
+     * The local Raft node executes the given query only if its local commit index
+     * is greater than or equal to the given commit index. If the local commit index
+     * is smaller than the required commit index, then the returned future is
+     * completed with {@link LaggingCommitIndexException}. Callers could retry its
+     * query on the same Raft node after some time, or forward it to another Raft
+     * node. This mechanism enables callers to execute queries on Raft nodes without
+     * hitting the log replication quorum and still achieve monotonic reads. Please
+     * see the <i>Section: 6.4 Processing read-only queries more efficiently</i> of
+     * the Raft dissertation for more details.
      * <p>
-     * The returned future can be notified with {@link NotLeaderException},
+     * When the method is called on the leader Raft node, the returned future is
+     * completed with {@link LaggingCommitIndexException} if the given commit index
+     * is greater than the current commit index of the Raft node and the query
+     * policy is {@link QueryPolicy#LEADER_LEASE} or
+     * {@link QueryPolicy#LINEARIZABLE}.
+     * <p>
+     * The returned future can be completed with {@link NotLeaderException},
      * {@link CannotReplicateException} or {@link LaggingCommitIndexException}.
      * Please see individual exception classes for more information.
      *
@@ -286,12 +290,12 @@ public interface RaftNode {
      * @param queryPolicy
      *            the query policy to decide how to execute the given query
      * @param minCommitIndex
-     *            the minimum commit index that this Raft node has to have in order
-     *            to execute the given query.
+     *            the minimum non-negative commit index that this Raft node has to
+     *            have in order to execute the given query.
      * @param <T>
      *            type of the result of the query execution
      *
-     * @return the future to be notified with the result of the query execution, or
+     * @return the future to be completed with the result of the query execution, or
      *         the exception if the query cannot be executed
      *
      * @see QueryPolicy
@@ -304,6 +308,63 @@ public interface RaftNode {
             long minCommitIndex);
 
     /**
+     * Executes the given query with the given query policy.
+     * <p>
+     * The returned future is completed with an {@link Ordered} object that contains
+     * the commit index on which the given query is executed and the result of the
+     * query.
+     * <p>
+     * Callers can also provide a minimum commit index and a timeout duration. If no
+     * timeout is passed, the local Raft node executes the given query only if its
+     * local commit index is greater than or equal to the given commit index at the
+     * time of the call, or completes the returned future with
+     * {@link LaggingCommitIndexException}. If a timeout is passed and the local
+     * commit index is smaller than the given commit index, the local Raft node
+     * waits for the commit index to become greater than or equal to the given
+     * commit index, or completes the returned feature with
+     * {@link LaggingCommitIndexException} if the timeout occurs before that.
+     * Callers could retry its query on the same Raft node, or forward it to another
+     * Raft node. This mechanism enables callers to execute queries on Raft nodes
+     * without hitting the log replication quorum and still achieve monotonic reads.
+     * Please see the <i>Section: 6.4 Processing read-only queries more
+     * efficiently</i> of the Raft dissertation for more details.
+     * <p>
+     * When the method is called on the leader Raft node, the returned future is
+     * completed with {@link LaggingCommitIndexException} if the given commit index
+     * is greater than the current commit index of the Raft node and the query
+     * policy is {@link QueryPolicy#LEADER_LEASE} or
+     * {@link QueryPolicy#LINEARIZABLE}.
+     * <p>
+     * The returned future can be completed with {@link NotLeaderException},
+     * {@link CannotReplicateException} or {@link LaggingCommitIndexException}.
+     * Please see individual exception classes for more information.
+     *
+     * @param operation
+     *            the query operation to be executed
+     * @param queryPolicy
+     *            the query policy to decide how to execute the given query
+     * @param minCommitIndex
+     *            the optional non-negative minimum commit index that this Raft node
+     *            has to
+     * @param timeout
+     *            the optional duration to wait before timing out the query if the
+     *            local commit index cannot advance until the given commit index
+     *            have in order to execute the given query.
+     * @param <T>
+     *            type of the result of the query execution
+     *
+     * @return the future to be completed with the result of the query execution, or
+     *         the exception if the query cannot be executed
+     *
+     * @see QueryPolicy
+     * @see NotLeaderException
+     * @see CannotReplicateException
+     * @see LaggingCommitIndexException
+     */
+    <T> CompletableFuture<Ordered<T>> query(@Nonnull Object operation, @Nonnull QueryPolicy queryPolicy,
+            Optional<Long> minCommitIndex, Optional<Duration> timeout);
+
+    /**
      * Replicates and commits the given membership change to the Raft group, if the
      * given group members commit index is equal to the current group members commit
      * index in the local Raft state.
@@ -312,7 +373,7 @@ public interface RaftNode {
      * index can be accessed via {@link #getCommittedMembers()}.
      * <p>
      * When the membership change process is completed successfully, the returned
-     * future is notified with an {@link Ordered} object that contains the new
+     * future is completed with an {@link Ordered} object that contains the new
      * member list of the Raft group and the log index at which the given membership
      * change is committed.
      * <p>
@@ -340,28 +401,28 @@ public interface RaftNode {
      * quorum size of the Raft group is re-calculated based on the new number of
      * voting members. The leader Raft node does not check if the given Raft
      * endpoint's local Raft log is sufficiently up to date before this
-     * re-calculation. Hence, it is the caller's responsibility to check the
-     * promoted Raft endpoint's local Raft log in order to prevent availability gaps
-     * if the quorum size will increase after the membership change. This check can
-     * be done by getting {@link RaftNodeReport} from the leader Raft node and
-     * comparing last log indices of the leader and the {@link RaftRole#LEARNER}
-     * Raft endpoint.
+     * re-calculation. Hence, it is callers' responsibility to check the promoted
+     * Raft endpoint's local Raft log in order to prevent availability gaps if the
+     * quorum size will increase after the membership change. This check can be done
+     * by getting {@link RaftNodeReport} from the leader Raft node and comparing
+     * last log indices of the leader and the {@link RaftRole#LEARNER} Raft
+     * endpoint.
      * <p>
      * If the given group members commit index is different than the current group
      * members commit index in the local Raft state, then the returned future is
-     * notified with {@link MismatchingRaftGroupMembersCommitIndexException}.
+     * completed with {@link MismatchingRaftGroupMembersCommitIndexException}.
      * <p>
      * If the Raft group contains a single voting member and that member is
-     * attempted to be removed, then the returned future is notified with
+     * attempted to be removed, then the returned future is completed with
      * {@link IllegalStateException}.
      * <p>
      * If the given Raft endpoint is already in the committed Raft group member
      * list, or it is being added as a {@link RaftRole#LEARNER} while there are
      * {@link RaftGroupMembers#MAX_LEARNER_COUNT} {@link RaftRole#LEARNER}s in the
-     * Raft group member list, then the returned future is notified with
+     * Raft group member list, then the returned future is completed with
      * {@link IllegalArgumentException}.
      * <p>
-     * The returned future can be notified with {@link NotLeaderException},
+     * The returned future can be completed with {@link NotLeaderException},
      * {@link CannotReplicateException} or {@link IndeterminateStateException}.
      * Please see individual exception classes for more information.
      *
@@ -372,7 +433,7 @@ public interface RaftNode {
      * @param expectedGroupMembersCommitIndex
      *            the expected members commit index
      *
-     * @return the future to be notified with the new member list of the Raft group
+     * @return the future to be completed with the new member list of the Raft group
      *         if the membership change is successful, or the exception if the
      *         membership change failed
      *
@@ -398,14 +459,14 @@ public interface RaftNode {
      * endpoint will be the new leader in the new term. However, it is very unlikely
      * that another endpoint will become the new leader.
      * <p>
-     * The returned future is notified with an {@link Ordered} object that contains
+     * The returned future is completed with an {@link Ordered} object that contains
      * the commit index on which this Raft node turns into a follower.
      * <p>
      * This Raft node does not replicate any new operation until the leadership
      * transfer process is completed and new {@link #replicate(Object)} calls fail
      * with {@link CannotReplicateException}.
      * <p>
-     * The returned future can be notified with {@link NotLeaderException} if this
+     * The returned future can be completed with {@link NotLeaderException} if this
      * Raft node is not leader, {@link IllegalStateException} if the Raft node
      * status is not {@link RaftNodeStatus#ACTIVE}, {@link IllegalArgumentException}
      * if the given endpoint is not a voting member in the committed Raft group
@@ -415,7 +476,7 @@ public interface RaftNode {
      * @param endpoint
      *            the Raft endpoint to which the leadership will be transferred
      *
-     * @return the future to be notified when the leadership transfer is done, or
+     * @return the future to be completed when the leadership transfer is done, or
      *         with the execution if the leader transfer could not be done.
      *
      * @see CannotReplicateException
@@ -649,11 +710,11 @@ public interface RaftNode {
         RaftNodeBuilder setModelFactory(@Nonnull RaftModelFactory modelFactory);
 
         /**
-         * Sets the Raft node report listener object to be notified about events related
-         * to the execution of the Raft consensus algorithm.
+         * Sets the Raft node report listener object to be completed about events
+         * related to the execution of the Raft consensus algorithm.
          *
          * @param listener
-         *            the Raft node report listener object to be notified about events
+         *            the Raft node report listener object to be completed about events
          *            related to the execution of the Raft consensus algorithm
          *
          * @return the builder object for fluent calls

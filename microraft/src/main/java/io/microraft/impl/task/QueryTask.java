@@ -21,16 +21,19 @@ import static io.microraft.RaftNodeStatus.INITIAL;
 import static io.microraft.RaftNodeStatus.isTerminal;
 import static io.microraft.RaftRole.LEADER;
 
+import java.time.Duration;
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.microraft.QueryPolicy;
 import io.microraft.RaftNodeStatus;
-import io.microraft.exception.LaggingCommitIndexException;
 import io.microraft.exception.RaftException;
 import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.state.QueryState;
 import io.microraft.impl.state.RaftState;
+import io.microraft.impl.state.QueryState.QueryContainer;
 import io.microraft.impl.util.OrderedFuture;
 import io.microraft.model.groupop.RaftGroupOp;
 import io.microraft.statemachine.StateMachine;
@@ -50,15 +53,17 @@ public final class QueryTask implements Runnable {
     private final Object operation;
     private final QueryPolicy queryPolicy;
     private final long minCommitIndex;
+    private final Optional<Duration> timeout;
     private final OrderedFuture future;
 
     public QueryTask(RaftNodeImpl raftNode, Object operation, QueryPolicy policy, long minCommitIndex,
-            OrderedFuture future) {
+            Optional<Duration> timeout, OrderedFuture future) {
         this.raftNode = raftNode;
         this.state = raftNode.state();
         this.operation = operation;
         this.queryPolicy = policy;
         this.minCommitIndex = minCommitIndex;
+        this.timeout = timeout;
         this.future = future;
     }
 
@@ -95,6 +100,12 @@ public final class QueryTask implements Runnable {
         if (raftNode.demoteToFollowerIfQuorumHeartbeatTimeoutElapsed()) {
             future.fail(raftNode.newNotLeaderException());
         } else {
+            long commitIndex = state.commitIndex();
+            if (commitIndex < minCommitIndex) {
+                future.fail(raftNode.newLaggingCommitIndexException(minCommitIndex));
+                return;
+            }
+
             queryWithEventualConsistency();
         }
     }
@@ -105,7 +116,7 @@ public final class QueryTask implements Runnable {
                     + " in term: " + state.term());
         }
 
-        raftNode.runQuery(operation, minCommitIndex, future);
+        raftNode.runOrScheduleQuery(new QueryContainer(operation, future), minCommitIndex, timeout);
     }
 
     private void queryWithBoundedStaleness() {
@@ -114,7 +125,7 @@ public final class QueryTask implements Runnable {
             return;
         }
 
-        raftNode.runQuery(operation, minCommitIndex, future);
+        raftNode.runOrScheduleQuery(new QueryContainer(operation, future), minCommitIndex, timeout);
     }
 
     private void queryWithLinearizability() {
@@ -128,7 +139,7 @@ public final class QueryTask implements Runnable {
 
         long commitIndex = state.commitIndex();
         if (commitIndex < minCommitIndex) {
-            future.fail(new LaggingCommitIndexException(state.commitIndex(), minCommitIndex, state.leader()));
+            future.fail(raftNode.newLaggingCommitIndexException(minCommitIndex));
             return;
         }
 

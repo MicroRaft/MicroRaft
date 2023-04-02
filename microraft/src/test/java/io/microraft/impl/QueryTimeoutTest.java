@@ -1,13 +1,11 @@
 package io.microraft.impl;
 
-import static io.microraft.QueryPolicy.BOUNDED_STALENESS;
 import static io.microraft.QueryPolicy.EVENTUAL_CONSISTENCY;
 import static io.microraft.QueryPolicy.LEADER_LEASE;
-import static io.microraft.QueryPolicy.LINEARIZABLE;;
+import static io.microraft.QueryPolicy.LINEARIZABLE;
 import static io.microraft.impl.local.SimpleStateMachine.applyValue;
 import static io.microraft.impl.local.SimpleStateMachine.queryLastValue;
 import static io.microraft.test.util.AssertionUtils.eventually;
-import static io.microraft.test.util.RaftTestUtils.TEST_RAFT_CONFIG;
 import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -23,7 +21,6 @@ import org.junit.After;
 import org.junit.Test;
 
 import io.microraft.Ordered;
-import io.microraft.QueryPolicy;
 import io.microraft.RaftConfig;
 import io.microraft.exception.LaggingCommitIndexException;
 import io.microraft.impl.local.LocalRaftGroup;

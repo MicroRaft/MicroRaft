@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2023, MicroRaft.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.microraft.impl;
 
 import static io.microraft.QueryPolicy.BOUNDED_STALENESS;
@@ -22,6 +38,7 @@ import java.util.concurrent.CompletionException;
 import org.junit.After;
 import org.junit.Test;
 
+import io.microraft.MembershipChangeMode;
 import io.microraft.Ordered;
 import io.microraft.QueryPolicy;
 import io.microraft.RaftConfig;
@@ -222,6 +239,27 @@ public class QueryTimeoutTest extends BaseTest {
                 Optional.of(commitIndex), Optional.of(Duration.ofSeconds(30)));
 
         follower.terminate().join();
+
+        try {
+            f.join();
+            fail();
+        } catch (CompletionException e) {
+            assertThat(e).hasCauseInstanceOf(LaggingCommitIndexException.class);
+        }
+    }
+
+    @Test(timeout = 300_000)
+    public void when_leaderQueriedWithFutureCommitIndex_then_queryFailsWhenLeaderLeavesRaftGroup() {
+        group = LocalRaftGroup.start(3);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+
+        long commitIndex = leader.replicate(applyValue("value")).join().getCommitIndex();
+
+        CompletableFuture<Ordered<Object>> f = leader.query(queryLastValue(), EVENTUAL_CONSISTENCY,
+                Optional.of(commitIndex + 100), Optional.of(Duration.ofSeconds(300)));
+
+        leader.changeMembership(leader.getLocalEndpoint(), MembershipChangeMode.REMOVE_MEMBER, 0).join();
 
         try {
             f.join();

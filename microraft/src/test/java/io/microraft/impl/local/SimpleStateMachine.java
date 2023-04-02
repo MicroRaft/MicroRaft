@@ -28,6 +28,8 @@ import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
 
+import io.microraft.impl.statemachine.InternalCommitAware;
+import io.microraft.lifecycle.RaftNodeLifecycleAware;
 import io.microraft.statemachine.StateMachine;
 
 /**
@@ -40,11 +42,13 @@ import io.microraft.statemachine.StateMachine;
  * This class is thread safe. Committed values can be queried from test threads
  * while they are being updated in Raft node threads.
  */
-public class SimpleStateMachine implements StateMachine {
+public class SimpleStateMachine implements StateMachine, RaftNodeLifecycleAware, InternalCommitAware {
 
+    private volatile boolean terminated;
     private final Map<Long, Object> map = createMap();
     private final boolean newTermOpEnabled;
     private Object lastValue;
+    private long commitIndex;
 
     public SimpleStateMachine() {
         this(true);
@@ -130,6 +134,7 @@ public class SimpleStateMachine implements StateMachine {
     @Override
     public synchronized Object runOperation(long commitIndex, @Nonnull Object operation) {
         if (operation instanceof Apply) {
+            this.commitIndex = commitIndex;
             Apply apply = (Apply) operation;
             assert !map.containsKey(commitIndex) : "Cannot apply " + apply.val + "since commitIndex: " + commitIndex
                     + " already contains: " + map.get(commitIndex);
@@ -137,10 +142,15 @@ public class SimpleStateMachine implements StateMachine {
             lastValue = apply.val;
             return apply.val;
         } else if (operation instanceof QueryLast) {
+            assert commitIndex == this.commitIndex : "Cannot run query at commit index: " + commitIndex
+                    + " since current commit index is " + this.commitIndex;
             return lastValue;
         } else if (operation instanceof QueryAll) {
+            assert commitIndex == this.commitIndex : "Cannot run query at commit index: " + commitIndex
+                    + " since current commit index is " + this.commitIndex;
             return valueList();
         } else if (operation instanceof NewTermOp) {
+            this.commitIndex = commitIndex;
             return null;
         }
 
@@ -169,6 +179,7 @@ public class SimpleStateMachine implements StateMachine {
 
     @Override
     public synchronized void installSnapshot(long commitIndex, @Nonnull List<Object> chunks) {
+        this.commitIndex = commitIndex;
         map.clear();
         for (Object chunk : chunks) {
             for (Entry<Long, Object> e : ((Map<Long, Object>) chunk).entrySet()) {
@@ -182,6 +193,20 @@ public class SimpleStateMachine implements StateMachine {
     @Override
     public Object getNewTermOperation() {
         return newTermOpEnabled ? new NewTermOp() : null;
+    }
+
+    @Override
+    public void onInternalCommit(long commitIndex) {
+        this.commitIndex = commitIndex;
+    }
+
+    @Override
+    public void onRaftNodeTerminate() {
+        terminated = true;
+    }
+
+    public boolean isTerminated() {
+        return terminated;
     }
 
     private Map<Long, Object> createMap() {

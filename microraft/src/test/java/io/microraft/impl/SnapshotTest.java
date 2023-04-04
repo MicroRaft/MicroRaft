@@ -737,8 +737,8 @@ public class SnapshotTest extends BaseTest {
 
         // committing new entries.
         // one more entry is needed to take the next snapshot.
-        // LOG: [ <46 - 49>, <50>, <51 - 99 (committed)> ], SNAPSHOT INDEX: 50, COMMIT
-        // INDEX: 99
+        // LOG: [ <46 - 49>, <50>, <51 - 99 (committed)> ],
+        // SNAPSHOT INDEX: 50, COMMIT INDEX: 99
 
         group.dropMessagesTo(leader.getLocalEndpoint(), followers.get(1).getLocalEndpoint(),
                 AppendEntriesRequest.class);
@@ -749,10 +749,9 @@ public class SnapshotTest extends BaseTest {
 
         // appended some more entries which will not be committed because the leader has
         // no majority.
-        // the last uncommitted index is reserved for membership changed.
+        // the last uncommitted index is reserved for membership change.
         // LOG: [ <46 - 49>, <50>, <51 - 99 (committed)>, <100 - 108 (uncommitted)> ],
-        // SNAPSHOT INDEX: 50, COMMIT
-        // INDEX: 99
+        // SNAPSHOT INDEX: 50, COMMIT INDEX: 99
         // There are only 2 empty indices in the log.
 
         RaftNodeImpl newRaftNode = group.createNewNode();
@@ -808,8 +807,7 @@ public class SnapshotTest extends BaseTest {
         // we alter the append request.
         // The log will be:
         // LOG: [ <46 - 49>, <50>, <51 - 108 (committed)>, <109 (membership change)> ],
-        // SNAPSHOT INDEX: 50, COMMIT
-        // INDEX: 108
+        // SNAPSHOT INDEX: 50, COMMIT INDEX: 108
         // There is only 1 empty index in the log.
 
         eventually(() -> {
@@ -830,8 +828,8 @@ public class SnapshotTest extends BaseTest {
 
         // Now the log is full. There is no empty space left.
         // LOG: [ <46 - 49>, <50>, <51 - 108 (committed)>, <109 (membership change)>,
-        // <110 (uncommitted)> ], SNAPSHOT
-        // INDEX: 50, COMMIT INDEX: 108
+        // <110 (uncommitted)> ],
+        // SNAPSHOT INDEX: 50, COMMIT INDEX: 108
 
         long lastLogIndex3 = getLastLogOrSnapshotEntry(leader).getIndex();
 

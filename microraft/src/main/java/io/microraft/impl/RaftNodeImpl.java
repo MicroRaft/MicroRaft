@@ -95,6 +95,7 @@ import io.microraft.impl.state.RaftGroupMembersState;
 import io.microraft.impl.state.RaftState;
 import io.microraft.impl.state.RaftTermState;
 import io.microraft.impl.state.QueryState.QueryContainer;
+import io.microraft.impl.statemachine.InternalCommitAware;
 import io.microraft.impl.task.HeartbeatTask;
 import io.microraft.impl.task.LeaderBackoffResetTask;
 import io.microraft.impl.task.LeaderElectionTimeoutTask;
@@ -619,9 +620,7 @@ public final class RaftNodeImpl implements RaftNode {
                     toFollower(state.term());
                 }
                 setStatus(TERMINATED);
-                state.invalidateFuturesFrom(state.commitIndex() + 1, new IndeterminateStateException());
                 state.invalidateScheduledQueries();
-                state.completeLeadershipTransfer(newNotLeaderException());
             } catch (Throwable t) {
                 failure = t;
                 LOGGER.error("Failure during termination of " + localEndpointStr, t);
@@ -950,6 +949,10 @@ public final class RaftNodeImpl implements RaftNode {
                 }
 
                 response = state.committedGroupMembers();
+
+                if (stateMachine instanceof InternalCommitAware) {
+                    ((InternalCommitAware) stateMachine).onInternalCommit(logIndex);
+                }
             } else {
                 response = new IllegalArgumentException("Invalid Raft group operation: " + operation);
             }
@@ -1045,6 +1048,9 @@ public final class RaftNodeImpl implements RaftNode {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(localEndpointStr + " " + snapshotEntry + " is taken. " + truncatedEntryCount + " entries are "
                     + "truncated.");
+        } else {
+            LOGGER.info("{} took snapshot at term: {} and log index: {} and truncated {} entries.", localEndpointStr,
+                    snapshotEntry.getTerm(), snapshotEntry.getIndex(), truncatedEntryCount);
         }
 
         publishRaftNodeReport(RaftNodeReportReason.TAKE_SNAPSHOT);
@@ -1135,7 +1141,7 @@ public final class RaftNodeImpl implements RaftNode {
         LOGGER.info("{} snapshot is installed at commit index: {}", localEndpointStr, snapshotEntry.getIndex());
 
         state.invalidateFuturesUntil(snapshotEntry.getIndex(), new IndeterminateStateException(state.leader()));
-        runScheduledQueries();
+        tryRunScheduledQueries();
 
         // log.setSnapshot() truncates stale log entries from disk.
         // we are submitting an async flush task here to flush those
@@ -1608,16 +1614,19 @@ public final class RaftNodeImpl implements RaftNode {
         }
 
         state.commitIndex(commitIndex);
-
-        if (status == ACTIVE) {
-            applyLogEntries();
-            broadcastAppendEntriesRequest();
+        applyLogEntries();
+        // the leader might have left the Raft group, but still we can send
+        // an append request at this point
+        broadcastAppendEntriesRequest();
+        if (status != TERMINATED) {
+            // the leader is still part of the Raft group
             tryRunQueries();
+            tryRunScheduledQueries();
         } else {
-            tryRunQueries();
-            applyLogEntries();
-            broadcastAppendEntriesRequest();
-            runScheduledQueries();
+            // the leader has left the Raft group
+            state.invalidateScheduledQueries();
+            toFollower(state.term());
+            terminateComponents();
         }
     }
 
@@ -1648,7 +1657,12 @@ public final class RaftNodeImpl implements RaftNode {
     }
 
     public void tryRunQueries() {
-        QueryState queryState = state.leaderState().queryState();
+        LeaderState leaderState = state.leaderState();
+        if (leaderState == null) {
+            return;
+        }
+
+        QueryState queryState = leaderState.queryState();
         long commitIndex = state.commitIndex();
         if (!queryState.isQuorumAckReceived(commitIndex, state.logReplicationQuorumSize())) {
             return;
@@ -1668,12 +1682,7 @@ public final class RaftNodeImpl implements RaftNode {
         queryState.reset();
     }
 
-    public void runScheduledQueries() {
-        if (status == TERMINATED) {
-            state.invalidateScheduledQueries();
-            return;
-        }
-
+    public void tryRunScheduledQueries() {
         long lastApplied = state.lastApplied();
         Collection<QueryContainer> queries = state.collectScheduledQueriesToExecute();
         for (QueryContainer query : queries) {
@@ -1826,7 +1835,6 @@ public final class RaftNodeImpl implements RaftNode {
                     "{} Demoting to {} since not received append entries responses from majority recently. Latest quorum timestamp: {}",
                     localEndpointStr, FOLLOWER, quorumTimestamp.get());
             toFollower(state.term());
-            state.invalidateFuturesFrom(state.commitIndex() + 1, new IndeterminateStateException());
         }
 
         return demoteToFollower;

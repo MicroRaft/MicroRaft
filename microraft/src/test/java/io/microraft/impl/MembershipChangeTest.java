@@ -782,6 +782,9 @@ public class MembershipChangeTest extends BaseTest {
                 assertThat(getCommittedGroupMembers(node).isKnownMember(leader.getLocalEndpoint())).isFalse();
             }
         });
+
+        SimpleStateMachine stateMachine = group.getStateMachine(leader.getLocalEndpoint());
+        assertThat(stateMachine.isTerminated()).isTrue();
     }
 
     @Test(timeout = 300_000)

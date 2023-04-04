@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -43,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftRole;
+import io.microraft.exception.IndeterminateStateException;
 import io.microraft.exception.LaggingCommitIndexException;
 import io.microraft.exception.NotLeaderException;
 import io.microraft.exception.RaftException;
@@ -447,6 +447,7 @@ public final class RaftState {
             // this is done here to read the updated leader field
             currentLeaderState.queryState().fail(new NotLeaderException(localEndpoint, leader()));
         }
+        invalidateFuturesFrom(commitIndex + 1, new IndeterminateStateException());
     }
 
     private void persistTerm(RaftTermState termStateToPersist) {

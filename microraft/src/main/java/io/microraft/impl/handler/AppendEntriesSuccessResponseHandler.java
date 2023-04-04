@@ -126,7 +126,14 @@ public class AppendEntriesSuccessResponseHandler extends AbstractResponseHandler
     }
 
     private void checkIfQueryAckNeeded(AppendEntriesSuccessResponse response) {
-        QueryState queryState = state.leaderState().queryState();
+        LeaderState leaderState = state.leaderState();
+        if (leaderState == null) {
+            // this can happen if this node was removed from the group when
+            // the commit index was advanced.
+            return;
+        }
+
+        QueryState queryState = leaderState.queryState();
         if (queryState.isAckNeeded(response.getSender(), state.logReplicationQuorumSize())) {
             node.sendAppendEntriesRequest(response.getSender());
         }

@@ -145,7 +145,7 @@ public class AppendEntriesRequestHandler extends AbstractMessageHandler<AppendEn
             }
 
             if (commitIndexAdvanced) {
-                node.runScheduledQueries();
+                node.tryRunScheduledQueries();
             }
         }
     }

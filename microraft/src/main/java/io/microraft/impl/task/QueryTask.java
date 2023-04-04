@@ -78,9 +78,6 @@ public final class QueryTask implements Runnable {
                 case EVENTUAL_CONSISTENCY :
                     queryWithEventualConsistency();
                     break;
-                case BOUNDED_STALENESS :
-                    queryWithBoundedStaleness();
-                    break;
                 case LEADER_LEASE :
                     queryWithLeaderLease();
                     break;
@@ -114,15 +111,6 @@ public final class QueryTask implements Runnable {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(raftNode.localEndpointStr() + " Querying: " + operation + " with policy: " + queryPolicy
                     + " in term: " + state.term());
-        }
-
-        raftNode.runOrScheduleQuery(new QueryContainer(operation, future), minCommitIndex, timeout);
-    }
-
-    private void queryWithBoundedStaleness() {
-        if (state.leader() == null) {
-            future.fail(raftNode.newCannotReplicateException());
-            return;
         }
 
         raftNode.runOrScheduleQuery(new QueryContainer(operation, future), minCommitIndex, timeout);

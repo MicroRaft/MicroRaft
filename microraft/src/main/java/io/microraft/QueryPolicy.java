@@ -41,25 +41,6 @@ public enum QueryPolicy {
     EVENTUAL_CONSISTENCY,
 
     /**
-     * Runs the query on the local state machine of any Raft node. The query policy
-     * is equivalent to {@link #LEADER_LEASE} when a query operation is passed to
-     * the leader Raft node, If a query operation is passed to a follower or a
-     * learner Raft node with this policy, then it is locally executed only if that
-     * Raft node has received a heartbeat from the leader Raft node recently.
-     * Otherwise, the query operation will fail.
-     * <p>
-     * Reading stale value is possible when a follower or a learner Raft node lags
-     * behind the leader but the staleness is bounded by the leader heartbeat
-     * timeout configuration.
-     * <p>
-     * Callers can achieve monotonic reads by keeping track of highest commit index
-     * they observed via return values of RaftNode's methods and passing it to
-     * queries. In this case, RaftNode executes a given query only if its local
-     * commit index is greater than equal to the given commit index.
-     */
-    BOUNDED_STALENESS,
-
-    /**
      * Runs the query on the local state machine of the leader Raft node.
      * <p>
      * The leader Raft node executes a given query operation with this policy only
@@ -67,10 +48,10 @@ public enum QueryPolicy {
      * group in the last leader heartbeat duration.
      * <p>
      * This policy is much more likely to hit more recent state when compared to the
-     * {@link #EVENTUAL_CONSISTENCY} policy and {@link #BOUNDED_STALENESS} policies.
-     * However, it cannot guarantee linearizability since other Raft nodes' clocks
-     * may move forward in time and they can elect a new leader among themselves
-     * while the old leader still considers itself as the leader.
+     * {@link #EVENTUAL_CONSISTENCY} policy. However, it cannot guarantee
+     * linearizability since other Raft nodes' clocks may move forward in time and
+     * they can elect a new leader among themselves while the old leader still
+     * considers itself as the leader.
      */
     LEADER_LEASE,
 

@@ -18,7 +18,6 @@
 package io.microraft.impl;
 
 import static io.microraft.MembershipChangeMode.ADD_LEARNER;
-import static io.microraft.QueryPolicy.BOUNDED_STALENESS;
 import static io.microraft.QueryPolicy.EVENTUAL_CONSISTENCY;
 import static io.microraft.QueryPolicy.LEADER_LEASE;
 import static io.microraft.impl.local.SimpleStateMachine.applyValue;
@@ -247,55 +246,6 @@ public class LocalQueryTest extends BaseTest {
     }
 
     @Test(timeout = 300_000)
-    public void when_queryFromFollowerWithBoundedStaleness_then_readStaleValue() {
-        group = LocalRaftGroup.start(3);
-
-        RaftNodeImpl leader = group.waitUntilLeaderElected();
-        RaftNodeImpl slowFollower = group.getAnyNodeExcept(leader.getLocalEndpoint());
-
-        Object firstValue = "value1";
-        leader.replicate(applyValue(firstValue)).join();
-        long leaderCommitIndex = getCommitIndex(leader);
-
-        eventually(() -> assertThat(getCommitIndex(slowFollower)).isEqualTo(leaderCommitIndex));
-
-        group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), AppendEntriesRequest.class);
-
-        leader.replicate(applyValue("value2")).join();
-
-        Ordered<Object> result = slowFollower.query(queryLastValue(), BOUNDED_STALENESS, 0).join();
-        assertThat(result.getResult()).isEqualTo(firstValue);
-        assertThat(result.getCommitIndex()).isEqualTo(leaderCommitIndex);
-    }
-
-    @Test(timeout = 300_000)
-    public void when_queryFromSlowFollowerWithBoundedStaleness_then_readFails() {
-        group = LocalRaftGroup.start(3);
-
-        RaftNodeImpl leader = group.waitUntilLeaderElected();
-        RaftNodeImpl slowFollower = group.getAnyNodeExcept(leader.getLocalEndpoint());
-
-        Object firstValue = "value1";
-        leader.replicate(applyValue(firstValue)).join();
-        long leaderCommitIndex = getCommitIndex(leader);
-
-        eventually(() -> assertThat(getCommitIndex(slowFollower)).isEqualTo(leaderCommitIndex));
-
-        group.dropMessagesTo(leader.getLocalEndpoint(), slowFollower.getLocalEndpoint(), AppendEntriesRequest.class);
-
-        leader.replicate(applyValue("value2")).join();
-
-        eventually(() -> assertThat(slowFollower.getLeaderEndpoint()).isNull());
-
-        try {
-            slowFollower.query(queryLastValue(), BOUNDED_STALENESS, 0).join();
-            fail();
-        } catch (CompletionException e) {
-            assertThat(e).hasCauseInstanceOf(CannotReplicateException.class);
-        }
-    }
-
-    @Test(timeout = 300_000)
     public void when_queryFromSlowFollower_then_eventuallyReadLatestValue() {
         group = LocalRaftGroup.start(3);
 
@@ -354,47 +304,6 @@ public class LocalQueryTest extends BaseTest {
         Ordered<Object> result2 = leader.query(queryLastValue(), EVENTUAL_CONSISTENCY, 0).join();
         assertThat(result2.getResult()).isEqualTo(firstValue);
         assertThat(result2.getCommitIndex()).isEqualTo(firstCommitIndex);
-    }
-
-    @Test(timeout = 300_000)
-    public void when_queryFromSplitLeaderWithBoundedStaleness_then_readFails() {
-        group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
-
-        RaftNodeImpl leader = group.waitUntilLeaderElected();
-
-        Object firstValue = "value1";
-        leader.replicate(applyValue(firstValue)).join();
-        long firstCommitIndex = getCommitIndex(leader);
-
-        eventually(() -> {
-            for (RaftNodeImpl node : group.getNodes()) {
-                assertThat(getCommitIndex(node)).isEqualTo(firstCommitIndex);
-            }
-        });
-
-        RaftNodeImpl followerNode = group.getAnyNodeExcept(leader.getLocalEndpoint());
-        group.splitMembers(leader.getLocalEndpoint());
-
-        eventually(() -> {
-            RaftEndpoint leaderEndpoint = followerNode.getLeaderEndpoint();
-            assertThat(leaderEndpoint).isNotNull().isNotEqualTo(leader.getLocalEndpoint());
-        });
-
-        RaftNodeImpl newLeader = group.getNode(followerNode.getLeaderEndpoint());
-        Object lastValue = "value2";
-        newLeader.replicate(applyValue(lastValue)).join();
-        long lastCommitIndex = getCommitIndex(newLeader);
-
-        Ordered<Object> result1 = newLeader.query(queryLastValue(), EVENTUAL_CONSISTENCY, 0).join();
-        assertThat(result1.getResult()).isEqualTo(lastValue);
-        assertThat(result1.getCommitIndex()).isEqualTo(lastCommitIndex);
-
-        try {
-            leader.query(queryLastValue(), BOUNDED_STALENESS, 0).join();
-            fail();
-        } catch (CompletionException e) {
-            assertThat(e).hasCauseInstanceOf(CannotReplicateException.class);
-        }
     }
 
     @Test(timeout = 300_000)
@@ -508,37 +417,6 @@ public class LocalQueryTest extends BaseTest {
         Ordered<Object> result = newFollower.query(queryLastValue(), EVENTUAL_CONSISTENCY, commitIndex1).join();
         assertThat(result.getResult()).isEqualTo(value1);
         assertThat(result.getCommitIndex()).isEqualTo(commitIndex1);
-    }
-
-    @Test(timeout = 300_000)
-    public void when_queryFromSlowLearnerWithBoundedStaleness_then_readFails() {
-        group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
-
-        RaftNodeImpl leader = group.waitUntilLeaderElected();
-
-        Object value1 = "value1";
-        leader.replicate(applyValue(value1)).join();
-
-        RaftNodeImpl newFollower = group.createNewNode();
-
-        long commitIndex1 = leader.changeMembership(newFollower.getLocalEndpoint(), ADD_LEARNER, 0).join()
-                .getCommitIndex();
-
-        eventually(() -> assertThat(getCommitIndex(newFollower)).isEqualTo(commitIndex1));
-
-        group.dropMessagesTo(leader.getLocalEndpoint(), newFollower.getLocalEndpoint(), AppendEntriesRequest.class);
-
-        eventually(() -> assertThat(newFollower.getLeaderEndpoint()).isNull());
-
-        Object value2 = "value2";
-        leader.replicate(applyValue(value2)).join();
-
-        try {
-            newFollower.query(queryLastValue(), BOUNDED_STALENESS, commitIndex1).join();
-            fail();
-        } catch (CompletionException e) {
-            assertThat(e).hasCauseInstanceOf(CannotReplicateException.class);
-        }
     }
 
     @Test(timeout = 300_000)

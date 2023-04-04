@@ -40,8 +40,7 @@ public enum RaftRole {
      * Followers issue no requests on their own. They respond to append-entries
      * requests sent by leaders. Followers are also voting members. They respond to
      * vote requests sent by candidates. They can also run queries if
-     * {@link QueryPolicy#EVENTUAL_CONSISTENCY} or
-     * {@link QueryPolicy#BOUNDED_STALENESS} is used.
+     * {@link QueryPolicy#EVENTUAL_CONSISTENCY} is used.
      */
     FOLLOWER,
 
@@ -50,8 +49,7 @@ public enum RaftRole {
      * requests sent by leaders. Learners are non-voting members. They do not turn
      * into candidates and do not receive vote requests from other candidates during
      * leader election rounds. They can also run queries if
-     * {@link QueryPolicy#EVENTUAL_CONSISTENCY} or
-     * {@link QueryPolicy#BOUNDED_STALENESS} is used.
+     * {@link QueryPolicy#EVENTUAL_CONSISTENCY} is used.
      */
     LEARNER
 

@@ -374,10 +374,14 @@ public class LinearizableQueryTest extends BaseTest {
             group.dropMessagesTo(leader.getLocalEndpoint(), follower.getLocalEndpoint(), AppendEntriesRequest.class);
         }
 
-        CompletableFuture<Ordered<Object>> queryFuture = leader.query(queryLastValue(), LINEARIZABLE, 0);
-
         CompletableFuture<Ordered<RaftGroupMembers>> membershipChangeFuture = leader
                 .changeMembership(leader.getLocalEndpoint(), MembershipChangeMode.REMOVE_MEMBER, 0);
+
+        eventually(() -> {
+            assertThat(leader.getStatus()).isEqualTo(RaftNodeStatus.UPDATING_RAFT_GROUP_MEMBER_LIST);
+        });
+
+        CompletableFuture<Ordered<Object>> queryFuture = leader.query(queryLastValue(), LINEARIZABLE, 0);
 
         for (RaftNodeImpl follower : group.<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint())) {
             group.allowAllMessagesTo(leader.getLocalEndpoint(), follower.getLocalEndpoint());

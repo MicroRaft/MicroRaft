@@ -18,6 +18,8 @@ package io.microraft.tutorial;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Optional;
+
 import org.junit.Test;
 
 import io.microraft.Ordered;
@@ -57,7 +59,8 @@ public class LinearizableQueryTest extends BaseLocalTest {
         System.out.println("set operation commit index: " + result1.getCommitIndex());
 
         AtomicRegisterOperation operation2 = OperableAtomicRegister.newGetOperation();
-        Ordered<String> queryResult = leader.<String>query(operation2, QueryPolicy.LINEARIZABLE, 0).join();
+        Ordered<String> queryResult = leader
+                .<String>query(operation2, QueryPolicy.LINEARIZABLE, Optional.empty(), Optional.empty()).join();
 
         System.out.println(
                 "get operation result: " + queryResult.getResult() + ", commit index: " + queryResult.getCommitIndex());

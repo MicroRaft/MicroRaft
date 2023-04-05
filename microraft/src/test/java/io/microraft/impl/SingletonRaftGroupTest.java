@@ -665,7 +665,8 @@ public class SingletonRaftGroupTest extends BaseTest {
         String val = "val";
         Ordered<Object> result = leader.replicate(applyValue(val)).join();
 
-        Ordered<Object> queryResult = leader.query(queryLastValue(), QueryPolicy.LINEARIZABLE, 0).join();
+        Ordered<Object> queryResult = leader
+                .query(queryLastValue(), QueryPolicy.LINEARIZABLE, Optional.empty(), Optional.empty()).join();
 
         assertThat(queryResult.getCommitIndex()).isEqualTo(result.getCommitIndex());
         assertThat(queryResult.getResult()).isEqualTo(val);
@@ -680,7 +681,8 @@ public class SingletonRaftGroupTest extends BaseTest {
         String val = "val";
         Ordered<Object> result = leader.replicate(applyValue(val)).join();
 
-        Ordered<Object> queryResult = leader.query(queryLastValue(), QueryPolicy.LEADER_LEASE, 0).join();
+        Ordered<Object> queryResult = leader
+                .query(queryLastValue(), QueryPolicy.LEADER_LEASE, Optional.empty(), Optional.empty()).join();
 
         assertThat(queryResult.getCommitIndex()).isEqualTo(result.getCommitIndex());
         assertThat(queryResult.getResult()).isEqualTo(val);
@@ -695,7 +697,8 @@ public class SingletonRaftGroupTest extends BaseTest {
         String expectedVal = "val";
         Ordered<Object> result = leader.replicate(applyValue(expectedVal)).join();
 
-        Ordered<Object> queryResult = leader.query(queryLastValue(), EVENTUAL_CONSISTENCY, 0).join();
+        Ordered<Object> queryResult = leader
+                .query(queryLastValue(), EVENTUAL_CONSISTENCY, Optional.empty(), Optional.empty()).join();
 
         assertThat(queryResult.getCommitIndex()).isEqualTo(result.getCommitIndex());
         assertThat(queryResult.getResult()).isEqualTo(expectedVal);
@@ -732,7 +735,9 @@ public class SingletonRaftGroupTest extends BaseTest {
             assertThat(entry.getIndex()).isEqualTo(commitIndex);
         });
 
-        Object queryResult = restoredNode.query(queryLastValue(), QueryPolicy.LINEARIZABLE, 0).join().getResult();
+        Object queryResult = restoredNode
+                .query(queryLastValue(), QueryPolicy.LINEARIZABLE, Optional.empty(), Optional.empty()).join()
+                .getResult();
         assertThat(queryResult).isEqualTo(val);
 
         assertThat(group.getStateMachine(restoredNode.getLocalEndpoint()).get(result.getCommitIndex())).isEqualTo(val);
@@ -777,7 +782,8 @@ public class SingletonRaftGroupTest extends BaseTest {
             }
         });
 
-        Object queryResult = restoredNode.query(queryLastValue(), QueryPolicy.EVENTUAL_CONSISTENCY, 0).join()
+        Object queryResult = restoredNode
+                .query(queryLastValue(), QueryPolicy.EVENTUAL_CONSISTENCY, Optional.empty(), Optional.empty()).join()
                 .getResult();
         assertThat(queryResult).isEqualTo(val);
 
@@ -823,7 +829,8 @@ public class SingletonRaftGroupTest extends BaseTest {
             }
         });
 
-        Object queryResult = restoredNode.query(queryLastValue(), QueryPolicy.EVENTUAL_CONSISTENCY, 0).join()
+        Object queryResult = restoredNode
+                .query(queryLastValue(), QueryPolicy.EVENTUAL_CONSISTENCY, Optional.empty(), Optional.empty()).join()
                 .getResult();
         assertThat(queryResult).isEqualTo(val);
 
@@ -872,7 +879,8 @@ public class SingletonRaftGroupTest extends BaseTest {
             }
         });
 
-        Object queryResult = restoredNode.query(queryLastValue(), EVENTUAL_CONSISTENCY, 0).join().getResult();
+        Object queryResult = restoredNode
+                .query(queryLastValue(), EVENTUAL_CONSISTENCY, Optional.empty(), Optional.empty()).join().getResult();
         assertThat(queryResult).isEqualTo(val);
 
         assertThat(group.getStateMachine(restoredNode.getLocalEndpoint()).get(result.getCommitIndex())).isEqualTo(val);
@@ -896,7 +904,8 @@ public class SingletonRaftGroupTest extends BaseTest {
         assertThat(mewGroupMembers.getResult().getMembers().size()).isEqualTo(1);
         assertThat(mewGroupMembers.getResult().getMembers()).contains(leader.getLocalEndpoint());
 
-        Ordered<Object> queryResult1 = leader.query(queryLastValue(), QueryPolicy.LINEARIZABLE, 0).join();
+        Ordered<Object> queryResult1 = leader
+                .query(queryLastValue(), QueryPolicy.LINEARIZABLE, Optional.empty(), Optional.empty()).join();
         assertThat(queryResult1.getResult()).isEqualTo(val1);
 
         String val2 = "val2";
@@ -904,7 +913,8 @@ public class SingletonRaftGroupTest extends BaseTest {
 
         assertThat(result2.getCommitIndex()).isGreaterThan(queryResult1.getCommitIndex());
 
-        Ordered<Object> queryResult2 = leader.query(queryLastValue(), QueryPolicy.LINEARIZABLE, 0).join();
+        Ordered<Object> queryResult2 = leader
+                .query(queryLastValue(), QueryPolicy.LINEARIZABLE, Optional.empty(), Optional.empty()).join();
         assertThat(queryResult2.getResult()).isEqualTo(val2);
 
         assertThat(queryResult2.getCommitIndex()).isEqualTo(result2.getCommitIndex());
@@ -941,7 +951,8 @@ public class SingletonRaftGroupTest extends BaseTest {
             assertThat(getCommitIndex(follower)).isGreaterThan(newGroupMembers.getCommitIndex());
         });
 
-        Ordered<Object> queryResult1 = follower.query(queryLastValue(), QueryPolicy.LINEARIZABLE, 0).join();
+        Ordered<Object> queryResult1 = follower
+                .query(queryLastValue(), QueryPolicy.LINEARIZABLE, Optional.empty(), Optional.empty()).join();
         assertThat(queryResult1.getResult()).isEqualTo(val1);
 
         String val2 = "val2";
@@ -949,7 +960,8 @@ public class SingletonRaftGroupTest extends BaseTest {
 
         assertThat(result2.getCommitIndex()).isGreaterThan(queryResult1.getCommitIndex());
 
-        Ordered<Object> queryResult2 = follower.query(queryLastValue(), QueryPolicy.LINEARIZABLE, 0).join();
+        Ordered<Object> queryResult2 = follower
+                .query(queryLastValue(), QueryPolicy.LINEARIZABLE, Optional.empty(), Optional.empty()).join();
         assertThat(queryResult2.getResult()).isEqualTo(val2);
 
         assertThat(queryResult2.getCommitIndex()).isEqualTo(result2.getCommitIndex());
@@ -989,7 +1001,8 @@ public class SingletonRaftGroupTest extends BaseTest {
         String val2 = "val2";
         Ordered<Object> result2 = follower.replicate(applyValue(val2)).join();
 
-        Ordered<Object> queryResult = follower.query(queryLastValue(), QueryPolicy.LINEARIZABLE, 0).join();
+        Ordered<Object> queryResult = follower
+                .query(queryLastValue(), QueryPolicy.LINEARIZABLE, Optional.empty(), Optional.empty()).join();
         assertThat(queryResult.getResult()).isEqualTo(val2);
 
         assertThat(queryResult.getCommitIndex()).isEqualTo(result2.getCommitIndex());

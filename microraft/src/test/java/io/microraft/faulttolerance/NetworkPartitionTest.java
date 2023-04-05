@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletionException;
 
 import org.junit.After;
@@ -109,9 +110,8 @@ public class NetworkPartitionTest extends BaseTest {
         eventually(() -> {
             assertThat(firstLeader.getTerm().getLeaderEndpoint()).isEqualTo(secondLeader.getLocalEndpoint());
 
-            String value = firstLeader
-                    .<String>query(SimpleStateMachine.queryLastValue(), QueryPolicy.EVENTUAL_CONSISTENCY, 0).join()
-                    .getResult();
+            String value = firstLeader.<String>query(SimpleStateMachine.queryLastValue(),
+                    QueryPolicy.EVENTUAL_CONSISTENCY, Optional.empty(), Optional.empty()).join().getResult();
             assertThat(value).isEqualTo(value2);
         });
     }

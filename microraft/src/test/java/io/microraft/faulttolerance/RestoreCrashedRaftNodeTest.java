@@ -20,6 +20,8 @@ import static io.microraft.impl.local.LocalRaftGroup.IN_MEMORY_RAFT_STATE_STORE_
 import static io.microraft.test.util.AssertionUtils.eventually;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Optional;
+
 import org.junit.After;
 import org.junit.Test;
 
@@ -63,12 +65,13 @@ public class RestoreCrashedRaftNodeTest {
         RaftNode crashedFollower = group.getAnyNodeExcept(leader.getLocalEndpoint());
 
         String value = "value";
-        Ordered<Object> replicateResult = leader.replicate(SimpleStateMachine.applyValue(value)).join();
+        leader.replicate(SimpleStateMachine.applyValue(value)).join();
 
         eventually(() -> {
             Object queryOperation = SimpleStateMachine.queryLastValue();
             Ordered<String> queryResult = crashedFollower
-                    .<String>query(queryOperation, QueryPolicy.EVENTUAL_CONSISTENCY, 0).join();
+                    .<String>query(queryOperation, QueryPolicy.EVENTUAL_CONSISTENCY, Optional.empty(), Optional.empty())
+                    .join();
             assertThat(queryResult.getResult()).isEqualTo(value);
         });
 
@@ -80,7 +83,8 @@ public class RestoreCrashedRaftNodeTest {
         eventually(() -> {
             Object queryOperation = SimpleStateMachine.queryLastValue();
             Ordered<String> queryResult = restoredFollower
-                    .<String>query(queryOperation, QueryPolicy.EVENTUAL_CONSISTENCY, 0).join();
+                    .<String>query(queryOperation, QueryPolicy.EVENTUAL_CONSISTENCY, Optional.empty(), Optional.empty())
+                    .join();
             assertThat(queryResult.getResult()).isEqualTo(value);
         });
     }

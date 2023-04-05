@@ -19,6 +19,8 @@ package io.microraft.tutorial;
 import static io.microraft.QueryPolicy.EVENTUAL_CONSISTENCY;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Optional;
+
 import org.junit.Test;
 
 import io.microraft.Ordered;
@@ -77,11 +79,11 @@ public class SnapshotInstallationTest extends BaseLocalTest {
 
         eventually(() -> assertThat(getRaftLogStats(follower).getInstallSnapshotCount()).isEqualTo(1));
 
-        Ordered<String> leaderQueryResult = leader
-                .<String>query(SnapshotableAtomicRegister.newGetOperation(), EVENTUAL_CONSISTENCY, 0).join();
+        Ordered<String> leaderQueryResult = leader.<String>query(SnapshotableAtomicRegister.newGetOperation(),
+                EVENTUAL_CONSISTENCY, Optional.empty(), Optional.empty()).join();
 
-        Ordered<String> followerQueryResult = follower
-                .<String>query(SnapshotableAtomicRegister.newGetOperation(), EVENTUAL_CONSISTENCY, 0).join();
+        Ordered<String> followerQueryResult = follower.<String>query(SnapshotableAtomicRegister.newGetOperation(),
+                EVENTUAL_CONSISTENCY, Optional.empty(), Optional.empty()).join();
 
         assertThat(followerQueryResult.getCommitIndex()).isEqualTo(leaderQueryResult.getCommitIndex());
         assertThat(followerQueryResult.getResult()).isEqualTo(leaderQueryResult.getResult());

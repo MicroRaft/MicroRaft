@@ -20,6 +20,7 @@ import static io.microraft.test.util.AssertionUtils.eventually;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.After;
 import org.junit.Test;
@@ -99,8 +100,8 @@ public class RaftLeaderFailureTest extends BaseTest {
         // we replicate our operation again
         newLeader.replicate(SimpleStateMachine.applyValue(value)).join();
 
-        Ordered<List<String>> queryResult = newLeader
-                .<List<String>>query(SimpleStateMachine.queryAllValues(), QueryPolicy.LEADER_LEASE, 0).join();
+        Ordered<List<String>> queryResult = newLeader.<List<String>>query(SimpleStateMachine.queryAllValues(),
+                QueryPolicy.LEADER_LEASE, Optional.empty(), Optional.empty()).join();
 
         // it turns out that our operation is committed twice
         assertThat(queryResult.getResult()).hasSize(2);

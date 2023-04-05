@@ -19,6 +19,7 @@ package io.microraft.tutorial;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
+import java.util.Optional;
 import java.util.concurrent.CompletionException;
 
 import org.junit.Test;
@@ -60,12 +61,12 @@ public class MonotonicLocalQueryTest extends BaseLocalTest {
 
         leader.replicate(OperableAtomicRegister.newSetOperation("value2")).join();
 
-        Ordered<String> queryResult = leader
-                .<String>query(OperableAtomicRegister.newGetOperation(), QueryPolicy.LINEARIZABLE, 0).join();
+        Ordered<String> queryResult = leader.<String>query(OperableAtomicRegister.newGetOperation(),
+                QueryPolicy.LINEARIZABLE, Optional.empty(), Optional.empty()).join();
 
         try {
             follower.query(OperableAtomicRegister.newGetOperation(), QueryPolicy.EVENTUAL_CONSISTENCY,
-                    queryResult.getCommitIndex()).join();
+                    Optional.of(queryResult.getCommitIndex()), Optional.empty()).join();
             fail("non-monotonic query cannot succeed.");
         } catch (CompletionException e) {
             assertThat(e).hasCauseInstanceOf(LaggingCommitIndexException.class);

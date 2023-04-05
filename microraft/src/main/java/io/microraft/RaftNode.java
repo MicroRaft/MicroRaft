@@ -265,55 +265,6 @@ public interface RaftNode {
      * the commit index on which the given query is executed and the result of the
      * query.
      * <p>
-     * The local Raft node executes the given query only if its local commit index
-     * is greater than or equal to the given commit index. If the local commit index
-     * is smaller than the required commit index, then the returned future is
-     * completed with {@link LaggingCommitIndexException}. Callers could retry its
-     * query on the same Raft node after some time, or forward it to another Raft
-     * node. This mechanism enables callers to execute queries on Raft nodes without
-     * hitting the log replication quorum and still achieve monotonic reads. Please
-     * see the <i>Section: 6.4 Processing read-only queries more efficiently</i> of
-     * the Raft dissertation for more details.
-     * <p>
-     * When the method is called on the leader Raft node, the returned future is
-     * completed with {@link LaggingCommitIndexException} if the given commit index
-     * is greater than the current commit index of the Raft node and the query
-     * policy is {@link QueryPolicy#LEADER_LEASE} or
-     * {@link QueryPolicy#LINEARIZABLE}.
-     * <p>
-     * The returned future can be completed with {@link NotLeaderException},
-     * {@link CannotReplicateException} or {@link LaggingCommitIndexException}.
-     * Please see individual exception classes for more information.
-     *
-     * @param operation
-     *            the query operation to be executed
-     * @param queryPolicy
-     *            the query policy to decide how to execute the given query
-     * @param minCommitIndex
-     *            the minimum non-negative commit index that this Raft node has to
-     *            have in order to execute the given query.
-     * @param <T>
-     *            type of the result of the query execution
-     *
-     * @return the future to be completed with the result of the query execution, or
-     *         the exception if the query cannot be executed
-     *
-     * @see QueryPolicy
-     * @see NotLeaderException
-     * @see CannotReplicateException
-     * @see LaggingCommitIndexException
-     */
-    @Nonnull
-    <T> CompletableFuture<Ordered<T>> query(@Nonnull Object operation, @Nonnull QueryPolicy queryPolicy,
-            long minCommitIndex);
-
-    /**
-     * Executes the given query with the given query policy.
-     * <p>
-     * The returned future is completed with an {@link Ordered} object that contains
-     * the commit index on which the given query is executed and the result of the
-     * query.
-     * <p>
      * Callers can also provide a minimum commit index and a timeout duration. If no
      * timeout is passed, the local Raft node executes the given query only if its
      * local commit index is greater than or equal to the given commit index at the

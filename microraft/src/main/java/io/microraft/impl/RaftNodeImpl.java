@@ -701,16 +701,6 @@ public final class RaftNodeImpl implements RaftNode {
     @Nonnull
     @Override
     public <T> CompletableFuture<Ordered<T>> query(@Nonnull Object operation, @Nonnull QueryPolicy queryPolicy,
-            long minCommitIndex) {
-        OrderedFuture<T> future = new OrderedFuture<>();
-        Runnable task = new QueryTask(this, requireNonNull(operation), queryPolicy, Math.max(minCommitIndex, 0L),
-                Optional.empty(), future);
-        return executeIfRunning(task, future);
-    }
-
-    @Nonnull
-    @Override
-    public <T> CompletableFuture<Ordered<T>> query(@Nonnull Object operation, @Nonnull QueryPolicy queryPolicy,
             Optional<Long> minCommitIndex, Optional<Duration> timeout) {
         OrderedFuture<T> future = new OrderedFuture<>();
         Runnable task = new QueryTask(this, requireNonNull(operation), queryPolicy,

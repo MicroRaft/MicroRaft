@@ -3,7 +3,9 @@ package io.microraft.tutorial;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
+import java.lang.StackWalker.Option;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletionException;
 
 import org.junit.Test;
@@ -82,8 +84,8 @@ public class ExpandSingletonRaftGroupTest extends BaseLocalTest {
     }
 
     private Ordered<String> query(RaftNode raftNode) {
-        return raftNode.<String>query(OperableAtomicRegister.newGetOperation(), QueryPolicy.EVENTUAL_CONSISTENCY, 0)
-                .join();
+        return raftNode.<String>query(OperableAtomicRegister.newGetOperation(), QueryPolicy.EVENTUAL_CONSISTENCY,
+                Optional.empty(), Optional.empty()).join();
     }
 
 }

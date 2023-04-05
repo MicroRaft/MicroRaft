@@ -18,6 +18,8 @@ package io.microraft.tutorial;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Optional;
+
 import org.junit.Test;
 
 import io.microraft.MembershipChangeMode;
@@ -99,8 +101,8 @@ public class ChangeRaftGroupMemberListTest extends BaseLocalTest {
     }
 
     private Ordered<String> query(RaftNode raftNode) {
-        return raftNode.<String>query(OperableAtomicRegister.newGetOperation(), QueryPolicy.EVENTUAL_CONSISTENCY, 0)
-                .join();
+        return raftNode.<String>query(OperableAtomicRegister.newGetOperation(), QueryPolicy.EVENTUAL_CONSISTENCY,
+                Optional.empty(), Optional.empty()).join();
     }
 
 }

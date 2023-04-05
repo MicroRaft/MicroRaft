@@ -23,7 +23,7 @@ import java.util.Optional;
 
 /**
  * Thrown when a Raft node's current commit index is smaller than the commit
- * index specified in a {@link RaftNode#query(Object, QueryPolicy, long)} or
+ * index specified in a
  * {@link RaftNode#query(Object, QueryPolicy, Optional, Optional)} call. This
  * exception means that the Raft node instance cannot execute the given query by
  * preserving the monotonicity of the observed state. Please see the <i>Section:

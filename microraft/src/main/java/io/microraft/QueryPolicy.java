@@ -21,7 +21,6 @@ package io.microraft;
  * Policies to decide how a query operation will be executed on the state
  * machine. Each policy offers a different consistency guarantee.
  *
- * @see RaftNode#query(Object, QueryPolicy, long)
  * @see RaftNode#query(Object, QueryPolicy, java.util.Optional,
  *      java.util.Optional)
  */

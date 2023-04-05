@@ -320,14 +320,17 @@ public interface RaftNode {
      * The returned future is completed when the Raft node's last applied log index
      * becomes greater than or equal to the given commit index. It means all
      * operations up to that log index are committed and applied to the state
-     * machine. If timeout occurs before the Raft node's commit index advances up to
-     * the given commit index, the returned future is completed with
+     * machine. The returned future can be completed with a commit index that is
+     * greater than the given commit index if the Raft node advances its local
+     * commit index beyond the given commit index with a single AppendEntries RPC.
+     * If the Raft node cannot advance its local commit index up to the given commit
+     * index for the given duration, the returned future is completed with
      * {@link LaggingCommitIndexException}.
      * <p>
-     * This is a barrier-like API which can be used for achieving read your writes.
-     * After a client replicates an operation via the leader, it can learn the
-     * commit index of its operation, and waits until a particular follower applies
-     * the operation on the returned commit index.
+     * This is a barrier which can be used for achieving read your writes. After a
+     * client can learn commit index of an operation it replicates through the
+     * leader, then it can wait until a particular follower's local state machine
+     * applies that operation.
      * <p>
      * Basically, this method is a shorthand for RaftNode.query(no-op,
      * QueryPolicy.EVENTUAL_CONSISTENCY, minCommitIndex, timeout).

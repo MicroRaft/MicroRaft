@@ -172,6 +172,24 @@ public class QueryTimeoutTest extends BaseTest {
     }
 
     @Test(timeout = 300_000)
+    public void when_followerQueriedWithFutureCommitIndexAndNegativeTimeout_then_queryFailsImmediately() {
+        group = LocalRaftGroup.start(3);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        RaftNodeImpl follower = group.getAnyNodeExcept(leader.getLocalEndpoint());
+
+        long commitIndex = leader.replicate(applyValue("value")).join().getCommitIndex();
+
+        try {
+            follower.query(queryLastValue(), EVENTUAL_CONSISTENCY, Optional.of(commitIndex + 1),
+                    Optional.of(Duration.ofSeconds(-1))).join();
+            fail();
+        } catch (CompletionException e) {
+            assertThat(e).hasCauseInstanceOf(LaggingCommitIndexException.class);
+        }
+    }
+
+    @Test(timeout = 300_000)
     public void when_leaderQueriedWithLeaderLeaseAndFutureCommitIndex_then_queryFailsImmediately() {
         group = LocalRaftGroup.start(3);
 
@@ -260,6 +278,108 @@ public class QueryTimeoutTest extends BaseTest {
 
         try {
             f.join();
+            fail();
+        } catch (CompletionException e) {
+            assertThat(e).hasCauseInstanceOf(LaggingCommitIndexException.class);
+        }
+    }
+
+    @Test(timeout = 300_000)
+    public void when_followerWaitsForPastCommitIndex_then_barrierCompletesImmediately() {
+        group = LocalRaftGroup.start(3);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        RaftNodeImpl follower = group.getAnyNodeExcept(leader.getLocalEndpoint());
+
+        long commitIndex1 = leader.replicate(applyValue("value1")).join().getCommitIndex();
+        long commitIndex2 = leader.replicate(applyValue("value2")).join().getCommitIndex();
+
+        eventually(() -> {
+            assertThat(getCommitIndex(follower)).isEqualTo(commitIndex2);
+        });
+
+        Ordered<Object> o = follower.waitFor(commitIndex1, Duration.ofSeconds(100)).join();
+
+        assertThat(o.getResult()).isNull();
+        assertThat(o.getCommitIndex()).isEqualTo(commitIndex2);
+    }
+
+    @Test(timeout = 300_000)
+    public void when_followerWaitsForCurrentCommitIndex_then_barrierCompletesImmediately() {
+        group = LocalRaftGroup.start(3);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        RaftNodeImpl follower = group.getAnyNodeExcept(leader.getLocalEndpoint());
+
+        long commitIndex = leader.replicate(applyValue("value1")).join().getCommitIndex();
+
+        eventually(() -> {
+            assertThat(getCommitIndex(follower)).isEqualTo(commitIndex);
+        });
+
+        Ordered<Object> o = follower.waitFor(commitIndex, Duration.ofSeconds(100)).join();
+
+        assertThat(o.getResult()).isNull();
+        assertThat(o.getCommitIndex()).isEqualTo(commitIndex);
+    }
+
+    @Test(timeout = 300_000)
+    public void when_followerWaitsForFutureCommitIndex_then_barrierFailsWithTimeout() {
+        group = LocalRaftGroup.start(3);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        RaftNodeImpl follower = group.getAnyNodeExcept(leader.getLocalEndpoint());
+        group.dropMessagesTo(leader.getLocalEndpoint(), follower.getLocalEndpoint(), AppendEntriesRequest.class);
+
+        long commitIndex = leader.replicate(applyValue("value1")).join().getCommitIndex();
+
+        try {
+            follower.waitFor(commitIndex, Duration.ofSeconds(5)).join();
+            fail();
+        } catch (CompletionException e) {
+            assertThat(e).hasCauseInstanceOf(LaggingCommitIndexException.class);
+        }
+    }
+
+    @Test(timeout = 300_000)
+    public void when_leaderWaitsForPastCommitIndex_then_barrierCompletesImmediately() {
+        group = LocalRaftGroup.start(3);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+
+        long commitIndex1 = leader.replicate(applyValue("value1")).join().getCommitIndex();
+        long commitIndex2 = leader.replicate(applyValue("value2")).join().getCommitIndex();
+
+        Ordered<Object> o = leader.waitFor(commitIndex1, Duration.ofSeconds(100)).join();
+
+        assertThat(o.getResult()).isNull();
+        assertThat(o.getCommitIndex()).isEqualTo(commitIndex2);
+    }
+
+    @Test(timeout = 300_000)
+    public void when_leaderWaitsForCurrentCommitIndex_then_barrierCompletesImmediately() {
+        group = LocalRaftGroup.start(3);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+
+        long commitIndex = leader.replicate(applyValue("value1")).join().getCommitIndex();
+
+        Ordered<Object> o = leader.waitFor(commitIndex, Duration.ofSeconds(100)).join();
+
+        assertThat(o.getResult()).isNull();
+        assertThat(o.getCommitIndex()).isEqualTo(commitIndex);
+    }
+
+    @Test(timeout = 300_000)
+    public void when_leaderWaitsForFutureCommitIndex_then_barrierFailsWithTimeout() {
+        group = LocalRaftGroup.start(3);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+
+        long commitIndex = leader.replicate(applyValue("value1")).join().getCommitIndex();
+
+        try {
+            leader.waitFor(commitIndex + 1, Duration.ofSeconds(5)).join();
             fail();
         } catch (CompletionException e) {
             assertThat(e).hasCauseInstanceOf(LaggingCommitIndexException.class);

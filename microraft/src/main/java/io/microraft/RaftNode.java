@@ -295,10 +295,10 @@ public interface RaftNode {
      * @param queryPolicy
      *            the query policy to decide how to execute the given query
      * @param minCommitIndex
-     *            the optional non-negative minimum commit index that this Raft node
-     *            has to
+     *            (optional) minimum commit index that this Raft node's local commit
+     *            index needs to advance
      * @param timeout
-     *            the optional duration to wait before timing out the query if the
+     *            (optional) duration to wait before timing out the query if the
      *            local commit index cannot advance until the given commit index
      *            have in order to execute the given query.
      * @param <T>
@@ -312,8 +312,34 @@ public interface RaftNode {
      * @see CannotReplicateException
      * @see LaggingCommitIndexException
      */
+    @Nonnull
     <T> CompletableFuture<Ordered<T>> query(@Nonnull Object operation, @Nonnull QueryPolicy queryPolicy,
             Optional<Long> minCommitIndex, Optional<Duration> timeout);
+
+    /**
+     * The returned future is completed when the Raft node's last applied log index
+     * becomes greater than or equal to the given commit index. It means all
+     * operations up to that log index are committed and applied to the state
+     * machine. If timeout occurs before the Raft node's commit index advances up to
+     * the given commit index, the returned future is completed with
+     * {@link LaggingCommitIndexException}.
+     * <p>
+     * This is a barrier-like API which can be used for achieving read your writes.
+     * After a client replicates an operation via the leader, it can learn the
+     * commit index of its operation, and waits until a particular follower applies
+     * the operation on the returned commit index.
+     * <p>
+     * Basically, this method is a shorthand for RaftNode.query(no-op,
+     * QueryPolicy.EVENTUAL_CONSISTENCY, minCommitIndex, timeout).
+     *
+     * @param minCommitIndex
+     *            (optional) minimum commit index that this Raft node's local commit
+     *            index needs to advance
+     * @param timeout
+     *            (optional) duration to wait before timing out the return future
+     */
+    @Nonnull
+    CompletableFuture<Ordered<Object>> waitFor(long minCommitIndex, Duration timeout);
 
     /**
      * Replicates and commits the given membership change to the Raft group, if the

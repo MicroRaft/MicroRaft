@@ -96,6 +96,7 @@ import io.microraft.impl.state.RaftState;
 import io.microraft.impl.state.RaftTermState;
 import io.microraft.impl.state.QueryState.QueryContainer;
 import io.microraft.impl.statemachine.InternalCommitAware;
+import io.microraft.impl.statemachine.NoOp;
 import io.microraft.impl.task.HeartbeatTask;
 import io.microraft.impl.task.LeaderBackoffResetTask;
 import io.microraft.impl.task.LeaderElectionTimeoutTask;
@@ -706,6 +707,13 @@ public final class RaftNodeImpl implements RaftNode {
         Runnable task = new QueryTask(this, requireNonNull(operation), queryPolicy,
                 Math.max(minCommitIndex.orElse(0L), 0L), timeout, future);
         return executeIfRunning(task, future);
+    }
+
+    @Nonnull
+    @Override
+    public CompletableFuture<Ordered<Object>> waitFor(long minCommitIndex, Duration timeout) {
+        return query(NoOp.INSTANCE, QueryPolicy.EVENTUAL_CONSISTENCY, Optional.of(minCommitIndex),
+                Optional.of(timeout));
     }
 
     @Nonnull

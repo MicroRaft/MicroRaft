@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 import io.microraft.RaftEndpoint;
+import io.microraft.impl.statemachine.NoOp;
 import io.microraft.impl.util.OrderedFuture;
 import io.microraft.statemachine.StateMachine;
 
@@ -204,7 +205,10 @@ public final class QueryState {
 
         public void run(long commitIndex, StateMachine stateMachine) {
             try {
-                Object result = stateMachine.runOperation(commitIndex, operation);
+                Object result = null;
+                if (!(operation instanceof NoOp)) {
+                    result = stateMachine.runOperation(commitIndex, operation);
+                }
                 future.complete(commitIndex, result);
             } catch (Throwable t) {
                 fail(t);

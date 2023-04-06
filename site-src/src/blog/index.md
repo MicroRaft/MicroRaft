@@ -4,7 +4,12 @@ title: 'Blog'
 
 # Blog
 
-__[February 15, 2023 | Log replication](2023-02-15-log-replication.md)__
+__[April 5, 2023 | Queries in MicroRaft](2023-04-05-queries.md)__
+
+This article is the fourth in _the ins and outs of MicroRaft_ series. Here we
+walk through the querying capabilities available in MicroRaft.
+
+__[February 15, 2023 | Log replication in MicroRaft](2023-02-15-log-replication.md)__
 
 This article is the third in _the ins and outs of MicroRaft_ series. Here we
 uncover how log replication is done in MicroRaft.

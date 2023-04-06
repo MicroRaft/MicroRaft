@@ -356,15 +356,11 @@ guarantee:
   the returned `CompletableFuture<Ordered>` object is notified with
   `NotLeaderException`.
 
-* `QueryPolicy.BOUNDED_STALENESS` We can run a query locally on a follower or a
-  learner Raft node if it has received an AppendEntries RPC from the leader in the
-  last leader heartbeat timeout duration.
-
 * `QueryPolicy.EVENTUAL_CONSISTENCY`: We can use this policy to run a query
   locally on any Raft node independent of its current role. This policy provides
   the weakest consistency guarantee, but it can help us to distribute our
   query-workload by utilizing followers. We can also utilize `Ordered` to
-  preserve a monotonic view of the Raft group state.
+  achive monotonic reads and read your writes.
 
 MicroRaft also employs leader stickiness and auto-demotion of leaders on loss of
 majority heartbeats. Leader stickiness means that a follower does not vote for
@@ -417,11 +413,10 @@ As we discussed above, MicroRaft handles linearizable queries without appending
 a new entry to the Raft log. So our query is executed at the last committed log
 index. That is why both commit indices are the same in the output.
 
-#### Monotonic local queries
+#### Monotonic reads via local queries
 
-`QueryPolicy.LEADER_LEASE`, `QueryPolicy.BOUNDED_STALENESS` and
-`QueryPolicy.EVENTUAL_CONSISTENCY` can be easily used if monotonicity is
-sufficient for query results. This is where <a
+`QueryPolicy.LEADER_LEASE` and `QueryPolicy.EVENTUAL_CONSISTENCY` can be easily
+used if monotonicity is sufficient for query results. This is where <a
 href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft/src/main/java/io/microraft/Ordered.java"
 target="_blank">`Ordered`</a> comes in handy. A client can track commit indices
 observed via returned `Ordered` objects and use the greatest observed commit

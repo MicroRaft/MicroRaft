@@ -265,14 +265,13 @@ leadership role. Because of that, it will also fail our operation with
 `IndeterminateOperationStateException`. Since it is a follower now, it will
 directly reject new `RaftNode.replicate()` calls with `NotLeaderException`. At
 this point, our Raft group is unavailable for `RaftNode.replicate()` calls, and
-`RaftNode.query()`calls for `QueryPolicy.LINEARIZABLE`,
-`QueryPolicy.LEADER_LEASE`, and `QueryPolicy.BOUNDED_STALENESS` but we can still
-perform a local query with `QueryPolicy.EVENTUAL_CONSISTENCY`. If we want to
-make the Raft group available again, we don't need to restore all crashed Raft
-nodes. In this particular scenario, it is sufficient to restore only 1 Raft node
-so that we will have the majority alive again. It is what we do in the last part
-of the test. Once we have 2 Raft nodes running again, they will be able to elect
-a new leader.
+`RaftNode.query()`calls for `QueryPolicy.LINEARIZABLE` and
+`QueryPolicy.LEADER_LEASE`, but we can still perform a local query with
+`QueryPolicy.EVENTUAL_CONSISTENCY`. If we want to make the Raft group available
+again, we don't need to restore all crashed Raft nodes. In this particular
+scenario, it is sufficient to restore only 1 Raft node so that we will have
+the majority alive again. It is what we do in the last part of the test. Once
+we have 2 Raft nodes running again, they will be able to elect a new leader.
 
 In this example, we waited until the leader demotes itself to the follower role
 before restarting the crashed Raft nodes. This is not a requirement for

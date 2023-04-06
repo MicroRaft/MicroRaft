@@ -1,4 +1,6 @@
-## Implementing the Log
+## Implementing the log
+
+_November 12, 2022 | Ensar Basri Kahveci_
 
 This article is the second in _the ins and outs of MicroRaft_ series. Here we
 dissect the log.

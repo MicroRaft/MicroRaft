@@ -1,5 +1,7 @@
 
-# Log Replication in MicroRaft
+# Log replication in MicroRaft
+
+_February 15, 2023 | Ensar Basri Kahveci_
 
 This article is the third in _the ins and outs of MicroRaft_ series. Here we
 uncover how log replication is done in MicroRaft.

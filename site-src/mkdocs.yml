@@ -24,12 +24,14 @@ nav:
       - Resiliency and Fault Tolerance: "docs/resiliency-and-fault-tolerance.md"
       - Monitoring: "docs/monitoring.md"
       - AfloatDB - Distributed Key-Value Store: "docs/afloatdb.md"
+      - "Javadoc 0.6": "javadoc/0.6/index.html"
       - "Javadoc 0.5": "javadoc/0.5/index.html"
       - "Javadoc 0.4": "javadoc/0.4/index.html"
       - Release Notes: https://github.com/MicroRaft/MicroRaft/releases
       - Roadmap: "docs/roadmap.md"
   - "Blog":
-      - "February 15, 2023 | Log replication": "blog/2023-02-15-log-replication.md"
+      - "April 5, 2023 | Queries in MicroRaft": "blog/2023-04-05-queries.md"
+      - "February 15, 2023 | Log replication in MicroRaft": "blog/2023-02-15-log-replication.md"
       - "November 12, 2022 | Implementing the log": "blog/2022-11-12-implementing-the-log.md"
       - "September 8, 2021 | Today a Raft Follower, Tomorrow a Raft Leader": "blog/2021-09-08-today-a-raft-follower-tomorrow-a-raft-leader.md"
       - "September 3, 2021 | Introducing MicroRaft": "blog/2021-09-03-introducing-microraft.md"

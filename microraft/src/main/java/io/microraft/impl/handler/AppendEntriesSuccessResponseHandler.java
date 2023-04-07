@@ -92,9 +92,8 @@ public class AppendEntriesSuccessResponseHandler extends AbstractResponseHandler
             return false;
         }
 
-        QueryState queryState = leaderState.queryState();
-
-        if (queryState.tryAck(response.getQuerySequenceNumber(), follower)) {
+        if (state.isVotingMember(follower)
+                && leaderState.queryState().tryAck(response.getQuerySequenceNumber(), follower)) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(localEndpointStr() + " ack from " + follower.getId() + " for query sequence number: "
                         + response.getQuerySequenceNumber());
@@ -130,6 +129,9 @@ public class AppendEntriesSuccessResponseHandler extends AbstractResponseHandler
         if (leaderState == null) {
             // this can happen if this node was removed from the group when
             // the commit index was advanced.
+            return;
+        } else if (!state.isVotingMember(response.getSender())) {
+            // learners are not part of the replication quorum.
             return;
         }
 

@@ -418,7 +418,8 @@ public final class RaftNodeImpl implements RaftNode {
                 .setSnapshotTerm(snapshotEntry.getTerm()).setSnapshotIndex(snapshotEntry.getIndex())
                 .setTotalSnapshotChunkCount(snapshotEntry.getSnapshotChunkCount()).setSnapshotChunk(snapshotChunk)
                 .setSnapshottedMembers(snapshottedMembers).setGroupMembersView(snapshotEntry.getGroupMembersView())
-                .setQuerySequenceNumber(leaderState != null ? leaderState.querySequenceNumber() : 0)
+                .setQuerySequenceNumber(
+                        (leaderState != null) ? leaderState.querySequenceNumber(state.isVotingMember(follower)) : 0)
                 .setFlowControlSequenceNumber(followerState != null ? enableBackoff(followerState) : 0).build();
 
         send(follower, request);
@@ -1290,6 +1291,9 @@ public final class RaftNodeImpl implements RaftNode {
         }
 
         long nextIndex = followerState.nextIndex();
+        // we never send query sequencer number to learners
+        // since they are excluded from the replication quorum.
+        long querySequenceNumber = leaderState.querySequenceNumber(state.isVotingMember(target));
 
         // if the first log entry to be sent is put into the snapshot, check if we still
         // keep it in the log
@@ -1306,7 +1310,7 @@ public final class RaftNodeImpl implements RaftNode {
                     .setSnapshotTerm(snapshotEntry.getTerm()).setSnapshotIndex(snapshotEntry.getIndex())
                     .setTotalSnapshotChunkCount(snapshotEntry.getSnapshotChunkCount()).setSnapshotChunk(null)
                     .setSnapshottedMembers(snapshottedMembers).setGroupMembersView(snapshotEntry.getGroupMembersView())
-                    .setQuerySequenceNumber(leaderState.querySequenceNumber())
+                    .setQuerySequenceNumber(querySequenceNumber)
                     .setFlowControlSequenceNumber(enableBackoff(followerState)).build();
 
             if (LOGGER.isDebugEnabled()) {
@@ -1322,7 +1326,7 @@ public final class RaftNodeImpl implements RaftNode {
 
         AppendEntriesRequestBuilder requestBuilder = modelFactory.createAppendEntriesRequestBuilder()
                 .setGroupId(getGroupId()).setSender(getLocalEndpoint()).setTerm(state.term())
-                .setCommitIndex(state.commitIndex()).setQuerySequenceNumber(leaderState.querySequenceNumber());
+                .setCommitIndex(state.commitIndex()).setQuerySequenceNumber(querySequenceNumber);
         List<LogEntry> entries;
         boolean backoff = true;
         long lastLogIndex = log.lastLogOrSnapshotIndex();
@@ -1631,6 +1635,8 @@ public final class RaftNodeImpl implements RaftNode {
     public void tryAckQuery(long querySequenceNumber, RaftEndpoint sender) {
         LeaderState leaderState = state.leaderState();
         if (leaderState == null) {
+            return;
+        } else if (!state.isVotingMember(sender)) {
             return;
         }
 

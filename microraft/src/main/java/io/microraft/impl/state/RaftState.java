@@ -596,6 +596,14 @@ public final class RaftState {
     }
 
     /**
+     * Returns true if the given endpoint is a voting member in the effective group members, false
+     * otherwise.
+     */
+    public boolean isVotingMember(RaftEndpoint endpoint) {
+        return effectiveGroupMembers.isVotingMember(endpoint);
+    }
+
+    /**
      * Initializes the pre-candidate state for pre-voting and grants a vote for the
      * local endpoint.
      */

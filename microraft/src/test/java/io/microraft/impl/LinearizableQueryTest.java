@@ -18,6 +18,7 @@
 package io.microraft.impl;
 
 import static io.microraft.MembershipChangeMode.ADD_LEARNER;
+import static io.microraft.MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER;
 import static io.microraft.QueryPolicy.LINEARIZABLE;
 import static io.microraft.RaftRole.FOLLOWER;
 import static io.microraft.impl.local.SimpleStateMachine.applyValue;
@@ -362,7 +363,7 @@ public class LinearizableQueryTest extends BaseTest {
         group.dropMessagesTo(newFollower.getLocalEndpoint(), leader.getLocalEndpoint(),
                 AppendEntriesFailureResponse.class);
 
-        leader.changeMembership(newFollower.getLocalEndpoint(), ADD_LEARNER, 0).join();
+        leader.changeMembership(newFollower.getLocalEndpoint(), ADD_OR_PROMOTE_TO_FOLLOWER, 0).join();
 
         group.dropMessagesTo(leader.getLocalEndpoint(), follower.getLocalEndpoint(), AppendEntriesRequest.class);
 
@@ -456,6 +457,38 @@ public class LinearizableQueryTest extends BaseTest {
         assertThat(queryResult2.getResult()).isEqualTo("value3");
         assertThat(queryResult1.getCommitIndex()).isEqualTo(commitIndex);
         assertThat(queryResult2.getCommitIndex()).isEqualTo(commitIndex);
+    }
+
+    @Test(timeout = 300_000)
+    public void when_learnerPresentInRaftGroup_then_queryQuorumIgnoresLearner() {
+        startGroup(3, TEST_RAFT_CONFIG);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        leader.replicate(applyValue("value1")).join();
+
+        RaftNodeImpl learner = group.createNewNode();
+        leader.changeMembership(learner.getLocalEndpoint(), ADD_LEARNER, 0).join();
+
+        List<RaftNodeImpl> otherNodes = group.getNodesExcept(leader.getLocalEndpoint());
+        for (RaftNodeImpl node : otherNodes) {
+            if (node != learner) {
+                group.dropMessagesTo(leader.getLocalEndpoint(), node.getLocalEndpoint(), AppendEntriesRequest.class);
+                group.dropMessagesTo(node.getLocalEndpoint(), leader.getLocalEndpoint(),
+                        AppendEntriesSuccessResponse.class);
+                group.dropMessagesTo(node.getLocalEndpoint(), leader.getLocalEndpoint(),
+                        AppendEntriesFailureResponse.class);
+            }
+        }
+
+        CompletableFuture<Ordered<Object>> queryFuture = leader.query(queryLastValue(), LINEARIZABLE, Optional.empty(),
+                Optional.empty());
+
+        try {
+            queryFuture.join();
+            fail();
+        } catch (CompletionException e) {
+            assertThat(e).hasCauseInstanceOf(NotLeaderException.class);
+        }
     }
 
 }

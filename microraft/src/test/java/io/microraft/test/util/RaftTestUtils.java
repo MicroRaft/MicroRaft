@@ -136,7 +136,7 @@ public final class RaftTestUtils {
         Callable<Long> task = () -> {
             LeaderState leaderState = leader.state().leaderState();
             assertNotNull(leader.getLocalEndpoint() + " has no leader state!", leaderState);
-            return leaderState.querySequenceNumber();
+            return leaderState.querySequenceNumber(true);
         };
 
         return readRaftState(leader, task);

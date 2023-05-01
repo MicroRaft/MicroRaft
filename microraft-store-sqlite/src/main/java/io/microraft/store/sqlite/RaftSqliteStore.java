@@ -24,7 +24,6 @@ import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteConfig.JournalMode;
 import org.sqlite.SQLiteConfig.LockingMode;
 import org.sqlite.SQLiteConfig.Pragma;
-import org.sqlite.SQLiteConfig.SynchronousMode;
 
 import io.microraft.RaftEndpoint;
 import io.microraft.lifecycle.RaftNodeLifecycleAware;

@@ -27,6 +27,8 @@ public class DefaultRaftTermPersistentStateOrBuilder
 
     private int term;
     private RaftEndpoint votedFor;
+    private long termStartTsMs;
+    private long voteTsMs;
     private DefaultRaftTermPersistentStateOrBuilder builder = this;
 
     @Nonnegative
@@ -39,6 +41,18 @@ public class DefaultRaftTermPersistentStateOrBuilder
     @Nullable
     public RaftEndpoint getVotedFor() {
         return votedFor;
+    }
+
+    @Override
+    @Nonnegative
+    public long getTermStartTsMs() {
+        return termStartTsMs;
+    }
+
+    @Override
+    @Nonnegative
+    public long getVoteTsMs() {
+        return voteTsMs;
     }
 
     @Override
@@ -57,6 +71,20 @@ public class DefaultRaftTermPersistentStateOrBuilder
 
     @Override
     @Nonnull
+    public RaftTermPersistentStateBuilder setTermStartTsMs(@Nonnegative long termStartTsMs) {
+        builder.termStartTsMs = termStartTsMs;
+        return this;
+    }
+
+    @Override
+    @Nonnull
+    public RaftTermPersistentStateBuilder setVoteTsMs(@Nonnegative long voteTsMs) {
+        builder.voteTsMs = voteTsMs;
+        return this;
+    }
+
+    @Override
+    @Nonnull
     public RaftTermPersistentState build() {
         requireNonNull(builder);
         builder = null;
@@ -66,7 +94,8 @@ public class DefaultRaftTermPersistentStateOrBuilder
     @Override
     public String toString() {
         String header = builder != null ? "DefaultRaftTermPersistentStateOrBuilder" : "DefaultRaftTermPersistentState";
-        return header + "{" + "term=" + term + ", votedFor=" + votedFor + '}';
+        return header + "{" + "term=" + term + ", votedFor=" + votedFor + ", termStartTsMs=" + termStartTsMs
+                + ", voteTsMs=" + voteTsMs + '}';
     }
 
 }

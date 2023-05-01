@@ -25,24 +25,34 @@ import static io.microraft.impl.local.LocalRaftEndpoint.newEndpoint;
 import static io.microraft.test.util.RaftTestUtils.majority;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import com.codahale.metrics.ConsoleReporter;
+
+import io.micrometer.core.instrument.dropwizard.DropwizardConfig;
+import io.micrometer.core.instrument.dropwizard.DropwizardMeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import io.micrometer.core.instrument.util.HierarchicalNameMapper;
 import io.microraft.RaftEndpoint;
 import io.microraft.impl.local.LocalRaftEndpoint;
 import io.microraft.impl.log.RaftLog;
+import io.microraft.impl.metrics.MetricsContext;
 import io.microraft.model.impl.DefaultRaftModelFactory;
 import io.microraft.model.impl.log.DefaultLogEntryOrBuilder;
 import io.microraft.model.impl.log.DefaultRaftGroupMembersViewOrBuilder;
 import io.microraft.model.log.RaftGroupMembersView;
+import io.microraft.persistence.NopRaftStore;
 
 public class RaftStateTest {
     private static final long TIME = 12345;
@@ -56,10 +66,35 @@ public class RaftStateTest {
     private RaftGroupMembersView groupMembers = new DefaultRaftGroupMembersViewOrBuilder().setLogIndex(0)
             .setMembers(initialEndpoints).setVotingMembers(initialEndpoints).build();
     private RaftState state;
+    private MetricsContext metricsContext;
 
     @Before
     public void setup() {
-        state = RaftState.create("default", localEndpoint, groupMembers, 100, new DefaultRaftModelFactory());
+        com.codahale.metrics.MetricRegistry registry = new com.codahale.metrics.MetricRegistry();
+        DropwizardConfig dwConfig = new DropwizardConfig() {
+            @Override
+            public String prefix() {
+                return "console";
+            }
+
+            @Override
+            public String get(String key) {
+                return null;
+            }
+        };
+        DropwizardMeterRegistry dwRegistry = new DropwizardMeterRegistry(dwConfig, registry,
+                HierarchicalNameMapper.DEFAULT, io.micrometer.core.instrument.Clock.SYSTEM) {
+            @Override
+            protected Double nullGaugeValue() {
+                return 0d;
+            }
+        };
+        metricsContext = new MetricsContext(Clock.systemUTC(), dwRegistry, "default", localEndpoint);
+        state = RaftState.create("default", localEndpoint, groupMembers, 100, new NopRaftStore(),
+                new DefaultRaftModelFactory(), metricsContext);
+
+        ConsoleReporter reporter = ConsoleReporter.forRegistry(registry).build();
+        reporter.start(100, TimeUnit.MILLISECONDS);
     }
 
     @Test
@@ -108,13 +143,14 @@ public class RaftStateTest {
     }
 
     @Test
-    public void persistVote() {
+    public void persistVote() throws InterruptedException {
         int term = 13;
         state.toFollower(term);
         state.grantVote(term, localEndpoint);
 
         assertThat(state.term()).isEqualTo(term);
         assertThat(state.votedEndpoint()).isEqualTo(localEndpoint);
+        Thread.currentThread().sleep(30000);
     }
 
     @Test
@@ -218,7 +254,8 @@ public class RaftStateTest {
         groupMembers = new DefaultRaftGroupMembersViewOrBuilder().setLogIndex(0).setMembers(initialEndpoints)
                 .setVotingMembers(initialEndpoints).build();
 
-        state = RaftState.create("default", localEndpoint, groupMembers, 100, new DefaultRaftModelFactory());
+        state = RaftState.create("default", localEndpoint, groupMembers, 100, new NopRaftStore(),
+                new DefaultRaftModelFactory(), metricsContext);
 
         int majorityQuorumSize = majority(memberCount);
         assertThat(state.leaderElectionQuorumSize()).isEqualTo(majorityQuorumSize);
@@ -238,7 +275,8 @@ public class RaftStateTest {
         groupMembers = new DefaultRaftGroupMembersViewOrBuilder().setLogIndex(0).setMembers(initialEndpoints)
                 .setVotingMembers(initialEndpoints).build();
 
-        state = RaftState.create("default", localEndpoint, groupMembers, 100, new DefaultRaftModelFactory());
+        state = RaftState.create("default", localEndpoint, groupMembers, 100, new NopRaftStore(),
+                new DefaultRaftModelFactory(), metricsContext);
 
         int majorityQuorumSize = majority(memberCount);
         assertThat(state.leaderElectionQuorumSize()).isEqualTo(majorityQuorumSize);
@@ -249,7 +287,8 @@ public class RaftStateTest {
     public void test_initialStateOfJoinedMember() {
         localEndpoint = newEndpoint();
 
-        state = RaftState.create("default", localEndpoint, groupMembers, 100, new DefaultRaftModelFactory());
+        state = RaftState.create("default", localEndpoint, groupMembers, 100, new NopRaftStore(),
+                new DefaultRaftModelFactory(), metricsContext);
 
         List<RaftEndpoint> newMemberList = new ArrayList<>(initialEndpoints);
         newMemberList.add(localEndpoint);
@@ -279,7 +318,8 @@ public class RaftStateTest {
     public void test_promotionToVotingMember() {
         localEndpoint = newEndpoint();
 
-        state = RaftState.create("default", localEndpoint, groupMembers, 100, new DefaultRaftModelFactory());
+        state = RaftState.create("default", localEndpoint, groupMembers, 100, new NopRaftStore(),
+                new DefaultRaftModelFactory(), metricsContext);
 
         List<RaftEndpoint> newMemberList = new ArrayList<>(initialEndpoints);
         newMemberList.add(localEndpoint);
@@ -294,7 +334,8 @@ public class RaftStateTest {
     public void test_revertVotingMemberPromotion() {
         localEndpoint = newEndpoint();
 
-        state = RaftState.create("default", localEndpoint, groupMembers, 100, new DefaultRaftModelFactory());
+        state = RaftState.create("default", localEndpoint, groupMembers, 100, new NopRaftStore(),
+                new DefaultRaftModelFactory(), metricsContext);
 
         List<RaftEndpoint> newMemberList = new ArrayList<>(initialEndpoints);
         newMemberList.add(localEndpoint);
@@ -309,7 +350,8 @@ public class RaftStateTest {
     public void test_revertVotingMemberPromotionFailsWhileCandidate() {
         localEndpoint = newEndpoint();
 
-        state = RaftState.create("default", localEndpoint, groupMembers, 100, new DefaultRaftModelFactory());
+        state = RaftState.create("default", localEndpoint, groupMembers, 100, new NopRaftStore(),
+                new DefaultRaftModelFactory(), metricsContext);
 
         List<RaftEndpoint> newMemberList = new ArrayList<>(initialEndpoints);
         newMemberList.add(localEndpoint);

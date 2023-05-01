@@ -16,7 +16,25 @@
     <properties>
         <root.dir>${project.parent.basedir}</root.dir>
         <maven.jar.plugin.version>3.2.2</maven.jar.plugin.version>
+        <micrometer.version>1.10.6</micrometer.version>
+        <dropwizard.version>4.0.0</dropwizard.version>
     </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <version>${micrometer.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-core</artifactId>
+            <version>${dropwizard.version}</version>
+            <scope>test</scope>
+        </dependency>
+        
+    </dependencies>
 
     <build>
         <plugins>

@@ -27,6 +27,7 @@ import java.util.concurrent.TimeoutException;
 
 import javax.annotation.Nonnull;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import io.microraft.exception.CannotReplicateException;
 import io.microraft.exception.IndeterminateStateException;
 import io.microraft.exception.LaggingCommitIndexException;
@@ -701,6 +702,7 @@ public interface RaftNode {
          *
          * @see RaftNodeReportListener
          */
+        @Nonnull
         RaftNodeBuilder setRaftNodeReportListener(@Nonnull RaftNodeReportListener listener);
 
         /**
@@ -711,7 +713,8 @@ public interface RaftNode {
          *
          * @return the builder object for fluent calls
          */
-        RaftNodeBuilder setRandom(Random random);
+        @Nonnull
+        RaftNodeBuilder setRandom(@Nonnull Random random);
 
         /**
          * Sets the Clock instance used by parts of the Raft algorithm.
@@ -721,7 +724,11 @@ public interface RaftNode {
          *
          * @return the builder object for fluent calls
          */
-        RaftNodeBuilder setClock(Clock clock);
+        @Nonnull
+        RaftNodeBuilder setClock(@Nonnull Clock clock);
+
+        @Nonnull
+        RaftNodeBuilder setMeterRegistry(@Nonnull MeterRegistry meterRegistry);
 
         /**
          * Builds and returns the RaftNode instance with the given settings.

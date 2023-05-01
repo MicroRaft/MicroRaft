@@ -62,6 +62,7 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import io.microraft.MembershipChangeMode;
 import io.microraft.Ordered;
 import io.microraft.QueryPolicy;
@@ -86,6 +87,7 @@ import io.microraft.impl.handler.TriggerLeaderElectionHandler;
 import io.microraft.impl.handler.VoteRequestHandler;
 import io.microraft.impl.handler.VoteResponseHandler;
 import io.microraft.impl.log.RaftLog;
+import io.microraft.impl.metrics.MetricsContext;
 import io.microraft.impl.report.RaftLogStatsImpl;
 import io.microraft.impl.report.RaftNodeReportImpl;
 import io.microraft.impl.state.FollowerState;
@@ -169,6 +171,7 @@ public final class RaftNodeImpl implements RaftNode {
 
     private final Random random;
     private final Clock clock;
+    private final MetricsContext metricsContext;
 
     private final long leaderHeartbeatTimeoutMillis;
     private final int commitCountToTakeSnapshot;
@@ -193,8 +196,7 @@ public final class RaftNodeImpl implements RaftNode {
     RaftNodeImpl(Object groupId, RaftEndpoint localEndpoint, RaftGroupMembersView initialGroupMembers,
             RaftConfig config, RaftNodeExecutor executor, StateMachine stateMachine, Transport transport,
             RaftModelFactory modelFactory, RaftStore store, RaftNodeReportListener raftNodeReportListener,
-            Random random, Clock clock) {
-        requireNonNull(localEndpoint);
+            Random random, Clock clock, MetricsContext metricsContext) {
         this.groupId = requireNonNull(groupId);
         this.transport = requireNonNull(transport);
         this.executor = requireNonNull(executor);
@@ -203,25 +205,26 @@ public final class RaftNodeImpl implements RaftNode {
         this.store = requireNonNull(store);
         this.raftNodeReportListener = requireNonNull(raftNodeReportListener);
         this.config = requireNonNull(config);
-        this.localEndpointStr = localEndpoint.getId() + "<" + groupId + ">";
+        this.localEndpointStr = requireNonNull(localEndpoint).getId() + "<" + groupId + ">";
         this.leaderHeartbeatTimeoutMillis = SECONDS.toMillis(config.getLeaderHeartbeatTimeoutSecs());
         this.commitCountToTakeSnapshot = config.getCommitCountToTakeSnapshot();
         this.appendEntriesRequestBatchSize = config.getAppendEntriesRequestBatchSize();
         this.maxPendingLogEntryCount = config.getMaxPendingLogEntryCount();
         this.maxLogEntryCountToKeepAfterSnapshot = getMaxLogEntryCountToKeepAfterSnapshot(commitCountToTakeSnapshot);
         int logCapacity = getLogCapacity(commitCountToTakeSnapshot, maxPendingLogEntryCount);
-        this.state = RaftState.create(groupId, localEndpoint, initialGroupMembers, logCapacity, store, modelFactory);
+        this.state = RaftState.create(groupId, localEndpoint, initialGroupMembers, logCapacity, store, modelFactory,
+                metricsContext);
         this.maxBackoffRounds = getMaxBackoffRounds(config);
         this.random = requireNonNull(random);
         this.clock = requireNonNull(clock);
+        this.metricsContext = requireNonNull(metricsContext);
         populateLifecycleAwareComponents();
     }
 
     @SuppressWarnings("checkstyle:executablestatementcount")
     RaftNodeImpl(Object groupId, RestoredRaftState restoredState, RaftConfig config, RaftNodeExecutor executor,
             StateMachine stateMachine, Transport transport, RaftModelFactory modelFactory, RaftStore store,
-            RaftNodeReportListener raftNodeReportListener, Random random, Clock clock) {
-        requireNonNull(store);
+            RaftNodeReportListener raftNodeReportListener, Random random, Clock clock, MetricsContext metricsContext) {
         this.groupId = requireNonNull(groupId);
         this.transport = requireNonNull(transport);
         this.executor = requireNonNull(executor);
@@ -238,10 +241,11 @@ public final class RaftNodeImpl implements RaftNode {
         this.maxPendingLogEntryCount = config.getMaxPendingLogEntryCount();
         this.maxLogEntryCountToKeepAfterSnapshot = getMaxLogEntryCountToKeepAfterSnapshot(commitCountToTakeSnapshot);
         int logCapacity = getLogCapacity(commitCountToTakeSnapshot, maxPendingLogEntryCount);
-        this.state = RaftState.restore(groupId, restoredState, logCapacity, store, modelFactory);
+        this.state = RaftState.restore(groupId, restoredState, logCapacity, store, modelFactory, metricsContext);
         this.maxBackoffRounds = getMaxBackoffRounds(config);
         this.random = requireNonNull(random);
         this.clock = requireNonNull(clock);
+        this.metricsContext = requireNonNull(metricsContext);
         populateLifecycleAwareComponents();
     }
 

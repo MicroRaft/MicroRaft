@@ -259,9 +259,9 @@ public final class LocalRaftGroup {
         SimpleStateMachine stateMachine = new SimpleStateMachine(newTermEntryEnabled);
         RaftNodeImpl node = (RaftNodeImpl) RaftNode.newBuilder().setGroupId("default").setRestoredState(restoredState)
                 .setConfig(config).setTransport(transport).setStateMachine(stateMachine).setStore(store).build();
+
         nodeContexts.put(restoredState.getLocalEndpointPersistentState().getLocalEndpoint(),
                 new RaftNodeContext((DefaultRaftNodeExecutor) node.getExecutor(), transport, stateMachine, node));
-
         node.start();
         initDiscovery();
 

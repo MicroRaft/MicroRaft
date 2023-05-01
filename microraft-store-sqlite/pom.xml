@@ -15,8 +15,8 @@
 
     <properties>
         <root.dir>${project.parent.basedir}</root.dir>
-	    <jooq.version>3.16.14</jooq.version>
-	    <sqlite.version>3.40.1.0</sqlite.version>
+	    <jooq.version>3.18.3</jooq.version>
+	    <sqlite.version>3.41.2.1</sqlite.version>
         <jackson.version>2.14.2</jackson.version>
     </properties>
 

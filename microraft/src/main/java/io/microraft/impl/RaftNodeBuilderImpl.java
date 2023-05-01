@@ -27,6 +27,8 @@ import java.util.Random;
 
 import javax.annotation.Nonnull;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
@@ -34,6 +36,7 @@ import io.microraft.RaftNode.RaftNodeBuilder;
 import io.microraft.RaftRole;
 import io.microraft.executor.RaftNodeExecutor;
 import io.microraft.executor.impl.DefaultRaftNodeExecutor;
+import io.microraft.impl.metrics.MetricsContext;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.model.impl.DefaultRaftModelFactory;
 import io.microraft.model.impl.log.DefaultRaftGroupMembersViewOrBuilder;
@@ -65,12 +68,13 @@ public class RaftNodeBuilderImpl implements RaftNodeBuilder {
     private RaftModelFactory modelFactory = new DefaultRaftModelFactory();
     private Random random = new Random();
     private Clock clock = Clock.systemUTC();
+    private MeterRegistry meterRegistry = new SimpleMeterRegistry();
     private boolean done;
 
     @Nonnull
     @Override
     public RaftNodeBuilder setGroupId(@Nonnull Object groupId) {
-        this.groupId = groupId;
+        this.groupId = requireNonNull(groupId);
         return this;
     }
 
@@ -184,6 +188,13 @@ public class RaftNodeBuilderImpl implements RaftNodeBuilder {
         return this;
     }
 
+    @Override
+    @Nonnull
+    public RaftNodeBuilder setMeterRegistry(@Nonnull MeterRegistry meterRegistry) {
+        this.meterRegistry = requireNonNull(meterRegistry);
+        return this;
+    }
+
     @Nonnull
     @Override
     public RaftNode build() {
@@ -200,16 +211,21 @@ public class RaftNodeBuilderImpl implements RaftNodeBuilder {
             throw new IllegalStateException(message);
         }
 
+        MetricsContext metricsContext = new MetricsContext(clock, meterRegistry, groupId,
+                localEndpoint != null
+                        ? localEndpoint
+                        : restoredState.getLocalEndpointPersistentState().getLocalEndpoint());
+
         done = true;
         if (restoredState != null) {
             return new RaftNodeImpl(groupId, restoredState, config, executor, stateMachine, transport, modelFactory,
-                    store, listener, random, clock);
+                    store, listener, random, clock, metricsContext);
         } else {
             // this groupMembers object does not hit network or disk.
             RaftGroupMembersView groupMembers = new DefaultRaftGroupMembersViewOrBuilder().setLogIndex(0)
                     .setMembers(initialGroupMembers).setVotingMembers(initialVotingGroupMembers).build();
             return new RaftNodeImpl(groupId, localEndpoint, groupMembers, config, executor, stateMachine, transport,
-                    modelFactory, store, listener, random, clock);
+                    modelFactory, store, listener, random, clock, metricsContext);
         }
     }
 

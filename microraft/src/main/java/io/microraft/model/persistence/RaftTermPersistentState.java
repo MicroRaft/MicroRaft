@@ -30,6 +30,12 @@ public interface RaftTermPersistentState extends RaftModel {
     @Nullable
     RaftEndpoint getVotedFor();
 
+    @Nonnegative
+    long getTermStartTsMs();
+
+    @Nonnegative
+    long getVoteTsMs();
+
     interface RaftTermPersistentStateBuilder {
 
         @Nonnull
@@ -37,6 +43,12 @@ public interface RaftTermPersistentState extends RaftModel {
 
         @Nonnull
         RaftTermPersistentStateBuilder setVotedFor(@Nullable RaftEndpoint votedFor);
+
+        @Nonnull
+        RaftTermPersistentStateBuilder setTermStartTsMs(@Nonnegative long termStartTsMs);
+
+        @Nonnull
+        RaftTermPersistentStateBuilder setVoteTsMs(@Nonnegative long voteTsMs);
 
         @Nonnull
         RaftTermPersistentState build();

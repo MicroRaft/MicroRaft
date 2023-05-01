@@ -16,6 +16,7 @@
 
 package io.microraft.report;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import io.microraft.RaftEndpoint;
@@ -54,4 +55,6 @@ public interface RaftTerm {
     @Nullable
     RaftEndpoint getVotedEndpoint();
 
+    @Nonnull
+    RaftTermMetrics getMetrics();
 }

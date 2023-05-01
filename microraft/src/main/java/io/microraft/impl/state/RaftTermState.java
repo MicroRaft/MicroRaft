@@ -18,15 +18,19 @@ package io.microraft.impl.state;
 
 import static java.util.Objects.requireNonNull;
 
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+
 import io.microraft.RaftEndpoint;
+import io.microraft.model.persistence.RaftTermPersistentState;
 import io.microraft.report.RaftTerm;
+import io.microraft.report.RaftTermMetrics;
 
 /**
  * Contains a snapshot of a Raft node's current state in a term.
  */
 public final class RaftTermState implements RaftTerm {
 
-    public static final RaftTermState INITIAL = new RaftTermState(0, null, null);
     /**
      * Highest term this node has seen.
      * <p>
@@ -46,14 +50,23 @@ public final class RaftTermState implements RaftTerm {
      */
     private final RaftEndpoint votedEndpoint;
 
-    private RaftTermState(int term, RaftEndpoint leaderEndpoint, RaftEndpoint votedEndpoint) {
+    private final RaftTermMetricsState metrics;
+
+    private RaftTermState(int term, RaftEndpoint leaderEndpoint, RaftEndpoint votedEndpoint,
+            RaftTermMetricsState metrics) {
         this.term = term;
         this.leaderEndpoint = leaderEndpoint;
         this.votedEndpoint = votedEndpoint;
+        this.metrics = metrics;
     }
 
-    public static RaftTermState restore(int term, RaftEndpoint votedEndpoint) {
-        return new RaftTermState(term, null, votedEndpoint);
+    public static RaftTermState initial(@Nonnegative long termStartTimeTsMs) {
+        return new RaftTermState(0, null, null, new RaftTermMetricsState(termStartTimeTsMs));
+    }
+
+    public static RaftTermState restore(@Nonnull RaftTermPersistentState persistentState) {
+        return new RaftTermState(persistentState.getTerm(), null, persistentState.getVotedFor(),
+                new RaftTermMetricsState(persistentState.getTermStartTsMs()).withVote(persistentState.getVoteTsMs()));
     }
 
     @Override
@@ -71,29 +84,40 @@ public final class RaftTermState implements RaftTerm {
         return votedEndpoint;
     }
 
-    public RaftTermState switchTo(int newTerm) {
-        assert newTerm >= term : "New term: " + newTerm + ", current term: " + term;
-
-        RaftEndpoint votedEndpoint = newTerm > term ? null : this.votedEndpoint;
-
-        return new RaftTermState(newTerm, null, votedEndpoint);
+    @Override
+    @Nonnull
+    public RaftTermMetrics getMetrics() {
+        return metrics;
     }
 
-    public RaftTermState grantVote(int term, RaftEndpoint votedEndpoint) {
+    public RaftTermState switchTo(int newTerm, long termSwitchTsMs) {
+        assert newTerm >= term : "New term: " + newTerm + ", current term: " + term;
+        RaftEndpoint votedEndpoint = newTerm > term ? null : this.votedEndpoint;
+        return new RaftTermState(newTerm, null, votedEndpoint,
+                newTerm > term ? new RaftTermMetricsState(termSwitchTsMs) : metrics);
+    }
+
+    public RaftTermState grantVote(int term, RaftEndpoint votedEndpoint, long voteTsMs) {
         requireNonNull(votedEndpoint);
         assert this.term == term
                 : "current term: " + this.term + " voted term: " + term + " voted for: " + votedEndpoint;
         assert this.votedEndpoint == null : "current term: " + this.term + " already voted for: " + this.votedEndpoint
                 + " new vote to: " + votedEndpoint;
 
-        return new RaftTermState(this.term, this.leaderEndpoint, votedEndpoint);
+        return new RaftTermState(this.term, this.leaderEndpoint, votedEndpoint, metrics.withVote(voteTsMs));
     }
 
-    public RaftTermState withLeader(RaftEndpoint leaderEndpoint) {
+    public RaftTermState withLeader(RaftEndpoint leaderEndpoint, long tsMs) {
         assert this.leaderEndpoint == null || leaderEndpoint == null : "current term: " + this.term + " current "
                 + "leader: " + this.leaderEndpoint + " new " + "leader: " + leaderEndpoint;
+        return new RaftTermState(this.term, leaderEndpoint, this.votedEndpoint,
+                leaderEndpoint != null ? metrics.withLeaderSet(tsMs) : metrics.withLeaderReset(tsMs));
+    }
 
-        return new RaftTermState(this.term, leaderEndpoint, this.votedEndpoint);
+    public RaftTermPersistentState.RaftTermPersistentStateBuilder populate(
+            @Nonnull RaftTermPersistentState.RaftTermPersistentStateBuilder builder) {
+        return builder.setTerm(getTerm()).setVotedFor(getVotedEndpoint()).setTermStartTsMs(metrics.getTermStartTsMs())
+                .setVoteTsMs(metrics.getVoteTsMs());
     }
 
     @Override

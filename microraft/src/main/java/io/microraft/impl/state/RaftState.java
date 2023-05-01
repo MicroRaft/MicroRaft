@@ -36,10 +36,17 @@ import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.TimeGauge;
+import io.micrometer.core.instrument.Timer;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftRole;
 import io.microraft.exception.IndeterminateStateException;
@@ -48,13 +55,13 @@ import io.microraft.exception.NotLeaderException;
 import io.microraft.exception.RaftException;
 import io.microraft.impl.log.RaftLog;
 import io.microraft.impl.log.SnapshotChunkCollector;
+import io.microraft.impl.metrics.MetricsContext;
 import io.microraft.impl.util.Long2ObjectHashMap;
 import io.microraft.impl.util.OrderedFuture;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.RaftGroupMembersView.RaftGroupMembersViewBuilder;
 import io.microraft.model.log.SnapshotEntry;
-import io.microraft.persistence.NopRaftStore;
 import io.microraft.persistence.RaftStore;
 import io.microraft.persistence.RestoredRaftState;
 import io.microraft.impl.state.QueryState.QueryContainer;
@@ -96,6 +103,8 @@ public final class RaftState {
     private final RaftLog log;
 
     private final RaftModelFactory modelFactory;
+
+    private final MetricsContext metricsContext;
 
     /**
      * Future objects to complete with the results of operations committed and
@@ -186,31 +195,56 @@ public final class RaftState {
      */
     private SnapshotChunkCollector snapshotChunkCollector;
 
+    private volatile long roleSetTsMs;
+
+    private Counter leaderSetCounter;
+
+    private Counter leaderResetCounter;
+
+    private Counter preCandidateCounter;
+
+    private Counter candidateCounter;
+
+    private Counter leaderCounter;
+
+    private volatile long electionStartTsMs;
+
+    private Timer electionTimer;
+
+    private Counter registeredFutureCounter;
+
+    private Counter completedFutureCounter;
+
+    private Counter invalidatedFutureCounter;
+
     private RaftState(Object groupId, RaftEndpoint localEndpoint, RaftGroupMembersView initialGroupMembers,
-            int logCapacity, RaftStore store, RaftModelFactory modelFactory) {
+            int logCapacity, RaftStore store, RaftModelFactory modelFactory, MetricsContext metricsContext) {
         this.groupId = requireNonNull(groupId);
         this.localEndpoint = requireNonNull(localEndpoint);
         if (requireNonNull(initialGroupMembers).getLogIndex() != 0) {
             throw new IllegalArgumentException(
                     "Invalid initial Raft group members log index: " + initialGroupMembers.getLogIndex());
         }
-        this.role = initialGroupMembers.getVotingMembers().contains(this.localEndpoint) ? FOLLOWER : LEARNER;
+        this.metricsContext = requireNonNull(metricsContext);
+        role(initialGroupMembers.getVotingMembers().contains(this.localEndpoint) ? FOLLOWER : LEARNER);
         RaftGroupMembersState groupMembers = new RaftGroupMembersState(0, initialGroupMembers.getMembers(),
                 initialGroupMembers.getVotingMembers(), localEndpoint);
         this.initialGroupMembers = groupMembers;
         this.committedGroupMembers = groupMembers;
         this.effectiveGroupMembers = groupMembers;
-        this.termState = RaftTermState.INITIAL;
+        this.termState = RaftTermState.initial(metricsContext.nowMs());
         this.store = requireNonNull(store);
         this.log = RaftLog.create(logCapacity, store);
-        this.modelFactory = modelFactory;
+        this.modelFactory = requireNonNull(modelFactory);
+        initMetrics();
     }
 
     private RaftState(Object groupId, RestoredRaftState restoredState, int logCapacity, RaftStore store,
-            RaftModelFactory modelFactory) {
+            RaftModelFactory modelFactory, MetricsContext metricsContext) {
         this.groupId = requireNonNull(groupId);
         this.localEndpoint = requireNonNull(restoredState).getLocalEndpointPersistentState().getLocalEndpoint();
-        this.role = restoredState.getLocalEndpointPersistentState().isVoting() ? FOLLOWER : LEARNER;
+        this.metricsContext = requireNonNull(metricsContext);
+        role(restoredState.getLocalEndpointPersistentState().isVoting() ? FOLLOWER : LEARNER);
         RaftGroupMembersView initialGroupMembers = restoredState.getInitialGroupMembers();
         if (requireNonNull(initialGroupMembers).getLogIndex() != 0) {
             throw new IllegalArgumentException(
@@ -220,8 +254,7 @@ public final class RaftState {
                 initialGroupMembers.getVotingMembers(), this.localEndpoint);
         this.committedGroupMembers = this.initialGroupMembers;
         this.effectiveGroupMembers = this.committedGroupMembers;
-        this.termState = RaftTermState.restore(restoredState.getTermPersistentState().getTerm(),
-                restoredState.getTermPersistentState().getVotedFor());
+        this.termState = RaftTermState.restore(restoredState.getTermPersistentState());
 
         SnapshotEntry snapshot = restoredState.getSnapshotEntry();
         if (isNonInitial(snapshot)) {
@@ -232,27 +265,71 @@ public final class RaftState {
 
         this.store = requireNonNull(store);
         this.log = RaftLog.restore(logCapacity, snapshot, restoredState.getLogEntries(), store);
-        this.modelFactory = modelFactory;
+        this.modelFactory = requireNonNull(modelFactory);
+        initMetrics();
+    }
+
+    private void initMetrics() {
+        metricsContext.registerBooleanGauge("is.leader", () -> (role() == LEADER));
+        metricsContext.registerBooleanGauge("is.follower", () -> (role() == FOLLOWER));
+        metricsContext.registerBooleanGauge("is.candidate", () -> (role() == CANDIDATE));
+        metricsContext.registerBooleanGauge("is.learner", () -> (role() == LEARNER));
+        metricsContext.registerBooleanGauge("leader.set", () -> (leader() != null));
+        metricsContext.registerGauge("role", () -> (role.ordinal()));
+        metricsContext.registerTimeGauge("term.ts.ms", TimeUnit.MILLISECONDS, this::getTermStartTsMs);
+        metricsContext.registerElapsedTimeGauge("term.elapsed.ms", TimeUnit.MILLISECONDS, this::getTermStartTsMs);
+        metricsContext.registerTimeGauge("leader.set.ts.ms", TimeUnit.MILLISECONDS, this::getLeaderSetTsMs);
+        metricsContext.registerElapsedTimeGauge("leader.set.elapsed.ms", TimeUnit.MILLISECONDS, this::getLeaderSetTsMs);
+        metricsContext.registerTimeGauge("leader.reset.ts.ms", TimeUnit.MILLISECONDS, this::getLeaderResetTsMs);
+        metricsContext.registerElapsedTimeGauge("leader.reset.elapsed.ms", TimeUnit.MILLISECONDS,
+                this::getLeaderResetTsMs);
+        metricsContext.registerGauge("term", () -> (termState.getTerm()));
+        metricsContext.registerBooleanGauge("vote.set", () -> (votedEndpoint() != null));
+        metricsContext.registerTimeGauge("vote.ts.ms", TimeUnit.MILLISECONDS, this::getVoteTsMs);
+        metricsContext.registerElapsedTimeGauge("vote.elapsed.ms", TimeUnit.MILLISECONDS, this::getVoteTsMs);
+        metricsContext.registerTimeGauge("role.ts.ms", TimeUnit.MILLISECONDS, () -> (roleSetTsMs));
+        metricsContext.registerElapsedTimeGauge("role.elapsed.ms", TimeUnit.MILLISECONDS, () -> (roleSetTsMs));
+        metricsContext.registerTimeGauge("election.ts.ms", TimeUnit.MILLISECONDS, () -> (electionStartTsMs));
+        metricsContext.registerElapsedTimeGauge("election.elapsed.ms", TimeUnit.MILLISECONDS,
+                () -> (electionStartTsMs));
+        metricsContext.registerGauge("initial.members.count", () -> (initialGroupMembers.memberCount()));
+        metricsContext.registerGauge("initial.members.voting.count", () -> (initialGroupMembers.votingMemberCount()));
+        metricsContext.registerGauge("initial.members.majority", () -> (initialGroupMembers.getMajorityQuorumSize()));
+        metricsContext.registerGauge("initial.members.log.index", () -> (initialGroupMembers.getLogIndex()));
+        metricsContext.registerGauge("committed.members.count", () -> (committedGroupMembers.memberCount()));
+        metricsContext.registerGauge("committed.members.voting.count",
+                () -> (committedGroupMembers.votingMemberCount()));
+        metricsContext.registerGauge("committed.members.majority",
+                () -> (committedGroupMembers.getMajorityQuorumSize()));
+        metricsContext.registerGauge("committed.members.log.index", () -> (committedGroupMembers.getLogIndex()));
+        metricsContext.registerGauge("effective.members.count", () -> (effectiveGroupMembers.memberCount()));
+        metricsContext.registerGauge("effective.members.voting.count",
+                () -> (effectiveGroupMembers.votingMemberCount()));
+        metricsContext.registerGauge("effective.members.majority",
+                () -> (effectiveGroupMembers.getMajorityQuorumSize()));
+        metricsContext.registerGauge("effective.members.log.index", () -> (effectiveGroupMembers.getLogIndex()));
+        metricsContext.registerGauge("commit.index", this::commitIndex);
+        metricsContext.registerGauge("last.applied.index", this::lastApplied);
+        this.leaderSetCounter = metricsContext.registerCounter("leader.set.count");
+        this.leaderResetCounter = metricsContext.registerCounter("leader.reset.count");
+        this.preCandidateCounter = metricsContext.registerCounter("pre.candidate.count");
+        this.candidateCounter = metricsContext.registerCounter("candidate.count");
+        this.leaderCounter = metricsContext.registerCounter("leader.count");
+        this.electionTimer = metricsContext.registerTimer("leader.election.duration.ms");
+        this.registeredFutureCounter = metricsContext.registerCounter("future.registered.count");
+        this.completedFutureCounter = metricsContext.registerCounter("future.completed.count");
+        this.invalidatedFutureCounter = metricsContext.registerCounter("future.invalidated.count");
     }
 
     public static RaftState create(Object groupId, RaftEndpoint localEndpoint, RaftGroupMembersView initialGroupMembers,
-            int logCapacity, RaftModelFactory modelFactory) {
-        return create(groupId, localEndpoint, initialGroupMembers, logCapacity, new NopRaftStore(), modelFactory);
-    }
-
-    public static RaftState create(Object groupId, RaftEndpoint localEndpoint, RaftGroupMembersView initialGroupMembers,
-            int logCapacity, RaftStore store, RaftModelFactory modelFactory) {
-        return new RaftState(groupId, localEndpoint, initialGroupMembers, logCapacity, store, modelFactory);
-    }
-
-    public static RaftState restore(Object groupId, RestoredRaftState restoredState, int logCapacity,
-            RaftModelFactory modelFactory) {
-        return restore(groupId, restoredState, logCapacity, new NopRaftStore(), modelFactory);
+            int logCapacity, RaftStore store, RaftModelFactory modelFactory, MetricsContext metricsContext) {
+        return new RaftState(groupId, localEndpoint, initialGroupMembers, logCapacity, store, modelFactory,
+                metricsContext);
     }
 
     public static RaftState restore(Object groupId, RestoredRaftState restoredState, int logCapacity, RaftStore store,
-            RaftModelFactory modelFactory) {
-        return new RaftState(groupId, restoredState, logCapacity, store, modelFactory);
+            RaftModelFactory modelFactory, MetricsContext metricsContext) {
+        return new RaftState(groupId, restoredState, logCapacity, store, modelFactory, metricsContext);
     }
 
     /**
@@ -432,10 +509,9 @@ public final class RaftState {
     public void toFollower(int term) {
         if (role != LEARNER) {
             // If I am a LEARNER, I will stay in this role until I get promoted.
-            role = FOLLOWER;
+            role(FOLLOWER);
         }
-
-        RaftTermState newTermState = termState.switchTo(term);
+        RaftTermState newTermState = termState.switchTo(term, metricsContext.nowMs());
         persistTerm(newTermState);
         preCandidateState = null;
         LeaderState currentLeaderState = leaderState;
@@ -448,12 +524,13 @@ public final class RaftState {
             currentLeaderState.queryState().fail(new NotLeaderException(localEndpoint, leader()));
         }
         invalidateFuturesFrom(commitIndex + 1, new IndeterminateStateException());
+        electionStartTsMs = 0;
     }
 
     private void persistTerm(RaftTermState termStateToPersist) {
         try {
-            store.persistAndFlushTerm(modelFactory.createRaftTermPersistentStateBuilder()
-                    .setTerm(termStateToPersist.getTerm()).setVotedFor(termStateToPersist.getVotedEndpoint()).build());
+            store.persistAndFlushTerm(
+                    termStateToPersist.populate(modelFactory.createRaftTermPersistentStateBuilder()).build());
         } catch (IOException e) {
             throw new RaftException("Failed to persist " + termStateToPersist, null, e);
         }
@@ -498,14 +575,17 @@ public final class RaftState {
 
         preCandidateState = null;
         int newTerm = term() + 1;
-        RaftTermState newTermState = termState.switchTo(newTerm);
+        long electionStartTsMs = metricsContext.nowMs();
+        RaftTermState newTermState = termState.switchTo(newTerm, electionStartTsMs);
         persistTerm(newTermState);
         termState = newTermState;
         leaderState = null;
         grantVote(newTerm, localEndpoint);
-        role = CANDIDATE;
+        role(CANDIDATE);
         candidateState = new CandidateState(leaderElectionQuorumSize());
         candidateState.grantVote(localEndpoint);
+        candidateCounter.increment();
+        this.electionStartTsMs = electionStartTsMs;
     }
 
     private void promoteToVotingMember() throws IOException {
@@ -514,7 +594,7 @@ public final class RaftState {
         } else if (role == LEARNER) {
             store.persistAndFlushLocalEndpoint(modelFactory.createRaftEndpointPersistentStateBuilder()
                     .setLocalEndpoint(localEndpoint).setVoting(true).build());
-            role = FOLLOWER;
+            role(FOLLOWER);
         }
     }
 
@@ -524,7 +604,15 @@ public final class RaftState {
         } else if (role != LEARNER) {
             store.persistAndFlushLocalEndpoint(modelFactory.createRaftEndpointPersistentStateBuilder()
                     .setLocalEndpoint(localEndpoint).setVoting(false).build());
-            role = LEARNER;
+            role(LEARNER);
+        }
+    }
+
+    private void role(RaftRole role) {
+        boolean changed = !requireNonNull(role).equals(this.role);
+        this.role = role;
+        if (changed) {
+            roleSetTsMs = metricsContext.nowMs();
         }
     }
 
@@ -561,7 +649,7 @@ public final class RaftState {
      * Persist a vote for the endpoint in current term during leader election.
      */
     public void grantVote(int term, RaftEndpoint member) {
-        RaftTermState newTermState = termState.grantVote(term, member);
+        RaftTermState newTermState = termState.grantVote(term, member, metricsContext.nowMs());
         persistTerm(newTermState);
         termState = newTermState;
     }
@@ -572,19 +660,27 @@ public final class RaftState {
      * current members.
      */
     public void toLeader(long currentTimeMillis) {
-        role = LEADER;
-        leader(localEndpoint);
         preCandidateState = null;
         candidateState = null;
         leaderState = new LeaderState(effectiveGroupMembers.remoteMembers(), log.lastLogOrSnapshotIndex(),
                 currentTimeMillis);
+        role(LEADER);
+        leader(localEndpoint);
+        leaderCounter.increment();
+        electionTimer.record(Math.max(metricsContext.nowMs() - electionStartTsMs, 0), TimeUnit.MILLISECONDS);
+        electionStartTsMs = 0;
     }
 
     /**
      * Updates the known leader to the given endpoint.
      */
     public void leader(RaftEndpoint endpoint) {
-        termState = termState.withLeader(endpoint);
+        termState = termState.withLeader(endpoint, metricsContext.nowMs());
+        if (termState.getLeaderEndpoint() != null) {
+            leaderSetCounter.increment();
+        } else {
+            leaderResetCounter.increment();
+        }
     }
 
     /**
@@ -596,8 +692,8 @@ public final class RaftState {
     }
 
     /**
-     * Returns true if the given endpoint is a voting member in the effective group members, false
-     * otherwise.
+     * Returns true if the given endpoint is a voting member in the effective group
+     * members, false otherwise.
      */
     public boolean isVotingMember(RaftEndpoint endpoint) {
         return effectiveGroupMembers.isVotingMember(endpoint);
@@ -610,6 +706,7 @@ public final class RaftState {
     public void initPreCandidateState() {
         preCandidateState = new CandidateState(leaderElectionQuorumSize());
         preCandidateState.grantVote(localEndpoint);
+        preCandidateCounter.increment();
     }
 
     /**
@@ -800,6 +897,7 @@ public final class RaftState {
      */
     public void registerFuture(long logIndex, OrderedFuture future) {
         OrderedFuture f = futures.put(logIndex, future);
+        registeredFutureCounter.increment();
         assert f == null : localEndpoint + " future object is already registered for log index: " + logIndex;
     }
 
@@ -820,6 +918,7 @@ public final class RaftState {
             } else {
                 f.complete(logIndex, result);
             }
+            completedFutureCounter.increment();
         }
     }
 
@@ -848,6 +947,7 @@ public final class RaftState {
         if (count > 0) {
             LOGGER.warn("{} Invalidated {} futures from log index: {} with: {}", localEndpoint, count,
                     startIndexInclusive, e);
+            invalidatedFutureCounter.increment(count);
         }
     }
 
@@ -877,6 +977,7 @@ public final class RaftState {
         if (count > 0) {
             LOGGER.warn("{} Completed {} futures until log index: {} with {}", localEndpoint, count, endIndexInclusive,
                     e);
+            invalidatedFutureCounter.increment(count);
         }
     }
 
@@ -973,4 +1074,21 @@ public final class RaftState {
 
         return queries;
     }
+
+    private long getTermStartTsMs() {
+        return termState.getMetrics().getTermStartTsMs();
+    }
+
+    private long getLeaderSetTsMs() {
+        return termState.getMetrics().getLeaderSetTsMs();
+    }
+
+    private long getLeaderResetTsMs() {
+        return termState.getMetrics().getLeaderResetTsMs();
+    }
+
+    private long getVoteTsMs() {
+        return termState.getMetrics().getVoteTsMs();
+    }
+
 }

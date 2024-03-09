@@ -135,7 +135,8 @@ public class TransferLeadershipTask implements Runnable {
             return;
         }
 
-        if (leaderState.getFollowerState(targetEndpoint).matchIndex() < state.log().lastLogOrSnapshotIndex()) {
+        if (state.commitIndex() < state.log().lastLogOrSnapshotIndex()
+                || leaderState.getFollowerState(targetEndpoint).matchIndex() < state.log().lastLogOrSnapshotIndex()) {
             LOGGER.warn("{} waiting until all appended entries to be committed before transferring leadership to {}",
                     node.localEndpointStr(), targetEndpoint.getId());
             scheduleRetry(state);

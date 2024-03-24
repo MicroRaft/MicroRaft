@@ -290,7 +290,7 @@ public class AppendEntriesRequestHandler extends AbstractMessageHandler<AppendEn
 
     private RaftMessage createAppendEntriesFailureResponse(int term, long queryRound, long sequenceNumber) {
         return modelFactory.createAppendEntriesFailureResponseBuilder().setGroupId(node.getGroupId())
-                .setSender(localEndpoint()).setTerm(term).setExpectedNextIndex(message.getPreviousLogIndex() + 1)
+                .setSender(localEndpoint()).setTerm(term).setExpectedNextIndex(state.log().lastLogOrSnapshotIndex() + 1)
                 .setQuerySequenceNumber(queryRound).setFlowControlSequenceNumber(sequenceNumber).build();
     }
 

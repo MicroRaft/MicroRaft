@@ -93,25 +93,26 @@ public class AppendEntriesFailureResponseHandler extends AbstractResponseHandler
 
         followerState.responseReceived(response.getFlowControlSequenceNumber(), node.getClock().millis());
 
-        if (response.getExpectedNextIndex() == nextIndex) {
+        if (response.getExpectedNextIndex() < nextIndex) {
+            nextIndex = response.getExpectedNextIndex();
+        } else {
             // this is the response of the request I have sent for this nextIndex
             nextIndex--;
-            if (nextIndex <= matchIndex) {
-                LOGGER.error("{} Cannot decrement next index: {} below match index: {} for follower: {}",
-                        localEndpointStr(), nextIndex, matchIndex, follower.getId());
-                return false;
-            }
-
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(localEndpointStr() + " Updating next index: " + nextIndex + " for follower: "
-                        + follower.getId());
-            }
-
-            followerState.nextIndex(nextIndex);
-            return true;
         }
 
-        return false;
+        if (nextIndex <= matchIndex) {
+            LOGGER.error("{} Cannot decrement next index: {} below match index: {} for follower: {}",
+                    localEndpointStr(), nextIndex, matchIndex, follower.getId());
+            return false;
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(
+                    localEndpointStr() + " Updating next index: " + nextIndex + " for follower: " + follower.getId());
+        }
+
+        followerState.nextIndex(nextIndex);
+        return true;
     }
 
 }

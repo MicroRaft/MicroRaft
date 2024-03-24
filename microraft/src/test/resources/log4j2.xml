@@ -8,6 +8,6 @@
         <Root level="DEBUG">
             <AppenderRef ref="CONSOLE"/>
         </Root>
-        <Logger name="io.microraft" level="INFO"/>
+        <Logger name="io.microraft" level="DEBUG"/>
     </Loggers>
 </Configuration>

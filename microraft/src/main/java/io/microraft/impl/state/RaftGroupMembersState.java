@@ -147,8 +147,8 @@ public final class RaftGroupMembersState implements RaftGroupMembers {
     }
 
     /**
-     * Returns true if the given endpoint is a voting member of the Raft group, false
-     * otherwise.
+     * Returns true if the given endpoint is a voting member of the Raft group,
+     * false otherwise.
      */
     public boolean isVotingMember(RaftEndpoint endpoint) {
         return votingMembers.contains(endpoint);

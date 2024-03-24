@@ -194,14 +194,15 @@ public interface RaftStore {
 
     /**
      * MicroRaft calls this method after it successfully persists and flushes a
-     * snapshot. This method is used for deleting log entries that are before the
-     * snapshot index and are not needed to be restored.
+     * snapshot. This method is used for deleting log entries and snapshot chunks
+     * that are before the snapshot index and are not needed to be restored.
      *
      * This is merely an optimization method and its side-effects can be sync'ed to
      * the storage when {@link #flush()} is called,
      *
      * @param logIndexInclusive
-     *            the log index value until which the log entries must be truncated
+     *            the log index value until which the log entries and snapshot
+     *            chunks must be truncated
      *
      * @throws IOException
      *             if any failure occurs during truncating the log entries

@@ -114,18 +114,25 @@ public class RaftSqliteStoreTest {
     public void testSnapshots() throws IOException {
         withRaftStore(RaftSqliteStoreTest::persistInitialState);
         withRaftStore(store -> {
-            store.persistLogEntries(List.of(logEntry(1, 1), logEntry(2, 1), logEntry(3, 1)));
+            store.persistLogEntries(List.of(logEntry(1, 1), logEntry(2, 1), logEntry(3, 1), logEntry(4, 1)));
             store.flush();
-            store.persistSnapshotChunk(snapshotChunk(2, 0, 0, 1));
+            store.persistSnapshotChunk(snapshotChunk(2, 1, 0, 1));
             store.flush();
             // once a snapshot chunk has been flushed, irrelevant log entries can be deleted
             store.truncateLogEntriesUntil(2);
             store.flush();
+            store.persistSnapshotChunk(snapshotChunk(3, 1, 0, 1));
+            store.flush();
+            // once a snapshot chunk has been flushed, irrelevant log entries can be deleted
+            store.truncateLogEntriesUntil(3);
+            store.flush();
+            assertThat(store.getAllSnapshotChunks()).usingRecursiveFieldByFieldElementComparator()
+                    .containsExactly(snapshotChunk(3, 1, 0, 1));
             RestoredRaftState restoredRaftState = store.getRestoredRaftState(false).get();
             assertThat(restoredRaftState.getLogEntries()).usingRecursiveFieldByFieldElementComparator()
-                    .containsExactly(logEntry(3, 1));
+                    .containsExactly(logEntry(4, 1));
             assertThat(restoredRaftState.getSnapshotEntry().getOperation()).usingRecursiveComparison()
-                    .isEqualTo(List.of(snapshotChunk(2, 0, 0, 1)));
+                    .isEqualTo(List.of(snapshotChunk(3, 1, 0, 1)));
         });
         sqlite = new File(tempDir.newFolder(), "sqlite.db");
         withRaftStore(RaftSqliteStoreTest::persistInitialState);

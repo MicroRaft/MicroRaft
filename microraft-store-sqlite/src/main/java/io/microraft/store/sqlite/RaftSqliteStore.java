@@ -200,6 +200,8 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
     @Override
     public void truncateLogEntriesUntil(@Nonnegative long logIndexInclusive) {
         dsl.deleteFrom(LOG_ENTRIES).where(INDEX.lessOrEqual(logIndexInclusive)).execute();
+        // we can remove all snapshot chunks belonging to the previous log indices
+        dsl.deleteFrom(SNAPSHOT_CHUNKS).where(INDEX.lessThan(logIndexInclusive)).execute();
     }
 
     /**

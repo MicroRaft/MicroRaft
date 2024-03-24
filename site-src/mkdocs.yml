@@ -24,9 +24,9 @@ nav:
       - Resiliency and Fault Tolerance: "docs/resiliency-and-fault-tolerance.md"
       - Monitoring: "docs/monitoring.md"
       - AfloatDB - Distributed Key-Value Store: "docs/afloatdb.md"
+      - "Javadoc 0.7": "javadoc/0.7/index.html"
       - "Javadoc 0.6": "javadoc/0.6/index.html"
       - "Javadoc 0.5": "javadoc/0.5/index.html"
-      - "Javadoc 0.4": "javadoc/0.4/index.html"
       - Release Notes: https://github.com/MicroRaft/MicroRaft/releases
       - Roadmap: "docs/roadmap.md"
   - "Blog":

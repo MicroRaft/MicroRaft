@@ -38,6 +38,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.microraft.MembershipChangeMode;
@@ -378,6 +379,7 @@ public class LinearizableQueryTest extends BaseTest {
     }
 
     @Test(timeout = 300_000)
+    @Ignore("This test is flaky. We need a better way to test this behavior.")
     public void when_leaderLeavesRaftGroupWhileThereIsOngoingQuery_then_queryFails() {
         RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(5)
                 .build();

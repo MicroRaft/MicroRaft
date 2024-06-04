@@ -158,6 +158,8 @@ public class AppendEntriesRequestHandler extends AbstractMessageHandler<AppendEn
             int prevLogTerm;
             if (request.getPreviousLogIndex() == lastLogIndex) {
                 prevLogTerm = lastLogTerm;
+            } else if (log.snapshotIndex() >= request.getPreviousLogIndex()) {
+                prevLogTerm = log.snapshotEntry().getTerm();
             } else {
                 // Reply false if log does not contain an entry at prevLogIndex whose term
                 // matches prevLogTerm (§5.3)

@@ -29,11 +29,13 @@ import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
 import static io.microraft.test.util.RaftTestUtils.getCommittedGroupMembers;
 import static io.microraft.test.util.RaftTestUtils.getEffectiveGroupMembers;
 import static io.microraft.test.util.RaftTestUtils.getLastApplied;
+import static io.microraft.test.util.RaftTestUtils.getLastLogOrSnapshotEntry;
 import static io.microraft.test.util.RaftTestUtils.getRaftStore;
 import static io.microraft.test.util.RaftTestUtils.getRestoredState;
 import static io.microraft.test.util.RaftTestUtils.getRole;
 import static io.microraft.test.util.RaftTestUtils.getSnapshotEntry;
 import static io.microraft.test.util.RaftTestUtils.getTerm;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -41,15 +43,18 @@ import static org.junit.Assert.assertNotNull;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import org.junit.After;
-import org.junit.Test;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 import io.microraft.MembershipChangeMode;
 import io.microraft.Ordered;
 import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
+import io.microraft.RaftNode;
 import io.microraft.RaftRole;
+import org.junit.After;
+import org.junit.Test;
+
 import io.microraft.impl.local.InMemoryRaftStore;
 import io.microraft.impl.local.LocalRaftGroup;
 import io.microraft.impl.local.SimpleStateMachine;
@@ -951,6 +956,79 @@ public class PersistenceTest extends BaseTest {
 
         eventually(() -> assertThat(getCommitIndex(restartedNode)).isEqualTo(getCommitIndex(leader)));
         assertThat(getRole(restartedNode)).isEqualTo(RaftRole.FOLLOWER);
+    }
+
+    // Check that the old leader's log can be synchronized with a new one when it contains a snapshot
+    // and only unreplicated entries
+    @Test(timeout = 300_000)
+    public void when_leaderWithSnapshotAndUnreplicatedEntries_isRestarted_then_itBecomesFollowerAndSyncItsLog() {
+        int commitCountToTakeSnapshot = 50;
+        RaftConfig config = RaftConfig.newBuilder().setLeaderElectionTimeoutMillis(2000).setLeaderHeartbeatPeriodSecs(1)
+                .setLeaderHeartbeatTimeoutSecs(5).setCommitCountToTakeSnapshot(commitCountToTakeSnapshot).build();
+        group = LocalRaftGroup.newBuilder(3).setConfig(config).enableNewTermOperation()
+                .setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
+        group.start();
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+
+        int index = 0;
+        while (getSnapshotEntry(leader).getIndex() == 0) {
+            leader.replicate(applyValue("val" + index)).join();
+            index++;
+        }
+
+        // the number of entries in a log should be exactly equal the commitCountToTakeSnapshot
+        assertThat(getLastLogOrSnapshotEntry(leader).getIndex()).isEqualTo(commitCountToTakeSnapshot);
+
+        List<RaftNode> followerEndpoints = group.getNodesExcept(leader.getLeaderEndpoint());
+
+        InMemoryRaftStore followerStateStore1 = getRaftStore(followerEndpoints.get(0));
+        RestoredRaftState followerTerminatedState1 = followerStateStore1.toRestoredRaftState();
+
+        InMemoryRaftStore followerStateStore2 = getRaftStore(followerEndpoints.get(1));
+        RestoredRaftState followerTerminatedState2 = followerStateStore2.toRestoredRaftState();
+
+        group.terminateNode(followerEndpoints.get(0).getLocalEndpoint());
+        group.terminateNode(followerEndpoints.get(1).getLocalEndpoint());
+
+        try {
+            // put an entry in a leader's log that will not be replicated and will not be committed
+            leader.replicate(applyValue("valNonCommitted")).get(1, SECONDS);
+        } catch (TimeoutException | InterruptedException | ExecutionException e) {
+        }
+
+        RaftEndpoint terminatedEndpoint = leader.getLeaderEndpoint();
+        InMemoryRaftStore stateStore = getRaftStore(leader);
+        RestoredRaftState terminatedState = stateStore.toRestoredRaftState();
+        group.terminateNode(terminatedEndpoint);
+
+        group.restoreNode(followerTerminatedState1, followerStateStore1);
+        group.restoreNode(followerTerminatedState2, followerStateStore2);
+
+        final RaftNodeImpl newLeader = group.waitUntilLeaderElected();
+        newLeader.replicate(applyValue("valNewCommitted")).join();
+
+        final RaftNodeImpl restartedNode = group.restoreNode(terminatedState, stateStore);
+
+        assertThat(getCommittedGroupMembers(restartedNode).getMembersList())
+                .isEqualTo(getCommittedGroupMembers(newLeader).getMembersList());
+        assertThat(getEffectiveGroupMembers(restartedNode).getMembersList())
+                .isEqualTo(getEffectiveGroupMembers(newLeader).getMembersList());
+
+        // checks that the log is fully replicated to the old leader
+        int finalIndex = index;
+        eventually(() -> {
+            assertThat(getTerm(restartedNode)).isEqualTo(getTerm(newLeader));
+            assertThat(getCommitIndex(restartedNode)).isEqualTo(getCommitIndex(newLeader));
+            assertThat(getLastApplied(restartedNode)).isEqualTo(getLastApplied(newLeader));
+            SimpleStateMachine stateMachine = group.getStateMachine(restartedNode.getLocalEndpoint());
+            List<Object> values = stateMachine.valueList();
+            assertNotNull(values);
+            for (int i = 0; i < finalIndex; i++) {
+                assertThat(values.get(i)).isEqualTo("val" + i);
+            }
+            assertThat(values.get(finalIndex)).isEqualTo("valNewCommitted");
+        });
     }
 
     // TODO [basri] add snapshot chunk truncation tests

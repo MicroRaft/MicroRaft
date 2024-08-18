@@ -17,43 +17,28 @@
 
 package io.microraft.impl;
 
-import static io.microraft.impl.local.SimpleStateMachine.applyValue;
-import static io.microraft.test.util.AssertionUtils.allTheTime;
-import static io.microraft.test.util.AssertionUtils.eventually;
-import static io.microraft.test.util.RaftTestUtils.TEST_RAFT_CONFIG;
-import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
-import static io.microraft.test.util.RaftTestUtils.getLastLogOrSnapshotEntry;
-import static io.microraft.test.util.RaftTestUtils.getRole;
-import static io.microraft.test.util.RaftTestUtils.getTerm;
-import static io.microraft.test.util.RaftTestUtils.getVotedEndpoint;
-import static io.microraft.test.util.RaftTestUtils.majority;
-import static io.microraft.test.util.RaftTestUtils.minority;
-import static io.microraft.test.util.AssertionUtils.sleepMillis;
+import static io.microraft.impl.local.SimpleStateMachine.*;
+import static io.microraft.test.util.AssertionUtils.*;
+import static io.microraft.test.util.RaftTestUtils.*;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeoutException;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
+import io.microraft.*;
+import io.microraft.impl.state.RaftGroupMembersState;
+import io.microraft.model.groupop.UpdateRaftGroupMembersOp;
+import io.microraft.model.impl.groupop.DefaultUpdateRaftGroupMembersOpOrBuilder;
 import org.junit.After;
 import org.junit.Test;
 
-import io.microraft.Ordered;
-import io.microraft.RaftConfig;
-import io.microraft.RaftEndpoint;
-import io.microraft.RaftNode;
-import io.microraft.RaftRole;
 import io.microraft.exception.CannotReplicateException;
 import io.microraft.exception.IndeterminateStateException;
 import io.microraft.exception.NotLeaderException;
@@ -102,6 +87,8 @@ public class RaftTest extends BaseTest {
         testLeaderElection(3);
     }
 
+    // Single-Operation Replication ('replicate(Object operation)').
+
     @Test(timeout = 300_000)
     public void when_2NodeRaftGroupIsStarted_then_singleEntryCommitted() {
         testSingleCommitEntry(2);
@@ -117,19 +104,148 @@ public class RaftTest extends BaseTest {
         assertThat(result.getCommitIndex()).isEqualTo(1);
 
         int expectedCommitIndex = 1;
-        eventually(() -> {
-            for (RaftNodeImpl node : group.getNodes()) {
-                assertThat(getCommitIndex(node)).isEqualTo(expectedCommitIndex);
-                SimpleStateMachine stateMachine = group.getStateMachine(node.getLocalEndpoint());
-                Object actual = stateMachine.get(expectedCommitIndex);
-                assertThat(actual).isEqualTo(val);
-            }
-        });
+        eventually(() -> assertGroupHasReplicatedValue(group, expectedCommitIndex, val));
     }
 
     @Test(timeout = 300_000)
     public void when_3NodeRaftGroupIsStarted_then_singleEntryCommitted() {
         testSingleCommitEntry(3);
+    }
+
+    @Test(timeout = 300_000)
+    public void when_NodeRaftGroupIsStarted_then_emptyBatchRejected() {
+        group = LocalRaftGroup.start(3);
+        var leader = group.waitUntilLeaderElected();
+
+        try {
+            leader.replicate(List.of()).join();
+            fail();
+        } catch (Throwable e) {
+            assertThat(e).isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("A BatchOperation must contain at least one operation");
+        }
+    }
+
+    // Batch Replication ('replicate(List<Object> operations)`).
+
+    // TODO(szymon): Discuss if necessary and if yes implement test case where
+    // group membership execution fails and must be retried. Note that it is not
+    // implemented yet
+    // for the non-batch case.
+
+    @Test(timeout = 300_000)
+    public void when_1NodeRaftGroupIsStarted_then_batchEntriesCommitted() {
+        testBatchReplication(1);
+    }
+
+    @Test(timeout = 300_000)
+    public void when_2NodeRaftGroupIsStarted_then_batchEntriesCommitted() {
+        testBatchReplication(2);
+    }
+
+    @Test(timeout = 300_000)
+    public void when_3NodeRaftGroupIsStarted_then_batchEntriesCommitted() {
+        testBatchReplication(3);
+    }
+
+    @Test(timeout = 300_000)
+    public void when_5NodeRaftGroupIsStarted_then_batchEntriesCommitted() {
+        testBatchReplication(5);
+    }
+
+    private void testBatchReplication(int nodeCount) {
+        group = LocalRaftGroup.start(nodeCount);
+
+        var members = group.getNodes().stream().map(RaftNode::getLocalEndpoint).collect(Collectors.toList());
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+
+        Supplier<UpdateRaftGroupMembersOp> getRandomGroupMemberUpdateOperation = () -> {
+            var numOfVotingMembers = ThreadLocalRandom.current().nextInt(majority(nodeCount), nodeCount + 1);
+            var votingMembers = group.getRandomNodes(numOfVotingMembers, true);
+
+            return new DefaultUpdateRaftGroupMembersOpOrBuilder()
+                    .setMembers(group.getNodes().stream().map(RaftNode::getLocalEndpoint).collect(Collectors.toList()))
+                    .setVotingMembers(votingMembers).setEndpoint(leader.getLocalEndpoint())
+                    .setMode(MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER).build();
+        };
+
+        BiFunction<Long, UpdateRaftGroupMembersOp, RaftGroupMembersState> getExpectedGroupMemberStateAfterApplication = (
+                Long expectedLogIndex, UpdateRaftGroupMembersOp groupMembersOp) -> new RaftGroupMembersState(
+                        expectedLogIndex, members, groupMembersOp.getVotingMembers(), leader.getLocalEndpoint());
+
+        BiConsumer<Long, UpdateRaftGroupMembersOp> assertGroupHasAppliedGroupMemberUpdate = (expectedLogIndexForUpdate,
+                expectedToBeAppliedGroupOp) -> {
+            for (RaftNodeImpl node : group.getNodes()) {
+                assertThat(getCommittedGroupMembers(node)).usingRecursiveComparison()
+                        .ignoringFields("remoteMembers", "remoteVotingMembers")
+                        .isEqualTo(getExpectedGroupMemberStateAfterApplication.apply(expectedLogIndexForUpdate,
+                                expectedToBeAppliedGroupOp));
+                assertThat(getEffectiveGroupMembers(node)).isEqualTo(getCommittedGroupMembers(node));
+            }
+        };
+
+        UpdateRaftGroupMembersOp lastUpdateGroupMemberOpFirstBatch = getRandomGroupMemberUpdateOperation.get();
+        Ordered<List<Object>> replicationResultFirstBatch = leader
+                .replicate(List.of(getRandomGroupMemberUpdateOperation.get(), applyValue("val-1-1"),
+                        getRandomGroupMemberUpdateOperation.get(), queryLastValue(), applyValue("val-1-2"),
+                        getRandomGroupMemberUpdateOperation.get(), queryLastValue(), queryAllValues(),
+                        applyValue("val-1-3"), lastUpdateGroupMemberOpFirstBatch))
+                .join();
+
+        assertThat(replicationResultFirstBatch.getCommitIndex()).isEqualTo(1);
+        assertThat(replicationResultFirstBatch.getResult()).usingRecursiveFieldByFieldElementComparator()
+                .hasSameElementsAs(Arrays.asList(null, "val-1-1", null, "val-1-1", "val-1-2", null, "val-1-2",
+                        List.of("val-1-2"), "val-1-3",
+                        getExpectedGroupMemberStateAfterApplication.apply(1L, lastUpdateGroupMemberOpFirstBatch)));
+
+        eventually(() -> {
+            assertGroupHasReplicatedValue(group, 1, "val-1-3");
+            assertGroupHasAppliedGroupMemberUpdate.accept(1L, lastUpdateGroupMemberOpFirstBatch);
+        }, 5);
+
+        // Second batch (with 3 operations).
+
+        Ordered<List<Object>> replicationResultSecondBatch = leader
+                .replicate(
+                        List.of(applyValue("val-2-1"), applyValue("val-2-2"), applyValue("val-2-3"), queryAllValues()))
+                .join();
+
+        assertThat(replicationResultSecondBatch.getCommitIndex()).isEqualTo(2);
+        assertThat(replicationResultSecondBatch.getResult())
+                .hasSameElementsAs(List.of("val-2-1", "val-2-2", "val-2-3", List.of("val-1-3", "val-2-3")));
+
+        eventually(() -> {
+            assertGroupHasReplicatedValue(group, 2, "val-2-3");
+            assertGroupHasAppliedGroupMemberUpdate.accept(1L, lastUpdateGroupMemberOpFirstBatch);
+        }, 5);
+
+        // Third batch (only one apply operation).
+        Ordered<List<Object>> replicationResultThirdBatch = leader.replicate(List.of(applyValue("val-3-1"))).join();
+
+        assertThat(replicationResultThirdBatch.getCommitIndex()).isEqualTo(3);
+        assertThat(replicationResultThirdBatch.getResult()).hasSameElementsAs(List.of("val-3-1"));
+
+        eventually(() -> {
+            assertGroupHasReplicatedValue(group, 3, "val-3-1");
+            assertGroupHasAppliedGroupMemberUpdate.accept(1L, lastUpdateGroupMemberOpFirstBatch);
+        }, 5);
+
+        // Fourth batch (only one group operation).
+
+        UpdateRaftGroupMembersOp lastUpdateGroupMemberOpFourthBatch = getRandomGroupMemberUpdateOperation.get();
+
+        Ordered<List<Object>> replicationResultFourthBatch = leader
+                .replicate(List.of(lastUpdateGroupMemberOpFourthBatch)).join();
+
+        assertThat(replicationResultFourthBatch.getCommitIndex()).isEqualTo(4);
+        assertThat(replicationResultFourthBatch.getResult()).usingRecursiveFieldByFieldElementComparator()
+                .hasSameElementsAs(List
+                        .of(getExpectedGroupMemberStateAfterApplication.apply(4L, lastUpdateGroupMemberOpFourthBatch)));
+
+        eventually(() -> {
+            assertGroupHasReplicatedValue(group, 4, null);
+            assertGroupHasAppliedGroupMemberUpdate.accept(4L, lastUpdateGroupMemberOpFourthBatch);
+        }, 5);
     }
 
     @Test(timeout = 300_000)
@@ -140,6 +256,13 @@ public class RaftTest extends BaseTest {
 
         try {
             follower.replicate(applyValue("val")).join();
+            fail();
+        } catch (CompletionException e) {
+            assertThat(e).hasCauseInstanceOf(NotLeaderException.class);
+        }
+
+        try {
+            follower.replicate(List.of(applyValue("val1"), queryLastValue())).join();
             fail();
         } catch (CompletionException e) {
             assertThat(e).hasCauseInstanceOf(NotLeaderException.class);

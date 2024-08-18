@@ -61,6 +61,8 @@ import io.microraft.persistence.RestoredRaftState;
 import io.microraft.report.RaftGroupMembers;
 import io.microraft.test.util.BaseTest;
 
+// TODO(szymon): Add tests for batch operations.
+
 public class PersistenceTest extends BaseTest {
 
     private LocalRaftGroup group;

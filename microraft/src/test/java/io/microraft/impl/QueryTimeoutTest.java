@@ -45,6 +45,8 @@ import io.microraft.model.message.AppendEntriesRequest;
 import io.microraft.model.message.InstallSnapshotRequest;
 import io.microraft.test.util.BaseTest;
 
+// TODO(szymon): Determine if tests needed.
+
 public class QueryTimeoutTest extends BaseTest {
 
     private LocalRaftGroup group;

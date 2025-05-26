@@ -133,11 +133,20 @@ public class SimpleStateMachine implements StateMachine, RaftNodeLifecycleAware,
 
     @Override
     public synchronized Object runOperation(long commitIndex, @Nonnull Object operation) {
+        return runOperation(commitIndex, operation, false);
+    }
+
+    private Object runOperation(long commitIndex, @Nonnull Object operation, boolean allowOverwrite) {
+        assert this.commitIndex <= commitIndex : "Cannot run an operation at commit index: " + commitIndex
+                + " since current commit index is " + this.commitIndex;
+
         if (operation instanceof Apply) {
             this.commitIndex = commitIndex;
             Apply apply = (Apply) operation;
-            assert !map.containsKey(commitIndex) : "Cannot apply " + apply.val + "since commitIndex: " + commitIndex
-                    + " already contains: " + map.get(commitIndex);
+
+            assert allowOverwrite || !map.containsKey(commitIndex) : "Cannot apply " + apply.val + "since commitIndex: "
+                    + commitIndex + " already contains: " + map.get(commitIndex);
+
             map.put(commitIndex, apply.val);
             lastValue = apply.val;
             return apply.val;
@@ -155,6 +164,34 @@ public class SimpleStateMachine implements StateMachine, RaftNodeLifecycleAware,
         }
 
         throw new IllegalArgumentException("Invalid op: " + operation + " at commit index: " + commitIndex);
+    }
+
+    public synchronized List<Object> runBatch(long commitIndex, @Nonnull List<Object> operations) {
+        long commitIndexSnapshot = this.commitIndex;
+        Object lastValueSnapshot = lastValue;
+        Object valueAtCommitIndexSnapshot = map.get(commitIndex);
+
+        boolean firstApply = true;
+
+        List<Object> results = new ArrayList<>();
+
+        for (Object operation : operations) {
+            try {
+                results.add(runOperation(commitIndex, operation, !firstApply));
+
+                if (operation instanceof Apply) {
+                    firstApply = false;
+                }
+            } catch (AssertionError e) {
+                // Rollback
+                this.commitIndex = commitIndexSnapshot;
+                lastValue = lastValueSnapshot;
+                map.put(commitIndex, valueAtCommitIndexSnapshot);
+                throw e;
+            }
+        }
+
+        return results;
     }
 
     @Override

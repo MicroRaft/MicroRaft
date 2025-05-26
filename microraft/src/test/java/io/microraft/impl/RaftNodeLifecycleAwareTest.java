@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
@@ -343,6 +345,11 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
         @Override
         public Object runOperation(long commitIndex, @Nonnull Object operation) {
             return null;
+        }
+
+        @Override
+        public List<Object> runBatch(long commitIndex, @Nonnull List<Object> operations) {
+            return new ArrayList<>(Collections.nCopies(operations.size(), null));
         }
 
         @Override

@@ -36,7 +36,7 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.shuffle;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.NANOSECONDS;;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -44,21 +44,15 @@ import static java.util.stream.Collectors.toMap;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import io.microraft.model.log.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,11 +107,6 @@ import io.microraft.lifecycle.RaftNodeLifecycleAware;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.model.groupop.RaftGroupOp;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp;
-import io.microraft.model.log.BaseLogEntry;
-import io.microraft.model.log.LogEntry;
-import io.microraft.model.log.RaftGroupMembersView;
-import io.microraft.model.log.SnapshotChunk;
-import io.microraft.model.log.SnapshotEntry;
 import io.microraft.model.message.AppendEntriesFailureResponse;
 import io.microraft.model.message.AppendEntriesRequest;
 import io.microraft.model.message.AppendEntriesRequest.AppendEntriesRequestBuilder;
@@ -702,6 +691,15 @@ public final class RaftNodeImpl implements RaftNode {
 
     @Nonnull
     @Override
+    public <T> CompletableFuture<Ordered<List<T>>> replicate(@Nonnull List<Object> operations) {
+        BatchOperation batchOperation = new BatchOperation(operations);
+        OrderedFuture<List<T>> future = new OrderedFuture<>();
+
+        return executeIfRunning(new ReplicateTask(this, batchOperation, future), future);
+    }
+
+    @Nonnull
+    @Override
     public <T> CompletableFuture<Ordered<T>> query(@Nonnull Object operation, @Nonnull QueryPolicy queryPolicy,
             Optional<Long> minCommitIndex, Optional<Duration> timeout) {
         OrderedFuture<T> future = new OrderedFuture<>();
@@ -925,45 +923,81 @@ public final class RaftNodeImpl implements RaftNode {
         Object operation = entry.getOperation();
         Object response;
 
-        if (operation instanceof RaftGroupOp) {
+        final UpdateRaftGroupMembersOp groupOp;
+
+        if (operation instanceof BatchOperation) {
+            groupOp = ((BatchOperation) operation).getGroupOpToApply().orElse(null);
+        } else if (operation instanceof RaftGroupOp) {
             if (operation instanceof UpdateRaftGroupMembersOp) {
-                UpdateRaftGroupMembersOp groupOp = (UpdateRaftGroupMembersOp) operation;
-                if (state.effectiveGroupMembers().getLogIndex() < logIndex) {
-                    setStatus(UPDATING_RAFT_GROUP_MEMBER_LIST);
-                    updateGroupMembers(logIndex, groupOp.getMembers(), groupOp.getVotingMembers());
-                }
-
-                assert status == UPDATING_RAFT_GROUP_MEMBER_LIST : localEndpointStr + " STATUS: " + status;
-                assert state.effectiveGroupMembers().getLogIndex() == logIndex
-                        : localEndpointStr + " effective group members log index: "
-                                + state.effectiveGroupMembers().getLogIndex() + " applied log index: " + logIndex;
-
-                state.commitGroupMembers();
-
-                if (groupOp.getEndpoint().equals(getLocalEndpoint())
-                        && groupOp.getMode() == MembershipChangeMode.REMOVE_MEMBER) {
-                    setStatus(TERMINATED);
-                } else {
-                    setStatus(ACTIVE);
-                }
-
-                response = state.committedGroupMembers();
-
-                if (stateMachine instanceof InternalCommitAware) {
-                    ((InternalCommitAware) stateMachine).onInternalCommit(logIndex);
-                }
+                groupOp = (UpdateRaftGroupMembersOp) operation;
             } else {
-                response = new IllegalArgumentException("Invalid Raft group operation: " + operation);
+                throw new IllegalArgumentException("Invalid Raft group operation: " + operation);
             }
         } else {
-            try {
-                response = stateMachine.runOperation(logIndex, operation);
-            } catch (Throwable t) {
-                LOGGER.error(
-                        localEndpointStr + " execution of " + operation + " at commit index: " + logIndex + " failed.",
-                        t);
-                response = t;
+            groupOp = null;
+        }
+
+        Supplier<Object> applyGroupOp = () -> {
+            assert groupOp != null;
+
+            if (state.effectiveGroupMembers().getLogIndex() < logIndex) {
+                setStatus(UPDATING_RAFT_GROUP_MEMBER_LIST);
+                updateGroupMembers(logIndex, groupOp.getMembers(), groupOp.getVotingMembers());
             }
+
+            // TODO(szymon): Why is this enforced?
+            // TODO(szymon): Don't we crash without a proper response if we get a group op
+            // in stable state (state == ACTIVE) with a lower log index.
+            assert status == UPDATING_RAFT_GROUP_MEMBER_LIST : localEndpointStr + " STATUS: " + status;
+            assert state.effectiveGroupMembers().getLogIndex() == logIndex
+                    : localEndpointStr + " effective group members log index: "
+                            + state.effectiveGroupMembers().getLogIndex() + " applied log index: " + logIndex;
+
+            state.commitGroupMembers();
+
+            if (groupOp.getEndpoint().equals(getLocalEndpoint())
+                    && groupOp.getMode() == MembershipChangeMode.REMOVE_MEMBER) {
+                setStatus(TERMINATED);
+            } else {
+                setStatus(ACTIVE);
+            }
+
+            if (stateMachine instanceof InternalCommitAware) {
+                ((InternalCommitAware) stateMachine).onInternalCommit(logIndex);
+            }
+
+            return state.committedGroupMembers();
+        };
+
+        try {
+            if (operation instanceof BatchOperation) {
+                var stateMachineOperations = ((BatchOperation) operation).getStateMachineOperations();
+
+                List<Object> responsesFromStateMachine;
+                if (!stateMachineOperations.isEmpty()) {
+                    responsesFromStateMachine = stateMachine.runBatch(logIndex, stateMachineOperations);
+                    assert responsesFromStateMachine.size() == stateMachineOperations.size();
+                } else {
+                    responsesFromStateMachine = List.of();
+                }
+
+                var responses = new LinkedList<>();
+                for (var op : ((BatchOperation) operation).getOperations()) {
+                    if (op instanceof RaftGroupOp) {
+                        responses.addLast(op == groupOp ? applyGroupOp.get() : null);
+                    } else {
+                        responses.addLast(responsesFromStateMachine.remove(0));
+                    }
+                }
+
+                response = responses;
+            } else {
+                response = operation == groupOp ? applyGroupOp.get() : stateMachine.runOperation(logIndex, operation);
+            }
+        } catch (Exception t) {
+            LOGGER.error("{} failed.",
+                    localEndpointStr + " execution of " + operation + " at commit index: " + logIndex, t);
+            response = t;
         }
 
         state.lastApplied(logIndex);

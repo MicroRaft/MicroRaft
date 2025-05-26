@@ -35,6 +35,8 @@ import io.microraft.persistence.RaftStore;
 import io.microraft.persistence.RestoredRaftState;
 import io.microraft.test.util.RaftTestUtils;
 
+// TODO(szymon): Add tests for batch operations.
+
 /*
 
    TO RUN THIS TEST ON YOUR MACHINE:

@@ -20,6 +20,7 @@ package io.microraft;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
@@ -239,7 +240,7 @@ public interface RaftNode {
      * The given operation must be deterministic, otherwise state machines
      * maintained by each Raft node in the Raft group can diverge.
      * <p>
-     * The returned future be can completed with {@link NotLeaderException},
+     * The returned future can be completed with {@link NotLeaderException},
      * {@link CannotReplicateException} or {@link IndeterminateStateException}.
      * Please see individual exception classes for more information.
      *
@@ -257,6 +258,37 @@ public interface RaftNode {
      */
     @Nonnull
     <T> CompletableFuture<Ordered<T>> replicate(@Nonnull Object operation);
+
+    /**
+     * Replicates, commits, and executes a list of operations as an atomic batch
+     * through this Raft node. All operations are committed as a single log entry
+     * and executed atomically and in <code>List</code> order by the state machines
+     * once committed by the Raft group.
+     * <p>
+     * The operations must be deterministic; otherwise, state machine divergence may
+     * occur across the Raft group. The list cannot be empty and must contain
+     * non-null items. If this condition is not met, an
+     * {@link IllegalArgumentException} is thrown.
+     * <p>
+     * The returned future may complete with the operation results or fail with
+     * exceptions such as: {@link NotLeaderException},
+     * {@link CannotReplicateException}, or {@link IndeterminateStateException}.
+     *
+     * @param operations
+     *            the batch of operations to be replicated and executed atomically
+     * @param <T>
+     *            the supertype of the operation results
+     *
+     * @return a future that completes with the operation results or an exception if
+     *         replication fails
+     *
+     * @see io.microraft.model.log.BatchOperation
+     * @see NotLeaderException
+     * @see CannotReplicateException
+     * @see IndeterminateStateException
+     */
+    @Nonnull
+    <T> CompletableFuture<Ordered<List<T>>> replicate(@Nonnull List<Object> operations);
 
     /**
      * Executes the given query with the given query policy.

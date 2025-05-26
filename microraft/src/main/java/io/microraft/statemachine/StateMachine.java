@@ -89,6 +89,35 @@ public interface StateMachine {
     Object runOperation(long commitIndex, @Nonnull Object operation);
 
     /**
+     * Executes the given operations as an atomic transaction on the state machine
+     * and returns the result of each operation in a list. The final state is
+     * identical to executing the operations sequentially using
+     * {@link StateMachine#runOperation(long, Object)} in the provided order.
+     * <p>
+     * Since this method handles operations as an atomic batch, the state machine
+     * must either fully apply all operations or leave the state unchanged if
+     * execution fails.
+     * <p>
+     * The operations must be deterministic and produce the same results across all
+     * Raft nodes. The state machine is responsible for ensuring deterministic
+     * behavior, including handling replays due to node crashes and restarts. If
+     * side effects occur during execution, implementations should either persist
+     * the last executed log index or make side effects idempotent to avoid
+     * inconsistencies on replays.
+     *
+     * @param commitIndex
+     *            the Raft log index at which the operations are committed
+     * @param operations
+     *            the list of operations to be executed atomically
+     *
+     * @return the list of results for each executed operation
+     *
+     * @see io.microraft.model.log.BatchOperation
+     * @see StateMachine#runOperation(long, Object)
+     */
+    List<Object> runBatch(long commitIndex, @Nonnull List<Object> operations);
+
+    /**
      * Takes a snapshot of the state machine for the given commit index which is the
      * current commit index at the local Raft node.
      * <p>

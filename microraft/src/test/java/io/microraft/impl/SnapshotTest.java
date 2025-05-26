@@ -67,6 +67,8 @@ import io.microraft.report.RaftGroupMembers;
 import io.microraft.report.RaftNodeReport;
 import io.microraft.test.util.BaseTest;
 
+// TODO(szymon): Add tests for batch operations.
+
 public class SnapshotTest extends BaseTest {
 
     private LocalRaftGroup group;

@@ -223,6 +223,9 @@ public class AppendEntriesRequestHandler extends AbstractMessageHandler<AppendEn
                     }
 
                     state.invalidateFuturesFrom(requestEntry.getIndex(), node.newNotLeaderException());
+                    // TODO(szymon): What happens if we achieve to persist the step down (see
+                    //   `demoteToNonVotingMember`) but
+                    //   fail to flush the log?
                     revertPreparedGroupOp(truncatedEntries);
                     newLogEntries = request.getLogEntries().subList(i, requestEntryCount);
                     log.flush();

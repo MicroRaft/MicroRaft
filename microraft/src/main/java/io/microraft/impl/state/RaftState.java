@@ -652,14 +652,22 @@ public final class RaftState {
         committedGroupMembers = effectiveGroupMembers;
         effectiveGroupMembers = newGroupMembers;
 
-        if (leaderState != null) {
+        if (role == LEADER) {
+            // Update leader state for all newly added members (e.g. set their `matchIndex`
+            // and `nextIndex`).
             members.stream().filter(member -> !committedGroupMembers.isKnownMember(member))
                     .forEach(member -> leaderState.add(member, log.lastLogOrSnapshotIndex(), currentTimeMillis));
 
+            // Remove leader state for newly removed members.
             committedGroupMembers.remoteMembers().stream().filter(member -> !members.contains(member))
                     .forEach(member -> leaderState.remove(member));
         }
 
+        // TODO(szymon): What happens if this fails considering that we have set
+        // committedGroupMembers and effectiveGroupMembers.
+        // Retry would not be possible as the precondition committedGroupMembers ==
+        // effectiveGroupMembers is not met.
+        // Not all callers do not handle that.
         if (role == LEARNER && effectiveGroupMembers.getVotingMembers().contains(this.localEndpoint)) {
             try {
                 promoteToVotingMember();

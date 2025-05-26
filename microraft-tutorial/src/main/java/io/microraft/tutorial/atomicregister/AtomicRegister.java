@@ -48,6 +48,12 @@ public class AtomicRegister implements StateMachine {
         throw new IllegalArgumentException("Invalid operation: " + operation + " at commit index: " + commitIndex);
     }
 
+    @Override
+    public List<Object> runBatch(long commitIndex, @Nonnull List<Object> operations) {
+        // TODO(szymon): implement here and in descendants
+        return null;
+    }
+
     @Nonnull
     @Override
     public Object getNewTermOperation() {

@@ -24,6 +24,7 @@ nav:
       - Resiliency and Fault Tolerance: "docs/resiliency-and-fault-tolerance.md"
       - Monitoring: "docs/monitoring.md"
       - AfloatDB - Distributed Key-Value Store: "docs/afloatdb.md"
+      - "Javadoc 0.8": "javadoc/0.8/index.html"
       - "Javadoc 0.7": "javadoc/0.7/index.html"
       - "Javadoc 0.6": "javadoc/0.6/index.html"
       - "Javadoc 0.5": "javadoc/0.5/index.html"

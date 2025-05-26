@@ -148,12 +148,6 @@
             <version>${log4j.version}</version>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>net.ju-n.maven.plugins</groupId>
-            <artifactId>checksum-maven-plugin</artifactId>
-            <version>${maven.checksum.plugin.version}</version>
-        </dependency>
     </dependencies>
 
     <distributionManagement>

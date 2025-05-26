@@ -958,7 +958,8 @@ public class PersistenceTest extends BaseTest {
         assertThat(getRole(restartedNode)).isEqualTo(RaftRole.FOLLOWER);
     }
 
-    // Check that the old leader's log can be synchronized with a new one when it contains a snapshot
+    // Check that the old leader's log can be synchronized with a new one when it
+    // contains a snapshot
     // and only unreplicated entries
     @Test(timeout = 300_000)
     public void when_leaderWithSnapshotAndUnreplicatedEntries_isRestarted_then_itBecomesFollowerAndSyncItsLog() {
@@ -977,7 +978,8 @@ public class PersistenceTest extends BaseTest {
             index++;
         }
 
-        // the number of entries in a log should be exactly equal the commitCountToTakeSnapshot
+        // the number of entries in a log should be exactly equal the
+        // commitCountToTakeSnapshot
         assertThat(getLastLogOrSnapshotEntry(leader).getIndex()).isEqualTo(commitCountToTakeSnapshot);
 
         List<RaftNode> followerEndpoints = group.getNodesExcept(leader.getLeaderEndpoint());
@@ -992,7 +994,8 @@ public class PersistenceTest extends BaseTest {
         group.terminateNode(followerEndpoints.get(1).getLocalEndpoint());
 
         try {
-            // put an entry in a leader's log that will not be replicated and will not be committed
+            // put an entry in a leader's log that will not be replicated and will not be
+            // committed
             leader.replicate(applyValue("valNonCommitted")).get(1, SECONDS);
         } catch (TimeoutException | InterruptedException | ExecutionException e) {
         }

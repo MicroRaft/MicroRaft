@@ -4,7 +4,7 @@
     <groupId>io.microraft</groupId>
     <artifactId>microraft-root</artifactId>
     <packaging>pom</packaging>
-    <version>0.8-SNAPSHOT</version>
+    <version>0.8</version>
 
     <name>MicroRaft Root</name>
     <url>https://microraft.io</url>

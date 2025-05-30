@@ -1,10 +1,25 @@
 # MicroRaft HOCON Config Parser
 
+Gradle (version catalog)
+```toml
+[versions]
+microraft-hocon = "0.9"
+
+[libraries]
+microraft-hocon = { group = "io.microraft", name = "microraft-hocon", version.ref = "microraft-hocon" }
 ```
+
+Gradle (kotlinscript)
+```kotlin
+implementation("io.microraft:microraft-hocon:0.9")
+```
+
+Maven
+```xml
 <dependency>
 	<groupId>io.microraft</groupId>
 	<artifactId>microraft-hocon</artifactId>
-	<version>0.1</version>
+	<version>0.9</version>
 </dependency>
 ```
 

@@ -1,10 +1,25 @@
 # MicroRaft YAML Config Parser
 
+Gradle (version catalog)
+```toml
+[versions]
+microraft-yaml = "0.9"
+
+[libraries]
+microraft-yaml = { group = "io.microraft", name = "microraft-yaml", version.ref = "microraft-yaml" }
 ```
+
+Gradle (kotlinscript)
+```kotlin
+implementation("io.microraft:microraft-yaml:0.9")
+```
+
+Maven
+```xml
 <dependency>
 	<groupId>io.microraft</groupId>
 	<artifactId>microraft-yaml</artifactId>
-	<version>0.1</version>
+	<version>0.9</version>
 </dependency>
 ```
 

@@ -32,3 +32,4 @@ yaml = { group = "org.yaml", name = "snakeyaml", version.ref = "yaml" }
 [plugins]
 defaults = { id = "io.github.sgtsilvio.gradle.defaults", version = "0.2.0" }
 metadata = { id = "io.github.sgtsilvio.gradle.metadata", version = "0.6.0" }
+javadocLinks = { id = "io.github.sgtsilvio.gradle.javadoc-links", version = "0.8.0" }

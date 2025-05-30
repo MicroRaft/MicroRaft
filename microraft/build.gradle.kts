@@ -3,6 +3,7 @@ plugins {
     `java-test-fixtures`
     alias(libs.plugins.defaults)
     alias(libs.plugins.metadata)
+    alias(libs.plugins.javadocLinks)
 }
 
 group = "io.microraft"

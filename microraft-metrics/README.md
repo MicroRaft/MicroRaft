@@ -4,13 +4,28 @@ Add the following dependency to the classpath for publishing MicroRaft metrics
 to external monitoring systems via 
 <a href="https://micrometer.io/" target="_blank">Micrometer</a>.
 
-~~~~{.xml}
+Gradle (version catalog)
+```toml
+[versions]
+microraft-metrics = "0.9"
+
+[libraries]
+microraft-metrics = { group = "io.microraft", name = "microraft-metrics", version.ref = "microraft-metrics" }
+```
+
+Gradle (kotlinscript)
+```kotlin
+implementation("io.microraft:microraft-metrics:0.9")
+```
+
+Maven
+```xml
 <dependency>
 	<groupId>io.microraft</groupId>
 	<artifactId>microraft-metrics</artifactId>
-	<version>0.1</version>
+	<version>0.9</version>
 </dependency>
-~~~~
+```
 
 <a href="https://github.com/MicroRaft/MicroRaft/blob/master/microraft-metrics/src/main/java/io/microraft/metrics/RaftNodeMetrics.java" target="_blank">`RaftNodeMetrics`</a> 
 implements the 

@@ -1,0 +1,34 @@
+[versions]
+assertj = "3.23.1"
+findbugs = "3.0.1"
+jackson = "2.14.2"
+jooq = "3.16.14"
+junit = "4.13.2"
+log4j = "2.19.0"
+micrometer = "1.10.0"
+mockito = "3.12.4"
+slf4j = "1.7.36"
+sqlite = "3.41.2.2"
+typesafe = "1.4.2"
+yaml = "2.0"
+
+[libraries]
+assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
+findbugs = { group = "com.google.code.findbugs", name = "annotations", version.ref = "findbugs" }
+jackson = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
+jooq = { group = "org.jooq", name = "jooq", version.ref = "jooq" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
+log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
+log4j-slf4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
+micrometer = { group = "io.micrometer", name = "micrometer-core", version.ref = "micrometer" }
+mockito = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
+slf4j = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
+sqlite = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqlite" }
+typesafe = { group = "com.typesafe", name = "config", version.ref = "typesafe" }
+yaml = { group = "org.yaml", name = "snakeyaml", version.ref = "yaml" }
+
+
+[plugins]
+defaults = { id = "io.github.sgtsilvio.gradle.defaults", version = "0.2.0" }
+metadata = { id = "io.github.sgtsilvio.gradle.metadata", version = "0.6.0" }

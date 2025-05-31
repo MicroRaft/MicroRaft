@@ -4,6 +4,9 @@ plugins {
     alias(libs.plugins.defaults)
     alias(libs.plugins.metadata)
     alias(libs.plugins.javadocLinks)
+    `maven-publish`
+    signing
+    alias(libs.plugins.mavenCentralPublishing)
 }
 
 group = "io.microraft"
@@ -94,4 +97,36 @@ dependencies {
     testFixturesImplementation(libs.junit)
     testFixturesCompileOnly(libs.findbugs)
     testFixturesImplementation(libs.slf4j)
+}
+
+// Do not publish test fixtures for now
+val javaComponent = components["java"] as AdhocComponentWithVariants
+javaComponent.withVariantsFromConfiguration(configurations["testFixturesApiElements"]) { skip() }
+javaComponent.withVariantsFromConfiguration(configurations["testFixturesRuntimeElements"]) { skip() }
+
+
+publishing {
+    // TODO Remove after debugging
+    repositories {
+        maven{
+            this.name = "TestPublish"
+            // change URLs to point to your repos, e.g. http://my.org/repo
+            val releasesRepoUrl = uri(layout.buildDirectory.dir("repos/releases"))
+            val snapshotsRepoUrl = uri(layout.buildDirectory.dir("repos/snapshots"))
+            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
+        }
+    }
+
+    publications {
+        create<MavenPublication>("main") {
+            from(components["java"])
+        }
+    }
+}
+
+signing {
+    val signingKey: String? by project
+    val signingPassword: String? by project
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign(publishing.publications["main"])
 }

@@ -55,6 +55,8 @@ tasks.withType<Jar>().configureEach {
 
 tasks.javadoc {
     isFailOnError = false
+    exclude("io/microraft/model/**")
+    exclude("**/impl/**")
 }
 
 

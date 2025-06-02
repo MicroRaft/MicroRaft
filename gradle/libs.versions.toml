@@ -13,20 +13,20 @@ typesafe = "1.4.2"
 yaml = "2.0"
 
 [libraries]
-assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
-findbugs = { group = "com.google.code.findbugs", name = "annotations", version.ref = "findbugs" }
-jackson = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
-jooq = { group = "org.jooq", name = "jooq", version.ref = "jooq" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
+assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+findbugs = { module = "com.google.code.findbugs:annotations", version.ref = "findbugs" }
+jackson = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jooq = { module = "org.jooq:jooq", version.ref = "jooq" }
+junit = { module = "junit:junit", version.ref = "junit" }
 log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
 log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
 log4j-slf4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
-micrometer = { group = "io.micrometer", name = "micrometer-core", version.ref = "micrometer" }
-mockito = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
-slf4j = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
-sqlite = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqlite" }
-typesafe = { group = "com.typesafe", name = "config", version.ref = "typesafe" }
-yaml = { group = "org.yaml", name = "snakeyaml", version.ref = "yaml" }
+micrometer = { module = "io.micrometer:micrometer-core", version.ref = "micrometer" }
+mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+sqlite = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite" }
+typesafe = { module = "com.typesafe:config", version.ref = "typesafe" }
+yaml = { module = "org.yaml:snakeyaml", version.ref = "yaml" }
 
 
 [plugins]

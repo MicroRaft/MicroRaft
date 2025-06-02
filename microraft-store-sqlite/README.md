@@ -6,7 +6,7 @@ Gradle (version catalog)
 microraft-store-sqlite = "0.9"
 
 [libraries]
-microraft-store-sqlite = { group = "io.microraft", name = "microraft-store-sqlite", version.ref = "microraft-store-sqlite" }
+microraft-store-sqlite = { module = "io.microraft:microraft-store-sqlite", version.ref = "microraft-store-sqlite" }
 ```
 
 Gradle (kotlinscript)

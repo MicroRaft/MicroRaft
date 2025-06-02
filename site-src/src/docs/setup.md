@@ -10,7 +10,7 @@ Gradle (version catalog)
 microraft = "0.9"
 
 [libraries]
-microraft = { group = "io.microraft", name = "microraft", version.ref = "microraft" }
+microraft = { module = "io.microraft:microraft", version.ref = "microraft" }
 ```
 
 Gradle (kotlinscript)

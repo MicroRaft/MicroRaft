@@ -6,7 +6,7 @@ Gradle (version catalog)
 microraft-yaml = "0.9"
 
 [libraries]
-microraft-yaml = { group = "io.microraft", name = "microraft-yaml", version.ref = "microraft-yaml" }
+microraft-yaml = { module = "io.microraft:microraft-yaml", version.ref = "microraft-yaml" }
 ```
 
 Gradle (kotlinscript)

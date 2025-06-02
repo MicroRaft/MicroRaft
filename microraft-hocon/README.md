@@ -6,7 +6,7 @@ Gradle (version catalog)
 microraft-hocon = "0.9"
 
 [libraries]
-microraft-hocon = { group = "io.microraft", name = "microraft-hocon", version.ref = "microraft-hocon" }
+microraft-hocon = { module = "io.microraft:microraft-hocon", version.ref = "microraft-hocon" }
 ```
 
 Gradle (kotlinscript)

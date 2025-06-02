@@ -10,7 +10,7 @@ Gradle (version catalog)
 microraft-metrics = "0.9"
 
 [libraries]
-microraft-metrics = { group = "io.microraft", name = "microraft-metrics", version.ref = "microraft-metrics" }
+microraft-metrics = { module = "io.microraft:microraft-metrics", version.ref = "microraft-metrics" }
 ```
 
 Gradle (kotlinscript)

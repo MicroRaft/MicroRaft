@@ -14,27 +14,27 @@ version = "0.9-SNAPSHOT"
 description = "Feature-complete implementation of the Raft consensus algorithm"
 
 metadata {
-    moduleName.set("io.microraft.microraft")
-    readableName.set("Microraft")
+    moduleName = "io.microraft"
+    readableName = "Microraft"
     license {
         apache2()
     }
     organization {
-        name.set("MicroRaft")
-        url.set("https://microraft.io")
+        name = "MicroRaft"
+        url = "https://microraft.io"
     }
     developers {
         register("metanet") {
-            fullName.set("Ensar Basri Kahveci")
-            email.set("ebkahveci@gmail.com")
+            fullName = "Ensar Basri Kahveci"
+            email = "ebkahveci@gmail.com"
         }
         register("mdogan") {
-            fullName.set("Mehmet Dogan")
-            email.set("mehmet@dogan.io")
+            fullName = "Mehmet Dogan"
+            email = "mehmet@dogan.io"
         }
     }
     github {
-        org.set("MicroRaft")
+        org = "MicroRaft"
         pages()
         issues()
     }

@@ -1,10 +1,5 @@
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-    }
-}
-
 rootProject.name = "MicroRaft"
+
 include("microraft")
 include("microraft-hocon")
 include("microraft-metrics")

@@ -13,20 +13,20 @@ die() {
 try() { "$@" || die "cannot $*"; }
 
 MICRORAFT_VERSION=$1
-POM_FILE=pom.xml
-JAVADOC_SOURCE=microraft/target/site/apidocs
+GRADLE_FILE=build.gradle.kts
+JAVADOC_SOURCE=microraft/build/docs/javadoc
 SITE_FILES_DIR=site-src
 SITE_DIR=${SITE_FILES_DIR}/site
 JAVADOC_TARGET=${SITE_DIR}/javadoc/${MICRORAFT_VERSION}
 [[ -z "${MKDOCS_ENV}" ]] && MKDOCS_CMD='mkdocs' || MKDOCS_CMD="${MKDOCS_ENV}"
 BUILD_SITE_CMD="${MKDOCS_CMD} build"
 
-if [ ! -f "$POM_FILE" ]; then
+if [ ! -f "$GRADLE_FILE" ]; then
   echo "Please run this script on the root directory of the MicroRaft repository."
   exit 1
 fi
 
-try mvn clean javadoc:javadoc
+try ./gradlew :microraft:javadoc
 try test -d ${JAVADOC_SOURCE}
 
 rm -rf $SITE_DIR

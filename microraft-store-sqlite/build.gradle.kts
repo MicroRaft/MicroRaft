@@ -3,6 +3,9 @@ plugins {
     alias(libs.plugins.defaults)
     alias(libs.plugins.metadata)
     alias(libs.plugins.javadocLinks)
+    `maven-publish`
+    signing
+    alias(libs.plugins.mavenCentralPublishing)
 }
 
 group = "io.microraft"
@@ -85,4 +88,20 @@ testing {
             }
         }
     }
+}
+
+
+publishing {
+    publications {
+        create<MavenPublication>("main") {
+            from(components["java"])
+        }
+    }
+}
+
+signing {
+    val signingKey: String? by project
+    val signingPassword: String? by project
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign(publishing.publications["main"])
 }

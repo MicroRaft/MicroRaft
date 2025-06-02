@@ -1,13 +1,9 @@
 plugins {
-    id("com.github.spotbugs") version "6.1.13" apply false
+    alias(libs.plugins.spotbugs) apply false
 }
 
+// Checkstyle and Spotbugs are applied for every project but do need to be triggered manually
 allprojects {
-//    plugins.apply("checkstyle")
-//    plugins.apply("com.github.spotbugs")
+    plugins.apply("checkstyle")
+    plugins.apply("com.github.spotbugs")
 }
-
-//TODO NOTICE and LICENSE are not inside the jar files
-//TODO Formatter is not in place
-//TODO Spotbugs
-//TODO Checkstyle

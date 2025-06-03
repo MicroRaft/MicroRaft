@@ -13,8 +13,6 @@ fi
 REPEAT=$1
 ROUND="1"
 
-cd ..
-
 ./gradlew clean
 
 while [ ${ROUND} -le "${REPEAT}" ]; do

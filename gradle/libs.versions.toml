@@ -9,13 +9,13 @@ micrometer = "1.10.0"
 mockito = "3.12.4"
 slf4j = "1.7.36"
 sqlite = "3.41.2.2"
-typesafe = "1.4.2"
-yaml = "2.0"
+typesafe-config = "1.4.2"
+snakeyaml = "2.0"
 
 [libraries]
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
-findbugs = { module = "com.google.code.findbugs:annotations", version.ref = "findbugs" }
-jackson = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+findbugs-annotations = { module = "com.google.code.findbugs:annotations", version.ref = "findbugs" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jooq = { module = "org.jooq:jooq", version.ref = "jooq" }
 junit = { module = "junit:junit", version.ref = "junit" }
 log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
@@ -23,10 +23,10 @@ log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "lo
 log4j-slf4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
 micrometer = { module = "io.micrometer:micrometer-core", version.ref = "micrometer" }
 mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
-slf4j = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 sqlite = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite" }
-typesafe = { module = "com.typesafe:config", version.ref = "typesafe" }
-yaml = { module = "org.yaml:snakeyaml", version.ref = "yaml" }
+typesafe-config = { module = "com.typesafe:config", version.ref = "typesafe-config" }
+snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 
 
 [plugins]

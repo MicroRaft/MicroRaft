@@ -1,6 +1,7 @@
 # MicroRaft Tutorial
 
 Gradle (version catalog)
+
 ```toml
 [versions]
 microraft-tutorial = "0.9"
@@ -10,15 +11,17 @@ microraft-tutorial = { module = "io.microraft:microraft-tutorial", version.ref =
 ```
 
 Gradle (kotlinscript)
+
 ```kotlin
 implementation("io.microraft:microraft-tutorial:0.9")
 ```
 
 Maven
+
 ```xml
 <dependency>
-	<groupId>io.microraft</groupId>
-	<artifactId>microraft-tutorial</artifactId>
-	<version>0.9</version>
+    <groupId>io.microraft</groupId>
+    <artifactId>microraft-tutorial</artifactId>
+    <version>0.9</version>
 </dependency>
 ```

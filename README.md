@@ -39,12 +39,18 @@ enhancements:
 * Adaptive batching during log replication,
 * Back pressure to prevent OOMEs on Raft leader and followers,
 * Parallel snapshot transfer from Raft leader and followers,
-* Pre-voting and leader stickiness ([Section 4.2.3 of the Raft dissertation](https://github.com/ongardie/dissertation) and [Four modifications of the Raft consensus algorithm](https://openlife.cc/system/files/4-modifications-for-Raft-consensus.pdf)),
-* Auto-demotion of Raft leader on loss of quorum heartbeats [(Section 6.2 of the Raft dissertation)](https://github.com/ongardie/dissertation),
-* Linearizable quorum reads without appending log entries [(Section 6.4 of the Raft dissertation)](https://github.com/ongardie/dissertation),
-* Lease-based local queries on Raft leader [(Section 6.4.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
-* Monotonic local queries on Raft followers [(Section 6.4.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
-* Parallel disk writes on Raft leader and followers [(Section 10.2.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
+* Pre-voting and leader stickiness ([Section 4.2.3 of the Raft dissertation](https://github.com/ongardie/dissertation)
+  and [Four modifications of the Raft consensus algorithm](https://openlife.cc/system/files/4-modifications-for-Raft-consensus.pdf)),
+* Auto-demotion of Raft leader on loss of quorum
+  heartbeats [(Section 6.2 of the Raft dissertation)](https://github.com/ongardie/dissertation),
+* Linearizable quorum reads without appending log
+  entries [(Section 6.4 of the Raft dissertation)](https://github.com/ongardie/dissertation),
+* Lease-based local queries on Raft
+  leader [(Section 6.4.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
+* Monotonic local queries on Raft
+  followers [(Section 6.4.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
+* Parallel disk writes on Raft leader and
+  followers [(Section 10.2.1 of the Raft dissertation)](https://github.com/ongardie/dissertation),
 * Leadership transfer [(Section 3.10 of the Raft dissertation)](https://github.com/ongardie/dissertation).
 * [Improved majority quorums](https://basri.dev/posts/2020-07-27-improved-majority-quorums-for-raft/)
 
@@ -57,6 +63,7 @@ See [the User Guide](https://microraft.io/docs/setup).
 Add MicroRaft to your dependency list:
 
 Gradle (version catalog)
+
 ```toml
 [versions]
 microraft = "0.9"
@@ -66,16 +73,18 @@ microraft = { module = "io.microraft:microraft", version.ref = "microraft" }
 ```
 
 Gradle (kotlinscript)
+
 ```kotlin
 implementation("io.microraft:microraft:0.9")
 ```
 
 Maven
+
 ```xml
 <dependency>
-	<groupId>io.microraft</groupId>
-	<artifactId>microraft</artifactId>
-	<version>0.9</version>
+    <groupId>io.microraft</groupId>
+    <artifactId>microraft</artifactId>
+    <version>0.9</version>
 </dependency>
 ```
 
@@ -107,4 +116,6 @@ You can see [this guide](CONTRIBUTING.md) for contributing to MicroRaft.
 
 MicroRaft is available under [the Apache 2 License](https://github.com/MicroRaft/MicroRaft/blob/master/LICENSE).
 
-MicroRaft originates from the Raft implementation that powers [Hazelcast IMDG's CP Subsystem module](https://github.com/hazelcast/hazelcast/tree/master/hazelcast/src/main/java/com/hazelcast/cp/internal/raft). You can see [the announcement](https://microraft.io/blog/2021-09-03-introducing-microraft/) for details.
+MicroRaft originates from the Raft implementation that
+powers [Hazelcast IMDG's CP Subsystem module](https://github.com/hazelcast/hazelcast/tree/master/hazelcast/src/main/java/com/hazelcast/cp/internal/raft).
+You can see [the announcement](https://microraft.io/blog/2021-09-03-introducing-microraft/) for details.

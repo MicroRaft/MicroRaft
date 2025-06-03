@@ -55,20 +55,16 @@ tasks.withType<Jar>().configureEach {
     )
 }
 
-tasks.javadoc {
-    isFailOnError = false
-}
-
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation(project(":microraft"))
+    api(project(":microraft"))
     implementation(libs.jooq)
     implementation(libs.sqlite)
-    compileOnly(libs.findbugs)
+    compileOnly(libs.findbugs.annotations)
 }
 
 
@@ -83,8 +79,8 @@ testing {
             dependencies {
                 implementation(testFixtures(project(":microraft")))
                 implementation(libs.assertj)
-                implementation(libs.jackson)
-                compileOnly(libs.findbugs)
+                implementation(libs.jackson.databind)
+                compileOnly(libs.findbugs.annotations)
             }
         }
     }

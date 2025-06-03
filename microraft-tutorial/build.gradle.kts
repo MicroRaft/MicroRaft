@@ -55,10 +55,6 @@ tasks.withType<Jar>().configureEach {
     )
 }
 
-tasks.javadoc {
-    isFailOnError = false
-}
-
 
 repositories {
     mavenCentral()
@@ -66,8 +62,8 @@ repositories {
 
 dependencies {
     implementation(project(":microraft"))
-    implementation(libs.slf4j)
-    compileOnly(libs.findbugs)
+    implementation(libs.slf4j.api)
+    compileOnly(libs.findbugs.annotations)
 }
 
 

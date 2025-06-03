@@ -1,6 +1,7 @@
 # MicroRaft SQLite store implementation
 
 Gradle (version catalog)
+
 ```toml
 [versions]
 microraft-store-sqlite = "0.9"
@@ -10,15 +11,17 @@ microraft-store-sqlite = { module = "io.microraft:microraft-store-sqlite", versi
 ```
 
 Gradle (kotlinscript)
+
 ```kotlin
 implementation("io.microraft:microraft-store-sqlite:0.9")
 ```
 
 Maven
+
 ```xml
 <dependency>
-	<groupId>io.microraft</groupId>
-	<artifactId>microraft-store-sqlite</artifactId>
-	<version>0.9</version>
+    <groupId>io.microraft</groupId>
+    <artifactId>microraft-store-sqlite</artifactId>
+    <version>0.9</version>
 </dependency>
 ```

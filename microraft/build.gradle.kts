@@ -57,7 +57,6 @@ tasks.withType<Jar>().configureEach {
 }
 
 tasks.javadoc {
-    isFailOnError = false
     exclude("io/microraft/model/**")
     exclude("**/impl/**")
 }
@@ -68,8 +67,8 @@ repositories {
 }
 
 dependencies {
-    compileOnly(libs.findbugs)
-    implementation(libs.slf4j)
+    compileOnly(libs.findbugs.annotations)
+    implementation(libs.slf4j.api)
 }
 
 
@@ -87,7 +86,7 @@ testing {
                 implementation(libs.log4j.core)
                 implementation(libs.log4j.api)
                 implementation(libs.log4j.slf4j.impl)
-                compileOnly(libs.findbugs)
+                compileOnly(libs.findbugs.annotations)
             }
         }
     }
@@ -95,8 +94,8 @@ testing {
 
 dependencies {
     testFixturesImplementation(libs.junit)
-    testFixturesCompileOnly(libs.findbugs)
-    testFixturesImplementation(libs.slf4j)
+    testFixturesCompileOnly(libs.findbugs.annotations)
+    testFixturesImplementation(libs.slf4j.api)
 }
 
 // Do not publish test fixtures for now

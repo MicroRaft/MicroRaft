@@ -58,10 +58,6 @@ tasks.withType<Jar>().configureEach {
 }
 
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     implementation(project(":microraft"))
     implementation(libs.slf4j.api)

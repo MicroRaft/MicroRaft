@@ -58,10 +58,6 @@ tasks.withType<Jar>().configureEach {
 }
 
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     api(project(":microraft"))
     api(libs.micrometer)

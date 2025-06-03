@@ -64,10 +64,6 @@ tasks.javadoc {
 }
 
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     compileOnly(libs.findbugs.annotations)
     implementation(libs.slf4j.api)

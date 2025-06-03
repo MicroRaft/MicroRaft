@@ -73,12 +73,11 @@ dependencies {
 @Suppress("UnstableApiUsage") //
 testing {
     suites {
-        withType(JvmTestSuite::class) {
+        withType<JvmTestSuite> {
             useJUnit(libs.versions.junit)
         }
 
-        @Suppress("unused") //
-        val test by getting(JvmTestSuite::class) {
+        named<JvmTestSuite>("test") {
             targets.all {
                 testTask.configure {
                     maxParallelForks = 4
@@ -109,7 +108,7 @@ javaComponent.withVariantsFromConfiguration(configurations["testFixturesRuntimeE
 publishing {
     // TODO Remove after debugging
     repositories {
-        maven{
+        maven {
             this.name = "TestPublish"
             // change URLs to point to your repos, e.g. http://my.org/repo
             val releasesRepoUrl = uri(layout.buildDirectory.dir("repos/releases"))

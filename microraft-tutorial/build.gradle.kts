@@ -61,6 +61,7 @@ tasks.withType<Jar>().configureEach {
 dependencies {
     implementation(project(":microraft"))
     implementation(libs.slf4j.api)
+    runtimeOnly(libs.log4j.slf4j.impl)
     compileOnly(libs.findbugs.annotations)
 }
 
@@ -68,12 +69,11 @@ dependencies {
 @Suppress("UnstableApiUsage") //
 testing {
     suites {
-        withType(JvmTestSuite::class) {
+        withType<JvmTestSuite> {
             useJUnit(libs.versions.junit)
         }
 
-        @Suppress("unused") //
-        val test by getting(JvmTestSuite::class) {
+        named<JvmTestSuite>("test") {
             dependencies {
                 implementation(libs.assertj)
             }

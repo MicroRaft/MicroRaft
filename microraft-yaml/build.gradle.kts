@@ -67,12 +67,11 @@ dependencies {
 @Suppress("UnstableApiUsage") //
 testing {
     suites {
-        withType(JvmTestSuite::class) {
+        withType<JvmTestSuite> {
             useJUnit(libs.versions.junit)
         }
 
-        @Suppress("unused") //
-        val test by getting(JvmTestSuite::class) {
+        named<JvmTestSuite>("test") {
             dependencies {
                 implementation(testFixtures(project(":microraft")))
                 implementation(libs.assertj)

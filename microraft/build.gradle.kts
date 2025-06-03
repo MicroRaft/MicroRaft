@@ -64,8 +64,8 @@ tasks.javadoc {
 }
 
 dependencies {
-    compileOnly(libs.findbugs.annotations)
     implementation(libs.slf4j.api)
+    compileOnly(libs.findbugs.annotations)
 }
 
 @Suppress("UnstableApiUsage") //
@@ -81,8 +81,8 @@ testing {
                 }
             }
             dependencies {
-                implementation(libs.mockito)
                 implementation(libs.assertj)
+                implementation(libs.mockito)
                 runtimeOnly(libs.log4j.slf4j.impl)
                 compileOnly(libs.findbugs.annotations)
             }
@@ -92,8 +92,8 @@ testing {
 
 dependencies {
     testFixturesImplementation(libs.junit)
-    testFixturesCompileOnly(libs.findbugs.annotations)
     testFixturesImplementation(libs.slf4j.api)
+    testFixturesCompileOnly(libs.findbugs.annotations)
 }
 
 // Do not publish test fixtures for now

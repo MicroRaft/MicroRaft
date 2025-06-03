@@ -72,8 +72,8 @@ testing {
         }
         named<JvmTestSuite>("test") {
             dependencies {
-                implementation(testFixtures(project(":microraft")))
                 implementation(libs.assertj)
+                implementation(testFixtures(project(":microraft")))
                 implementation(libs.jackson.databind)
                 runtimeOnly(libs.log4j.slf4j.impl)
                 compileOnly(libs.findbugs.annotations)

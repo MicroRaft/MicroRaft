@@ -70,8 +70,8 @@ testing {
         }
         named<JvmTestSuite>("test") {
             dependencies {
-                implementation(testFixtures(project(":microraft")))
                 implementation(libs.assertj)
+                implementation(testFixtures(project(":microraft")))
             }
         }
     }

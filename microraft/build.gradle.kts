@@ -81,6 +81,11 @@ testing {
 
         @Suppress("unused") //
         val test by getting(JvmTestSuite::class) {
+            targets.all {
+                testTask.configure {
+                    maxParallelForks = 4
+                }
+            }
             dependencies {
                 implementation(libs.mockito)
                 implementation(libs.assertj)

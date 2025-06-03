@@ -2,7 +2,7 @@
 # Setup
 
 MicroRaft JARs are available via Maven Central. If you are
-using Maven, just add the following lines to your your build tool dependency config:
+using Gradle or Maven, just add the following lines to your your build tool dependency config:
 
 Gradle (version catalog)
 ```toml

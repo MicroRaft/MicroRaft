@@ -59,9 +59,8 @@ tasks.withType<Jar>().configureEach {
 
 
 dependencies {
-    implementation(project(":microraft"))
+    api(project(":microraft"))
     implementation(libs.slf4j.api)
-    runtimeOnly(libs.log4j.slf4j.impl)
     compileOnly(libs.findbugs.annotations)
 }
 
@@ -76,6 +75,7 @@ testing {
         named<JvmTestSuite>("test") {
             dependencies {
                 implementation(libs.assertj)
+                runtimeOnly(libs.log4j.slf4j.impl)
             }
         }
     }

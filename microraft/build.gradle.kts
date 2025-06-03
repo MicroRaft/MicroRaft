@@ -63,12 +63,10 @@ tasks.javadoc {
     exclude("**/impl/**")
 }
 
-
 dependencies {
     compileOnly(libs.findbugs.annotations)
     implementation(libs.slf4j.api)
 }
-
 
 @Suppress("UnstableApiUsage") //
 testing {
@@ -76,7 +74,6 @@ testing {
         withType<JvmTestSuite> {
             useJUnit(libs.versions.junit)
         }
-
         named<JvmTestSuite>("test") {
             targets.all {
                 testTask.configure {
@@ -101,9 +98,8 @@ dependencies {
 
 // Do not publish test fixtures for now
 val javaComponent = components["java"] as AdhocComponentWithVariants
-javaComponent.withVariantsFromConfiguration(configurations["testFixturesApiElements"]) { skip() }
-javaComponent.withVariantsFromConfiguration(configurations["testFixturesRuntimeElements"]) { skip() }
-
+javaComponent.withVariantsFromConfiguration(configurations.testFixturesApiElements.get()) { skip() }
+javaComponent.withVariantsFromConfiguration(configurations.testFixturesRuntimeElements.get()) { skip() }
 
 publishing {
     // TODO Remove after debugging

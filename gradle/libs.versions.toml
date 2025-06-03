@@ -26,7 +26,6 @@ sqlite = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite" }
 typesafe-config = { module = "com.typesafe:config", version.ref = "typesafe-config" }
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 
-
 [plugins]
 defaults = { id = "io.github.sgtsilvio.gradle.defaults", version = "0.2.0" }
 javadocLinks = { id = "io.github.sgtsilvio.gradle.javadoc-links", version = "0.8.0" }

@@ -57,13 +57,11 @@ tasks.withType<Jar>().configureEach {
     )
 }
 
-
 dependencies {
     api(project(":microraft"))
     api(libs.typesafe.config)
     compileOnly(libs.findbugs.annotations)
 }
-
 
 @Suppress("UnstableApiUsage") //
 testing {
@@ -71,7 +69,6 @@ testing {
         withType<JvmTestSuite> {
             useJUnit(libs.versions.junit)
         }
-
         named<JvmTestSuite>("test") {
             dependencies {
                 implementation(libs.assertj)
@@ -80,7 +77,6 @@ testing {
         }
     }
 }
-
 
 publishing {
     publications {

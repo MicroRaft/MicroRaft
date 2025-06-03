@@ -7,6 +7,8 @@ plugins {
     `maven-publish`
     signing
     alias(libs.plugins.mavenCentralPublishing)
+    alias(libs.plugins.spotbugs)
+    checkstyle
 }
 
 group = "io.microraft"

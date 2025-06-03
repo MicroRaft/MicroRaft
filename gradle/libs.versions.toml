@@ -18,7 +18,6 @@ findbugs-annotations = { module = "com.google.code.findbugs:annotations", versio
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jooq = { module = "org.jooq:jooq", version.ref = "jooq" }
 junit = { module = "junit:junit", version.ref = "junit" }
-log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
 log4j-slf4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
 micrometer = { module = "io.micrometer:micrometer-core", version.ref = "micrometer" }
 mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }

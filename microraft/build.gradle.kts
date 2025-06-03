@@ -87,7 +87,6 @@ testing {
             dependencies {
                 implementation(libs.mockito)
                 implementation(libs.assertj)
-                runtimeOnly(libs.log4j.core)
                 runtimeOnly(libs.log4j.slf4j.impl)
                 compileOnly(libs.findbugs.annotations)
             }

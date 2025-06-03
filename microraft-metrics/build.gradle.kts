@@ -74,6 +74,7 @@ testing {
             useJUnit(libs.versions.junit)
         }
 
+        @Suppress("unused") //
         val test by getting(JvmTestSuite::class) {
             dependencies {
                 implementation(testFixtures(project(":microraft")))

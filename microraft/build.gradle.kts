@@ -13,11 +13,11 @@ plugins {
 
 group = "io.microraft"
 version = "0.9-SNAPSHOT"
-description = "Feature-complete implementation of the Raft consensus algorithm"
 
 metadata {
     moduleName = "io.microraft"
     readableName = "Microraft"
+    description = "Feature-complete implementation of the Raft consensus algorithm"
     license {
         apache2()
     }

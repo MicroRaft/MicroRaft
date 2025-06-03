@@ -12,11 +12,11 @@ plugins {
 
 group = "io.microraft"
 version = "0.9-SNAPSHOT"
-description = ""
 
 metadata {
     moduleName = "io.microraft.store.sqlite"
-    readableName = "MicroRaft SQLite store"
+    readableName = "MicroRaft SQLite Store"
+    description = "SQLite store for MicroRaft"
     license {
         apache2()
     }

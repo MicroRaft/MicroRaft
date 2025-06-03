@@ -12,11 +12,11 @@ plugins {
 
 group = "io.microraft"
 version = "0.9-SNAPSHOT"
-description = ""
 
 metadata {
     moduleName = "io.microraft.yaml"
     readableName = "MicroRaft YAML Config Parser"
+    description = "YAML config parser for MicroRaft"
     license {
         apache2()
     }

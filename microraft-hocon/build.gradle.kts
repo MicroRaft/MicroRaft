@@ -12,11 +12,11 @@ plugins {
 
 group = "io.microraft"
 version = "0.9-SNAPSHOT"
-description = ""
 
 metadata {
     moduleName = "io.microraft.hocon"
     readableName = "MicroRaft HOCON Config Parser"
+    description = "HOCON config parser for MicroRaft"
     license {
         apache2()
     }

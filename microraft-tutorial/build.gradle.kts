@@ -12,11 +12,11 @@ plugins {
 
 group = "io.microraft"
 version = "0.9-SNAPSHOT"
-description = ""
 
 metadata {
     moduleName = "io.microraft.tutorial"
     readableName = "MicroRaft Tutorial"
+    description = "Tutorial for MicroRaft"
     license {
         apache2()
     }

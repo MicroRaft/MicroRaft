@@ -12,11 +12,11 @@ plugins {
 
 group = "io.microraft"
 version = "0.9-SNAPSHOT"
-description = ""
 
 metadata {
     moduleName = "io.microraft.metrics"
     readableName = "MicroRaft Metrics"
+    description = "Micrometer metrics for MicroRaft"
     license {
         apache2()
     }

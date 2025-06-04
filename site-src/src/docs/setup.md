@@ -2,26 +2,41 @@
 # Setup
 
 MicroRaft JARs are available via Maven Central. If you are
-using Maven, just add the following lines to your your `pom.xml`:
+using Gradle or Maven, just add the following lines to your your build tool dependency config:
 
-~~~~{.xml}
+Gradle (version catalog)
+```toml
+[versions]
+microraft = "0.9"
+
+[libraries]
+microraft = { module = "io.microraft:microraft", version.ref = "microraft" }
+```
+
+Gradle (kotlinscript)
+```kotlin
+implementation("io.microraft:microraft:0.9")
+```
+
+Maven
+```xml
 <dependency>
-    <groupId>io.microraft</groupId>
+	<groupId>io.microraft</groupId>
 	<artifactId>microraft</artifactId>
-	<version>0.5</version>
+	<version>0.9</version>
 </dependency>
-~~~~
+```
 
-If you don't have Maven but want to build the project on your machine, `mvnw` is
+If you don't have Gradle but want to build the project on your machine, ./gradlew is
 available in the MicroRaft repository. Just hit the following command on your
 terminal.
 
 ```
-gh repo clone MicroRaft/MicroRaft && cd MicroRaft && ./mvnw clean package
+gh repo clone MicroRaft/MicroRaft && cd MicroRaft && ./gradlew build
 ``` 
 
-Then you can get the JARs from `microraft/target`, `microraft-hocon/target`, and
-`microraft-yaml/target` directories.
+Then you can get the JARs from `microraft/build/libs`, `microraft-hocon/build/libs`, and
+`microraft-yaml/build/libs` directories.
 
 -----
 

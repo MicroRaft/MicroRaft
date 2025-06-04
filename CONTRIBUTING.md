@@ -30,8 +30,7 @@ provide a code change:
 4. Create a pull request to the MicroRaft repository.
 
 MicroRaft contains `checkstyle` and `spotbugs` tools for static code analysis.
-Please run `mvn clean validate -P checkstyle` and 
-`mvn clean compile -P spotbugs` locally before issuing your pull request. You
-can also check test coverage with `mvn clean test -Pcoverage`.
+Please run `./gradlew checkstyleMain` and 
+`./gradlew spotbugsMain` locally before issuing your pull request.
 
 Thanks for your help and effort!

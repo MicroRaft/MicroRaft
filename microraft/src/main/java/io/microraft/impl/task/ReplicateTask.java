@@ -34,6 +34,7 @@ import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.log.RaftLog;
 import io.microraft.impl.state.RaftState;
 import io.microraft.impl.util.OrderedFuture;
+import io.microraft.model.log.BatchOperation;
 import io.microraft.model.groupop.UpdateRaftGroupMembersOp;
 import io.microraft.model.log.LogEntry;
 
@@ -86,6 +87,8 @@ public final class ReplicateTask implements Runnable {
 
             RaftLog log = state.log();
 
+            // Note: even if `operation` is a `BatchOperation`, it is still only one
+            // (composite) operation for the log.
             if (!log.checkAvailableCapacity(1)) {
                 future.fail(new IllegalStateException("Not enough capacity in RaftLog!"));
                 return;
@@ -93,6 +96,7 @@ public final class ReplicateTask implements Runnable {
 
             long newEntryLogIndex = log.lastLogOrSnapshotIndex() + 1;
             state.registerFuture(newEntryLogIndex, future);
+
             LogEntry entry = raftNode.getModelFactory().createLogEntryBuilder().setTerm(state.term())
                     .setIndex(newEntryLogIndex).setOperation(operation).build();
             log.appendEntry(entry);
@@ -130,9 +134,16 @@ public final class ReplicateTask implements Runnable {
     }
 
     private void prepareGroupOp(long logIndex, Object operation) {
+        UpdateRaftGroupMembersOp groupOp = null;
+
         if (operation instanceof UpdateRaftGroupMembersOp) {
+            groupOp = (UpdateRaftGroupMembersOp) operation;
+        } else if (operation instanceof BatchOperation) {
+            groupOp = ((BatchOperation) operation).getGroupOpToApply().orElse(null);
+        }
+
+        if (groupOp != null) {
             raftNode.setStatus(UPDATING_RAFT_GROUP_MEMBER_LIST);
-            UpdateRaftGroupMembersOp groupOp = (UpdateRaftGroupMembersOp) operation;
             raftNode.updateGroupMembers(logIndex, groupOp.getMembers(), groupOp.getVotingMembers());
         }
     }

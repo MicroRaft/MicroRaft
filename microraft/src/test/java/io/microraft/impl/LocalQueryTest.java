@@ -44,6 +44,8 @@ import io.microraft.impl.local.LocalRaftGroup;
 import io.microraft.model.message.AppendEntriesRequest;
 import io.microraft.test.util.BaseTest;
 
+// TODO(szymon): Determine if tests needed.
+
 public class LocalQueryTest extends BaseTest {
 
     private LocalRaftGroup group;

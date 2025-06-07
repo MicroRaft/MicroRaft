@@ -104,6 +104,10 @@ public class DefaultUpdateRaftGroupMembersOpOrBuilder
     @Override
     public UpdateRaftGroupMembersOp build() {
         requireNonNull(builder);
+        requireNonNull(members);
+        requireNonNull(votingMembers);
+        requireNonNull(endpoint);
+        requireNonNull(mode);
         builder = null;
         return this;
     }

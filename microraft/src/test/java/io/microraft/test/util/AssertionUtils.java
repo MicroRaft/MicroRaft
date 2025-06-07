@@ -17,13 +17,19 @@
 
 package io.microraft.test.util;
 
+import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
 import static java.lang.Integer.getInteger;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import io.microraft.impl.RaftNodeImpl;
+import io.microraft.impl.local.LocalRaftGroup;
+import io.microraft.impl.local.SimpleStateMachine;
 
 public final class AssertionUtils {
 
@@ -72,6 +78,16 @@ public final class AssertionUtils {
                 throw new RuntimeException(e);
             }
             sleepSeconds(1);
+        }
+    }
+
+    public static void assertGroupHasReplicatedValue(LocalRaftGroup group, int expectedCommitIndex,
+            Object expectedValueToBeReplicated) {
+        for (RaftNodeImpl node : group.getNodes()) {
+            assertThat(getCommitIndex(node)).isEqualTo(expectedCommitIndex);
+            SimpleStateMachine stateMachine = group.getStateMachine(node.getLocalEndpoint());
+            Object actual = stateMachine.get(expectedCommitIndex);
+            assertThat(actual).isEqualTo(expectedValueToBeReplicated);
         }
     }
 

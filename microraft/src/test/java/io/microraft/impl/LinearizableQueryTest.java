@@ -57,6 +57,8 @@ import io.microraft.model.message.InstallSnapshotRequest;
 import io.microraft.report.RaftGroupMembers;
 import io.microraft.test.util.BaseTest;
 
+// TODO(szymon): Determine if tests needed.
+
 public class LinearizableQueryTest extends BaseTest {
 
     private LocalRaftGroup group;

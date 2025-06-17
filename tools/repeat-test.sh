@@ -13,16 +13,16 @@ fi
 REPEAT=$1
 ROUND="1"
 
-mvn clean
+./gradlew clean
 
 while [ ${ROUND} -le "${REPEAT}" ]; do
 
     echo "ROUND: $ROUND"
 
     if [ -n "$TEST_NAME" ]; then
-      mvn test -DfailIfNoTests=false -Dtest="$TEST_NAME"
+      ./gradlew test --tests "$TEST_NAME"
     else
-      mvn test -DfailIfNoTests=false
+      ./gradlew test
     fi
 
     if [ $? != '0' ]; then

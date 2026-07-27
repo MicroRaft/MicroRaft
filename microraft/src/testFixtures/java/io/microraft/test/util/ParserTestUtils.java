@@ -25,7 +25,8 @@ import java.io.IOException;
 
 import org.assertj.core.api.AbstractThrowableAssert;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
-import org.junit.rules.TemporaryFolder;
+import java.nio.file.Path;
+import java.nio.file.Files;
 
 import io.microraft.RaftConfig;
 
@@ -62,8 +63,9 @@ public final class ParserTestUtils {
         }
     }
 
-    public static File createTempFile(TemporaryFolder folder, String content) throws IOException {
-        File file = folder.newFile();
+    public static File createTempFile(Path folder, String content) throws IOException {
+        java.nio.file.Path filePath = Files.createTempFile(folder, "tmp", null);
+        File file = filePath.toFile();
         try (FileWriter writer = new FileWriter(file)) {
             writer.write(content);
         }

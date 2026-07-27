@@ -18,14 +18,14 @@ package io.microraft.tutorial;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
@@ -75,7 +75,7 @@ public abstract class BaseLocalTest {
         }
     }
 
-    @Before
+    @BeforeEach
     public void startRaftGroup() {
         initialMembers = getInitialMembers();
         for (RaftEndpoint endpoint : initialMembers) {
@@ -84,7 +84,7 @@ public abstract class BaseLocalTest {
         }
     }
 
-    @After
+    @AfterEach
     public void terminateRaftGroup() {
         raftNodes.forEach(RaftNode::terminate);
     }

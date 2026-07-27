@@ -23,10 +23,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Collection;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.microraft.RaftEndpoint;
 import io.microraft.model.impl.log.DefaultLogEntryOrBuilder;
@@ -40,9 +39,6 @@ import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotEntry;
 
 public class RaftLogTest {
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     private final RaftLog log = RaftLog.create(100);
 
@@ -96,8 +92,7 @@ public class RaftLogTest {
                 new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
         log.appendEntries(entries);
 
-        exception.expect(IllegalArgumentException.class);
-        log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build());
+        assertThrows(IllegalArgumentException.class, () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build()));
     }
 
     @Test
@@ -107,8 +102,7 @@ public class RaftLogTest {
                 new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
         log.appendEntries(entries);
 
-        exception.expect(IllegalArgumentException.class);
-        log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build());
+        assertThrows(IllegalArgumentException.class, () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build()));
     }
 
     @Test
@@ -118,8 +112,7 @@ public class RaftLogTest {
                 new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
         log.appendEntries(entries);
 
-        exception.expect(IllegalArgumentException.class);
-        log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
+        assertThrows(IllegalArgumentException.class, () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build()));
     }
 
     @Test
@@ -129,8 +122,7 @@ public class RaftLogTest {
                 new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
         log.appendEntries(entries);
 
-        exception.expect(IllegalArgumentException.class);
-        log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(5).build());
+        assertThrows(IllegalArgumentException.class, () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(5).build()));
     }
 
     @Test
@@ -174,8 +166,7 @@ public class RaftLogTest {
         log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(2).setIndex(3).setGroupMembersView(groupMembersView)
                 .build());
 
-        exception.expect(IllegalArgumentException.class);
-        log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build());
+        assertThrows(IllegalArgumentException.class, () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build()));
     }
 
     @Test
@@ -187,8 +178,7 @@ public class RaftLogTest {
         log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(2).setIndex(3).setGroupMembersView(groupMembersView)
                 .build());
 
-        exception.expect(IllegalArgumentException.class);
-        log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build());
+        assertThrows(IllegalArgumentException.class, () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build()));
     }
 
     @Test
@@ -200,8 +190,7 @@ public class RaftLogTest {
         log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(2).setIndex(3).setGroupMembersView(groupMembersView)
                 .build());
 
-        exception.expect(IllegalArgumentException.class);
-        log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
+        assertThrows(IllegalArgumentException.class, () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build()));
     }
 
     @Test
@@ -213,8 +202,7 @@ public class RaftLogTest {
         log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(2).setIndex(3).setGroupMembersView(groupMembersView)
                 .build());
 
-        exception.expect(IllegalArgumentException.class);
-        log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(5).build());
+        assertThrows(IllegalArgumentException.class, () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(5).build()));
     }
 
     @Test
@@ -261,8 +249,7 @@ public class RaftLogTest {
 
     @Test
     public void getEntry_withInitialInvalidIndex() {
-        exception.expect(IllegalArgumentException.class);
-        log.getLogEntry(0);
+        assertThrows(IllegalArgumentException.class, () -> log.getLogEntry(0));
     }
 
     @Test
@@ -304,8 +291,7 @@ public class RaftLogTest {
         log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(2).setGroupMembersView(groupMembersView)
                 .build());
 
-        exception.expect(IllegalArgumentException.class);
-        log.getLogEntriesBetween(2, 3);
+        assertThrows(IllegalArgumentException.class, () -> log.getLogEntriesBetween(2, 3));
     }
 
     @Test
@@ -350,8 +336,7 @@ public class RaftLogTest {
                 new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build());
         log.appendEntries(entries);
 
-        exception.expect(IllegalArgumentException.class);
-        log.truncateEntriesFrom(4);
+        assertThrows(IllegalArgumentException.class, () -> log.truncateEntriesFrom(4));
     }
 
     @Test
@@ -363,8 +348,7 @@ public class RaftLogTest {
         log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(2).setGroupMembersView(groupMembersView)
                 .build());
 
-        exception.expect(IllegalArgumentException.class);
-        log.truncateEntriesFrom(1);
+        assertThrows(IllegalArgumentException.class, () -> log.truncateEntriesFrom(1));
     }
 
     @Test

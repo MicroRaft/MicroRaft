@@ -27,17 +27,17 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import java.nio.file.Path;
 import org.yaml.snakeyaml.Yaml;
 
 import io.microraft.test.util.BaseTest;
 
 public class YamlRaftConfigParserTest extends BaseTest {
 
-    @Rule
-    public final TemporaryFolder folder = new TemporaryFolder();
+    @TempDir
+    public Path folder;
 
     private final String yamlString = "raft:\n" + " leader-election-timeout-millis: 750\n"
             + " leader-heartbeat-period-secs: 15\n" + " leader-heartbeat-timeout-secs: 45\n"

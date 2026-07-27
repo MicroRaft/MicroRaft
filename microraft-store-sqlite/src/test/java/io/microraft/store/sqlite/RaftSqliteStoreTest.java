@@ -10,10 +10,10 @@ import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import java.nio.file.Path;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -49,14 +49,14 @@ public class RaftSqliteStoreTest {
             .createRaftGroupMembersViewBuilder().setLogIndex(RAFT_INDEX).setMembers(List.of(ENDPOINT_A, ENDPOINT_B))
             .setVotingMembers(List.of(ENDPOINT_A)).build();
 
-    @Rule
-    public final TemporaryFolder tempDir = new TemporaryFolder();
+    @TempDir
+    public Path tempDir;
 
     private File sqlite;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
-        sqlite = new File(tempDir.newFolder(), "sqlite.db");
+        sqlite = tempDir.resolve("sqlite.db").toFile();
     }
 
     private void withRaftStore(Consumer<RaftSqliteStore> consumer) {

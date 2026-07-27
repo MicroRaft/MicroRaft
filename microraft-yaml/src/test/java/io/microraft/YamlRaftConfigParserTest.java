@@ -53,6 +53,7 @@ public class YamlRaftConfigParserTest extends BaseTest {
           .append(" transfer-snapshots-from-followers-enabled: false").append(System.lineSeparator())
           .append(" raft-node-report-publish-period-secs: 20");
         yamlString = sb.toString();
+    }
 
     @Test
     public void parseString_whenValidYamlProvided_returnsConfig() {

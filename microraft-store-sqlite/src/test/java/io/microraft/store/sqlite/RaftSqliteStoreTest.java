@@ -1,4 +1,4 @@
-﻿package io.microraft.store.sqlite;
+package io.microraft.store.sqlite;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

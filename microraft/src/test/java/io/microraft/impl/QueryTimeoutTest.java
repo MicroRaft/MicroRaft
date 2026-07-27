@@ -34,7 +34,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;\r\nimport org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import io.microraft.MembershipChangeMode;
 import io.microraft.Ordered;
@@ -56,7 +57,8 @@ public class QueryTimeoutTest extends BaseTest {
         }
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_followerQueriedWithFutureCommitIndex_then_queryExecutedWhenCommitIndexAdvances() {
         group = LocalRaftGroup.start(3);
 
@@ -76,7 +78,8 @@ public class QueryTimeoutTest extends BaseTest {
         assertThat(o.getCommitIndex()).isEqualTo(commitIndex);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_multipleQueriesScheduledToFollowerdWithFutureCommitIndex_then_queriesExecutedWhenCommitIndexAdvances() {
         group = LocalRaftGroup.start(3);
 
@@ -104,7 +107,8 @@ public class QueryTimeoutTest extends BaseTest {
         }
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_multipleQueriesScheduledToFollowerdWithFutureCommitIndex_then_queriesExecutedWhenCommitIndexAdvancesViaInstalledSnapshot() {
         int logSize = 10;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(logSize).build();
@@ -132,7 +136,8 @@ public class QueryTimeoutTest extends BaseTest {
         assertThat(o.getCommitIndex()).isEqualTo(latestCommitIndex);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_followerQueriedWithPastCommitIndex_then_queryExecutedImmediately() {
         group = LocalRaftGroup.start(3);
 
@@ -152,7 +157,8 @@ public class QueryTimeoutTest extends BaseTest {
         assertThat(o.getCommitIndex()).isEqualTo(commitIndex);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_followerQueriedWithFutureCommitIndex_then_queryTimesOutIfCommitIndexDoesNotAdvance() {
         group = LocalRaftGroup.start(3);
 
@@ -171,7 +177,8 @@ public class QueryTimeoutTest extends BaseTest {
         }
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_followerQueriedWithFutureCommitIndexAndNegativeTimeout_then_queryFailsImmediately() {
         group = LocalRaftGroup.start(3);
 
@@ -189,7 +196,8 @@ public class QueryTimeoutTest extends BaseTest {
         }
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderQueriedWithLeaderLeaseAndFutureCommitIndex_then_queryFailsImmediately() {
         group = LocalRaftGroup.start(3);
 
@@ -206,7 +214,8 @@ public class QueryTimeoutTest extends BaseTest {
         }
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderQueriedWithLinearizableAndFutureCommitIndex_then_queryFailsImmediately() {
         group = LocalRaftGroup.start(3);
 
@@ -223,7 +232,8 @@ public class QueryTimeoutTest extends BaseTest {
         }
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderQueriedWithEventualConsistencyAndFutureCommitIndex_then_queryFailsWithTimeout() {
         group = LocalRaftGroup.start(3);
 
@@ -240,7 +250,8 @@ public class QueryTimeoutTest extends BaseTest {
         }
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_followerQueriedWithFutureCommitIndex_then_queryFailsOnTerminate() {
         group = LocalRaftGroup.start(3);
 
@@ -263,7 +274,8 @@ public class QueryTimeoutTest extends BaseTest {
         }
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderQueriedWithFutureCommitIndex_then_queryFailsWhenLeaderLeavesRaftGroup() {
         group = LocalRaftGroup.start(3);
 
@@ -284,7 +296,8 @@ public class QueryTimeoutTest extends BaseTest {
         }
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_followerWaitsForPastCommitIndex_then_barrierCompletesImmediately() {
         group = LocalRaftGroup.start(3);
 
@@ -304,7 +317,8 @@ public class QueryTimeoutTest extends BaseTest {
         assertThat(o.getCommitIndex()).isEqualTo(commitIndex2);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_followerWaitsForCurrentCommitIndex_then_barrierCompletesImmediately() {
         group = LocalRaftGroup.start(3);
 
@@ -323,7 +337,8 @@ public class QueryTimeoutTest extends BaseTest {
         assertThat(o.getCommitIndex()).isEqualTo(commitIndex);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_followerWaitsForFutureCommitIndex_then_barrierFailsWithTimeout() {
         group = LocalRaftGroup.start(3);
 
@@ -341,7 +356,8 @@ public class QueryTimeoutTest extends BaseTest {
         }
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderWaitsForPastCommitIndex_then_barrierCompletesImmediately() {
         group = LocalRaftGroup.start(3);
 
@@ -356,7 +372,8 @@ public class QueryTimeoutTest extends BaseTest {
         assertThat(o.getCommitIndex()).isEqualTo(commitIndex2);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderWaitsForCurrentCommitIndex_then_barrierCompletesImmediately() {
         group = LocalRaftGroup.start(3);
 
@@ -370,7 +387,8 @@ public class QueryTimeoutTest extends BaseTest {
         assertThat(o.getCommitIndex()).isEqualTo(commitIndex);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderWaitsForFutureCommitIndex_then_barrierFailsWithTimeout() {
         group = LocalRaftGroup.start(3);
 
@@ -387,5 +405,6 @@ public class QueryTimeoutTest extends BaseTest {
     }
 
 }
+
 
 

@@ -53,7 +53,8 @@ import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.RaftRole;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;\r\nimport org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import io.microraft.impl.local.InMemoryRaftStore;
 import io.microraft.impl.local.LocalRaftGroup;
@@ -77,7 +78,8 @@ public class PersistenceTest extends BaseTest {
         }
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void testTermAndVoteArePersisted() {
         group = LocalRaftGroup.newBuilder(3).setConfig(TEST_RAFT_CONFIG)
                 .setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
@@ -123,7 +125,8 @@ public class PersistenceTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void testCommittedEntriesArePersisted() {
         group = LocalRaftGroup.newBuilder(3).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
 
@@ -145,7 +148,8 @@ public class PersistenceTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void testUncommittedEntriesArePersisted() {
         group = LocalRaftGroup.newBuilder(3).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
 
@@ -175,7 +179,8 @@ public class PersistenceTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void testSnapshotIsPersisted() {
         int commitCountToTakeSnapshot = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(commitCountToTakeSnapshot).build();
@@ -200,7 +205,8 @@ public class PersistenceTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderAppendEntriesInMinoritySplit_then_itTruncatesEntriesOnStore() {
         group = LocalRaftGroup.newBuilder(3).setConfig(TEST_RAFT_CONFIG)
                 .setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
@@ -258,7 +264,8 @@ public class PersistenceTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderIsRestarted_then_itBecomesFollowerAndRestoresItsRaftState() {
         group = LocalRaftGroup.newBuilder(3).setConfig(TEST_RAFT_CONFIG).enableNewTermOperation()
                 .setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
@@ -298,7 +305,8 @@ public class PersistenceTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderIsRestarted_then_itRestoresItsRaftStateAndBecomesLeader() {
         group = LocalRaftGroup.newBuilder(3).enableNewTermOperation()
                 .setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
@@ -345,7 +353,8 @@ public class PersistenceTest extends BaseTest {
         }
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_followerIsRestarted_then_itRestoresItsRaftState() {
         group = LocalRaftGroup.newBuilder(3).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
 
@@ -388,7 +397,8 @@ public class PersistenceTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_learnerIsRestarted_then_itRestoresItsRaftState() {
         group = LocalRaftGroup.newBuilder(3, 2).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
 
@@ -441,7 +451,8 @@ public class PersistenceTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderIsRestarted_then_itBecomesFollowerAndRestoresItsRaftStateWithSnapshot() {
         int commitCountToTakeSnapshot = 50;
         RaftConfig config = RaftConfig.newBuilder().setLeaderElectionTimeoutMillis(2000).setLeaderHeartbeatPeriodSecs(1)
@@ -486,7 +497,8 @@ public class PersistenceTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_followerIsRestarted_then_itRestoresItsRaftStateWithSnapshot() {
         int commitCountToTakeSnapshot = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(commitCountToTakeSnapshot).build();
@@ -536,7 +548,8 @@ public class PersistenceTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_learnerIsRestarted_then_itRestoresItsRaftStateWithSnapshot() {
         int commitCountToTakeSnapshot = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(commitCountToTakeSnapshot).build();
@@ -595,7 +608,8 @@ public class PersistenceTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderIsRestarted_then_itRestoresItsRaftStateWithSnapshotAndBecomesLeader() {
         int commitCountToTakeSnapshot = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(commitCountToTakeSnapshot).build();
@@ -639,7 +653,8 @@ public class PersistenceTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderIsRestarted_then_itBecomesLeaderAndAppliesPreviouslyCommittedMemberList() {
         group = LocalRaftGroup.newBuilder(3).enableNewTermOperation()
                 .setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
@@ -676,7 +691,8 @@ public class PersistenceTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_followerIsRestarted_then_itAppliesPreviouslyCommittedMemberList() {
         RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(30)
                 .build();
@@ -710,7 +726,8 @@ public class PersistenceTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_learnerIsRestarted_then_itAppliesItsPromotion() {
         RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(30)
                 .build();
@@ -749,7 +766,8 @@ public class PersistenceTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderIsRestarted_then_itBecomesLeaderAndAppliesPreviouslyCommittedMemberListViaSnapshot() {
         int commitCountToTakeSnapshot = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(commitCountToTakeSnapshot).build();
@@ -792,7 +810,8 @@ public class PersistenceTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_followerIsRestarted_then_itAppliesPreviouslyCommittedMemberListViaSnapshot() {
         int commitCountToTakeSnapshot = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(commitCountToTakeSnapshot)
@@ -831,7 +850,8 @@ public class PersistenceTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_learnerIsRestarted_then_itAppliesItsPromotionViaSnapshot() {
         int commitCountToTakeSnapshot = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(commitCountToTakeSnapshot)
@@ -875,7 +895,8 @@ public class PersistenceTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_learnerIsRestarted_then_itRestartsAsNonVotingMember() {
         group = LocalRaftGroup.newBuilder(3).enableNewTermOperation()
                 .setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
@@ -899,7 +920,8 @@ public class PersistenceTest extends BaseTest {
         assertThat(getRole(restartedNode)).isEqualTo(LEARNER);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_promotedMemberIsRestarted_then_itRestartsAsVotingMember() {
         group = LocalRaftGroup.newBuilder(3).enableNewTermOperation()
                 .setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
@@ -926,7 +948,8 @@ public class PersistenceTest extends BaseTest {
         assertThat(getRole(restartedNode)).isEqualTo(RaftRole.FOLLOWER);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_promotingMemberIsRestarted_then_itRestartsAsVotingMember() {
         group = LocalRaftGroup.newBuilder(3).enableNewTermOperation()
                 .setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).start();
@@ -961,7 +984,8 @@ public class PersistenceTest extends BaseTest {
     // Check that the old leader's log can be synchronized with a new one when it
     // contains a snapshot
     // and only unreplicated entries
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderWithSnapshotAndUnreplicatedEntries_isRestarted_then_itBecomesFollowerAndSyncItsLog() {
         int commitCountToTakeSnapshot = 50;
         RaftConfig config = RaftConfig.newBuilder().setLeaderElectionTimeoutMillis(2000).setLeaderHeartbeatPeriodSecs(1)
@@ -1037,5 +1061,6 @@ public class PersistenceTest extends BaseTest {
     // TODO [basri] add snapshot chunk truncation tests
 
 }
+
 
 

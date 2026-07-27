@@ -47,7 +47,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;\r\nimport org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import io.microraft.Ordered;
 import io.microraft.RaftConfig;
@@ -75,7 +76,8 @@ public class RaftTest extends BaseTest {
         }
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_2NodeRaftGroupIsStarted_then_leaderIsElected() {
         testLeaderElection(2);
     }
@@ -97,12 +99,14 @@ public class RaftTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_3NodeRaftGroupIsStarted_then_leaderIsElected() {
         testLeaderElection(3);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_2NodeRaftGroupIsStarted_then_singleEntryCommitted() {
         testSingleCommitEntry(2);
     }
@@ -127,12 +131,14 @@ public class RaftTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_3NodeRaftGroupIsStarted_then_singleEntryCommitted() {
         testSingleCommitEntry(3);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_followerAttemptsToReplicate_then_itFails() {
         group = LocalRaftGroup.start(3);
         RaftNode leader = group.waitUntilLeaderElected();
@@ -151,7 +157,8 @@ public class RaftTest extends BaseTest {
         }
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_4NodeRaftGroupIsStarted_then_leaderCannotCommitWithOnlyLocalAppend() throws Exception {
         testNoCommitWhenOnlyLeaderAppends(4);
     }
@@ -175,12 +182,14 @@ public class RaftTest extends BaseTest {
         }
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_3NodeRaftGroupIsStarted_then_leaderCannotCommitWithOnlyLocalAppend() throws Exception {
         testNoCommitWhenOnlyLeaderAppends(3);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderAppendsToMinority_then_itCannotCommit() throws Exception {
         group = LocalRaftGroup.start(5);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -211,7 +220,8 @@ public class RaftTest extends BaseTest {
         }
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_4NodeRaftGroupIsStarted_then_leaderReplicateEntriesSequentially() {
         testReplicateEntriesSequentially(4);
     }
@@ -261,12 +271,14 @@ public class RaftTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_5NodeRaftGroupIsStarted_then_leaderReplicateEntriesSequentially() {
         testReplicateEntriesSequentially(5);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_4NodeRaftGroupIsStarted_then_leaderReplicatesEntriesConcurrently() {
         testReplicateEntriesConcurrently(4);
     }
@@ -303,12 +315,14 @@ public class RaftTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_5NodeRaftGroupIsStarted_then_leaderReplicatesEntriesConcurrently() {
         testReplicateEntriesConcurrently(5);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_4NodeRaftGroupIsStarted_then_entriesAreSubmittedInParallel() throws Exception {
         testReplicateEntriesInParallel(4);
     }
@@ -359,12 +373,14 @@ public class RaftTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_5NodeRaftGroupIsStarted_then_entriesAreSubmittedInParallel() throws Exception {
         testReplicateEntriesInParallel(5);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_followerSlowsDown_then_itCatchesLeaderEventually() {
         int entryCount = 100;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount + 2).build();
@@ -397,7 +413,8 @@ public class RaftTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_disruptiveFollowerStartsElection_then_itCannotTakeOverLeadershipFromLegitimateLeader() {
         group = LocalRaftGroup.start(3);
 
@@ -428,7 +445,8 @@ public class RaftTest extends BaseTest {
         assertThat(disruptiveFollowerTermRef[0]).isEqualTo(getTerm(newLeader));
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_followerTerminatesInMinority_then_clusterRemainsAvailable() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -440,7 +458,8 @@ public class RaftTest extends BaseTest {
         assertThat(result.getResult()).isEqualTo(value);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderTerminatesInMinority_then_clusterRemainsAvailable() {
         group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
@@ -464,7 +483,8 @@ public class RaftTest extends BaseTest {
         assertThat(result.getResult()).isEqualTo(value);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderStaysInMajorityDuringSplit_thenItMergesBackSuccessfully() {
         group = LocalRaftGroup.start(5, TEST_RAFT_CONFIG);
         group.waitUntilLeaderElected();
@@ -483,7 +503,8 @@ public class RaftTest extends BaseTest {
         group.waitUntilLeaderElected();
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderStaysInMinorityDuringSplit_thenItMergesBackSuccessfully() {
         int nodeCount = 5;
         group = LocalRaftGroup.start(nodeCount, TEST_RAFT_CONFIG);
@@ -511,7 +532,8 @@ public class RaftTest extends BaseTest {
         group.waitUntilLeaderElected();
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderCrashes_then_theFollowerWithLongestLogBecomesLeader() {
         group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
@@ -562,7 +584,8 @@ public class RaftTest extends BaseTest {
         }, 3);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_followerBecomesLeaderWithUncommittedEntries_then_thoseEntriesAreCommittedWithANewEntryOfNewTerm() {
         group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
@@ -618,7 +641,8 @@ public class RaftTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderCrashes_then_theFollowerWithLongestLogMayNotBecomeLeaderIfItsLogIsNotMajority() {
         group = LocalRaftGroup.start(5, TEST_RAFT_CONFIG);
 
@@ -698,7 +722,8 @@ public class RaftTest extends BaseTest {
         assertThat(getLastLogOrSnapshotEntry(followerWithLongestLog).getIndex()).isEqualTo(2);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderStaysInMinorityDuringSplit_then_itCannotCommitNewEntries() {
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(100).setLeaderHeartbeatPeriodSecs(1)
                 .setLeaderHeartbeatTimeoutSecs(5).build();
@@ -766,7 +791,8 @@ public class RaftTest extends BaseTest {
         });
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_thereAreTooManyInflightAppendedEntries_then_newAppendsAreRejected() {
         int pendingEntryCount = 10;
         RaftConfig config = RaftConfig.newBuilder().setMaxPendingLogEntryCount(pendingEntryCount).build();
@@ -790,7 +816,8 @@ public class RaftTest extends BaseTest {
         }
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderStaysInMinority_then_itDemotesItselfToFollower() {
         group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
@@ -813,7 +840,8 @@ public class RaftTest extends BaseTest {
         assertThat(leader.getReport().join().getResult().getLeaderHeartbeatTimestamp()).isEmpty();
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderDemotesToFollower_then_itShouldNotDeleteItsVote() {
         group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
@@ -828,7 +856,8 @@ public class RaftTest extends BaseTest {
         assertThat(getVotedEndpoint(leader)).isEqualTo(leader.getLocalEndpoint());
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_leaderTerminates_then_itFailsPendingFuturesWithIndeterminateStateException() {
         group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
@@ -853,7 +882,8 @@ public class RaftTest extends BaseTest {
         }
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_evenSizedRaftGroupRunning_then_logReplicationQuorumCanBeDecreased() {
         group = LocalRaftGroup.start(4, TEST_RAFT_CONFIG);
 
@@ -865,7 +895,8 @@ public class RaftTest extends BaseTest {
         leader.replicate(applyValue("val")).join();
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_initialGroupMembersIncludeLearners_then_leaderIsElected() {
         group = LocalRaftGroup.start(4, 2, TEST_RAFT_CONFIG);
         group.start();
@@ -888,7 +919,8 @@ public class RaftTest extends BaseTest {
         assertThat(learnerCount).isEqualTo(2);
     }
 
-    @Timeout(300)\r\n    @Test
+    @Timeout(300)
+    @Test
     public void when_initialGroupMembersContainSingleVotingMemberAndMultipleLearners_then_leaderIsElected() {
         group = LocalRaftGroup.start(3, 1, TEST_RAFT_CONFIG);
         group.start();
@@ -907,5 +939,6 @@ public class RaftTest extends BaseTest {
     }
 
 }
+
 
 

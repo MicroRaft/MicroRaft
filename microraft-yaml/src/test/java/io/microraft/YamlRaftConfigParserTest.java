@@ -39,19 +39,7 @@ public class YamlRaftConfigParserTest extends BaseTest {
     @TempDir
     public Path folder;
 
-    private final String yamlString = "raft:
-" + " leader-election-timeout-millis: 750
-"
-            + " leader-heartbeat-period-secs: 15
-" + " leader-heartbeat-timeout-secs: 45
-"
-            + " append-entries-request-batch-size: 750
-" + " commit-count-to-take-snapshot: 7500
-"
-            + " max-pending-log-entry-count: 1500
-" + " transfer-snapshots-from-followers-enabled: false
-"
-            + " raft-node-report-publish-period-secs: 20";
+    private final String yamlString = "raft:\\n" + " leader-election-timeout-millis: 750\\n" + " leader-heartbeat-period-secs: 15\\n" + " leader-heartbeat-timeout-secs: 45\\n" + " append-entries-request-batch-size: 750\\n" + " commit-count-to-take-snapshot: 7500\\n" + " max-pending-log-entry-count: 1500\\n" + " transfer-snapshots-from-followers-enabled: false\\n" + " raft-node-report-publish-period-secs: 20";
 
     @Test
     public void parseString_whenValidYamlProvided_returnsConfig() {
@@ -62,11 +50,7 @@ public class YamlRaftConfigParserTest extends BaseTest {
 
     @Test
     public void parseString_whenLongTimeoutProvided_returnsConfig() {
-        String yamlWithLongTimeout = "raft:
-" + " leader-election-timeout-millis: 5000000000
-"
-                + " leader-heartbeat-period-secs: 15
-" + " leader-heartbeat-timeout-secs: 45
+        String yamlWithLongTimeout = "raft:\\n" + " leader-election-timeout-millis: 5000000000\\n" + " leader-heartbeat-period-secs: 15\\n" + " leader-heartbeat-timeout-secs: 45
 ";
 
         RaftConfig config = YamlRaftConfigParser.parseString(new Yaml(), yamlWithLongTimeout);
@@ -76,8 +60,7 @@ public class YamlRaftConfigParserTest extends BaseTest {
 
     @Test
     public void parseString_whenMaxIntProvidedForIntField_returnsConfig() {
-        String yamlWithLongTypedInt = "raft:
-" + " append-entries-request-batch-size: 2147483647
+        String yamlWithLongTypedInt = "raft:\\n" + " append-entries-request-batch-size: 2147483647
 ";
 
         RaftConfig config = YamlRaftConfigParser.parseString(new Yaml(), yamlWithLongTypedInt);
@@ -87,8 +70,7 @@ public class YamlRaftConfigParserTest extends BaseTest {
 
     @Test
     public void parseString_whenOutOfRangeIntProvided_throwsIllegalArgumentException() {
-        String yamlWithOutOfRangeInt = "raft:
-" + " append-entries-request-batch-size: 2147483648
+        String yamlWithOutOfRangeInt = "raft:\\n" + " append-entries-request-batch-size: 2147483648
 ";
 
         assertConfigException(() -> YamlRaftConfigParser.parseString(new Yaml(), yamlWithOutOfRangeInt),
@@ -98,8 +80,7 @@ public class YamlRaftConfigParserTest extends BaseTest {
 
     @Test
     public void parseString_whenFractionalLongProvided_throwsIllegalArgumentException() {
-        String yamlWithFractionalLong = "raft:
-" + " leader-election-timeout-millis: 1.5
+        String yamlWithFractionalLong = "raft:\\n" + " leader-election-timeout-millis: 1.5
 ";
 
         assertConfigException(() -> YamlRaftConfigParser.parseString(new Yaml(), yamlWithFractionalLong),
@@ -109,8 +90,7 @@ public class YamlRaftConfigParserTest extends BaseTest {
 
     @Test
     public void parseString_whenFractionalIntProvided_throwsIllegalArgumentException() {
-        String yamlWithFractionalInt = "raft:
-" + " append-entries-request-batch-size: 1.5
+        String yamlWithFractionalInt = "raft:\\n" + " append-entries-request-batch-size: 1.5
 ";
 
         assertConfigException(() -> YamlRaftConfigParser.parseString(new Yaml(), yamlWithFractionalInt),

@@ -31,20 +31,7 @@ public class HoconRaftConfigParserTest extends BaseTest {
 
     @Test
     public void parseConfig_whenValidHoconProvided_returnsConfig() {
-        String configString = "raft {
-" + "  leader-election-timeout-millis: 750
-"
-                + "  leader-heartbeat-period-secs: 15
-" + "  leader-heartbeat-timeout-secs: 45
-"
-                + "  append-entries-request-batch-size: 750
-" + "  commit-count-to-take-snapshot: 7500
-"
-                + "  max-pending-log-entry-count: 1500
-" + "  transfer-snapshots-from-followers-enabled: false
-"
-                + "  raft-node-report-publish-period-secs: 20
-" + "}
+        String configString = "raft {\\n" + "  leader-election-timeout-millis: 750\\n" + "  leader-heartbeat-period-secs: 15\\n" + "  leader-heartbeat-timeout-secs: 45\\n" + "  append-entries-request-batch-size: 750\\n" + "  commit-count-to-take-snapshot: 7500\\n" + "  max-pending-log-entry-count: 1500\\n" + "  transfer-snapshots-from-followers-enabled: false\\n" + "  raft-node-report-publish-period-secs: 20\\n" + "}
 ";
 
         RaftConfig config = parseConfig(ConfigFactory.parseString(configString));
@@ -54,12 +41,7 @@ public class HoconRaftConfigParserTest extends BaseTest {
 
     @Test
     public void parseConfig_whenLongTimeoutProvided_returnsConfig() {
-        String configString = "raft {
-" + "  leader-election-timeout-millis: 5000000000
-"
-                + "  leader-heartbeat-period-secs: 15
-" + "  leader-heartbeat-timeout-secs: 45
-" + "}
+        String configString = "raft {\\n" + "  leader-election-timeout-millis: 5000000000\\n" + "  leader-heartbeat-period-secs: 15\\n" + "  leader-heartbeat-timeout-secs: 45\\n" + "}
 ";
 
         RaftConfig config = parseConfig(ConfigFactory.parseString(configString));
@@ -69,9 +51,7 @@ public class HoconRaftConfigParserTest extends BaseTest {
 
     @Test
     public void parseConfig_whenFractionalLongProvided_throwsIllegalArgumentException() {
-        String configString = "raft {
-" + "  leader-election-timeout-millis: 1.5
-" + "}
+        String configString = "raft {\\n" + "  leader-election-timeout-millis: 1.5\\n" + "}
 ";
 
         assertConfigException(() -> parseConfig(ConfigFactory.parseString(configString)), IllegalArgumentException.class,
@@ -80,9 +60,7 @@ public class HoconRaftConfigParserTest extends BaseTest {
 
     @Test
     public void parseConfig_whenOutOfRangeIntProvided_throwsIllegalArgumentException() {
-        String configString = "raft {
-" + "  append-entries-request-batch-size: 2147483648
-" + "}
+        String configString = "raft {\\n" + "  append-entries-request-batch-size: 2147483648\\n" + "}
 ";
 
         assertConfigException(() -> parseConfig(ConfigFactory.parseString(configString)), IllegalArgumentException.class,

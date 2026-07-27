@@ -18,7 +18,7 @@
 package io.microraft.impl.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.fail;\r\nimport static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
@@ -34,9 +34,9 @@ public class OrderedFutureTest extends BaseTest {
 
     private final OrderedFuture<Object> future = new OrderedFuture<>();
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testFutureCannotBeCancelled() {
-        future.cancel(false);
+        assertThrows(UnsupportedOperationException.class, () -> future.cancel(false));
     }
 
     @Test
@@ -51,9 +51,9 @@ public class OrderedFutureTest extends BaseTest {
         assertThat(future).isCompleted();
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testFutureCanBeCompletedExceptionallyWithPublicAPI() {
-        future.completeExceptionally(new NullPointerException());
+        assertThrows(UnsupportedOperationException.class, () -> future.completeExceptionally(new NullPointerException()));
     }
 
     @Test
@@ -69,9 +69,9 @@ public class OrderedFutureTest extends BaseTest {
         }
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testFutureCannotBeCompletedWithPublicAPI() {
-        future.complete(new Ordered<Object>() {
+        assertThrows(UnsupportedOperationException.class, () -> future.complete(new Ordered<Object>() {
             @Override
             public long getCommitIndex() {
                 return 1;
@@ -81,7 +81,7 @@ public class OrderedFutureTest extends BaseTest {
             public Object getResult() {
                 return null;
             }
-        });
+        }));
     }
 
     @Test

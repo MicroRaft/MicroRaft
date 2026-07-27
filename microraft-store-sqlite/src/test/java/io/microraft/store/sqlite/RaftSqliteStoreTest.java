@@ -134,7 +134,7 @@ public class RaftSqliteStoreTest {
             assertThat(restoredRaftState.getSnapshotEntry().getOperation()).usingRecursiveComparison()
                     .isEqualTo(List.of(snapshotChunk(3, 1, 0, 1)));
         });
-        sqlite = tempDir.resolve("sqlite.db").toFile();
+        sqlite = tempDir.resolve("sqlite2.db").toFile();
         withRaftStore(RaftSqliteStoreTest::persistInitialState);
         withRaftStore(store -> {
             store.persistSnapshotChunk(snapshotChunk(1, 1, 0, 1));
@@ -143,11 +143,10 @@ public class RaftSqliteStoreTest {
             store.persistSnapshotChunk(snapshotChunk(2, 1, 2, 3));
             store.deleteSnapshotChunks(2, 3);
             store.flush();
-            System.out.println("DEBUG snapshot chunks: " + store.getAllSnapshotChunks());
             assertThat(store.getAllSnapshotChunks()).usingRecursiveFieldByFieldElementComparator()
                     .containsExactly(snapshotChunk(1, 1, 0, 1));
         });
-        sqlite = tempDir.resolve("sqlite.db").toFile();
+        sqlite = tempDir.resolve("sqlite3.db").toFile();
         withRaftStore(RaftSqliteStoreTest::persistInitialState);
         withRaftStore(store -> {
             store.persistSnapshotChunk(snapshotChunk(1, 1, 0, 1));
@@ -160,7 +159,7 @@ public class RaftSqliteStoreTest {
             assertThat(store.getAllSnapshotChunks()).usingRecursiveFieldByFieldElementComparator()
                     .containsExactly(snapshotChunk(1, 1, 0, 1), snapshotChunk(3, 1, 0, 1));
         });
-        sqlite = tempDir.resolve("sqlite.db").toFile();
+        sqlite = tempDir.resolve("sqlite4.db").toFile();
         withRaftStore(RaftSqliteStoreTest::persistInitialState);
         withRaftStore(store -> {
             store.persistSnapshotChunk(snapshotChunk(1, 1, 0, 2));

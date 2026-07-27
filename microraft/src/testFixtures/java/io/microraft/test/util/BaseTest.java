@@ -33,7 +33,7 @@ public class BaseTest {
         public void testSuccessful(ExtensionContext context) {
             LOGGER.info("+ SUCCEEDED: " + context.getDisplayName());
         }
-n        @Override
+        @Override
         public void testFailed(ExtensionContext context, Throwable cause) {
             LOGGER.info("- FAILED: " + context.getDisplayName());
         }

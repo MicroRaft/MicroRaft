@@ -20,7 +20,7 @@ package io.microraft.test.util;
 import static java.lang.Integer.getInteger;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
  * Modified work Copyright 2020, MicroRaft.
  *
@@ -37,8 +37,8 @@ import static io.microraft.test.util.RaftTestUtils.getSnapshotEntry;
 import static io.microraft.test.util.RaftTestUtils.getTerm;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.HashSet;
 import java.util.List;
@@ -52,8 +52,8 @@ import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
 import io.microraft.RaftRole;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import io.microraft.impl.local.InMemoryRaftStore;
 import io.microraft.impl.local.LocalRaftGroup;
@@ -70,7 +70,7 @@ public class PersistenceTest extends BaseTest {
 
     private LocalRaftGroup group;
 
-    @After
+    @AfterEach
     public void destroy() {
         if (group != null) {
             group.destroy();
@@ -1037,3 +1037,4 @@ public class PersistenceTest extends BaseTest {
     // TODO [basri] add snapshot chunk truncation tests
 
 }
+

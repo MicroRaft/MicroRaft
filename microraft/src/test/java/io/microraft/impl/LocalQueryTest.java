@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
  * Modified work Copyright 2020, MicroRaft.
  *
@@ -26,13 +26,13 @@ import static io.microraft.test.util.AssertionUtils.eventually;
 import static io.microraft.test.util.RaftTestUtils.TEST_RAFT_CONFIG;
 import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import io.microraft.Ordered;
 import io.microraft.RaftEndpoint;
@@ -48,7 +48,7 @@ public class LocalQueryTest extends BaseTest {
 
     private LocalRaftGroup group;
 
-    @After
+    @AfterEach
     public void destroy() {
         if (group != null) {
             group.destroy();
@@ -461,3 +461,4 @@ public class LocalQueryTest extends BaseTest {
     }
 
 }
+

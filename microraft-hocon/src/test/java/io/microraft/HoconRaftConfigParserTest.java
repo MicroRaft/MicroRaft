@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2020, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ import static io.microraft.test.util.ParserTestUtils.assertConfigException;
 import static io.microraft.test.util.ParserTestUtils.assertLongTimeoutConfig;
 import static io.microraft.test.util.ParserTestUtils.assertSampleConfig;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.typesafe.config.ConfigFactory;
 
@@ -80,3 +80,4 @@ public class HoconRaftConfigParserTest extends BaseTest {
     }
 
 }
+

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
  * Modified work Copyright 2020, MicroRaft.
  *
@@ -30,16 +30,16 @@ import static io.microraft.test.util.RaftTestUtils.getLeaderQuerySequenceNumber;
 import static io.microraft.test.util.RaftTestUtils.getRole;
 import static io.microraft.test.util.RaftTestUtils.getSnapshotEntry;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-import org.junit.After;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import io.microraft.MembershipChangeMode;
 import io.microraft.Ordered;
@@ -65,7 +65,7 @@ public class LinearizableQueryTest extends BaseTest {
         group = LocalRaftGroup.newBuilder(groupSize).setConfig(config).enableNewTermOperation().start();
     }
 
-    @After
+    @AfterEach
     public void destroy() {
         if (group != null) {
             group.destroy();
@@ -379,7 +379,7 @@ public class LinearizableQueryTest extends BaseTest {
     }
 
     @Test(timeout = 300_000)
-    @Ignore("This test is flaky. We need a better way to test this behavior.")
+    @Disabled("This test is flaky. We need a better way to test this behavior.")
     public void when_leaderLeavesRaftGroupWhileThereIsOngoingQuery_then_queryFails() {
         RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(5)
                 .build();
@@ -494,3 +494,4 @@ public class LinearizableQueryTest extends BaseTest {
     }
 
 }
+

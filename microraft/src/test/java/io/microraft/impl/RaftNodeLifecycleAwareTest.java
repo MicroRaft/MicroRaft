@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2020, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,9 +27,9 @@ import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNode;
@@ -80,7 +80,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
 
     private RaftNode raftNode;
 
-    @Before
+    @BeforeEach
     public void init() {
         raftNode = RaftNode.newBuilder().setGroupId("default").setLocalEndpoint(localEndpoint)
                 .setInitialGroupMembers(initialMembers).setExecutor(executor).setTransport(transport)
@@ -88,7 +88,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
                 .setStore(store).build();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         if (raftNode != null) {
             raftNode.terminate();
@@ -642,3 +642,4 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
     }
 
 }
+

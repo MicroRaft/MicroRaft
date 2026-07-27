@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
  * Modified work Copyright 2020, MicroRaft.
  *
@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import io.microraft.RaftEndpoint;
 
@@ -38,7 +38,7 @@ public class LeaderStateTest {
     private List<RaftEndpoint> remoteEndpoints;
     private int lastLogIndex;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         lastLogIndex = 123;
         remoteEndpoints = List.of(newEndpoint(), newEndpoint(), newEndpoint(), newEndpoint());
@@ -118,3 +118,4 @@ public class LeaderStateTest {
     }
 
 }
+

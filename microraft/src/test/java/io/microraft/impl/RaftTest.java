@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
  * Modified work Copyright 2020, MicroRaft.
  *
@@ -31,8 +31,8 @@ import static io.microraft.test.util.RaftTestUtils.minority;
 import static io.microraft.test.util.AssertionUtils.sleepMillis;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,8 +46,8 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import io.microraft.Ordered;
 import io.microraft.RaftConfig;
@@ -68,7 +68,7 @@ public class RaftTest extends BaseTest {
 
     private LocalRaftGroup group;
 
-    @After
+    @AfterEach
     public void destroy() {
         if (group != null) {
             group.destroy();
@@ -907,3 +907,4 @@ public class RaftTest extends BaseTest {
     }
 
 }
+

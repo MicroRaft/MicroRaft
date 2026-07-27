@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2020, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,8 +41,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import io.microraft.Ordered;
 import io.microraft.QueryPolicy;
@@ -64,7 +64,7 @@ public class SingletonRaftGroupTest extends BaseTest {
 
     private LocalRaftGroup group;
 
-    @After
+    @AfterEach
     public void destroy() {
         if (group != null) {
             group.destroy();
@@ -1043,3 +1043,4 @@ public class SingletonRaftGroupTest extends BaseTest {
     }
 
 }
+

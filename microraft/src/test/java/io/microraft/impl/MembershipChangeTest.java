@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
  * Modified work Copyright 2020, MicroRaft.
  *
@@ -37,16 +37,16 @@ import static io.microraft.test.util.RaftTestUtils.getSnapshotEntry;
 import static io.microraft.test.util.RaftTestUtils.getStatus;
 import static io.microraft.test.util.RaftTestUtils.majority;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import io.microraft.Ordered;
 import io.microraft.RaftConfig;
@@ -70,7 +70,7 @@ public class MembershipChangeTest extends BaseTest {
 
     private LocalRaftGroup group;
 
-    @After
+    @AfterEach
     public void destroy() {
         if (group != null) {
             group.destroy();
@@ -1243,3 +1243,4 @@ public class MembershipChangeTest extends BaseTest {
     }
 
 }
+

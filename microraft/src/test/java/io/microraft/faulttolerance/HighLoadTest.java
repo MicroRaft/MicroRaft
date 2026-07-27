@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2020, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import io.microraft.Ordered;
 import io.microraft.RaftConfig;
@@ -47,7 +47,7 @@ public class HighLoadTest {
 
     private LocalRaftGroup group;
 
-    @After
+    @AfterEach
     public void tearDown() {
         if (group != null) {
             group.destroy();
@@ -86,3 +86,4 @@ public class HighLoadTest {
     }
 
 }
+

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
  * Modified work Copyright 2020, MicroRaft.
  *
@@ -44,7 +44,7 @@ public class RaftLogTest {
 
     private RaftGroupMembersView groupMembersView;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         Collection<RaftEndpoint> groupMembers = List.of(newEndpoint(), newEndpoint(), newEndpoint());
         groupMembersView = new DefaultRaftGroupMembersViewOrBuilder().setLogIndex(0).setMembers(groupMembers)
@@ -486,3 +486,4 @@ public class RaftLogTest {
     }
 
 }
+

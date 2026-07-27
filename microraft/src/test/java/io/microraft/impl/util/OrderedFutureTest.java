@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
  * Modified work Copyright 2020, MicroRaft.
  *
@@ -18,14 +18,14 @@
 package io.microraft.impl.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.microraft.Ordered;
 import io.microraft.test.util.BaseTest;
@@ -110,3 +110,4 @@ public class OrderedFutureTest extends BaseTest {
     }
 
 }
+

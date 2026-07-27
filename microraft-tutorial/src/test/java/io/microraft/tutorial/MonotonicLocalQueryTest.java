@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.fail;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.microraft.Ordered;
 import io.microraft.QueryPolicy;

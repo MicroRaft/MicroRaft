@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
  * Modified work Copyright 2020, MicroRaft.
  *
@@ -19,8 +19,8 @@ package io.microraft.impl.state;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import io.microraft.RaftEndpoint;
 import io.microraft.impl.local.LocalRaftEndpoint;
@@ -30,7 +30,7 @@ public class CandidateStateTest {
     private CandidateState state;
     private int majority;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         majority = 3;
         state = new CandidateState(majority);
@@ -66,3 +66,4 @@ public class CandidateStateTest {
     }
 
 }
+

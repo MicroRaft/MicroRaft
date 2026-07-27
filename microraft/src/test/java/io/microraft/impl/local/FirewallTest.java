@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2020, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@ package io.microraft.impl.local;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.microraft.RaftEndpoint;
 import io.microraft.model.message.AppendEntriesFailureResponse;
@@ -165,3 +165,4 @@ public class FirewallTest extends BaseTest {
     }
 
 }
+

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2023, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@ import static io.microraft.impl.local.SimpleStateMachine.queryLastValue;
 import static io.microraft.test.util.AssertionUtils.eventually;
 import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -33,8 +33,8 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import io.microraft.MembershipChangeMode;
 import io.microraft.Ordered;
@@ -49,7 +49,7 @@ public class QueryTimeoutTest extends BaseTest {
 
     private LocalRaftGroup group;
 
-    @After
+    @AfterEach
     public void destroy() {
         if (group != null) {
             group.destroy();
@@ -387,3 +387,4 @@ public class QueryTimeoutTest extends BaseTest {
     }
 
 }
+

@@ -1,14 +1,14 @@
 package io.microraft.tutorial;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.lang.StackWalker.Option;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.microraft.MembershipChangeMode;
 import io.microraft.Ordered;

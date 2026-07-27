@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
  * Modified work Copyright 2020, MicroRaft.
  *
@@ -31,11 +31,8 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import io.microraft.RaftEndpoint;
 import io.microraft.impl.local.LocalRaftEndpoint;
 import io.microraft.impl.log.RaftLog;
@@ -47,9 +44,6 @@ import io.microraft.model.log.RaftGroupMembersView;
 public class RaftStateTest {
     private static final long TIME = 12345;
 
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
-
     private LocalRaftEndpoint localEndpoint = newEndpoint();
     private Collection<RaftEndpoint> initialEndpoints = new LinkedHashSet<>(
             List.of(localEndpoint, newEndpoint(), newEndpoint(), newEndpoint(), newEndpoint()));
@@ -57,7 +51,7 @@ public class RaftStateTest {
             .setMembers(initialEndpoints).setVotingMembers(initialEndpoints).build();
     private RaftState state;
 
-    @Before
+    @BeforeEach
     public void setup() {
         state = RaftState.create("default", localEndpoint, groupMembers, 100, new DefaultRaftModelFactory());
     }
@@ -323,3 +317,4 @@ public class RaftStateTest {
     }
 
 }
+

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2020, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import io.microraft.QueryPolicy;
 import io.microraft.RaftConfig;
@@ -53,7 +53,7 @@ public class NetworkPartitionTest extends BaseTest {
 
     private LocalRaftGroup group;
 
-    @After
+    @AfterEach
     public void tearDown() {
         if (group != null) {
             group.destroy();
@@ -117,3 +117,4 @@ public class NetworkPartitionTest extends BaseTest {
     }
 
 }
+

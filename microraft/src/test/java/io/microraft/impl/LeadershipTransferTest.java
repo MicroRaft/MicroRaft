@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
  * Modified work Copyright 2020, MicroRaft.
  *
@@ -24,15 +24,15 @@ import static io.microraft.impl.local.SimpleStateMachine.applyValue;
 import static io.microraft.test.util.RaftTestUtils.getRole;
 import static io.microraft.test.util.RaftTestUtils.getTerm;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeoutException;
 
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import io.microraft.Ordered;
 import io.microraft.RaftConfig;
@@ -49,7 +49,7 @@ public class LeadershipTransferTest extends BaseTest {
 
     private LocalRaftGroup group;
 
-    @After
+    @AfterEach
     public void destroy() {
         if (group != null) {
             group.destroy();
@@ -317,3 +317,4 @@ public class LeadershipTransferTest extends BaseTest {
     }
 
 }
+

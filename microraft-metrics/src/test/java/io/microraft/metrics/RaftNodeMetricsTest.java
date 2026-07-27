@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2020, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,10 +23,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.logging.LoggingMeterRegistry;
@@ -50,17 +50,17 @@ public class RaftNodeMetricsTest extends BaseTest {
     List<RaftNode> raftNodes = new ArrayList<>();
     List<RaftNodeMetrics> metricsList = new ArrayList<>();
 
-    @Before
+    @BeforeEach
     public void init() {
         initialMembers.forEach(this::createRaftNode);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         raftNodes.forEach(RaftNode::terminate);
     }
 
-    @Ignore
+    @Disabled
     @Test
     public void test() {
         LoggingMeterRegistry registry = new LoggingMeterRegistry(new LoggingRegistryConfig() {
@@ -157,3 +157,4 @@ public class RaftNodeMetricsTest extends BaseTest {
     }
 
 }
+

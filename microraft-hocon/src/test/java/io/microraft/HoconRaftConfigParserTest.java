@@ -30,41 +30,57 @@ import io.microraft.test.util.BaseTest;
 public class HoconRaftConfigParserTest extends BaseTest {
 
     @Test
-    public void parseConfig_whenValidHoconProvided_returnsConfig() {        String configString = "raft {\\n" +
-                "  leader-election-timeout-millis: 750\\n" +
-                "  leader-heartbeat-period-secs: 15\\n" +
-                "  leader-heartbeat-timeout-secs: 45\\n" +
-                "  append-entries-request-batch-size: 750\\n" +
-                "  commit-count-to-take-snapshot: 7500\\n" +
-                "  max-pending-log-entry-count: 1500\\n" +
-                "  transfer-snapshots-from-followers-enabled: false\\n" +
-                "  raft-node-report-publish-period-secs: 20\\n" +
-                "}\\n";RaftConfig config = parseConfig(ConfigFactory.parseString(configString));
+    public void parseConfig_whenValidHoconProvided_returnsConfig() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("raft {").append(System.lineSeparator())
+          .append("  leader-election-timeout-millis: 750").append(System.lineSeparator())
+          .append("  leader-heartbeat-period-secs: 15").append(System.lineSeparator())
+          .append("  leader-heartbeat-timeout-secs: 45").append(System.lineSeparator())
+          .append("  append-entries-request-batch-size: 750").append(System.lineSeparator())
+          .append("  commit-count-to-take-snapshot: 7500").append(System.lineSeparator())
+          .append("  max-pending-log-entry-count: 1500").append(System.lineSeparator())
+          .append("  transfer-snapshots-from-followers-enabled: false").append(System.lineSeparator())
+          .append("  raft-node-report-publish-period-secs: 20").append(System.lineSeparator())
+          .append("}").append(System.lineSeparator());
+        String configString = sb.toString();
+        RaftConfig config = parseConfig(ConfigFactory.parseString(configString));
 
         assertSampleConfig(config);
     }
 
     @Test
-    public void parseConfig_whenLongTimeoutProvided_returnsConfig() {        String configString = "raft {\\n" +
-                "  leader-election-timeout-millis: 5000000000\\n" +
-                "  leader-heartbeat-period-secs: 15\\n" +
-                "  leader-heartbeat-timeout-secs: 45\\n" +
-                "}\\n";RaftConfig config = parseConfig(ConfigFactory.parseString(configString));
+    public void parseConfig_whenLongTimeoutProvided_returnsConfig() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("raft {").append(System.lineSeparator())
+          .append("  leader-election-timeout-millis: 5000000000").append(System.lineSeparator())
+          .append("  leader-heartbeat-period-secs: 15").append(System.lineSeparator())
+          .append("  leader-heartbeat-timeout-secs: 45").append(System.lineSeparator())
+          .append("}").append(System.lineSeparator());
+        String configString = sb.toString();
+        RaftConfig config = parseConfig(ConfigFactory.parseString(configString));
 
         assertLongTimeoutConfig(config);
     }
 
     @Test
-    public void parseConfig_whenFractionalLongProvided_throwsIllegalArgumentException() {        String configString = "raft {\\n" +
-                "  leader-election-timeout-millis: 1.5\\n" +
-                "}\\n";assertConfigException(() -> parseConfig(ConfigFactory.parseString(configString)), IllegalArgumentException.class,
+    public void parseConfig_whenFractionalLongProvided_throwsIllegalArgumentException() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("raft {").append(System.lineSeparator())
+          .append("  leader-election-timeout-millis: 1.5").append(System.lineSeparator())
+          .append("}").append(System.lineSeparator());
+        String configString = sb.toString();
+        assertConfigException(() -> parseConfig(ConfigFactory.parseString(configString)), IllegalArgumentException.class,
                 "Config field 'raft.leader-election-timeout-millis' must be an integer in the long range: 1.5");
     }
 
     @Test
-    public void parseConfig_whenOutOfRangeIntProvided_throwsIllegalArgumentException() {        String configString = "raft {\\n" +
-                "  append-entries-request-batch-size: 2147483648\\n" +
-                "}\\n";assertConfigException(() -> parseConfig(ConfigFactory.parseString(configString)), IllegalArgumentException.class,
+    public void parseConfig_whenOutOfRangeIntProvided_throwsIllegalArgumentException() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("raft {").append(System.lineSeparator())
+          .append("  append-entries-request-batch-size: 2147483648").append(System.lineSeparator())
+          .append("}").append(System.lineSeparator());
+        String configString = sb.toString();
+        assertConfigException(() -> parseConfig(ConfigFactory.parseString(configString)), IllegalArgumentException.class,
                 "Config field 'raft.append-entries-request-batch-size' must be an integer in the int range: 2147483648");
     }
 

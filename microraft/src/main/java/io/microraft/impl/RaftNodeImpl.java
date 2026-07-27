@@ -1466,10 +1466,12 @@ public final class RaftNodeImpl implements RaftNode {
     private void appendNewTermEntry() {
         Object operation = stateMachine.getNewTermOperation();
         // this null check is on purpose. this operation can be null in tests.
-        RaftLog log = state.log();
-        LogEntry entry = modelFactory.createLogEntryBuilder().setTerm(state.term())
-                .setIndex(log.lastLogOrSnapshotIndex() + 1).setOperation(operation).build();
-        log.appendEntry(entry);
+        if (operation != null) {
+            RaftLog log = state.log();
+            LogEntry entry = modelFactory.createLogEntryBuilder().setTerm(state.term())
+                    .setIndex(log.lastLogOrSnapshotIndex() + 1).setOperation(operation).build();
+            log.appendEntry(entry);
+        }
     }
 
     /**

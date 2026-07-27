@@ -143,6 +143,7 @@ public class RaftSqliteStoreTest {
             store.persistSnapshotChunk(snapshotChunk(2, 1, 2, 3));
             store.deleteSnapshotChunks(2, 3);
             store.flush();
+            System.out.println("DEBUG snapshot chunks: " + store.getAllSnapshotChunks());
             assertThat(store.getAllSnapshotChunks()).usingRecursiveFieldByFieldElementComparator()
                     .containsExactly(snapshotChunk(1, 1, 0, 1));
         });

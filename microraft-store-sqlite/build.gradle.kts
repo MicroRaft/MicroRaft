@@ -43,7 +43,7 @@ metadata {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
+        languageVersion = JavaLanguageVersion.of(21)
     }
     withJavadocJar()
     withSourcesJar()
@@ -68,7 +68,7 @@ dependencies {
 testing {
     suites {
         withType<JvmTestSuite> {
-            useJUnit(libs.versions.junit)
+            useJUnitJupiter(libs.versions.junit)
         }
         named<JvmTestSuite>("test") {
             dependencies {

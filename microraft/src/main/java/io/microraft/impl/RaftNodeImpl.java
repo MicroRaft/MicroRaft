@@ -36,7 +36,7 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.shuffle;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.NANOSECONDS;;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -54,7 +54,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -659,30 +658,25 @@ public final class RaftNodeImpl implements RaftNode {
             return;
         }
 
-        Runnable handler;
-        if (message instanceof AppendEntriesRequest) {
-            handler = new AppendEntriesRequestHandler(this, (AppendEntriesRequest) message);
-        } else if (message instanceof AppendEntriesSuccessResponse) {
-            handler = new AppendEntriesSuccessResponseHandler(this, (AppendEntriesSuccessResponse) message);
-        } else if (message instanceof AppendEntriesFailureResponse) {
-            handler = new AppendEntriesFailureResponseHandler(this, (AppendEntriesFailureResponse) message);
-        } else if (message instanceof InstallSnapshotRequest) {
-            handler = new InstallSnapshotRequestHandler(this, (InstallSnapshotRequest) message);
-        } else if (message instanceof InstallSnapshotResponse) {
-            handler = new InstallSnapshotResponseHandler(this, (InstallSnapshotResponse) message);
-        } else if (message instanceof VoteRequest) {
-            handler = new VoteRequestHandler(this, (VoteRequest) message);
-        } else if (message instanceof VoteResponse) {
-            handler = new VoteResponseHandler(this, (VoteResponse) message);
-        } else if (message instanceof PreVoteRequest) {
-            handler = new PreVoteRequestHandler(this, (PreVoteRequest) message);
-        } else if (message instanceof PreVoteResponse) {
-            handler = new PreVoteResponseHandler(this, (PreVoteResponse) message);
-        } else if (message instanceof TriggerLeaderElectionRequest) {
-            handler = new TriggerLeaderElectionHandler(this, (TriggerLeaderElectionRequest) message);
-        } else {
-            throw new IllegalArgumentException("Invalid Raft msg: " + message);
-        }
+        Runnable handler = switch (message) {
+            case AppendEntriesRequest appendEntriesRequest ->
+                    new AppendEntriesRequestHandler(this, appendEntriesRequest);
+            case AppendEntriesSuccessResponse appendEntriesSuccessResponse ->
+                    new AppendEntriesSuccessResponseHandler(this, appendEntriesSuccessResponse);
+            case AppendEntriesFailureResponse appendEntriesFailureResponse ->
+                    new AppendEntriesFailureResponseHandler(this, appendEntriesFailureResponse);
+            case InstallSnapshotRequest installSnapshotRequest ->
+                    new InstallSnapshotRequestHandler(this, installSnapshotRequest);
+            case InstallSnapshotResponse installSnapshotResponse ->
+                    new InstallSnapshotResponseHandler(this, installSnapshotResponse);
+            case VoteRequest voteRequest -> new VoteRequestHandler(this, voteRequest);
+            case VoteResponse voteResponse -> new VoteResponseHandler(this, voteResponse);
+            case PreVoteRequest preVoteRequest -> new PreVoteRequestHandler(this, preVoteRequest);
+            case PreVoteResponse preVoteResponse -> new PreVoteResponseHandler(this, preVoteResponse);
+            case TriggerLeaderElectionRequest triggerLeaderElectionRequest ->
+                    new TriggerLeaderElectionHandler(this, triggerLeaderElectionRequest);
+            default -> throw new IllegalArgumentException("Invalid Raft msg: " + message);
+        };
 
         try {
             executor.execute(handler);
@@ -1004,7 +998,7 @@ public final class RaftNodeImpl implements RaftNode {
 
         ++takeSnapshotCount;
 
-        int snapshotTerm = log.getLogEntry(snapshotIndex).getTerm();
+        int snapshotTerm = requireNonNull(log.getLogEntry(snapshotIndex)).getTerm();
         RaftGroupMembersView groupMembersView = state.committedGroupMembers()
                 .populate(modelFactory.createRaftGroupMembersViewBuilder());
         List<SnapshotChunk> snapshotChunks = new ArrayList<>();
@@ -1389,7 +1383,7 @@ public final class RaftNodeImpl implements RaftNode {
             scheduleLeaderRequestBackoffResetTask(leaderState);
         }
 
-        if (entries.size() > 0 && entries.get(entries.size() - 1).getIndex() > leaderState.flushedLogIndex()) {
+        if (!entries.isEmpty() && entries.getLast().getIndex() > leaderState.flushedLogIndex()) {
             // TODO(basri): we can skip this if the target is a learner...
 
             // If I am sending any non-flushed entry to the target, I should
@@ -1471,13 +1465,11 @@ public final class RaftNodeImpl implements RaftNode {
 
     private void appendNewTermEntry() {
         Object operation = stateMachine.getNewTermOperation();
-        if (operation != null) {
-            // this null check is on purpose. this operation can be null in tests.
-            RaftLog log = state.log();
-            LogEntry entry = modelFactory.createLogEntryBuilder().setTerm(state.term())
-                    .setIndex(log.lastLogOrSnapshotIndex() + 1).setOperation(operation).build();
-            log.appendEntry(entry);
-        }
+        // this null check is on purpose. this operation can be null in tests.
+        RaftLog log = state.log();
+        LogEntry entry = modelFactory.createLogEntryBuilder().setTerm(state.term())
+                .setIndex(log.lastLogOrSnapshotIndex() + 1).setOperation(operation).build();
+        log.appendEntry(entry);
     }
 
     /**
@@ -1599,6 +1591,7 @@ public final class RaftNodeImpl implements RaftNode {
             // are committed indirectly
             // because of the Log Matching Property.
             LogEntry entry = log.getLogEntry(quorumMatchIndex);
+            assert entry != null;
             if (entry.getTerm() == state.term()) {
                 commitEntries(quorumMatchIndex);
                 return true;
@@ -1693,7 +1686,7 @@ public final class RaftNodeImpl implements RaftNode {
             query.run(lastApplied, stateMachine);
         }
 
-        if (queries.size() > 0 && LOGGER.isDebugEnabled()) {
+        if (!queries.isEmpty() && LOGGER.isDebugEnabled()) {
             LOGGER.debug("{} executed {} waiting queries at log index: {}.", localEndpointStr, queries.size(),
                     lastApplied);
         }
@@ -1706,13 +1699,8 @@ public final class RaftNodeImpl implements RaftNode {
      * Please note that the given operation must not make any mutation on the state
      * machine.
      *
-     * @param operation
-     *            the query object to be executed
      * @param minCommitIndex
      *            the minimum commit index that the local Raft node must satisfy
-     * @param future
-     *            the future object to notify with the result
-     *
      * @throws LaggingCommitIndexException
      *             if the current commit index is smaller than the given commit
      *             index

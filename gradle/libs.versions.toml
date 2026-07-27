@@ -1,24 +1,24 @@
 [versions]
-assertj = "3.23.1"
-findbugs = "3.0.1"
-jackson = "2.14.2"
-jooq = "3.16.14"
-junit = "4.13.2"
-log4j = "2.19.0"
-micrometer = "1.10.0"
-mockito = "3.12.4"
-slf4j = "1.7.36"
-sqlite = "3.41.2.2"
-typesafe-config = "1.4.2"
-snakeyaml = "2.0"
+assertj = "3.27.7"
+findbugs = "4.10.3"
+jackson = "2.21.5"
+jooq = "3.21.6"
+junit = "6.1.1"
+log4j = "2.26.1"
+micrometer = "1.17.0"
+mockito = "5.23.0"
+slf4j = "2.0.18"
+sqlite = "3.53.2.0"
+typesafe-config = "1.4.3"
+snakeyaml = "2.6"
 
 [libraries]
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
-findbugs-annotations = { module = "com.google.code.findbugs:annotations", version.ref = "findbugs" }
+findbugs-annotations = { module = "com.github.spotbugs:spotbugs-annotations", version.ref = "findbugs" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jooq = { module = "org.jooq:jooq", version.ref = "jooq" }
-junit = { module = "junit:junit", version.ref = "junit" }
-log4j-slf4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
+junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+log4j-slf4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version.ref = "log4j" }
 micrometer = { module = "io.micrometer:micrometer-core", version.ref = "micrometer" }
 mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }

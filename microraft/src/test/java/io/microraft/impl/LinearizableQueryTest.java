@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
  * Modified work Copyright 2020, MicroRaft.
  *
@@ -39,7 +39,7 @@ import java.util.concurrent.CompletionException;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Test;\r\nimport org.junit.jupiter.api.Timeout;
 
 import io.microraft.MembershipChangeMode;
 import io.microraft.Ordered;
@@ -72,7 +72,7 @@ public class LinearizableQueryTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_linearizableQueryIsIssuedWithoutCommitIndex_then_itReadsLastState() {
         startGroup(5, TEST_RAFT_CONFIG);
 
@@ -100,7 +100,7 @@ public class LinearizableQueryTest extends BaseTest {
         assertThat(getCommitIndex(leader)).isEqualTo(commitIndex2);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_linearizableQueryIsIssuedWithCommitIndex_then_itReadsLastState() {
         startGroup(5, TEST_RAFT_CONFIG);
 
@@ -130,7 +130,7 @@ public class LinearizableQueryTest extends BaseTest {
         assertThat(getCommitIndex(leader)).isEqualTo(commitIndex2);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_linearizableQueryIsIssuedWithFurtherCommitIndex_then_itFails() {
         startGroup(5, TEST_RAFT_CONFIG);
 
@@ -146,7 +146,7 @@ public class LinearizableQueryTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_newCommitIsDoneWhileThereIsWaitingQuery_then_queryRunsAfterNewCommit() {
         startGroup(5, TEST_RAFT_CONFIG);
 
@@ -172,7 +172,7 @@ public class LinearizableQueryTest extends BaseTest {
         assertThat(queryResult.getCommitIndex()).isEqualTo(replicationResult.getCommitIndex());
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_multipleQueriesAreIssuedBeforeHeartbeatAcksReceived_then_allQueriesExecutedAtOnce() {
         startGroup(5, TEST_RAFT_CONFIG);
 
@@ -203,7 +203,7 @@ public class LinearizableQueryTest extends BaseTest {
         assertThat(result2.getCommitIndex()).isEqualTo(commitIndex);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_newCommitsAreDoneWhileThereAreMultipleQueries_then_allQueriesRunAfterCommits() {
         startGroup(5, TEST_RAFT_CONFIG);
 
@@ -236,7 +236,7 @@ public class LinearizableQueryTest extends BaseTest {
         assertThat(queryResult2.getCommitIndex()).isEqualTo(commitIndex);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_linearizableQueryIsIssuedToFollower_then_queryFails() {
         startGroup(5, TEST_RAFT_CONFIG);
 
@@ -250,7 +250,7 @@ public class LinearizableQueryTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_multipleQueryLimitIsReachedBeforeHeartbeatAcks_then_noNewQueryIsAccepted() {
         RaftConfig config = RaftConfig.newBuilder().setMaxPendingLogEntryCount(1).build();
         startGroup(5, config);
@@ -283,7 +283,7 @@ public class LinearizableQueryTest extends BaseTest {
         queryFuture1.join();
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leaderDemotesToFollowerWhileThereIsOngoingQuery_then_queryFails() {
         RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(5)
                 .build();
@@ -306,7 +306,7 @@ public class LinearizableQueryTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_followersInstallSnapshot_then_queryIsExecutedOnLeaderWithInstallSnapshotResponse() {
         RaftConfig config = RaftConfig.newBuilder()
                 .setLeaderElectionTimeoutMillis(TEST_RAFT_CONFIG.getLeaderElectionTimeoutMillis())
@@ -378,7 +378,7 @@ public class LinearizableQueryTest extends BaseTest {
         f.join();
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     @Disabled("This test is flaky. We need a better way to test this behavior.")
     public void when_leaderLeavesRaftGroupWhileThereIsOngoingQuery_then_queryFails() {
         RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(5)
@@ -415,7 +415,7 @@ public class LinearizableQueryTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_newCommitsAreDoneWhileThereAreMembershipChangeAndMultipleQueries_then_allQueriesRunAfterCommits() {
         startGroup(5, TEST_RAFT_CONFIG);
 
@@ -461,7 +461,7 @@ public class LinearizableQueryTest extends BaseTest {
         assertThat(queryResult2.getCommitIndex()).isEqualTo(commitIndex);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_learnerPresentInRaftGroup_then_queryQuorumIgnoresLearner() {
         startGroup(3, TEST_RAFT_CONFIG);
 
@@ -494,4 +494,5 @@ public class LinearizableQueryTest extends BaseTest {
     }
 
 }
+
 

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
  * Modified work Copyright 2020, MicroRaft.
  *
@@ -32,7 +32,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletionException;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Test;\r\nimport org.junit.jupiter.api.Timeout;
 
 import io.microraft.Ordered;
 import io.microraft.RaftEndpoint;
@@ -55,7 +55,7 @@ public class LocalQueryTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_queryFromLeader_withoutAnyCommit_then_returnDefaultValue() {
         group = LocalRaftGroup.start(3);
 
@@ -66,7 +66,7 @@ public class LocalQueryTest extends BaseTest {
         assertThat(o.getCommitIndex()).isEqualTo(0);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_queryFromLeaderWithCommitIndex_withoutAnyCommit_then_fail() {
         group = LocalRaftGroup.start(3);
 
@@ -81,7 +81,7 @@ public class LocalQueryTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_queryFromFollower_withoutAnyCommit_then_returnDefaultValue() {
         group = LocalRaftGroup.start(3);
 
@@ -94,7 +94,7 @@ public class LocalQueryTest extends BaseTest {
         assertThat(o.getCommitIndex()).isEqualTo(0);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_queryFromFollowerWithCommitIndex_withoutAnyCommit_then_returnDefaultValue() {
         group = LocalRaftGroup.start(3);
 
@@ -110,7 +110,7 @@ public class LocalQueryTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_queryFromLeaderWithoutCommitIndex_onStableRaftGroup_then_readLatestValue() {
         group = LocalRaftGroup.start(3);
 
@@ -128,7 +128,7 @@ public class LocalQueryTest extends BaseTest {
         assertThat(result.getCommitIndex()).isEqualTo(commitIndex);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_queryFromLeaderWithCommitIndex_onStableRaftGroup_then_readLatestValue() {
         group = LocalRaftGroup.start(3);
 
@@ -146,7 +146,7 @@ public class LocalQueryTest extends BaseTest {
         assertThat(result.getCommitIndex()).isEqualTo(commitIndex);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_queryFromLeaderWithFurtherCommitIndex_onStableRaftGroup_then_fail() {
         group = LocalRaftGroup.start(3);
 
@@ -166,7 +166,7 @@ public class LocalQueryTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_queryFromFollower_withLeaderLeasePolicy_then_fail() {
         group = LocalRaftGroup.start(3);
 
@@ -182,7 +182,7 @@ public class LocalQueryTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_queryFromFollowerWithoutCommitIndex_onStableRaftGroup_then_readLatestValue() {
         group = LocalRaftGroup.start(3);
 
@@ -207,7 +207,7 @@ public class LocalQueryTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_queryFromFollowerWithCommitIndex_onStableRaftGroup_then_readLatestValue() {
         group = LocalRaftGroup.start(3);
 
@@ -233,7 +233,7 @@ public class LocalQueryTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_queryFromSlowFollower_then_readStaleValue() {
         group = LocalRaftGroup.start(3);
 
@@ -256,7 +256,7 @@ public class LocalQueryTest extends BaseTest {
         assertThat(result.getCommitIndex()).isEqualTo(leaderCommitIndex);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_queryFromSlowFollower_then_eventuallyReadLatestValue() {
         group = LocalRaftGroup.start(3);
 
@@ -280,7 +280,7 @@ public class LocalQueryTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_queryFromSplitLeaderWithAnyLocal_then_readStaleValue() {
         group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
@@ -320,7 +320,7 @@ public class LocalQueryTest extends BaseTest {
         assertThat(result2.getCommitIndex()).isEqualTo(firstCommitIndex);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_queryFromSplitLeaderWithLeaderLocal_then__readFailsAfterLeaderDemotesToFollower() {
         group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
@@ -348,7 +348,7 @@ public class LocalQueryTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_queryFromSplitLeader_then_eventuallyReadLatestValue() {
         group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
@@ -387,7 +387,7 @@ public class LocalQueryTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_queryFromLearner_then_readLatestValue() {
         group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
@@ -409,7 +409,7 @@ public class LocalQueryTest extends BaseTest {
         assertThat(result.getResult()).isEqualTo(value);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_queryFromLearnerWithStaleCommitIndex_then_readStaleValue() {
         group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
@@ -436,7 +436,7 @@ public class LocalQueryTest extends BaseTest {
         assertThat(result.getCommitIndex()).isEqualTo(commitIndex1);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_queryFromLearnerWithInvalidCommitIndex_then_queryFails() {
         group = LocalRaftGroup.start(3, TEST_RAFT_CONFIG);
 
@@ -461,4 +461,5 @@ public class LocalQueryTest extends BaseTest {
     }
 
 }
+
 

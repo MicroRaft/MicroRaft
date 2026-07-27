@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
  * Modified work Copyright 2020, MicroRaft.
  *
@@ -44,7 +44,7 @@ import java.util.concurrent.Future;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Test;\r\nimport org.junit.jupiter.api.Timeout;
 
 import io.microraft.Ordered;
 import io.microraft.RaftConfig;
@@ -78,7 +78,7 @@ public class SnapshotTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_commitLogAdvances_then_snapshotIsTaken() {
         int entryCount = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount).build();
@@ -104,7 +104,7 @@ public class SnapshotTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_snapshotIsTaken_then_nextEntryIsCommitted() {
         int entryCount = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount).build();
@@ -138,12 +138,12 @@ public class SnapshotTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_followersMatchIndexIsUnknown_then_itInstallsSnapshotFromLeaderOnly() {
         when_followersMatchIndexIsUnknown_then_itInstallsSnapshot(false);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_followersMatchIndexIsUnknown_then_itInstallsSnapshotFromLeaderAndFollowers() {
         when_followersMatchIndexIsUnknown_then_itInstallsSnapshot(true);
     }
@@ -193,12 +193,12 @@ public class SnapshotTest extends BaseTest {
         assertThat(getSnapshotChunkCollector(slowFollower)).isNull();
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leaderKnowsOthersSnapshot_then_slowFollowerInstallsSnapshotFromLeaderWithoutOptimization() {
         when_leaderKnowsOtherFollowerInstalledSnapshot_then_slowFollowerInstallsSnapshot(false);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leaderKnowsOthersSnapshot_then_slowFollowerInstallsSnapshotFromAllWithOptimization() {
         when_leaderKnowsOtherFollowerInstalledSnapshot_then_slowFollowerInstallsSnapshot(true);
     }
@@ -256,12 +256,12 @@ public class SnapshotTest extends BaseTest {
         assertThat(getSnapshotChunkCollector(slowFollower)).isNull();
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leaderDoesNotKnowOthersSnapshot_then_slowFollowerInstallsSnapshotFromLeaderOnlyWithoutOptimization() {
         when_leaderDoesNotKnowOtherFollowerInstalledSnapshot_then_slowFollowerInstallsSnapshotFromLeaderOnly(false);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leaderDoesNotKnowOthersSnapshot_then_slowFollowerInstallsSnapshotFromLeaderOnlyWithOptimization() {
         when_leaderDoesNotKnowOtherFollowerInstalledSnapshot_then_slowFollowerInstallsSnapshotFromLeaderOnly(true);
     }
@@ -307,12 +307,12 @@ public class SnapshotTest extends BaseTest {
         assertThat(getSnapshotChunkCollector(slowFollower)).isNull();
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leaderMissesResponse_then_itAdvancesMatchIndexWithNextResponse_leaderOnly() {
         when_leaderMissesInstallSnapshotResponse_then_itAdvancesMatchIndexWithNextInstallSnapshotResponse(false);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leaderMissesResponse_then_itAdvancesMatchIndexWithNextResponse_leaderAndFollowers() {
         when_leaderMissesInstallSnapshotResponse_then_itAdvancesMatchIndexWithNextInstallSnapshotResponse(true);
     }
@@ -376,7 +376,7 @@ public class SnapshotTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leaderMissesInstallSnapshotResponses_then_followerInstallsSnapshotsViaOtherFollowers() {
         int entryCount = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount).build();
@@ -421,7 +421,7 @@ public class SnapshotTest extends BaseTest {
         assertThat(getSnapshotChunkCollector(slowFollower)).isNull();
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leaderAndSomeFollowersMissInstallSnapshotResponses_then_followerInstallsSnapshotsViaOtherFollowers() {
         int entryCount = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount).build();
@@ -471,7 +471,7 @@ public class SnapshotTest extends BaseTest {
         assertThat(getSnapshotChunkCollector(slowFollower)).isNull();
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_followerMissesTheLastEntryThatGoesIntoTheSnapshot_then_itCatchesUpWithoutInstallingSnapshot() {
         int entryCount = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount).build();
@@ -515,7 +515,7 @@ public class SnapshotTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_followerMissesAFewEntriesBeforeTheSnapshot_then_itCatchesUpWithoutInstallingSnapshot() {
         int entryCount = 50;
         // entryCount * 0.1 - 2
@@ -564,7 +564,7 @@ public class SnapshotTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_isolatedLeaderAppendsEntries_then_itInvalidatesTheirFeaturesUponInstallSnapshot()
             throws Exception {
         int entryCount = 50;
@@ -638,7 +638,7 @@ public class SnapshotTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_followersLastAppendIsMembershipChange_then_itUpdatesRaftNodeStateWithInstalledSnapshot() {
         int entryCount = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount).build();
@@ -704,7 +704,7 @@ public class SnapshotTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void testMembershipChangeBlocksSnapshotBug() {
         // The comments below show how the code behaves before the mentioned bug is
         // fixed.
@@ -840,7 +840,7 @@ public class SnapshotTest extends BaseTest {
         assertThat(f).isNotDone();
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_slowFollowerReceivesAppendRequestThatDoesNotFitIntoItsRaftLog_then_itTruncatesAppendRequestEntries() {
         int appendEntriesRequestBatchSize = 100;
         int commitCountToTakeSnapshot = 100;
@@ -903,12 +903,12 @@ public class SnapshotTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leaderFailsDuringSnapshotTransfer_then_followerTransfersSnapshotFromNewLeader_leaderOnly() {
         when_leaderFailsDuringSnapshotTransfer_then_followerTransfersSnapshotFromNewLeader(false);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leaderFailsDuringSnapshotTransfer_then_followerTransfersSnapshotFromNewLeader_leaderAndFollowers() {
         when_leaderFailsDuringSnapshotTransfer_then_followerTransfersSnapshotFromNewLeader(true);
     }
@@ -953,7 +953,7 @@ public class SnapshotTest extends BaseTest {
         eventually(() -> assertThat(getSnapshotEntry(slowFollower).getIndex()).isGreaterThan(0));
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_thereAreCrashedFollowers_then_theyAreSkippedDuringSnapshotTransfer() {
         int entryCount = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount).build();
@@ -995,7 +995,7 @@ public class SnapshotTest extends BaseTest {
         assertThat(getSnapshotChunkCollector(slowFollower)).isNull();
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leaderCrashesDuringSnapshotTransfer_then_newLeaderSendsItsSnapshottedMembers() {
         int entryCount = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount)
@@ -1064,7 +1064,7 @@ public class SnapshotTest extends BaseTest {
         assertThat(getSnapshotChunkCollector(slowFollower)).isNull();
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_promotionCommitFallsIntoSnapshot_then_promotedMemberTurnsIntoVotingMemberByInstallingSnapshot() {
         int entryCount = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount)
@@ -1096,7 +1096,7 @@ public class SnapshotTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_snapshotTriggeredViaNotStartedSingletonNode_then_snapshotCannotBeTaken() {
         group = LocalRaftGroup.newBuilder(1).build();
         RaftNodeImpl node = group.getNodes().get(0);
@@ -1109,7 +1109,7 @@ public class SnapshotTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_snapshotTriggeredViaSingletonNodeWhenFirstLogEntryNotCommitted_then_snapshotCannotBeTaken() {
         group = LocalRaftGroup.start(1);
         RaftNodeImpl node = group.getNodes().get(0);
@@ -1122,7 +1122,7 @@ public class SnapshotTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_snapshotTriggeredViaSingletonNodeWhenFirstLogEntryCommitted_then_snapshotCanBeTaken() {
         group = LocalRaftGroup.newBuilder(1).enableNewTermOperation().start();
         RaftNodeImpl node = group.getNodes().get(0);
@@ -1131,7 +1131,7 @@ public class SnapshotTest extends BaseTest {
         assertThat(result.getCommitIndex()).isEqualTo(FIRST_VALID_LOG_INDEX);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_snapshotTriggeredViaNotStartedNode_then_snapshotCannotBeTaken() {
         group = LocalRaftGroup.newBuilder(2).build();
         RaftNodeImpl node = group.getNodes().get(0);
@@ -1144,7 +1144,7 @@ public class SnapshotTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_snapshotTriggeredViaLeaderWhenFirstEntryNotCommitted_then_snapshotCannotBeTaken() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl node = group.waitUntilLeaderElected();
@@ -1157,7 +1157,7 @@ public class SnapshotTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_snapshotTriggeredViaLeaderWhenFirstEntryCommitted_then_snapshotCanBeTaken() {
         group = LocalRaftGroup.newBuilder(3).enableNewTermOperation().start();
         RaftNodeImpl node = group.waitUntilLeaderElected();
@@ -1169,7 +1169,7 @@ public class SnapshotTest extends BaseTest {
         assertThat(result.getCommitIndex()).isEqualTo(FIRST_VALID_LOG_INDEX);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_snapshotTriggeredViaLeaderMultipleTimesAtSameIndex_then_singleSnapshotIsTaken() {
         group = LocalRaftGroup.newBuilder(3).enableNewTermOperation().start();
         RaftNodeImpl node = group.waitUntilLeaderElected();
@@ -1185,7 +1185,7 @@ public class SnapshotTest extends BaseTest {
         assertThat(result2.getResult()).isNull();
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_snapshotTriggeredViaFollowerMultipleTimesAtSameIndex_then_singleSnapshotIsTaken() {
         group = LocalRaftGroup.newBuilder(2).enableNewTermOperation().start();
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -1200,7 +1200,7 @@ public class SnapshotTest extends BaseTest {
         assertThat(result2.getCommitIndex()).isEqualTo(result1.getCommitIndex());
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_snapshotTriggeredViaFollowerWhenFirstEntryCommitted_then_snapshotCanBeTaken() {
         group = LocalRaftGroup.newBuilder(3).enableNewTermOperation().start();
         group.waitUntilLeaderElected();
@@ -1213,7 +1213,7 @@ public class SnapshotTest extends BaseTest {
         assertThat(result.getCommitIndex()).isEqualTo(FIRST_VALID_LOG_INDEX);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_snapshotTriggeredViaLearnerWhenFirstEntryCommitted_then_snapshotCanBeTaken() {
         group = LocalRaftGroup.newBuilder(3).enableNewTermOperation().start();
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -1230,7 +1230,7 @@ public class SnapshotTest extends BaseTest {
         assertThat(result.getCommitIndex()).isEqualTo(commitIndex);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_manualSnapshotIsTakenViaLeader_then_leaderCanTakeAutomaticSnapshot() {
         int entryCount = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount)
@@ -1259,7 +1259,7 @@ public class SnapshotTest extends BaseTest {
         assertThat(snapshotIndex3).isGreaterThan(snapshotIndex2);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_manualSnapshotIsTakenViaFollower_then_followerCanTakeAutomaticSnapshot() {
         int entryCount = 50;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(entryCount)
@@ -1297,4 +1297,5 @@ public class SnapshotTest extends BaseTest {
         assertThat(snapshotIndex3).isGreaterThan(snapshotIndex2);
     }
 }
+
 

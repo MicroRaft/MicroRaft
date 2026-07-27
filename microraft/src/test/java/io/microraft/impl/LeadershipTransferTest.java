@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Original work Copyright (c) 2008-2020, Hazelcast, Inc.
  * Modified work Copyright 2020, MicroRaft.
  *
@@ -32,7 +32,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Test;\r\nimport org.junit.jupiter.api.Timeout;
 
 import io.microraft.Ordered;
 import io.microraft.RaftConfig;
@@ -56,7 +56,7 @@ public class LeadershipTransferTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leaderTransfersLeadershipToItself_then_leadershipTransferSucceeds() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -64,7 +64,7 @@ public class LeadershipTransferTest extends BaseTest {
         leader.transferLeadership(leader.getLocalEndpoint()).join();
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leaderTransfersLeadershipToNull_then_leadershipTransferFails() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -76,7 +76,7 @@ public class LeadershipTransferTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leaderTransfersLeadershipToNonGroupMemberEndpoint_then_leadershipTransferFails() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -90,7 +90,7 @@ public class LeadershipTransferTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leaderTransfersLeadershipToNonVotingMember_then_leadershipTransferFails() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -108,7 +108,7 @@ public class LeadershipTransferTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leadershipTransferTriggeredOnFollower_then_leadershipTransferFails() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -122,7 +122,7 @@ public class LeadershipTransferTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leadershipTransferTriggeredDuringMembershipChange_then_leadershipTransferFails() {
         RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(30).setLeaderHeartbeatTimeoutSecs(30)
                 .build();
@@ -147,7 +147,7 @@ public class LeadershipTransferTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leadershipTransferTriggeredDuringNoOperationCommitted_then_leadershipTransferSucceeds() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -164,7 +164,7 @@ public class LeadershipTransferTest extends BaseTest {
         assertThat(getRole(leader)).isEqualTo(FOLLOWER);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leadershipTransferTriggeredDuringOperationsCommitted_then_leadershipTransferSucceeds() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -182,7 +182,7 @@ public class LeadershipTransferTest extends BaseTest {
         assertThat(getRole(leader)).isEqualTo(FOLLOWER);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_targetEndpointCannotCatchesUpTheLeaderInTime_then_leadershipTransferFails() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -200,7 +200,7 @@ public class LeadershipTransferTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_sameLeadershipTransferTriggeredMultipleTimes_then_leadershipTransferSucceeds() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -218,7 +218,7 @@ public class LeadershipTransferTest extends BaseTest {
         f2.join();
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_secondLeadershipTransfersTriggeredForDifferentEndpoint_then_secondLeadershipTransferFails() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -240,7 +240,7 @@ public class LeadershipTransferTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_newOperationIsReplicatedDuringLeadershipTransfer_then_replicateFails() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -258,7 +258,7 @@ public class LeadershipTransferTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leadershipTransferCompleted_then_oldLeaderCannotReplicate() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -277,7 +277,7 @@ public class LeadershipTransferTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leadershipTransferCompleted_then_newLeaderCanCommit() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -291,7 +291,7 @@ public class LeadershipTransferTest extends BaseTest {
         newLeader.replicate(applyValue("val")).join();
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_thereAreInflightOperationsDuringLeadershipTransfer_then_inflightOperationsAreCommitted() {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
@@ -317,4 +317,5 @@ public class LeadershipTransferTest extends BaseTest {
     }
 
 }
+
 

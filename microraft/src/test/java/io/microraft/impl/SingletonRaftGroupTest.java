@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2020, MicroRaft.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +42,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Test;\r\nimport org.junit.jupiter.api.Timeout;
 
 import io.microraft.Ordered;
 import io.microraft.QueryPolicy;
@@ -71,7 +71,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_singletonRaftGroupIsStarted_then_leaderIsElected() {
         RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(3)
                 .build();
@@ -103,7 +103,7 @@ public class SingletonRaftGroupTest extends BaseTest {
                 2 * config.getLeaderHeartbeatTimeoutSecs());
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_singletonRaftGroupIsStarted_then_logEntryIsCommitted() {
         group = LocalRaftGroup.start(1);
 
@@ -118,7 +118,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         assertThat(quorumTimestamp.get()).isGreaterThan(0).isLessThan(Long.MAX_VALUE);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_singletonRaftGroupIsStarted_then_multipleLogEntriesAreCommitted() {
         group = LocalRaftGroup.start(1);
 
@@ -139,7 +139,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_singletonClusterIsStartedWithRaftStore_then_logEntryIsCommitted() {
         group = LocalRaftGroup.newBuilder(1).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).build();
         group.start();
@@ -152,7 +152,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         assertThat(val).isEqualTo(expectedVal);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_singletonRaftGroupIsStartedWithRaftStore_then_multipleLogEntriesAreCommitted() {
         group = LocalRaftGroup.newBuilder(1).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).build();
         group.start();
@@ -174,7 +174,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_learnerIsAddedToSingletonRaftGroup_then_quorumDoesNotChange() {
         group = LocalRaftGroup.start(1);
 
@@ -198,7 +198,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_followerIsAddedToSingletonRaftGroup_then_quorumIsUpdated() {
         group = LocalRaftGroup.start(1);
 
@@ -222,7 +222,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_learnerIsPromotedAfterAddedToSingletonRaftGroup_then_quorumIsUpdated() {
         group = LocalRaftGroup.start(1);
 
@@ -249,7 +249,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_learnerIsAddedToSingletonRaftGroupWithRaftStore_then_quorumDoesNotChange() {
         group = LocalRaftGroup.newBuilder(1).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).build();
         group.start();
@@ -274,7 +274,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_followerIsAddedToSingletonRaftGroupWithRaftStore_then_quorumIsUpdated() {
         group = LocalRaftGroup.newBuilder(1).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).build();
         group.start();
@@ -299,7 +299,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_learnerIsPromotedAfterAddedToSingletonRaftGroupWithRaftStore_then_quorumIncreases() {
         group = LocalRaftGroup.newBuilder(1).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).build();
         group.start();
@@ -327,7 +327,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_learnerIsAddedToSingletonRaftGroup_then_newLogEntryIsCommitted() {
         group = LocalRaftGroup.start(1);
 
@@ -356,7 +356,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_followerIsAddedToSingletonRaftGroup_then_newLogEntryIsCommitted() {
         group = LocalRaftGroup.start(1);
 
@@ -385,7 +385,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_learnerIsPromotedAfterAddedToSingletonRaftGroup_then_newLogEntryIsCommitted() {
         group = LocalRaftGroup.start(1);
 
@@ -416,7 +416,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_learnerIsAddedToSingletonRaftGroupWithRaftStore_then_newLogEntryIsCommitted() {
         group = LocalRaftGroup.newBuilder(1).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).build();
         group.start();
@@ -446,7 +446,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_followerIsAddedToSingletonRaftGroupWithRaftStore_then_newLogEntryIsCommitted() {
         group = LocalRaftGroup.newBuilder(1).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).build();
         group.start();
@@ -476,7 +476,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_learnerIsPromotedAfterAddedToSingletonRaftGroupWithRaftStore_then_newLogEntryIsCommitted() {
         group = LocalRaftGroup.newBuilder(1).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).build();
         group.start();
@@ -508,7 +508,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_learnerIsAddedToSingletonRaftGroup_then_newLogEntryCanBeCommittedOnlyWithLeader() {
         group = LocalRaftGroup.start(1);
 
@@ -540,7 +540,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_learnerIsPromotedAfterAddedToSingletonRaftGroup_then_newLogEntryCannotBeCommittedOnlyWithLeader() {
         group = LocalRaftGroup.start(1);
 
@@ -581,7 +581,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_learnerIsAddedToSingletonRaftGroupWithRaftStore_then_newLogEntryCanBeCommittedOnlyWithLeader() {
         group = LocalRaftGroup.newBuilder(1).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).build();
         group.start();
@@ -614,7 +614,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_learnerIsPromotedAfterAddedToSingletonRaftGroupWithRaftStore_then_newLogEntryCannotBeCommittedOnlyWithLeader() {
         group = LocalRaftGroup.newBuilder(1).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).build();
         group.start();
@@ -656,7 +656,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         });
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_singletonRaftGroupIsStarted_then_linearizableQueryIsExecuted() {
         group = LocalRaftGroup.start(1);
         group.start();
@@ -672,7 +672,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         assertThat(queryResult.getResult()).isEqualTo(val);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_singletonRaftGroupIsStarted_then_leaderLeaseQueryIsExecuted() {
         group = LocalRaftGroup.start(1);
         group.start();
@@ -688,7 +688,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         assertThat(queryResult.getResult()).isEqualTo(val);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_singletonRaftGroupIsStarted_then_eventuallyConsistentQueryIsExecuted() {
         group = LocalRaftGroup.start(1);
         group.start();
@@ -704,7 +704,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         assertThat(queryResult.getResult()).isEqualTo(expectedVal);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_singletonRaftGroupRestarted_then_leaderIsElected() {
         group = LocalRaftGroup.newBuilder(1).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY)
                 .enableNewTermOperation().build();
@@ -743,7 +743,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         assertThat(group.getStateMachine(restoredNode.getLocalEndpoint()).get(result.getCommitIndex())).isEqualTo(val);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_nodeRestartsAfterSingletonRaftGroupExpandedWithLearner_then_newLeaderIsElected() {
         RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(3)
                 .build();
@@ -790,7 +790,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         assertThat(group.getStateMachine(restoredNode.getLocalEndpoint()).get(result.getCommitIndex())).isEqualTo(val);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_nodeRestartsAfterSingletonRaftGroupExpandedWithFollower_then_newLeaderIsElected() {
         RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(3)
                 .build();
@@ -837,7 +837,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         assertThat(group.getStateMachine(restoredNode.getLocalEndpoint()).get(result.getCommitIndex())).isEqualTo(val);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_nodeRestartsAfterSingletonRaftGroupExpanded_then_newLeaderIsElected() {
         RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(3)
                 .build();
@@ -886,7 +886,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         assertThat(group.getStateMachine(restoredNode.getLocalEndpoint()).get(result.getCommitIndex())).isEqualTo(val);
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_followerLeaves2NodeRaftGroup_then_singletonRaftGroupCommitsNewLogEntry() {
         LocalRaftGroup group = LocalRaftGroup.start(2);
 
@@ -920,7 +920,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         assertThat(queryResult2.getCommitIndex()).isEqualTo(result2.getCommitIndex());
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_leaderLeaves2NodeRaftGroup_then_singletonRaftGroupCommitsNewLogEntry() {
         RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(3)
                 .build();
@@ -967,7 +967,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         assertThat(queryResult2.getCommitIndex()).isEqualTo(result2.getCommitIndex());
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_memberRemovalIsNotCommitted_then_singletonFollowerCompletesMembershipChange() {
         RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(3)
                 .build();
@@ -1008,7 +1008,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         assertThat(queryResult.getCommitIndex()).isEqualTo(result2.getCommitIndex());
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_singletonRaftGroupIsRunning_then_cannotRemoveEndpoint() {
         group = LocalRaftGroup.start(1);
 
@@ -1022,7 +1022,7 @@ public class SingletonRaftGroupTest extends BaseTest {
         }
     }
 
-    @Test(timeout = 300_000)
+    @Timeout(300)\r\n    @Test
     public void when_singleVotingRaftNodeIsRunning_then_cannotRemoveEndpoint() {
         RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(3)
                 .build();
@@ -1043,4 +1043,5 @@ public class SingletonRaftGroupTest extends BaseTest {
     }
 
 }
+
 

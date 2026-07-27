@@ -1,4 +1,4 @@
-package io.microraft.store.sqlite;
+﻿package io.microraft.store.sqlite;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -134,7 +134,7 @@ public class RaftSqliteStoreTest {
             assertThat(restoredRaftState.getSnapshotEntry().getOperation()).usingRecursiveComparison()
                     .isEqualTo(List.of(snapshotChunk(3, 1, 0, 1)));
         });
-        sqlite = new File(tempDir.newFolder(), "sqlite.db");
+        sqlite = tempDir.resolve("sqlite.db").toFile();
         withRaftStore(RaftSqliteStoreTest::persistInitialState);
         withRaftStore(store -> {
             store.persistSnapshotChunk(snapshotChunk(1, 1, 0, 1));
@@ -146,7 +146,7 @@ public class RaftSqliteStoreTest {
             assertThat(store.getAllSnapshotChunks()).usingRecursiveFieldByFieldElementComparator()
                     .containsExactly(snapshotChunk(1, 1, 0, 1));
         });
-        sqlite = new File(tempDir.newFolder(), "sqlite.db");
+        sqlite = tempDir.resolve("sqlite.db").toFile();
         withRaftStore(RaftSqliteStoreTest::persistInitialState);
         withRaftStore(store -> {
             store.persistSnapshotChunk(snapshotChunk(1, 1, 0, 1));
@@ -159,7 +159,7 @@ public class RaftSqliteStoreTest {
             assertThat(store.getAllSnapshotChunks()).usingRecursiveFieldByFieldElementComparator()
                     .containsExactly(snapshotChunk(1, 1, 0, 1), snapshotChunk(3, 1, 0, 1));
         });
-        sqlite = new File(tempDir.newFolder(), "sqlite.db");
+        sqlite = tempDir.resolve("sqlite.db").toFile();
         withRaftStore(RaftSqliteStoreTest::persistInitialState);
         withRaftStore(store -> {
             store.persistSnapshotChunk(snapshotChunk(1, 1, 0, 2));
@@ -309,3 +309,4 @@ public class RaftSqliteStoreTest {
     }
 
 }
+

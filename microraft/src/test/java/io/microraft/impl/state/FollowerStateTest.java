@@ -1,4 +1,4 @@
-﻿package io.microraft.impl.state;
+package io.microraft.impl.state;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

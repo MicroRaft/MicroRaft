@@ -50,8 +50,7 @@ public class YamlRaftConfigParserTest extends BaseTest {
 
     @Test
     public void parseString_whenLongTimeoutProvided_returnsConfig() {
-        String yamlWithLongTimeout = "raft:\\n" + " leader-election-timeout-millis: 5000000000\\n" + " leader-heartbeat-period-secs: 15\\n" + " leader-heartbeat-timeout-secs: 45
-";
+        String yamlWithLongTimeout = "raft:\\n" + " leader-election-timeout-millis: 5000000000\\n" + " leader-heartbeat-period-secs: 15\\n" + " leader-heartbeat-timeout-secs: 45\\n";
 
         RaftConfig config = YamlRaftConfigParser.parseString(new Yaml(), yamlWithLongTimeout);
 
@@ -60,8 +59,7 @@ public class YamlRaftConfigParserTest extends BaseTest {
 
     @Test
     public void parseString_whenMaxIntProvidedForIntField_returnsConfig() {
-        String yamlWithLongTypedInt = "raft:\\n" + " append-entries-request-batch-size: 2147483647
-";
+        String yamlWithLongTypedInt = "raft:\\n" + " append-entries-request-batch-size: 2147483647\\n";
 
         RaftConfig config = YamlRaftConfigParser.parseString(new Yaml(), yamlWithLongTypedInt);
 
@@ -70,8 +68,7 @@ public class YamlRaftConfigParserTest extends BaseTest {
 
     @Test
     public void parseString_whenOutOfRangeIntProvided_throwsIllegalArgumentException() {
-        String yamlWithOutOfRangeInt = "raft:\\n" + " append-entries-request-batch-size: 2147483648
-";
+        String yamlWithOutOfRangeInt = "raft:\\n" + " append-entries-request-batch-size: 2147483648\\n";
 
         assertConfigException(() -> YamlRaftConfigParser.parseString(new Yaml(), yamlWithOutOfRangeInt),
                 IllegalArgumentException.class,
@@ -80,8 +77,7 @@ public class YamlRaftConfigParserTest extends BaseTest {
 
     @Test
     public void parseString_whenFractionalLongProvided_throwsIllegalArgumentException() {
-        String yamlWithFractionalLong = "raft:\\n" + " leader-election-timeout-millis: 1.5
-";
+        String yamlWithFractionalLong = "raft:\\n" + " leader-election-timeout-millis: 1.5\\n";
 
         assertConfigException(() -> YamlRaftConfigParser.parseString(new Yaml(), yamlWithFractionalLong),
                 IllegalArgumentException.class,
@@ -90,8 +86,7 @@ public class YamlRaftConfigParserTest extends BaseTest {
 
     @Test
     public void parseString_whenFractionalIntProvided_throwsIllegalArgumentException() {
-        String yamlWithFractionalInt = "raft:\\n" + " append-entries-request-batch-size: 1.5
-";
+        String yamlWithFractionalInt = "raft:\\n" + " append-entries-request-batch-size: 1.5\\n";
 
         assertConfigException(() -> YamlRaftConfigParser.parseString(new Yaml(), yamlWithFractionalInt),
                 IllegalArgumentException.class,

@@ -581,10 +581,14 @@ public final class RaftState {
     }
 
     /**
-     * Updates the known leader to the given endpoint.
+     * Updates the known leader to the given endpoint. Discovering a leader cancels
+     * an in-progress pre-vote because the leader supersedes that election attempt.
      */
     public void leader(RaftEndpoint endpoint) {
         termState = termState.withLeader(endpoint);
+        if (endpoint != null) {
+            preCandidateState = null;
+        }
     }
 
     /**

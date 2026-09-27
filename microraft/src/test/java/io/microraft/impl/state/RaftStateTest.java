@@ -94,6 +94,16 @@ public class RaftStateTest {
     }
 
     @Test
+    public void leaderDiscoveryDuringPreVoteCancelsPreVote() {
+        state.initPreCandidateState();
+        assertThat(state.preCandidateState()).isNotNull();
+
+        state.leader(state.remoteMembers().iterator().next());
+
+        assertThat(state.preCandidateState()).isNull();
+    }
+
+    @Test
     public void test_commitIndex() {
         int ix = 123;
         state.commitIndex(ix);

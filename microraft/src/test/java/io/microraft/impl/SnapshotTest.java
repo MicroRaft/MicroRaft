@@ -20,6 +20,8 @@ package io.microraft.impl;
 import static io.microraft.MembershipChangeMode.ADD_LEARNER;
 import static io.microraft.MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER;
 import static io.microraft.RaftNodeStatus.ACTIVE;
+import static io.microraft.RaftRole.FOLLOWER;
+import static io.microraft.RaftRole.LEARNER;
 import static io.microraft.impl.local.SimpleStateMachine.applyValue;
 import static io.microraft.impl.log.RaftLog.FIRST_VALID_LOG_INDEX;
 import static io.microraft.test.util.AssertionUtils.eventually;
@@ -51,17 +53,24 @@ import io.microraft.RaftConfig;
 import io.microraft.RaftNode;
 import io.microraft.RaftRole;
 import io.microraft.exception.IndeterminateStateException;
+import io.microraft.impl.handler.InstallSnapshotRequestHandler;
+import io.microraft.impl.handler.PreVoteResponseHandler;
 import io.microraft.impl.local.LocalRaftGroup;
 import io.microraft.impl.local.SimpleStateMachine;
 import io.microraft.impl.log.SnapshotChunkCollector;
+import io.microraft.impl.task.HeartbeatTask;
+import io.microraft.impl.task.PreVoteTimeoutTask;
 import io.microraft.model.impl.groupop.DefaultUpdateRaftGroupMembersOpOrBuilder;
 import io.microraft.model.impl.message.DefaultAppendEntriesRequestOrBuilder;
 import io.microraft.model.log.LogEntry;
+import io.microraft.model.log.SnapshotChunk;
+import io.microraft.model.log.SnapshotEntry;
 import io.microraft.model.message.AppendEntriesFailureResponse;
 import io.microraft.model.message.AppendEntriesRequest;
 import io.microraft.model.message.AppendEntriesSuccessResponse;
 import io.microraft.model.message.InstallSnapshotRequest;
 import io.microraft.model.message.InstallSnapshotResponse;
+import io.microraft.model.message.PreVoteResponse;
 import io.microraft.model.message.RaftMessage;
 import io.microraft.report.RaftGroupMembers;
 import io.microraft.report.RaftNodeReport;
@@ -1094,6 +1103,75 @@ public class SnapshotTest extends BaseTest {
             assertThat(getCommitIndex(newNode)).isEqualTo(getCommitIndex(leader));
             assertThat(getRole(newNode)).isEqualTo(RaftRole.FOLLOWER);
         });
+    }
+
+    @Test(timeout = 30_000)
+    public void peerSnapshotCancelsPreVoteAndHeartbeatRestartsIt() {
+        testPeerSnapshotDuringPreVote(true);
+    }
+
+    @Test(timeout = 30_000)
+    public void peerSnapshotCancelsPreVoteAndTimeoutRestartsIt() {
+        testPeerSnapshotDuringPreVote(false);
+    }
+
+    private void testPeerSnapshotDuringPreVote(boolean retryOnHeartbeat) {
+        int votingMemberCount = 3;
+        group = LocalRaftGroup.start(votingMemberCount + 1, votingMemberCount);
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        RaftNodeImpl candidate = group.<RaftNodeImpl>getNodes().stream()
+                .filter(node -> getRole(node) == FOLLOWER).findFirst().get();
+        RaftNodeImpl learner = group.<RaftNodeImpl>getNodes().stream()
+                .filter(node -> getRole(node) == LEARNER).findFirst().get();
+        RaftNodeImpl peer = group.<RaftNodeImpl>getNodes().stream()
+                .filter(node -> node != candidate && getRole(node) == FOLLOWER).findFirst().get();
+        group.splitMembers(candidate.getLocalEndpoint());
+        leader.replicate(applyValue("seed")).join();
+        long membershipIndex = leader.changeMembership(learner.getLocalEndpoint(),
+                ADD_OR_PROMOTE_TO_FOLLOWER, 0).join().getCommitIndex();
+        eventually(() -> assertThat(getCommitIndex(peer)).isEqualTo(membershipIndex));
+        peer.takeSnapshot().join();
+        SnapshotEntry snapshot = getSnapshotEntry(peer);
+        SnapshotChunk chunk = (SnapshotChunk) ((List<?>) snapshot.getOperation()).get(0);
+        assertThat(snapshot.getSnapshotChunkCount()).isEqualTo(1);
+
+        CompletableFuture.runAsync(() -> {
+            candidate.toFollower(candidate.state().term());
+            candidate.state().initPreCandidateState();
+            int term = candidate.state().term();
+            assertThat(candidate.state().preCandidateState().majority()).isEqualTo(2);
+
+            // Deliver a peer chunk after the leader timed out; the snapshot contains a promotion.
+            new InstallSnapshotRequestHandler(candidate,
+                    candidate.getModelFactory().createInstallSnapshotRequestBuilder()
+                            .setGroupId(candidate.getGroupId()).setSender(peer.getLocalEndpoint())
+                            .setSenderLeader(false).setTerm(term).setSnapshotTerm(snapshot.getTerm())
+                            .setSnapshotIndex(snapshot.getIndex()).setTotalSnapshotChunkCount(1)
+                            .setSnapshotChunk(chunk).setSnapshottedMembers(List.of(peer.getLocalEndpoint()))
+                            .setGroupMembersView(snapshot.getGroupMembersView()).build()).run();
+
+            assertThat(candidate.state().commitIndex()).isEqualTo(snapshot.getIndex());
+            assertThat(candidate.state().leaderElectionQuorumSize()).isEqualTo(3);
+            assertThat(candidate.state().preCandidateState()).isNull();
+            PreVoteResponse delayedResponse = candidate.getModelFactory().createPreVoteResponseBuilder()
+                    .setGroupId(candidate.getGroupId()).setSender(peer.getLocalEndpoint())
+                    .setTerm(term + 1).setGranted(true).build();
+            new PreVoteResponseHandler(candidate, delayedResponse).run();
+            assertThat(candidate.state().role()).isEqualTo(FOLLOWER);
+            assertThat(candidate.state().term()).isEqualTo(term);
+
+            if (retryOnHeartbeat) {
+                new HeartbeatTask(candidate).run();
+            } else {
+                new PreVoteTimeoutTask(candidate, term).run();
+            }
+            assertThat(candidate.state().preCandidateState().majority()).isEqualTo(3);
+            assertThat(candidate.state().preCandidateState().voteCount()).isEqualTo(1);
+            new PreVoteResponseHandler(candidate, delayedResponse).run();
+            assertThat(candidate.state().preCandidateState().voteCount()).isEqualTo(2);
+            assertThat(candidate.state().role()).isEqualTo(FOLLOWER);
+            assertThat(candidate.state().term()).isEqualTo(term);
+        }, candidate.getExecutor()::execute).join();
     }
 
     @Test(timeout = 300_000)

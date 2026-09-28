@@ -104,6 +104,39 @@ public class RaftStateTest {
     }
 
     @Test
+    public void snapshotRemovingVoterCancelsPreVoteEvenWithSameQuorumSize() {
+        state.initPreCandidateState();
+        RaftEndpoint removed = state.remoteMembers().iterator().next();
+        state.preCandidateState().grantVote(removed);
+        List<RaftEndpoint> members = new ArrayList<>(initialEndpoints);
+        members.remove(removed);
+        // The leader commits an entry before it can remove a voter.
+        RaftGroupMembersView snapshotMembers = new DefaultRaftGroupMembersViewOrBuilder().setLogIndex(2)
+                .setMembers(members).setVotingMembers(members).build();
+
+        assertThat(state.installGroupMembers(snapshotMembers)).isTrue();
+
+        assertThat(state.isVotingMember(removed)).isFalse();
+        assertThat(state.leaderElectionQuorumSize()).isEqualTo(3);
+        assertThat(state.preCandidateState()).isNull();
+        state.initPreCandidateState();
+        assertThat(state.preCandidateState().voteCount()).isEqualTo(1);
+    }
+
+    @Test
+    public void snapshotWithUnchangedMembershipPreservesPreVote() {
+        state.initPreCandidateState();
+        CandidateState round = state.preCandidateState();
+        round.grantVote(state.remoteMembers().iterator().next());
+
+        assertThat(state.installGroupMembers(groupMembers)).isFalse();
+
+        assertThat(state.preCandidateState()).isSameAs(round);
+        assertThat(round.voteCount()).isEqualTo(2);
+        assertThat(state.role()).isEqualTo(FOLLOWER);
+    }
+
+    @Test
     public void test_commitIndex() {
         int ix = 123;
         state.commitIndex(ix);

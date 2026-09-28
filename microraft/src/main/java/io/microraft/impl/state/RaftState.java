@@ -743,6 +743,11 @@ public final class RaftState {
         this.committedGroupMembers = groupMembers;
         this.effectiveGroupMembers = groupMembers;
 
+        if (changed) {
+            // A pending pre-vote's votes and quorum belong to the previous configuration.
+            preCandidateState = null;
+        }
+
         return changed;
     }
 

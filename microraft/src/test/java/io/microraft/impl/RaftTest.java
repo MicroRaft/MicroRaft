@@ -17,6 +17,10 @@
 
 package io.microraft.impl;
 
+import static io.microraft.RaftRole.CANDIDATE;
+import static io.microraft.RaftRole.FOLLOWER;
+import static io.microraft.RaftRole.LEADER;
+import static io.microraft.RaftRole.LEARNER;
 import static io.microraft.impl.local.SimpleStateMachine.applyValue;
 import static io.microraft.test.util.AssertionUtils.allTheTime;
 import static io.microraft.test.util.AssertionUtils.eventually;
@@ -57,8 +61,11 @@ import io.microraft.RaftRole;
 import io.microraft.exception.CannotReplicateException;
 import io.microraft.exception.IndeterminateStateException;
 import io.microraft.exception.NotLeaderException;
+import io.microraft.impl.handler.PreVoteResponseHandler;
+import io.microraft.impl.handler.VoteResponseHandler;
 import io.microraft.impl.local.LocalRaftGroup;
 import io.microraft.impl.local.SimpleStateMachine;
+import io.microraft.impl.state.RaftState;
 import io.microraft.model.message.AppendEntriesRequest;
 import io.microraft.model.message.AppendEntriesSuccessResponse;
 import io.microraft.model.message.VoteRequest;
@@ -67,6 +74,9 @@ import io.microraft.test.util.BaseTest;
 public class RaftTest extends BaseTest {
 
     private LocalRaftGroup group;
+    private RaftNodeImpl candidate;
+    private RaftNodeImpl voter;
+    private RaftNodeImpl learner;
 
     @After
     public void destroy() {
@@ -904,6 +914,111 @@ public class RaftTest extends BaseTest {
         }
 
         assertThat(learnerCount).isEqualTo(2);
+    }
+
+    @Test(timeout = 30_000)
+    public void learnerPreVoteDoesNotCount() {
+        setUpElectionResponseTest();
+        onCandidate(() -> {
+            candidate.state().initPreCandidateState();
+            int term = candidate.state().term() + 1;
+
+            preVote(learner, term);
+
+            assertThat(candidate.state().role()).isEqualTo(FOLLOWER);
+            assertThat(candidate.state().preCandidateState().voteCount()).isEqualTo(1);
+
+            preVote(voter, term);
+            assertThat(candidate.state().role()).isEqualTo(CANDIDATE);
+        });
+    }
+
+    @Test(timeout = 30_000)
+    public void learnerVoteDoesNotCount() {
+        setUpElectionResponseTest();
+        onCandidate(() -> {
+            candidate.toCandidate(true);
+            int term = candidate.state().term();
+
+            vote(learner, term);
+
+            assertThat(candidate.state().role()).isEqualTo(CANDIDATE);
+            assertThat(candidate.state().candidateState().voteCount()).isEqualTo(1);
+
+            vote(voter, term);
+            assertThat(candidate.state().role()).isEqualTo(LEADER);
+        });
+    }
+
+    @Test(timeout = 30_000)
+    public void higherTermLearnerResponseMakesCandidateStepDown() {
+        setUpElectionResponseTest();
+        onCandidate(() -> {
+            candidate.toCandidate(true);
+            int higherTerm = candidate.state().term() + 1;
+
+            vote(learner, higherTerm);
+
+            assertThat(candidate.state().term()).isEqualTo(higherTerm);
+            assertThat(candidate.state().role()).isEqualTo(FOLLOWER);
+            assertThat(candidate.state().candidateState()).isNull();
+        });
+    }
+
+    @Test(timeout = 30_000)
+    public void promotedVoterResponsesCountBeforeItLearnsItsPromotion() {
+        setUpElectionResponseTest();
+        onCandidate(() -> {
+            RaftState state = candidate.state();
+            // Only the candidate has learned the promotion; the sender still sees itself as a learner.
+            state.updateGroupMembers(1, state.members(), state.members(), System.currentTimeMillis());
+            assertThat(state.committedGroupMembers().isVotingMember(learner.getLocalEndpoint())).isFalse();
+            assertThat(state.isVotingMember(learner.getLocalEndpoint())).isTrue();
+
+            state.initPreCandidateState();
+            preVote(learner, state.term() + 1);
+            assertThat(state.preCandidateState().voteCount()).isEqualTo(2);
+            assertThat(state.role()).isEqualTo(FOLLOWER);
+
+            candidate.toCandidate(true);
+            vote(learner, state.term());
+            vote(learner, state.term());
+            assertThat(state.candidateState().voteCount()).isEqualTo(2);
+            assertThat(state.role()).isEqualTo(CANDIDATE);
+        });
+        assertThat(getRole(learner)).isEqualTo(LEARNER);
+    }
+
+    private void setUpElectionResponseTest() {
+        int votingMemberCount = 3;
+        group = LocalRaftGroup.start(votingMemberCount + 1, votingMemberCount);
+        voter = group.waitUntilLeaderElected();
+        candidate = group.<RaftNodeImpl>getNodes().stream()
+                .filter(node -> getRole(node) == FOLLOWER).findFirst().get();
+        learner = group.<RaftNodeImpl>getNodes().stream()
+                .filter(node -> getRole(node) == LEARNER).findFirst().get();
+        // Deliver responses explicitly, without concurrent votes from the other voters.
+        group.splitMembers(candidate.getLocalEndpoint());
+    }
+
+    private void onCandidate(Runnable assertions) {
+        CompletableFuture.runAsync(() -> {
+            candidate.toFollower(candidate.state().term());
+            assertThat(candidate.state().isKnownMember(learner.getLocalEndpoint())).isTrue();
+            assertions.run();
+        }, candidate.getExecutor()::execute).join();
+    }
+
+    private void preVote(RaftNodeImpl sender, int term) {
+        new PreVoteResponseHandler(candidate, candidate.getModelFactory().createPreVoteResponseBuilder()
+                .setGroupId(candidate.getGroupId()).setSender(sender.getLocalEndpoint())
+                .setTerm(term).setGranted(true).build()).run();
+    }
+
+    private void vote(RaftNodeImpl sender, int term) {
+        new VoteResponseHandler(candidate, candidate.getModelFactory().createVoteResponseBuilder()
+                .setGroupId(candidate.getGroupId()).setSender(sender.getLocalEndpoint())
+                .setTerm(term).setGranted(true).build()).run();
     }
 
 }

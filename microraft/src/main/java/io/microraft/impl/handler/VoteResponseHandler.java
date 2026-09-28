@@ -76,7 +76,9 @@ public class VoteResponseHandler extends AbstractResponseHandler<VoteResponse> {
         }
 
         CandidateState candidateState = state.candidateState();
-        if (response.isGranted() && candidateState.grantVote(response.getSender())) {
+        // Use our effective configuration; a promoted voter may not know its new role yet.
+        if (response.isGranted() && state.isVotingMember(response.getSender())
+                && candidateState.grantVote(response.getSender())) {
             LOGGER.info("{} Vote granted from {} for term: {}, number of votes: {}, majority: {}", localEndpointStr(),
                     response.getSender().getId(), state.term(), candidateState.voteCount(), candidateState.majority());
         }

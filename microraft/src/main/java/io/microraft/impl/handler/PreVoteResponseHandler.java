@@ -69,7 +69,9 @@ public class PreVoteResponseHandler extends AbstractResponseHandler<PreVoteRespo
             return;
         }
 
-        if (response.isGranted() && preCandidateState.grantVote(response.getSender())) {
+        // Learners are known members, but only effective voters count toward the quorum.
+        if (response.isGranted() && state.isVotingMember(response.getSender())
+                && preCandidateState.grantVote(response.getSender())) {
             LOGGER.info("{} Pre-vote granted from {} for term: {}, number of votes: {}, majority: {}",
                     localEndpointStr(), response.getSender().getId(), response.getTerm(), preCandidateState.voteCount(),
                     preCandidateState.majority());

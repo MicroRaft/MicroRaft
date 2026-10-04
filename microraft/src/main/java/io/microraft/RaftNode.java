@@ -209,6 +209,9 @@ public interface RaftNode {
      * Forcefully sets the status of this Raft node to
      * {@link RaftNodeStatus#TERMINATED} and makes the Raft node stops executing the
      * Raft consensus algorithm.
+     * <p>
+     * Terminal report and lifecycle callbacks run synchronously before the returned
+     * future completes. They must not block waiting for a termination future.
      *
      * @return the future object to be completed after this Raft node terminates
      */

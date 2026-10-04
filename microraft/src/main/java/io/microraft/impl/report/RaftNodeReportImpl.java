@@ -65,7 +65,7 @@ public final class RaftNodeReportImpl implements RaftNodeReport {
         this.status = requireNonNull(status);
         this.term = requireNonNull(term);
         this.log = requireNonNull(log);
-        this.heartbeatTimestamps = requireNonNull(heartbeatTimestamps);
+        this.heartbeatTimestamps = Map.copyOf(requireNonNull(heartbeatTimestamps));
         this.quorumHeartbeatTimestamp = requireNonNull(quorumHeartbeatTimestamp);
         this.leaderHeartbeatTimestamp = requireNonNull(leaderHeartbeatTimestamp);
     }

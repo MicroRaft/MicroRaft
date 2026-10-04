@@ -24,7 +24,6 @@ import static io.microraft.RaftRole.LEARNER;
 import static io.microraft.model.log.SnapshotEntry.isNonInitial;
 import static java.util.Objects.requireNonNull;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -46,6 +45,7 @@ import io.microraft.exception.IndeterminateStateException;
 import io.microraft.exception.LaggingCommitIndexException;
 import io.microraft.exception.NotLeaderException;
 import io.microraft.exception.RaftException;
+import io.microraft.exception.RaftStoreException;
 import io.microraft.impl.log.RaftLog;
 import io.microraft.impl.log.SnapshotChunkCollector;
 import io.microraft.impl.util.Long2ObjectHashMap;
@@ -409,17 +409,19 @@ public final class RaftState {
     /**
      * Persists the initial member list to the Raft store
      *
-     * @throws IOException
-     *             if an IO error occurs inside the store
-     *
      * @see RaftStore#persistAndFlushInitialGroupMembers(RaftGroupMembersView)
      */
-    public void persistInitialState(RaftGroupMembersViewBuilder initialGroupMembersBuilder) throws IOException {
-        store.persistAndFlushLocalEndpoint(modelFactory.createRaftEndpointPersistentStateBuilder()
-                .setLocalEndpoint(localEndpoint).setVoting(role != LEARNER).build());
-        initialGroupMembersBuilder.setLogIndex(initialGroupMembers.getLogIndex())
-                .setMembers(initialGroupMembers.getMembers()).setVotingMembers(initialGroupMembers.getVotingMembers());
-        store.persistAndFlushInitialGroupMembers(initialGroupMembersBuilder.build());
+    public void persistInitialState(RaftGroupMembersViewBuilder initialGroupMembersBuilder) {
+        try {
+            store.persistAndFlushLocalEndpoint(modelFactory.createRaftEndpointPersistentStateBuilder()
+                    .setLocalEndpoint(localEndpoint).setVoting(role != LEARNER).build());
+            initialGroupMembersBuilder.setLogIndex(initialGroupMembers.getLogIndex())
+                    .setMembers(initialGroupMembers.getMembers())
+                    .setVotingMembers(initialGroupMembers.getVotingMembers());
+            store.persistAndFlushInitialGroupMembers(initialGroupMembersBuilder.build());
+        } catch (Exception e) {
+            throw new RaftStoreException("Failed to persist initial Raft state", null, e);
+        }
     }
 
     /**
@@ -430,32 +432,44 @@ public final class RaftState {
      *            current term
      */
     public void toFollower(int term) {
+        FollowerStateTransition transition = transitionToFollower(term);
+        transition.completePendingOperations();
+    }
+
+    /**
+     * Switches this Raft node to follower role. The returned object completes the
+     * pending operations detached by the transition.
+     */
+    public FollowerStateTransition transitionToFollower(int term) {
+        RaftTermState newTermState = termState.switchTo(term);
+        if (term > termState.getTerm()) {
+            persistTerm(newTermState);
+        }
+
         if (role != LEARNER) {
             // If I am a LEARNER, I will stay in this role until I get promoted.
             role = FOLLOWER;
         }
 
-        RaftTermState newTermState = termState.switchTo(term);
-        persistTerm(newTermState);
         preCandidateState = null;
         LeaderState currentLeaderState = leaderState;
         leaderState = null;
         candidateState = null;
-        completeLeadershipTransfer(null);
+        LeadershipTransferState currentLeadershipTransferState = leadershipTransferState;
+        leadershipTransferState = null;
         termState = newTermState;
-        if (currentLeaderState != null) {
-            // this is done here to read the updated leader field
-            currentLeaderState.queryState().fail(new NotLeaderException(localEndpoint, leader()));
-        }
-        invalidateFuturesFrom(commitIndex + 1, new IndeterminateStateException());
+        long firstInvalidatedLogIndex = commitIndex + 1;
+        List<OrderedFuture> invalidatedFutures = removeFuturesFrom(firstInvalidatedLogIndex);
+        return new FollowerStateTransition(currentLeadershipTransferState, currentLeaderState, invalidatedFutures,
+                firstInvalidatedLogIndex, commitIndex, leader());
     }
 
     private void persistTerm(RaftTermState termStateToPersist) {
         try {
             store.persistAndFlushTerm(modelFactory.createRaftTermPersistentStateBuilder()
                     .setTerm(termStateToPersist.getTerm()).setVotedFor(termStateToPersist.getVotedEndpoint()).build());
-        } catch (IOException e) {
-            throw new RaftException("Failed to persist " + termStateToPersist, null, e);
+        } catch (Exception e) {
+            throw new RaftStoreException("Failed to persist " + termStateToPersist, null, e);
         }
     }
 
@@ -508,22 +522,30 @@ public final class RaftState {
         candidateState.grantVote(localEndpoint);
     }
 
-    private void promoteToVotingMember() throws IOException {
+    private void promoteToVotingMember() {
         if (role == LEADER || role == CANDIDATE) {
             throw new IllegalStateException("Cannot promote to voting member while the role is " + role);
         } else if (role == LEARNER) {
-            store.persistAndFlushLocalEndpoint(modelFactory.createRaftEndpointPersistentStateBuilder()
-                    .setLocalEndpoint(localEndpoint).setVoting(true).build());
+            try {
+                store.persistAndFlushLocalEndpoint(modelFactory.createRaftEndpointPersistentStateBuilder()
+                        .setLocalEndpoint(localEndpoint).setVoting(true).build());
+            } catch (Exception e) {
+                throw new RaftStoreException("Promotion to voting member failed", null, e);
+            }
             role = FOLLOWER;
         }
     }
 
-    private void demoteToNonVotingMember() throws IOException {
+    private void demoteToNonVotingMember() {
         if (role == LEADER) {
             throw new IllegalStateException("Cannot revert voting member promotion while the role is " + role);
         } else if (role != LEARNER) {
-            store.persistAndFlushLocalEndpoint(modelFactory.createRaftEndpointPersistentStateBuilder()
-                    .setLocalEndpoint(localEndpoint).setVoting(false).build());
+            try {
+                store.persistAndFlushLocalEndpoint(modelFactory.createRaftEndpointPersistentStateBuilder()
+                        .setLocalEndpoint(localEndpoint).setVoting(false).build());
+            } catch (Exception e) {
+                throw new RaftStoreException("Demotion to non-voting member failed", null, e);
+            }
             role = LEARNER;
         }
     }
@@ -665,11 +687,7 @@ public final class RaftState {
         }
 
         if (role == LEARNER && effectiveGroupMembers.getVotingMembers().contains(this.localEndpoint)) {
-            try {
-                promoteToVotingMember();
-            } catch (IOException e) {
-                throw new RaftException("Promotion to voting member failed", null, e);
-            }
+            promoteToVotingMember();
         }
     }
 
@@ -695,11 +713,7 @@ public final class RaftState {
         boolean demoteToNonVotingMember = !this.committedGroupMembers.getVotingMembers().contains(this.localEndpoint)
                 && this.effectiveGroupMembers.getVotingMembers().contains(this.localEndpoint);
         if (demoteToNonVotingMember) {
-            try {
-                demoteToNonVotingMember();
-            } catch (IOException e) {
-                throw new RaftException("Demotion to non-voting member failed", null, e);
-            }
+            demoteToNonVotingMember();
         }
         this.effectiveGroupMembers = this.committedGroupMembers;
         // there is no leader state to clean up
@@ -723,20 +737,14 @@ public final class RaftState {
                 groupMembersView.getMembers(), groupMembersView.getVotingMembers(), localEndpoint);
 
         if (changed) {
-            try {
-                if (!previousGroupMembers.getVotingMembers().contains(localEndpoint)
-                        && groupMembers.getVotingMembers().contains(localEndpoint)) {
-                    promoteToVotingMember();
-                } else if (previousGroupMembers.getVotingMembers().contains(localEndpoint)
-                        && !groupMembers.getVotingMembers().contains(localEndpoint)) {
-                    assert role == FOLLOWER || role == CANDIDATE
-                            : "Cannot demote to non voting member since role is " + role;
-                    demoteToNonVotingMember();
-                }
-            } catch (IOException e) {
-                throw new RaftException(
-                        "Persisting voting member status failed while installing group members: " + groupMembersView,
-                        null, e);
+            if (!previousGroupMembers.getVotingMembers().contains(localEndpoint)
+                    && groupMembers.getVotingMembers().contains(localEndpoint)) {
+                promoteToVotingMember();
+            } else if (previousGroupMembers.getVotingMembers().contains(localEndpoint)
+                    && !groupMembers.getVotingMembers().contains(localEndpoint)) {
+                assert role == FOLLOWER || role == CANDIDATE
+                        : "Cannot demote to non voting member since role is " + role;
+                demoteToNonVotingMember();
             }
         }
 
@@ -842,21 +850,68 @@ public final class RaftState {
      *            the RaftException object to complete registered futures
      */
     public void invalidateFuturesFrom(long startIndexInclusive, RaftException e) {
-        int count = 0;
+        failFutures(removeFuturesFrom(startIndexInclusive), startIndexInclusive, e);
+    }
+
+    private List<OrderedFuture> removeFuturesFrom(long startIndexInclusive) {
+        List<OrderedFuture> removedFutures = new ArrayList<>();
         Iterator<Entry<Long, OrderedFuture>> iterator = futures.entrySet().iterator();
         while (iterator.hasNext()) {
             Entry<Long, OrderedFuture> entry = iterator.next();
             long index = entry.getKey();
             if (index >= startIndexInclusive) {
-                entry.getValue().fail(e);
+                removedFutures.add(entry.getValue());
                 iterator.remove();
-                count++;
             }
         }
 
-        if (count > 0) {
-            LOGGER.warn("{} Invalidated {} futures from log index: {} with: {}", localEndpoint, count,
+        return removedFutures;
+    }
+
+    private void failFutures(List<OrderedFuture> futuresToFail, long startIndexInclusive, RaftException e) {
+        futuresToFail.forEach(future -> future.fail(e));
+        if (!futuresToFail.isEmpty()) {
+            LOGGER.warn("{} Invalidated {} futures from log index: {} with: {}", localEndpoint, futuresToFail.size(),
                     startIndexInclusive, e);
+        }
+    }
+
+    /** Completes pending operations detached by {@link #transitionToFollower(int)}. */
+    public final class FollowerStateTransition {
+
+        private final LeadershipTransferState leadershipTransferState;
+        private final LeaderState leaderState;
+        private final List<OrderedFuture> invalidatedFutures;
+        private final long firstInvalidatedLogIndex;
+        private final long commitIndex;
+        private final RaftEndpoint leader;
+        private boolean completed;
+
+        private FollowerStateTransition(LeadershipTransferState leadershipTransferState, LeaderState leaderState,
+                List<OrderedFuture> invalidatedFutures, long firstInvalidatedLogIndex, long commitIndex,
+                RaftEndpoint leader) {
+            this.leadershipTransferState = leadershipTransferState;
+            this.leaderState = leaderState;
+            this.invalidatedFutures = invalidatedFutures;
+            this.firstInvalidatedLogIndex = firstInvalidatedLogIndex;
+            this.commitIndex = commitIndex;
+            this.leader = leader;
+        }
+
+        /** Completes the detached operations once. */
+        public void completePendingOperations() {
+            if (completed) {
+                return;
+            }
+            completed = true;
+
+            if (leadershipTransferState != null) {
+                leadershipTransferState.complete(commitIndex, null);
+            }
+            if (leaderState != null) {
+                leaderState.queryState().fail(new NotLeaderException(localEndpoint, leader));
+            }
+            failFutures(invalidatedFutures, firstInvalidatedLogIndex, new IndeterminateStateException());
         }
     }
 
@@ -906,9 +961,6 @@ public final class RaftState {
      * Completes futures of the all queries waiting to be executed at a future
      * commit index.
      *
-     * @param t
-     *            the error to complete the futures of the queries waiting to be
-     *            executed.
      */
     public void invalidateScheduledQueries() {
         if (scheduledQueries.isEmpty()) {
@@ -921,6 +973,24 @@ public final class RaftState {
                 query.fail(new LaggingCommitIndexException(lastApplied, entry.getKey(), leader()));
             }
             invalidated += entry.getValue().size();
+        }
+
+        scheduledQueries.clear();
+        if (invalidated > 0) {
+            LOGGER.warn("{} invalidated {} waiting queries.", localEndpoint, invalidated);
+        }
+    }
+
+    /**
+     * Completes all queries waiting for a future commit index with the given error.
+     */
+    public void invalidateScheduledQueries(Throwable failure) {
+        int invalidated = 0;
+        for (Set<QueryContainer> queries : scheduledQueries.values()) {
+            for (QueryContainer query : queries) {
+                query.fail(failure);
+            }
+            invalidated += queries.size();
         }
 
         scheduledQueries.clear();

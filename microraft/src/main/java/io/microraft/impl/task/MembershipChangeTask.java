@@ -35,6 +35,7 @@ import io.microraft.RaftEndpoint;
 import io.microraft.RaftNodeStatus;
 import io.microraft.exception.MismatchingRaftGroupMembersCommitIndexException;
 import io.microraft.exception.RaftException;
+import io.microraft.exception.RaftNodeFatalException;
 import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.state.RaftGroupMembersState;
 import io.microraft.impl.state.RaftState;
@@ -161,6 +162,8 @@ public final class MembershipChangeTask implements Runnable {
                     .setMembers(members).setVotingMembers(votingMembers).setEndpoint(endpoint)
                     .setMode(membershipChangeMode).build();
             new ReplicateTask(raftNode, operation, future).run();
+        } catch (RaftNodeFatalException e) {
+            throw e;
         } catch (Throwable t) {
             LOGGER.error(raftNode.localEndpointStr() + " " + this + " failed.", t);
             future.fail(new RaftException("Internal failure", raftNode.getLeaderEndpoint(), t));

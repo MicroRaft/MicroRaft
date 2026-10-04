@@ -20,11 +20,12 @@ package io.microraft.impl.log;
 import static io.microraft.model.log.SnapshotEntry.isNonInitial;
 import static java.util.Objects.requireNonNull;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.microraft.exception.RaftException;
+import javax.annotation.Nullable;
+
+import io.microraft.exception.RaftStoreException;
 import io.microraft.impl.util.ArrayRingbuffer;
 import io.microraft.model.impl.log.DefaultSnapshotEntryOrBuilder;
 import io.microraft.model.log.BaseLogEntry;
@@ -186,9 +187,9 @@ public final class RaftLog {
             dirty = true;
             try {
                 store.truncateLogEntriesFrom(entryIndex);
-            } catch (IOException e) {
-                throw new RaftException("Failed to truncate log entries in persistence from index=" + entryIndex, null,
-                        e);
+            } catch (Exception e) {
+                throw new RaftStoreException(
+                        "Failed to truncate log entries in persistence from index=" + entryIndex, null, e);
             }
         }
 
@@ -236,8 +237,8 @@ public final class RaftLog {
         validateForAppend(entries);
         try {
             store.persistLogEntries(entries);
-        } catch (IOException e) {
-            throw new RaftException("Could not persist entries from start index: " + entries.get(0).getIndex()
+        } catch (Exception e) {
+            throw new RaftStoreException("Could not persist entries from start index: " + entries.get(0).getIndex()
                     + ", entry count: " + entries.size(), null, e);
         }
 
@@ -321,8 +322,8 @@ public final class RaftLog {
 
         try {
             store.persistLogEntries(List.of(entry));
-        } catch (IOException e) {
-            throw new RaftException("Failed to persist log entry at index: " + entry.getIndex(), null, e);
+        } catch (Exception e) {
+            throw new RaftStoreException("Failed to persist log entry at index: " + entry.getIndex(), null, e);
         }
 
         // we are modifying the memory state after the entries are persisted.
@@ -371,43 +372,42 @@ public final class RaftLog {
     }
 
     /**
-     * Installs the snapshot entry and truncates log entries those are included in
-     * snapshot (entries whose indexes are smaller than the snapshot's index). The
-     * given snapshot is already persisted and flushed to the storage before calling
-     * this method.
+     * Installs the snapshot and removes log entries through its index. The snapshot
+     * must already be persisted and flushed.
      *
-     * @return truncated log entries after snapshot is installed
+     * @return the number of entries removed from memory and any persisted-prefix
+     *         cleanup failure
      *
      * @throws IllegalArgumentException
      *             if the snapshot's index is smaller than or equal to the current
      *             snapshot index
      */
-    public int setSnapshot(SnapshotEntry snapshot) {
+    public LogCompactionResult setSnapshot(SnapshotEntry snapshot) {
         return setSnapshot(snapshot, snapshot.getIndex());
     }
 
     /**
-     * Installs the snapshot entry and truncates log entries until the given index
-     * which is smaller than or equal to the snapshot index. The given snapshot is
-     * already persisted and flushed to the storage before calling this method.
+     * Installs the snapshot and removes log entries through the given index,
+     * inclusively. The snapshot must already be persisted and flushed.
      *
-     * @return truncated log entries after snapshot is installed
+     * @return the number of entries removed from memory and any persisted-prefix
+     *         cleanup failure
      *
      * @throws IllegalArgumentException
      *             if the snapshot's index is smaller than or equal to the current
      *             snapshot index
      */
-    public int setSnapshot(SnapshotEntry snapshot, long truncateUpToIndex) {
+    public LogCompactionResult setSnapshot(SnapshotEntry snapshot, long truncateUpToIndex) {
         if (snapshot.getIndex() <= snapshotIndex()) {
             throw new IllegalArgumentException(
                     "Illegal index: " + snapshot.getIndex() + ", current snapshot index: " + snapshotIndex());
         }
 
+        Exception cleanupFailure = null;
         try {
             store.truncateLogEntriesUntil(truncateUpToIndex);
-        } catch (IOException e) {
-            throw new RaftException("Failed to truncate log entries from persistence until index=" + truncateUpToIndex,
-                    null, e);
+        } catch (Exception e) {
+            cleanupFailure = e;
         }
 
         int truncatedEntryCount = truncateLogEntriesUntil(truncateUpToIndex);
@@ -418,7 +418,7 @@ public final class RaftLog {
         // hence setting the dirty flag.
         dirty = true;
 
-        return truncatedEntryCount;
+        return new LogCompactionResult(truncatedEntryCount, cleanupFailure);
     }
 
     private int truncateLogEntriesUntil(long truncateUpToIndex) {
@@ -446,8 +446,8 @@ public final class RaftLog {
             try {
                 store.flush();
                 dirty = false;
-            } catch (IOException e) {
-                throw new RaftException("Failed to flush", null, e);
+            } catch (Exception e) {
+                throw new RaftStoreException("Failed to flush", null, e);
             }
         }
     }
@@ -467,6 +467,29 @@ public final class RaftLog {
         int maxLogEntryCountToKeepAfterSnapshot = Math.max(1,
                 (int) (commitCountToTakeSnapshot * KEPT_LOG_ENTRY_RATIO_BEFORE_SNAPSHOT_INDEX));
         return commitCountToTakeSnapshot + maxUncommittedLogEntryCount + maxLogEntryCountToKeepAfterSnapshot;
+    }
+
+    /** Result of compacting a log prefix after its state is safely represented. */
+    public static final class LogCompactionResult {
+
+        private final int truncatedEntryCount;
+        private final Exception cleanupFailure;
+
+        private LogCompactionResult(int truncatedEntryCount, @Nullable Exception cleanupFailure) {
+            this.truncatedEntryCount = truncatedEntryCount;
+            this.cleanupFailure = cleanupFailure;
+        }
+
+        /** Returns the number of entries removed from the in-memory log. */
+        public int getTruncatedEntryCount() {
+            return truncatedEntryCount;
+        }
+
+        /** Returns the non-fatal persisted-prefix cleanup failure, if any. */
+        @Nullable
+        public Exception getCleanupFailure() {
+            return cleanupFailure;
+        }
     }
 
 }

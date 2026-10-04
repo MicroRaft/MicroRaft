@@ -16,12 +16,15 @@
 
 package io.microraft.impl;
 
+import static io.microraft.report.RaftNodeReport.RaftNodeReportReason.FATAL_FAILURE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -67,10 +70,14 @@ import io.microraft.transport.Transport;
 
 public class RaftNodeLifecycleAwareTest extends BaseTest {
 
+    private static final int ASSERT_TIMEOUT_SECONDS = 10;
+    private static final int LIFECYCLE_COMPONENT_COUNT = 6;
+
     private final RaftEndpoint localEndpoint = LocalRaftEndpoint.newEndpoint();
     private final List<RaftEndpoint> initialMembers = List.of(localEndpoint, LocalRaftEndpoint.newEndpoint(),
             LocalRaftEndpoint.newEndpoint());
 
+    private final TerminationFailureInjector terminationFailureInjector = new TerminationFailureInjector();
     private final DelegatingRaftNodeExecutor executor = new DelegatingRaftNodeExecutor();
     private final NopTransport transport = new NopTransport();
     private final NopStateMachine stateMachine = new NopStateMachine();
@@ -200,6 +207,60 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
     }
 
     @Test
+    public void testLifecycleComponentsTerminateWhenTerminalReportPublicationFails() {
+        FailingToStringGroupId groupId = new FailingToStringGroupId();
+        raftNode = RaftNode.newBuilder().setGroupId(groupId).setLocalEndpoint(localEndpoint)
+                .setInitialGroupMembers(initialMembers).setExecutor(executor).setTransport(transport)
+                .setStateMachine(stateMachine).setModelFactory(modelFactory).setRaftNodeReportListener(reportListener)
+                .setStore(store).build();
+        raftNode.start().join();
+
+        groupId.failToString = true;
+        raftNode.terminate().join();
+
+        assertThat(stateMachine.terminateCall).isGreaterThan(0);
+        assertThat(executor.terminateCall).isGreaterThan(0);
+        assertThat(transport.terminateCall).isGreaterThan(0);
+        assertThat(store.terminateCall).isGreaterThan(0);
+        assertThat(modelFactory.terminateCall).isGreaterThan(0);
+        assertThat(reportListener.terminateCall).isGreaterThan(0);
+    }
+
+    @Test
+    public void testTerminationCallbacksFinishExactlyOnceBeforeTerminateFutureCompletesWhenCallbackFails()
+            throws Exception {
+        raftNode.start().join();
+        terminationFailureInjector.blockAndFailNextCallback();
+
+        CompletableFuture<?> terminationFuture = raftNode.terminate();
+        CompletableFuture<Void> completion;
+        try {
+            assertThat(terminationFailureInjector.awaitCallback()).isTrue();
+            assertThat(terminationFuture).isNotDone();
+            assertThat(reportListener.lastReport.getStatus()).isEqualTo(RaftNodeStatus.TERMINATED);
+            completion = terminationFuture.thenRun(() -> {
+                assertLifecycleComponentsTerminatedExactlyOnce();
+                assertThat(reportListener.lastReport.getStatus()).isEqualTo(RaftNodeStatus.TERMINATED);
+            });
+        } finally {
+            terminationFailureInjector.releaseCallback();
+        }
+
+        completion.get(ASSERT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    }
+
+    private void assertLifecycleComponentsTerminatedExactlyOnce() {
+        assertThat(executor.terminateCall).isPositive();
+        assertThat(transport.terminateCall).isPositive();
+        assertThat(stateMachine.terminateCall).isPositive();
+        assertThat(store.terminateCall).isPositive();
+        assertThat(modelFactory.terminateCall).isPositive();
+        assertThat(reportListener.terminateCall).isPositive();
+        assertThat(terminationFailureInjector.callbackCount).isEqualTo(LIFECYCLE_COMPONENT_COUNT);
+        assertThat(terminationFailureInjector.failureCount).isEqualTo(1);
+    }
+
+    @Test
     public void testStoreStart() {
         raftNode.start().join();
 
@@ -227,10 +288,12 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
         try {
             raftNode.start().join();
             fail("Start should fail when any component fails on start");
-        } catch (CompletionException ignored) {
+        } catch (CompletionException e) {
+            assertThat(e.getCause()).isSameAs(stateMachine.startFailure);
         }
 
         assertThat(raftNode.getStatus()).isEqualTo(RaftNodeStatus.TERMINATED);
+        assertThat(raftNode.getReport().join().getResult().getReason()).isEqualTo(FATAL_FAILURE);
         assertThat(stateMachine.terminateCall).isGreaterThan(0);
         if (executor.startCall > 0) {
             assertThat(executor.terminateCall).isGreaterThan(0);
@@ -278,7 +341,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
         }
     }
 
-    private static class NopTransport implements Transport, RaftNodeLifecycleAware {
+    private class NopTransport implements Transport, RaftNodeLifecycleAware {
         private volatile int startCall;
         private volatile int terminateCall;
         private volatile int sendCall;
@@ -297,6 +360,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
             if (terminateCall == 0) {
                 terminateCall = ++callOrder;
             }
+            terminationFailureInjector.onTerminate();
         }
 
         @Override
@@ -313,7 +377,9 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
         }
     }
 
-    private static class NopStateMachine implements StateMachine, RaftNodeLifecycleAware {
+    private class NopStateMachine implements StateMachine, RaftNodeLifecycleAware {
+
+        private final RuntimeException startFailure = new RuntimeException("failed on purpose!");
         private volatile int startCall;
         private volatile int terminateCall;
         private volatile int callOrder;
@@ -326,7 +392,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
                 startCall = ++callOrder;
             }
             if (failOnStart) {
-                throw new RuntimeException("failed on purpose!");
+                throw startFailure;
             }
         }
 
@@ -335,6 +401,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
             if (terminateCall == 0) {
                 terminateCall = ++callOrder;
             }
+            terminationFailureInjector.onTerminate();
             if (failOnTerminate) {
                 throw new RuntimeException("failed on purpose!");
             }
@@ -360,7 +427,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
         }
     }
 
-    private static class DelegatingRaftNodeExecutor extends DefaultRaftNodeExecutor implements RaftNodeLifecycleAware {
+    private class DelegatingRaftNodeExecutor extends DefaultRaftNodeExecutor implements RaftNodeLifecycleAware {
         private volatile int startCall;
         private volatile int terminateCall;
         private volatile int executeCall;
@@ -379,6 +446,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
             if (terminateCall == 0) {
                 terminateCall = ++callOrder;
             }
+            terminationFailureInjector.onTerminate();
         }
 
         @Override
@@ -409,7 +477,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
         }
     }
 
-    public static class DelegatingRaftModelFactory extends DefaultRaftModelFactory implements RaftNodeLifecycleAware {
+    private class DelegatingRaftModelFactory extends DefaultRaftModelFactory implements RaftNodeLifecycleAware {
         private volatile int startCall;
         private volatile int terminateCall;
         private volatile int createCall;
@@ -428,6 +496,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
             if (terminateCall == 0) {
                 terminateCall = ++callOrder;
             }
+            terminationFailureInjector.onTerminate();
         }
 
         @Nonnull
@@ -536,12 +605,13 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
         }
     }
 
-    private static class NopRaftNodeReportListener implements RaftNodeReportListener, RaftNodeLifecycleAware {
+    private class NopRaftNodeReportListener implements RaftNodeReportListener, RaftNodeLifecycleAware {
         private volatile int startCall;
         private volatile int terminateCall;
         private volatile int acceptCall;
         private volatile int lastAcceptCall;
         private volatile int callOrder;
+        private volatile RaftNodeReport lastReport;
 
         @Override
         public void onRaftNodeStart() {
@@ -555,10 +625,12 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
             if (terminateCall == 0) {
                 terminateCall = ++callOrder;
             }
+            terminationFailureInjector.onTerminate();
         }
 
         @Override
         public void accept(RaftNodeReport report) {
+            lastReport = report;
             lastAcceptCall = ++callOrder;
             if (acceptCall == 0) {
                 acceptCall = lastAcceptCall;
@@ -566,7 +638,62 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
         }
     }
 
-    private static class NopRaftStore implements RaftStore, RaftNodeLifecycleAware {
+    private static final class TerminationFailureInjector {
+        private final CountDownLatch callbackStarted = new CountDownLatch(1);
+        private final CountDownLatch callbackRelease = new CountDownLatch(1);
+        private volatile boolean failNextCallback;
+        private volatile int callbackCount;
+        private volatile int failureCount;
+
+        private void blockAndFailNextCallback() {
+            failNextCallback = true;
+        }
+
+        private void onTerminate() {
+            callbackCount++;
+            if (!failNextCallback) {
+                return;
+            }
+
+            failNextCallback = false;
+            callbackStarted.countDown();
+            try {
+                if (!callbackRelease.await(ASSERT_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                    throw new AssertionError("Timed out waiting to release termination callback");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new AssertionError(e);
+            }
+
+            failureCount++;
+            throw new RuntimeException("failed on purpose!");
+        }
+
+        private boolean awaitCallback() throws InterruptedException {
+            return callbackStarted.await(ASSERT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        }
+
+        private void releaseCallback() {
+            callbackRelease.countDown();
+        }
+    }
+
+    private static final class FailingToStringGroupId {
+
+        private boolean failToString;
+
+        @Override
+        public String toString() {
+            if (failToString) {
+                throw new IllegalStateException("injected toString failure");
+            }
+
+            return "default";
+        }
+    }
+
+    private class NopRaftStore implements RaftStore, RaftNodeLifecycleAware {
         private volatile int startCall;
         private volatile int terminateCall;
         private volatile int persistCall;
@@ -585,6 +712,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
             if (terminateCall == 0) {
                 terminateCall = ++callOrder;
             }
+            terminationFailureInjector.onTerminate();
         }
 
         @Override

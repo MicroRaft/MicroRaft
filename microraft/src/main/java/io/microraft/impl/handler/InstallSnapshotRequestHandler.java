@@ -22,7 +22,6 @@ import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -34,7 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.microraft.RaftEndpoint;
-import io.microraft.exception.RaftException;
+import io.microraft.exception.RaftStoreException;
 import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.log.SnapshotChunkCollector;
 import io.microraft.model.log.SnapshotChunk;
@@ -217,9 +216,9 @@ public class InstallSnapshotRequestHandler extends AbstractMessageHandler<Instal
                             snapshotChunkCollector.getChunkCount());
                     LOGGER.warn("{} truncated {} snapshot chunks at log index: {}", localEndpointStr(),
                             snapshotChunkCollector.getChunks().size(), snapshotChunkCollector.getSnapshotIndex());
-                } catch (IOException e) {
-                    throw new RaftException("Could not truncate snapshot chunks at log index: "
-                            + snapshotChunkCollector.getSnapshotIndex(), node.getLeaderEndpoint(), e);
+                } catch (Exception e) {
+                    LOGGER.error("{} Failed to delete snapshot chunks at log index: {}.", localEndpointStr(),
+                            snapshotChunkCollector.getSnapshotIndex(), e);
                 }
             }
 
@@ -248,8 +247,8 @@ public class InstallSnapshotRequestHandler extends AbstractMessageHandler<Instal
                         + " at snapshot index: " + request.getSnapshotIndex());
             }
             return snapshotChunkCollector.isSnapshotCompleted();
-        } catch (IOException e) {
-            throw new RaftException("Could not persist snapshot chunk: " + snapshotChunk.getSnapshotChunkIndex()
+        } catch (Exception e) {
+            throw new RaftStoreException("Could not persist snapshot chunk: " + snapshotChunk.getSnapshotChunkIndex()
                     + " at snapshot index: " + snapshotChunk.getIndex() + " and term: " + snapshotChunk.getTerm(),
                     node.getLeaderEndpoint(), e);
         }

@@ -220,7 +220,12 @@ public interface RaftNodeReport {
         /**
          * The report is created for a {@link RaftNode#getReport()} call.
          */
-        API_CALL
+        API_CALL,
+
+        /**
+         * The report is created when the Raft node terminates after a fatal failure.
+         */
+        FATAL_FAILURE
 
     }
 

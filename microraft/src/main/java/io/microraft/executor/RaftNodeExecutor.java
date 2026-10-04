@@ -43,6 +43,9 @@ import io.microraft.lifecycle.RaftNodeLifecycleAware;
  * point about the order of method calls. {@link RaftNode} calls
  * {@link RaftNodeExecutor#execute(Runnable)} before
  * {@link RaftNodeLifecycleAware#onRaftNodeStart()} to submit the start task.
+ * {@link RaftNodeLifecycleAware#onRaftNodeTerminate()} must drain immediate
+ * tasks already accepted by {@link #execute(Runnable)} or
+ * {@link #submit(Runnable)} instead of discarding them.
  *
  * @see RaftNode
  * @see DefaultRaftNodeExecutor
@@ -59,6 +62,11 @@ public interface RaftNodeExecutor {
      * <p>
      * The underlying platform is free to execute the given task immediately if it
      * fits to the defined guarantees.
+     * <p>
+     * If this method returns normally, the task is accepted and its
+     * {@link Runnable#run()} method must be invoked exactly once, even if Raft node
+     * termination begins. An executor that cannot accept the task must reject it by
+     * throwing before this method returns.
      *
      * @param task
      *            the task to be executed.
@@ -71,6 +79,11 @@ public interface RaftNodeExecutor {
      * If the caller is already on the thread that runs the Raft node, the given
      * task cannot be executed immediately and it must be put into the internal task
      * queue for execution in future.
+     * <p>
+     * If this method returns normally, the task is accepted and its
+     * {@link Runnable#run()} method must be invoked exactly once, even if Raft node
+     * termination begins. An executor that cannot accept the task must reject it by
+     * throwing before this method returns.
      *
      * @param task
      *            the task object to be executed later.

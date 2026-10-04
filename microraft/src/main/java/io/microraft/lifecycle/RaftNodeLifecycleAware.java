@@ -60,6 +60,9 @@ public interface RaftNodeLifecycleAware {
      * <p>
      * The component will not receive any API call after this call.
      * <p>
+     * This callback runs before {@link RaftNode#terminate()} completes and must not
+     * block waiting for a termination future.
+     * <p>
      * Exceptions thrown by implementations of this method are handled and logged by
      * {@link RaftNode}.
      */

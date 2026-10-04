@@ -49,6 +49,8 @@ public class SimpleStateMachine implements StateMachine, RaftNodeLifecycleAware,
     private final boolean newTermOpEnabled;
     private Object lastValue;
     private long commitIndex;
+    private volatile long failingInternalCommitIndex = -1;
+    private volatile boolean internalCommitFailureTriggered;
 
     public SimpleStateMachine() {
         this(true);
@@ -197,7 +199,22 @@ public class SimpleStateMachine implements StateMachine, RaftNodeLifecycleAware,
 
     @Override
     public void onInternalCommit(long commitIndex) {
+        if (commitIndex == failingInternalCommitIndex) {
+            internalCommitFailureTriggered = true;
+            throw new IllegalStateException("Injected internal commit failure at index: " + commitIndex);
+        }
+
         this.commitIndex = commitIndex;
+    }
+
+    /** Makes the internal commit callback fail at the given index. */
+    public void failInternalCommitAt(long commitIndex) {
+        this.failingInternalCommitIndex = commitIndex;
+    }
+
+    /** Returns whether the configured internal commit failure was triggered. */
+    public boolean isInternalCommitFailureTriggered() {
+        return internalCommitFailureTriggered;
     }
 
     @Override

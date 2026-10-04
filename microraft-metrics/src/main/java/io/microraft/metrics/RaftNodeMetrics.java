@@ -60,8 +60,8 @@ import io.microraft.report.RaftNodeReportListener;
  *
  * <li>"raft.node.report.reason": The reason of the last published Raft report
  * (0: periodic, 1: Raft node status change, 2: Raft role change, 3: Raft group
- * member list change, 4: snapshot taken, 5: snapshot installed). Please see
- * {@link RaftNodeReportReason}</li>
+ * member list change, 4: snapshot taken, 5: snapshot installed, 6: API call, 7:
+ * fatal failure). Please see {@link RaftNodeReportReason}</li>
  *
  * <li>"raft.node.term": The current term of the Raft node</li>
  *
@@ -170,7 +170,8 @@ public final class RaftNodeMetrics implements RaftNodeReportListener, MeterBinde
                 .register(registry);
         Gauge.builder("raft.node.report.reason", this::getRaftNodeReportPublishReason).tags(tags).description(
                 "The reason of the last published Raft report (0: periodic, 1: Raft node status change, 2: Raft role change, "
-                        + "3: Raft group member list change, 4: snapshot taken, 5: snapshot installed)")
+                        + "3: Raft group member list change, 4: snapshot taken, 5: snapshot installed, 6: API call, "
+                        + "7: fatal failure)")
                 .register(registry);
         Gauge.builder("raft.node.term", this::getTerm).tags(tags).description("The current term of the Raft node")
                 .register(registry);

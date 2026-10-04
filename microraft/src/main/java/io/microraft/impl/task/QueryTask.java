@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import io.microraft.QueryPolicy;
 import io.microraft.RaftNodeStatus;
 import io.microraft.exception.RaftException;
+import io.microraft.exception.RaftNodeFatalException;
 import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.state.QueryState;
 import io.microraft.impl.state.RaftState;
@@ -87,6 +88,8 @@ public final class QueryTask implements Runnable {
                 default :
                     future.fail(new IllegalArgumentException("Invalid query policy: " + queryPolicy));
             }
+        } catch (RaftNodeFatalException e) {
+            throw e;
         } catch (Throwable t) {
             LOGGER.error(raftNode.localEndpointStr() + queryPolicy + " query failed", t);
             future.fail(new RaftException("Internal failure", raftNode.getLeaderEndpoint(), t));

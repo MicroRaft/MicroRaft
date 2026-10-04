@@ -19,7 +19,10 @@ package io.microraft.impl.log;
 
 import static io.microraft.impl.local.LocalRaftEndpoint.newEndpoint;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
@@ -38,6 +41,7 @@ import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotEntry;
+import io.microraft.persistence.RaftStore;
 
 public class RaftLogTest {
 
@@ -415,7 +419,7 @@ public class RaftLogTest {
     }
 
     @Test
-    public void setSnapshot() {
+    public void setSnapshot() throws Exception {
         List<LogEntry> entries = List.of(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(1).build(),
                 new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
                 new DefaultLogEntryOrBuilder().setTerm(1).setIndex(3).build(),
@@ -423,9 +427,10 @@ public class RaftLogTest {
                 new DefaultLogEntryOrBuilder().setTerm(1).setIndex(5).build());
         log.appendEntries(entries);
 
-        int truncated = log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(3)
+        RaftLog.LogCompactionResult result = log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(3)
                 .setGroupMembersView(groupMembersView).build());
-        assertThat(truncated).isEqualTo(3);
+        assertThat(result.getTruncatedEntryCount()).isEqualTo(3);
+        assertThat(result.getCleanupFailure()).isNull();
 
         for (int i = 1; i <= 3; i++) {
             assertThat(log.containsLogEntry(i)).isFalse();
@@ -447,6 +452,28 @@ public class RaftLogTest {
         SnapshotEntry snapshot = log.snapshotEntry();
         assertThat(snapshot.getTerm()).isEqualTo(1);
         assertThat(snapshot.getIndex()).isEqualTo(3);
+
+        IOException failure = new IOException("injected cleanup failure");
+        RaftStore store = mock(RaftStore.class);
+        int cleanupSnapshotIndex = groupMembersView.getMembers().size();
+        long retainedIndex = cleanupSnapshotIndex + 1;
+        doThrow(failure).when(store).truncateLogEntriesUntil(cleanupSnapshotIndex);
+        RaftLog failingLog = RaftLog.create((int) retainedIndex, store);
+        failingLog.appendEntries(List.of(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(1).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(2).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(cleanupSnapshotIndex).build(),
+                new DefaultLogEntryOrBuilder().setTerm(1).setIndex(retainedIndex).build()));
+
+        result = failingLog.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1)
+                .setIndex(cleanupSnapshotIndex).setGroupMembersView(groupMembersView).build());
+
+        assertThat(result.getTruncatedEntryCount()).isEqualTo(cleanupSnapshotIndex);
+        assertThat(result.getCleanupFailure()).isSameAs(failure);
+        assertThat(failingLog.snapshotIndex()).isEqualTo(cleanupSnapshotIndex);
+        assertThat(failingLog.getLogEntry(1)).isNull();
+        assertThat(failingLog.getLogEntry(2)).isNull();
+        assertThat(failingLog.getLogEntry(cleanupSnapshotIndex)).isNull();
+        assertThat(failingLog.getLogEntry(retainedIndex)).isNotNull();
     }
 
     @Test
@@ -459,7 +486,7 @@ public class RaftLogTest {
         log.appendEntries(entries);
 
         int truncated = log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(2)
-                .setGroupMembersView(groupMembersView).build());
+                .setGroupMembersView(groupMembersView).build()).getTruncatedEntryCount();
         assertThat(truncated).isEqualTo(2);
 
         for (int i = 1; i <= 2; i++) {
@@ -476,7 +503,8 @@ public class RaftLogTest {
                 .setOperation(chunkOperation).setSnapshotChunkIndex(0).setSnapshotChunkCount(1)
                 .setGroupMembersView(groupMembersView).build();
         truncated = log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(1).setIndex(4)
-                .setSnapshotChunks(List.of(snapshotChunk)).setGroupMembersView(groupMembersView).build());
+                .setSnapshotChunks(List.of(snapshotChunk)).setGroupMembersView(groupMembersView).build())
+                .getTruncatedEntryCount();
         assertThat(truncated).isEqualTo(2);
 
         for (int i = 1; i <= 4; i++) {

@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNodeStatus;
+import io.microraft.exception.RaftNodeFatalException;
 import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.state.RaftState;
 import io.microraft.model.RaftModelFactory;
@@ -57,6 +58,9 @@ public abstract class RaftNodeStatusAwareTask implements Runnable {
 
         try {
             doRun();
+        } catch (RaftNodeFatalException e) {
+            node.failNode(e);
+            throw e;
         } catch (Throwable e) {
             getLogger().error(localEndpointStr() + " got a failure in " + getClass().getSimpleName(), e);
         }

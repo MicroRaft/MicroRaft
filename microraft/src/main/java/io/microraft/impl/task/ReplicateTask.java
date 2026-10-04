@@ -30,6 +30,7 @@ import io.microraft.RaftNodeStatus;
 import io.microraft.exception.CannotReplicateException;
 import io.microraft.exception.NotLeaderException;
 import io.microraft.exception.RaftException;
+import io.microraft.exception.RaftNodeFatalException;
 import io.microraft.impl.RaftNodeImpl;
 import io.microraft.impl.log.RaftLog;
 import io.microraft.impl.state.RaftState;
@@ -107,6 +108,8 @@ public final class ReplicateTask implements Runnable {
                 // we commit the new log entry directly.
                 raftNode.tryAdvanceCommitIndex();
             }
+        } catch (RaftNodeFatalException e) {
+            throw e;
         } catch (Throwable t) {
             LOGGER.error(raftNode.localEndpointStr() + " " + operation + " could not be replicated to leader: "
                     + raftNode.getLocalEndpoint(), t);

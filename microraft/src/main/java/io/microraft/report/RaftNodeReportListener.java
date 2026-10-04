@@ -34,6 +34,10 @@ import io.microraft.lifecycle.RaftNodeLifecycleAware;
  * {@link RaftNodeLifecycleAware#onRaftNodeStart()} before calling any other
  * method on {@link RaftNodeReportListener}, and finally calls
  * {@link RaftNodeLifecycleAware#onRaftNodeTerminate()} on termination.
+ * <p>
+ * A terminal report is delivered before the Raft node's termination future
+ * completes. The listener must not block waiting for a termination future while
+ * processing that report.
  *
  * @see RaftNodeReport
  * @see RaftNode

@@ -22,8 +22,10 @@ import static io.microraft.MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER;
 import static io.microraft.MembershipChangeMode.REMOVE_MEMBER;
 import static io.microraft.RaftNodeStatus.ACTIVE;
 import static io.microraft.RaftNodeStatus.TERMINATED;
+import static io.microraft.RaftNodeStatus.UPDATING_RAFT_GROUP_MEMBER_LIST;
 import static io.microraft.RaftRole.FOLLOWER;
 import static io.microraft.RaftRole.LEARNER;
+import static io.microraft.RaftRole.LEADER;
 import static io.microraft.impl.local.SimpleStateMachine.applyValue;
 import static io.microraft.test.util.AssertionUtils.allTheTime;
 import static io.microraft.test.util.AssertionUtils.eventually;
@@ -36,14 +38,19 @@ import static io.microraft.test.util.RaftTestUtils.getRole;
 import static io.microraft.test.util.RaftTestUtils.getSnapshotEntry;
 import static io.microraft.test.util.RaftTestUtils.getStatus;
 import static io.microraft.test.util.RaftTestUtils.majority;
+import static io.microraft.test.util.RaftTestUtils.readRaftState;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.After;
 import org.junit.Test;
@@ -56,6 +63,8 @@ import io.microraft.exception.CannotReplicateException;
 import io.microraft.exception.IndeterminateStateException;
 import io.microraft.exception.NotLeaderException;
 import io.microraft.impl.local.LocalRaftGroup;
+import io.microraft.impl.local.LocalRaftEndpoint;
+import io.microraft.impl.local.LocalTransport;
 import io.microraft.impl.local.SimpleStateMachine;
 import io.microraft.impl.state.RaftGroupMembersState;
 import io.microraft.model.message.AppendEntriesFailureResponse;
@@ -67,6 +76,9 @@ import io.microraft.report.RaftGroupMembers;
 import io.microraft.test.util.BaseTest;
 
 public class MembershipChangeTest extends BaseTest {
+
+    private static final int ASSERT_TIMEOUT_SECONDS = 10;
+    private static final int WAIT_TIMEOUT_SECONDS = 30;
 
     private LocalRaftGroup group;
 
@@ -676,6 +688,47 @@ public class MembershipChangeTest extends BaseTest {
     }
 
     @Test(timeout = 300_000)
+    public void whenInternalCommitCallbackFailsDuringFollowerRemovalThenFollowerStillTerminates() {
+        RaftEndpoint localEndpoint = LocalRaftEndpoint.newEndpoint();
+        RaftEndpoint member1 = LocalRaftEndpoint.newEndpoint();
+        RaftEndpoint member2 = LocalRaftEndpoint.newEndpoint();
+        List<RaftEndpoint> initialMembers = List.of(localEndpoint, member1, member2);
+        List<RaftEndpoint> remainingMembers = List.of(member1, member2);
+        int removalIndex = 2;
+        SimpleStateMachine stateMachine = new SimpleStateMachine();
+        stateMachine.failInternalCommitAt(removalIndex);
+        RaftNodeImpl node = (RaftNodeImpl) RaftNode.newBuilder().setGroupId("default")
+                .setLocalEndpoint(localEndpoint).setInitialGroupMembers(initialMembers)
+                .setTransport(new LocalTransport(localEndpoint)).setStateMachine(stateMachine).build();
+        node.start().join();
+
+        try {
+            assertThatThrownBy(() -> readRaftState(node, () -> {
+                node.state().toFollower(1);
+                node.state().log().appendEntry(node.getModelFactory().createLogEntryBuilder().setTerm(1).setIndex(1)
+                        .setOperation(applyValue("value")).build());
+                Object removal = node.getModelFactory().createUpdateRaftGroupMembersOpBuilder()
+                        .setMembers(remainingMembers).setVotingMembers(remainingMembers).setEndpoint(localEndpoint)
+                        .setMode(REMOVE_MEMBER).build();
+                node.state().log().appendEntry(node.getModelFactory().createLogEntryBuilder().setTerm(1)
+                        .setIndex(removalIndex).setOperation(removal).build());
+                node.state().commitIndex(removalIndex);
+                node.applyLogEntries();
+                return null;
+            })).hasRootCauseInstanceOf(IllegalStateException.class)
+                    .hasRootCauseMessage("Injected internal commit failure at index: " + removalIndex);
+
+            assertThat(stateMachine.isInternalCommitFailureTriggered()).isTrue();
+            assertThat(stateMachine.isTerminated()).isTrue();
+            assertThat(getStatus(node)).isEqualTo(TERMINATED);
+            assertThat(getCommittedGroupMembers(node).getLogIndex()).isEqualTo(removalIndex);
+            assertThat(getCommittedGroupMembers(node).isKnownMember(localEndpoint)).isFalse();
+        } finally {
+            node.terminate().join();
+        }
+    }
+
+    @Test(timeout = 300_000)
     public void when_newNodeJoinsAfterAnotherNodeLeaves_then_itAppendsMissingEntries() {
         group = LocalRaftGroup.start(3);
 
@@ -766,6 +819,131 @@ public class MembershipChangeTest extends BaseTest {
     }
 
     @Test(timeout = 300_000)
+    public void whenEarlierEntryCommitsWhileLeaderSelfRemovalIsPendingThenLeaderDoesNotTerminate() throws Exception {
+        RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(2).build();
+        group = LocalRaftGroup.start(3, config);
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        leader.replicate(applyValue("seed")).join();
+        long dataIndex = getLastLogOrSnapshotEntry(leader).getIndex() + 1;
+        List<AtomicReference<AppendEntriesSuccessResponse>> responses = group
+                .<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint()).stream().map(follower -> {
+                    AtomicReference<AppendEntriesSuccessResponse> responseRef = new AtomicReference<>();
+                    group.alterMessagesTo(follower.getLocalEndpoint(), leader.getLocalEndpoint(), message -> {
+                        if (message instanceof AppendEntriesSuccessResponse) {
+                            AppendEntriesSuccessResponse response = (AppendEntriesSuccessResponse) message;
+                            if (response.getLastLogIndex() >= dataIndex) {
+                                if (response.getLastLogIndex() == dataIndex) {
+                                    responseRef.compareAndSet(null, response);
+                                }
+                                return null;
+                            }
+                        }
+                        return message;
+                    });
+                    return responseRef;
+                }).collect(java.util.stream.Collectors.toList());
+
+        CompletableFuture<Ordered<Object>> dataFuture = leader.replicate(applyValue("pending"));
+        eventually(() -> responses.forEach(response -> assertThat(response.get()).isNotNull()));
+        CompletableFuture<Ordered<RaftGroupMembers>> removalFuture = leader
+                .changeMembership(leader.getLocalEndpoint(), REMOVE_MEMBER, 0);
+        eventually(() -> {
+            assertThat(getLastLogOrSnapshotEntry(leader).getIndex()).isEqualTo(dataIndex + 1);
+            assertThat(leader.getEffectiveMembers().isKnownMember(leader.getLocalEndpoint())).isFalse();
+        });
+
+        CompletableFuture<Ordered<Object>> waitFuture = leader.waitFor(dataIndex,
+                Duration.ofSeconds(WAIT_TIMEOUT_SECONDS));
+        CompletableFuture<Void> barrier = new CompletableFuture<>();
+        leader.getExecutor().execute(() -> barrier.complete(null));
+        barrier.get(ASSERT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        responses.forEach(response -> leader.handle(response.get()));
+        CompletableFuture<Void> responseBarrier = new CompletableFuture<>();
+        leader.getExecutor().execute(() -> responseBarrier.complete(null));
+        responseBarrier.get(ASSERT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        assertThat(dataFuture.get(ASSERT_TIMEOUT_SECONDS, TimeUnit.SECONDS).getCommitIndex()).isEqualTo(dataIndex);
+        assertThat(waitFuture.get(ASSERT_TIMEOUT_SECONDS, TimeUnit.SECONDS).getCommitIndex()).isEqualTo(dataIndex);
+        assertThat(getCommitIndex(leader)).isEqualTo(dataIndex);
+        assertThat(getSnapshotEntry(leader).getIndex()).isEqualTo(dataIndex);
+        assertThat(getRole(leader)).isEqualTo(LEADER);
+        assertThat(getStatus(leader)).isEqualTo(UPDATING_RAFT_GROUP_MEMBER_LIST);
+        assertThat(removalFuture).isNotDone();
+    }
+
+    @Test(timeout = 300_000)
+    public void whenJoiningMemberCatchesUpToSnapshotBoundaryThenItTakesSnapshot() {
+        RaftEndpoint localEndpoint = LocalRaftEndpoint.newEndpoint();
+        List<RaftEndpoint> initialMembers = List.of(LocalRaftEndpoint.newEndpoint(), LocalRaftEndpoint.newEndpoint(),
+                LocalRaftEndpoint.newEndpoint());
+        int snapshotIndex = initialMembers.size();
+        RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(snapshotIndex).build();
+        RaftNodeImpl node = (RaftNodeImpl) RaftNode.newBuilder().setGroupId("default")
+                .setLocalEndpoint(localEndpoint).setInitialGroupMembers(initialMembers).setConfig(config)
+                .setTransport(new LocalTransport(localEndpoint)).setStateMachine(new SimpleStateMachine()).build();
+        node.start().join();
+
+        try {
+            readRaftState(node, () -> {
+                node.state().toFollower(1);
+                for (int i = 1; i <= snapshotIndex; i++) {
+                    node.state().log().appendEntry(node.getModelFactory().createLogEntryBuilder().setTerm(1)
+                            .setIndex(i).setOperation(applyValue("value-" + i)).build());
+                }
+                node.state().commitIndex(snapshotIndex);
+                node.applyLogEntries();
+                return null;
+            });
+
+            assertThat(readRaftState(node, () -> node.state().isKnownMember(localEndpoint))).isFalse();
+            assertThat(getCommitIndex(node)).isEqualTo(snapshotIndex);
+            assertThat(getSnapshotEntry(node).getIndex()).isEqualTo(snapshotIndex);
+        } finally {
+            node.terminate().join();
+        }
+    }
+
+    @Test(timeout = 300_000)
+    public void whenFollowerRemovalIsCommittedAtSnapshotBoundaryThenItDoesNotTakeSnapshot() {
+        RaftEndpoint localEndpoint = LocalRaftEndpoint.newEndpoint();
+        RaftEndpoint member1 = LocalRaftEndpoint.newEndpoint();
+        RaftEndpoint member2 = LocalRaftEndpoint.newEndpoint();
+        List<RaftEndpoint> initialMembers = List.of(localEndpoint, member1, member2);
+        List<RaftEndpoint> remainingMembers = List.of(member1, member2);
+        int removalIndex = 2;
+        RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(removalIndex).build();
+        SimpleStateMachine stateMachine = new SimpleStateMachine();
+        RaftNodeImpl node = (RaftNodeImpl) RaftNode.newBuilder().setGroupId("default")
+                .setLocalEndpoint(localEndpoint).setInitialGroupMembers(initialMembers).setConfig(config)
+                .setTransport(new LocalTransport(localEndpoint)).setStateMachine(stateMachine).build();
+        node.start().join();
+
+        try {
+            readRaftState(node, () -> {
+                node.state().toFollower(1);
+                node.state().log().appendEntry(node.getModelFactory().createLogEntryBuilder().setTerm(1).setIndex(1)
+                        .setOperation(applyValue("value")).build());
+                Object removal = node.getModelFactory().createUpdateRaftGroupMembersOpBuilder()
+                        .setMembers(remainingMembers).setVotingMembers(remainingMembers).setEndpoint(localEndpoint)
+                        .setMode(REMOVE_MEMBER).build();
+                node.state().log().appendEntry(node.getModelFactory().createLogEntryBuilder().setTerm(1)
+                        .setIndex(removalIndex).setOperation(removal).build());
+                node.state().commitIndex(removalIndex);
+                node.applyLogEntries();
+                return null;
+            });
+
+            assertThat(getStatus(node)).isEqualTo(TERMINATED);
+            assertThat(readRaftState(node, () -> node.state().lastApplied())).isEqualTo(removalIndex);
+            assertThat(getSnapshotEntry(node).getIndex()).isZero();
+            assertThat(getCommittedGroupMembers(node).isKnownMember(localEndpoint)).isFalse();
+            assertThat(stateMachine.isTerminated()).isTrue();
+        } finally {
+            node.terminate().join();
+        }
+    }
+
+    @Test(timeout = 300_000)
     public void when_leaderLeaves_then_itIsRemovedFromTheGroupMembers() {
         group = LocalRaftGroup.start(3);
 
@@ -785,6 +963,32 @@ public class MembershipChangeTest extends BaseTest {
 
         SimpleStateMachine stateMachine = group.getStateMachine(leader.getLocalEndpoint());
         assertThat(stateMachine.isTerminated()).isTrue();
+    }
+
+    @Test(timeout = 300_000)
+    public void whenInternalCommitCallbackFailsDuringLeaderSelfRemovalThenLeaderStillTerminates() throws Exception {
+        group = LocalRaftGroup.start(3);
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        leader.replicate(applyValue("val")).join();
+
+        long removalIndex = getLastLogOrSnapshotEntry(leader).getIndex() + 1;
+        SimpleStateMachine stateMachine = group.getStateMachine(leader.getLocalEndpoint());
+        stateMachine.failInternalCommitAt(removalIndex);
+
+        CompletableFuture<Ordered<RaftGroupMembers>> removalFuture = leader
+                .changeMembership(leader.getLocalEndpoint(), REMOVE_MEMBER, 0);
+        AtomicReference<Boolean> terminatedWhenCompleted = new AtomicReference<>();
+        removalFuture.whenComplete((result, failure) -> terminatedWhenCompleted
+                .set(leader.getStatus() == TERMINATED && stateMachine.isTerminated()));
+
+        Ordered<RaftGroupMembers> result = removalFuture.get(ASSERT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        assertThat(stateMachine.isInternalCommitFailureTriggered()).isTrue();
+        assertThat(terminatedWhenCompleted).hasValue(true);
+        assertThat(result.getCommitIndex()).isEqualTo(removalIndex);
+        assertThat(result.getResult().getMembers()).doesNotContain(leader.getLocalEndpoint());
+        assertThat(leader.getStatus()).isEqualTo(TERMINATED);
+        assertThat(getRole(leader)).isEqualTo(FOLLOWER);
     }
 
     @Test(timeout = 300_000)

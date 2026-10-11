@@ -24,6 +24,7 @@ import static io.microraft.impl.local.SimpleStateMachine.applyValue;
 import static io.microraft.test.util.RaftTestUtils.getRole;
 import static io.microraft.test.util.RaftTestUtils.getTerm;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
@@ -72,11 +73,7 @@ public class LeadershipTransferTest extends BaseTest {
         group = LocalRaftGroup.start(3);
         RaftNodeImpl leader = group.waitUntilLeaderElected();
 
-        try {
-            leader.transferLeadership(null);
-            fail();
-        } catch (NullPointerException ignored) {
-        }
+        assertThatThrownBy(() -> leader.transferLeadership(null)).isInstanceOf(NullPointerException.class);
     }
 
     @Timeout(300)

@@ -50,7 +50,7 @@ public final class RestoredRaftState {
         this.initialGroupMembers = requireNonNull(initialGroupMembers);
         this.termPersistentState = termPersistentState;
         this.snapshotEntry = snapshotEntry;
-        this.entries = requireNonNull(entries);
+        this.entries = List.copyOf(requireNonNull(entries));
     }
 
     @Nonnull

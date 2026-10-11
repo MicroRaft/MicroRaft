@@ -193,13 +193,13 @@ class Firewall {
         private static final RaftMessage ALL_MESSAGES = new RaftMessage() {
             @Override
             public Object getGroupId() {
-                return null;
+                return "all-groups";
             }
 
             @Nonnull
             @Override
             public RaftEndpoint getSender() {
-                return null;
+                return ALL_ENDPOINTS;
             }
 
             @Override

@@ -118,7 +118,8 @@ public final class HoconRaftConfigParser {
         try {
             return ConfigParserUtil.getLong(config.getNumber(path), path);
         } catch (ConfigException e) {
-            throw new IllegalArgumentException("Config field '" + path + "' must be a number: " + config.getValue(path).unwrapped(), e);
+            throw new IllegalArgumentException(
+                    "Config field '" + path + "' must be a number: " + config.getValue(path).unwrapped(), e);
         }
     }
 

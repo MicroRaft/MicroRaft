@@ -54,6 +54,7 @@ import io.microraft.persistence.RaftStore;
  */
 public final class RaftLog {
 
+    /** The first index that may contain a real log entry. */
     public static final int FIRST_VALID_LOG_INDEX = 1;
 
     private static final float KEPT_LOG_ENTRY_RATIO_BEFORE_SNAPSHOT_INDEX = 0.1f;

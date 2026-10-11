@@ -50,7 +50,7 @@ public class RaftSqliteStoreTest {
             .setVotingMembers(List.of(ENDPOINT_A)).build();
 
     @TempDir
-    public Path tempDir;
+    private Path tempDir;
 
     private File sqlite;
 
@@ -246,7 +246,7 @@ public class RaftSqliteStoreTest {
      * has a baked in persistence mechanism, then the Jackson can be removed.
      */
     private static final class JacksonSerializer<T> implements RaftStoreSerializer.Serializer<T> {
-        private static final ObjectMapper objectMapper = new ObjectMapper()
+        private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
                 .addMixIn(LocalRaftEndpoint.class, RaftEndpointMixin.class)
                 .addMixIn(DefaultRaftGroupMembersViewOrBuilder.class, RaftGroupMembersViewMixin.class)
                 .addMixIn(DefaultLogEntryOrBuilder.class, LogEntryMixin.class)
@@ -262,7 +262,7 @@ public class RaftSqliteStoreTest {
         @Override
         public byte[] serialize(@Nonnull T element) {
             try {
-                return objectMapper.writeValueAsBytes(element);
+                return OBJECT_MAPPER.writeValueAsBytes(element);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -272,7 +272,7 @@ public class RaftSqliteStoreTest {
         @Override
         public T deserialize(@Nonnull byte[] element) {
             try {
-                return objectMapper.readValue(element, clazz);
+                return OBJECT_MAPPER.readValue(element, clazz);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

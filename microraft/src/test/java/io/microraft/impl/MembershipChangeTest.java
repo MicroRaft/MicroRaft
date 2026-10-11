@@ -37,6 +37,7 @@ import static io.microraft.test.util.RaftTestUtils.getSnapshotEntry;
 import static io.microraft.test.util.RaftTestUtils.getStatus;
 import static io.microraft.test.util.RaftTestUtils.majority;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -858,11 +859,8 @@ public class MembershipChangeTest extends BaseTest {
         RaftNodeImpl leader = group.waitUntilLeaderElected();
         leader.replicate(applyValue("val")).join();
 
-        try {
-            leader.changeMembership(leader.getLocalEndpoint(), null, 0);
-            fail();
-        } catch (NullPointerException ignored) {
-        }
+        assertThatThrownBy(() -> leader.changeMembership(leader.getLocalEndpoint(), null, 0))
+                .isInstanceOf(NullPointerException.class);
     }
 
     @Timeout(300)

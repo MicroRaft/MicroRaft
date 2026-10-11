@@ -44,6 +44,7 @@ import io.microraft.report.RaftNodeReport;
 
 public final class RaftTestUtils {
 
+    /** Shared Raft configuration used by test utilities. */
     public static final RaftConfig TEST_RAFT_CONFIG = RaftConfig.newBuilder().setLeaderElectionTimeoutMillis(2000)
             .setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(5).build();
 

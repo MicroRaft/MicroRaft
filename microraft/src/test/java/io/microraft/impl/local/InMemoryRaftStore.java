@@ -81,7 +81,8 @@ public final class InMemoryRaftStore implements RaftStore {
     }
 
     @Override
-    public void persistAndFlushLocalEndpoint(@Nonnull RaftEndpointPersistentState localEndpointPersistentState) {
+    public synchronized void persistAndFlushLocalEndpoint(
+            @Nonnull RaftEndpointPersistentState localEndpointPersistentState) {
         this.localEndpointPersistentState = localEndpointPersistentState;
     }
 

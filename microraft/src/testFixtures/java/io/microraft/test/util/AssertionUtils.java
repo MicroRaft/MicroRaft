@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 public final class AssertionUtils {
 
+    /** Default time limit for eventual assertions, in seconds. */
     public static final int EVENTUAL_ASSERTION_TIMEOUT_SECS;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AssertionUtils.class);

@@ -233,7 +233,7 @@ public class LinearizableQueryTest extends BaseTest {
 
         group.resetAllRulesFrom(leader.getLocalEndpoint());
 
-        replicateFuture1.join().getCommitIndex();
+        replicateFuture1.join();
         long commitIndex = replicateFuture2.join().getCommitIndex();
         Ordered<Object> queryResult1 = queryFuture1.join();
         Ordered<Object> queryResult2 = queryFuture2.join();
@@ -464,7 +464,7 @@ public class LinearizableQueryTest extends BaseTest {
             group.resetAllRulesFrom(follower.getLocalEndpoint());
         }
 
-        replicateFuture1.join().getCommitIndex();
+        replicateFuture1.join();
         long commitIndex = replicateFuture2.join().getCommitIndex();
         Ordered<Object> queryResult1 = queryFuture1.join();
         Ordered<Object> queryResult2 = queryFuture2.join();

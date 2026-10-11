@@ -19,6 +19,7 @@ package io.microraft.model.impl.message;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
@@ -185,7 +186,7 @@ public class DefaultInstallSnapshotRequestOrBuilder implements InstallSnapshotRe
     @Nonnull
     @Override
     public InstallSnapshotRequestBuilder setSnapshottedMembers(@Nonnull Collection<RaftEndpoint> snapshottedMembers) {
-        builder.snapshottedMembers = snapshottedMembers;
+        builder.snapshottedMembers = List.copyOf(snapshottedMembers);
         return this;
     }
 

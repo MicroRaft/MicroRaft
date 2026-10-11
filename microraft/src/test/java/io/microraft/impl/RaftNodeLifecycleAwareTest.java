@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -278,7 +279,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
         }
     }
 
-    private static class NopTransport implements Transport, RaftNodeLifecycleAware {
+    private static final class NopTransport implements Transport, RaftNodeLifecycleAware {
         private volatile int startCall;
         private volatile int terminateCall;
         private volatile int sendCall;
@@ -313,7 +314,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
         }
     }
 
-    private static class NopStateMachine implements StateMachine, RaftNodeLifecycleAware {
+    private static final class NopStateMachine implements StateMachine, RaftNodeLifecycleAware {
         private volatile int startCall;
         private volatile int terminateCall;
         private volatile int callOrder;
@@ -353,14 +354,15 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
         public void installSnapshot(long commitIndex, @Nonnull List<Object> snapshotChunks) {
         }
 
-        @Nonnull
+        @Nullable
         @Override
         public Object getNewTermOperation() {
             return null;
         }
     }
 
-    private static class DelegatingRaftNodeExecutor extends DefaultRaftNodeExecutor implements RaftNodeLifecycleAware {
+    private static final class DelegatingRaftNodeExecutor extends DefaultRaftNodeExecutor
+            implements RaftNodeLifecycleAware {
         private volatile int startCall;
         private volatile int terminateCall;
         private volatile int executeCall;
@@ -536,7 +538,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
         }
     }
 
-    private static class NopRaftNodeReportListener implements RaftNodeReportListener, RaftNodeLifecycleAware {
+    private static final class NopRaftNodeReportListener implements RaftNodeReportListener, RaftNodeLifecycleAware {
         private volatile int startCall;
         private volatile int terminateCall;
         private volatile int acceptCall;
@@ -566,7 +568,7 @@ public class RaftNodeLifecycleAwareTest extends BaseTest {
         }
     }
 
-    private static class NopRaftStore implements RaftStore, RaftNodeLifecycleAware {
+    private static final class NopRaftStore implements RaftStore, RaftNodeLifecycleAware {
         private volatile int startCall;
         private volatile int terminateCall;
         private volatile int persistCall;

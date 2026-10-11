@@ -535,8 +535,8 @@ public final class RaftNodeImpl implements RaftNode {
                     setStatus(ACTIVE);
                 }
 
-                LOGGER.info(
-                        "{} -> committed members: {} effective members: {} initial members: {} leader election quorum: {} is local member voting? {} initial voting members: {}",
+                LOGGER.info("{} -> committed members: {} effective members: {} initial members: {} "
+                        + "leader election quorum: {} is local member voting? {} initial voting members: {}",
                         localEndpointStr, state.committedGroupMembers(), state.effectiveGroupMembers(),
                         state.initialMembers(), state.leaderElectionQuorumSize(),
                         state.initialMembers().getVotingMembers().contains(state.localEndpoint()),
@@ -1267,7 +1267,7 @@ public final class RaftNodeImpl implements RaftNode {
      * @param target
      *            the Raft endpoint to send the request
      */
-    @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity", "checkstyle:methodlength",})
+    @SuppressWarnings({"checkstyle:npathcomplexity", "checkstyle:cyclomaticcomplexity", "checkstyle:methodlength"})
     public void sendAppendEntriesRequest(RaftEndpoint target) {
         RaftLog log = state.log();
         LeaderState leaderState = state.leaderState();
@@ -1722,8 +1722,8 @@ public final class RaftNodeImpl implements RaftNode {
                         try {
                             if (state.removeScheduledQuery(minCommitIndex, query)) {
                                 if (LOGGER.isDebugEnabled()) {
-                                    LOGGER.debug(
-                                            "{} query waiting to be executed at commit index: {} timed out! Current commit index: {}",
+                                    LOGGER.debug("{} query waiting to be executed at commit index: {} timed out! "
+                                            + "Current commit index: {}",
                                             localEndpointStr, minCommitIndex, state.commitIndex());
                                 }
                                 query.fail(newLaggingCommitIndexException(minCommitIndex));
@@ -1825,8 +1825,8 @@ public final class RaftNodeImpl implements RaftNode {
 
         boolean demoteToFollower = isLeaderHeartbeatTimeoutElapsed(quorumTimestamp.get());
         if (demoteToFollower) {
-            LOGGER.warn(
-                    "{} Demoting to {} since not received append entries responses from majority recently. Latest quorum timestamp: {}",
+            LOGGER.warn("{} Demoting to {} since not received append entries responses "
+                    + "from majority recently. Latest quorum timestamp: {}",
                     localEndpointStr, FOLLOWER, quorumTimestamp.get());
             toFollower(state.term());
         }

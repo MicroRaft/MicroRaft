@@ -36,9 +36,9 @@ import io.microraft.statemachine.StateMachine;
 
 public abstract class BaseLocalTest {
 
-    private List<RaftEndpoint> initialMembers;
     protected List<LocalTransport> transports = new ArrayList<>();
     protected List<RaftNode> raftNodes = new ArrayList<>();
+    private List<RaftEndpoint> initialMembers;
 
     public static void eventually(AssertTask task) {
         AssertionError error = null;

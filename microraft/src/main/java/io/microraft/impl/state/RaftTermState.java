@@ -26,6 +26,7 @@ import io.microraft.report.RaftTerm;
  */
 public final class RaftTermState implements RaftTerm {
 
+    /** The initial term state before any election has started. */
     public static final RaftTermState INITIAL = new RaftTermState(0, null, null);
     /**
      * Highest term this node has seen.

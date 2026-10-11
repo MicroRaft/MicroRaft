@@ -20,6 +20,8 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.HashMap;
+import java.util.Collections;
 
 import javax.annotation.Nonnull;
 
@@ -65,7 +67,7 @@ public final class RaftNodeReportImpl implements RaftNodeReport {
         this.status = requireNonNull(status);
         this.term = requireNonNull(term);
         this.log = requireNonNull(log);
-        this.heartbeatTimestamps = requireNonNull(heartbeatTimestamps);
+        this.heartbeatTimestamps = Collections.unmodifiableMap(new HashMap<>(requireNonNull(heartbeatTimestamps)));
         this.quorumHeartbeatTimestamp = requireNonNull(quorumHeartbeatTimestamp);
         this.leaderHeartbeatTimestamp = requireNonNull(leaderHeartbeatTimestamp);
     }

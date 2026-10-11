@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import io.microraft.RaftConfig;
 import io.microraft.RaftNode;
@@ -145,7 +146,7 @@ public interface StateMachine {
      * @return the operation to be appended after a new leader is elected in a new
      *         term.
      */
-    @Nonnull
+    @Nullable
     Object getNewTermOperation();
 
 }

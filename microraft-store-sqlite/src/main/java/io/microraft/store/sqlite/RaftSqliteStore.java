@@ -24,7 +24,6 @@ import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteConfig.JournalMode;
 import org.sqlite.SQLiteConfig.LockingMode;
 import org.sqlite.SQLiteConfig.Pragma;
-import org.sqlite.SQLiteConfig.SynchronousMode;
 
 import io.microraft.RaftEndpoint;
 import io.microraft.lifecycle.RaftNodeLifecycleAware;
@@ -171,7 +170,7 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
     public void persistLogEntries(@Nonnull List<LogEntry> logEntries) {
         var statement = dsl.insertInto(LOG_ENTRIES, INDEX, logEntryField);
         for (LogEntry entry : logEntries) {
-            statement.values(entry.getIndex(), entry);
+            statement = statement.values(entry.getIndex(), entry);
         }
         statement.onDuplicateKeyIgnore().execute();
     }

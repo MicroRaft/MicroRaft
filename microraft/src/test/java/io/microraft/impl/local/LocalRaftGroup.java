@@ -64,6 +64,7 @@ import io.microraft.test.util.AssertionUtils;
  */
 public final class LocalRaftGroup {
 
+    /** Creates an in-memory store for each local Raft node. */
     public static final BiFunction<RaftEndpoint, RaftConfig, RaftStore> IN_MEMORY_RAFT_STATE_STORE_FACTORY = (endpoint,
             config) -> {
         return new InMemoryRaftStore();
@@ -860,7 +861,7 @@ public final class LocalRaftGroup {
         }
     }
 
-    private static class RecordingRaftNodeReportListener implements RaftNodeReportListener {
+    private static final class RecordingRaftNodeReportListener implements RaftNodeReportListener {
 
         private List<RaftNodeReport> reports = new ArrayList<>();
 

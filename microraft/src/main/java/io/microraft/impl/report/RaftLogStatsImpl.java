@@ -50,7 +50,7 @@ public final class RaftLogStatsImpl implements RaftLogStats {
         this.snapshotIndex = snapshotEntry.getIndex();
         this.takeSnapshotCount = takeSnapshotCount;
         this.installSnapshotCount = installSnapshotCount;
-        this.followerMatchIndices = requireNonNull(followerMatchIndices);
+        this.followerMatchIndices = Map.copyOf(requireNonNull(followerMatchIndices));
     }
 
     @Override

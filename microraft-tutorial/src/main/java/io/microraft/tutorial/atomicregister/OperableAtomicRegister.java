@@ -127,7 +127,7 @@ public class OperableAtomicRegister extends AtomicRegister implements StateMachi
         }
     }
 
-    private static class GetOperation implements AtomicRegisterOperation {
+    private static final class GetOperation implements AtomicRegisterOperation {
         @Override
         public String toString() {
             return "GetOperation{}";

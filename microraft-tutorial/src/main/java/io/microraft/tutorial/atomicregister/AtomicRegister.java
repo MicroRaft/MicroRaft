@@ -64,7 +64,7 @@ public class AtomicRegister implements StateMachine {
         throw new UnsupportedOperationException();
     }
 
-    private static class NewTermOperation {
+    private static final class NewTermOperation {
     }
 
 }

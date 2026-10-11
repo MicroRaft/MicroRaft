@@ -24,11 +24,12 @@ import org.slf4j.LoggerFactory;
 
 public class BaseTest {
 
+    /** Logger used by the base test extension. */
     static final Logger LOGGER = LoggerFactory.getLogger("Test");
 
     @RegisterExtension
     @SuppressWarnings("checkstyle:anoninnerlength")
-    public final TestWatcher testWatcher = new TestWatcher() {
+    private final TestWatcher testWatcher = new TestWatcher() {
         @Override
         public void testSuccessful(ExtensionContext context) {
             LOGGER.info("+ SUCCEEDED: " + context.getDisplayName());

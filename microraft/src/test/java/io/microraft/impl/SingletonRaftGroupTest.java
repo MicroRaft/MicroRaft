@@ -637,7 +637,7 @@ public class SingletonRaftGroupTest extends BaseTest {
 
     @Timeout(300)
     @Test
-    public void when_learnerIsPromotedAfterAddedToSingletonRaftGroupWithRaftStore_then_newLogEntryCannotBeCommittedOnlyWithLeader() {
+    public void when_learnerIsPromotedInSingletonGroup_then_newLogEntryWaitsForMajority() {
         group = LocalRaftGroup.newBuilder(1).setRaftStoreFactory(IN_MEMORY_RAFT_STATE_STORE_FACTORY).build();
         group.start();
 

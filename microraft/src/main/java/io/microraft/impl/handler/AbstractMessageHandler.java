@@ -24,6 +24,9 @@ import io.microraft.model.message.RaftMessage;
 
 /**
  * Base class for {@link RaftMessage} handlers.
+ *
+ * @param <T>
+ *            the message type
  */
 public abstract class AbstractMessageHandler<T extends RaftMessage> extends RaftNodeStatusAwareTask {
 

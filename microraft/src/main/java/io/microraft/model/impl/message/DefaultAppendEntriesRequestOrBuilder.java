@@ -152,7 +152,7 @@ public class DefaultAppendEntriesRequestOrBuilder implements AppendEntriesReques
     @Nonnull
     @Override
     public AppendEntriesRequestBuilder setLogEntries(@Nonnull List<LogEntry> logEntries) {
-        builder.logEntries = logEntries;
+        builder.logEntries = List.copyOf(logEntries);
         return this;
     }
 

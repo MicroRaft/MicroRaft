@@ -26,6 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -37,7 +38,7 @@ import io.microraft.test.util.BaseTest;
 public class YamlRaftConfigParserTest extends BaseTest {
 
     @TempDir
-    public Path folder;
+    private Path folder;
 
     private final String yamlString;
 
@@ -136,7 +137,7 @@ public class YamlRaftConfigParserTest extends BaseTest {
     @Test
     public void parseInputStream_whenValidYamlProvided_returnsConfig() {
         RaftConfig config = YamlRaftConfigParser.parseInputStream(new Yaml(),
-                new ByteArrayInputStream(yamlString.getBytes()));
+                new ByteArrayInputStream(yamlString.getBytes(StandardCharsets.UTF_8)));
 
         assertSampleConfig(config);
     }

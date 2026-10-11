@@ -27,6 +27,9 @@ import io.microraft.RaftNode;
  * {@link RaftNode} API call is realized with a single object.
  * <p>
  * Please note that completion methods here can be called from a single thread.
+ *
+ * @param <T>
+ *            the operation result type
  */
 public class OrderedFuture<T> extends CompletableFuture<Ordered<T>> implements Ordered<T> {
 

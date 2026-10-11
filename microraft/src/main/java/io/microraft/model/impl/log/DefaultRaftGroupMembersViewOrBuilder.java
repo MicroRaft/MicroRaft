@@ -19,6 +19,10 @@ package io.microraft.model.impl.log;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
@@ -62,15 +66,20 @@ public class DefaultRaftGroupMembersViewOrBuilder implements RaftGroupMembersVie
     @Nonnull
     @Override
     public RaftGroupMembersViewBuilder setMembers(@Nonnull Collection<RaftEndpoint> members) {
-        builder.members = members;
+        builder.members = immutableCopy(members);
         return this;
     }
 
     @Nonnull
     @Override
     public RaftGroupMembersViewBuilder setVotingMembers(@Nonnull Collection<RaftEndpoint> votingMembers) {
-        builder.votingMembers = votingMembers;
+        builder.votingMembers = immutableCopy(votingMembers);
         return this;
+    }
+
+    private static <T> Collection<T> immutableCopy(Collection<T> collection) {
+        return collection instanceof Set ? Collections.unmodifiableSet(new LinkedHashSet<>(collection))
+                : List.copyOf(collection);
     }
 
     @Nonnull

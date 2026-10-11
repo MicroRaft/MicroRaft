@@ -19,7 +19,6 @@ package io.microraft.metrics;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;

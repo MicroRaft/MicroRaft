@@ -186,7 +186,7 @@ public final class SnapshotChunkCollector {
     }
 
     public List<SnapshotChunk> getChunks() {
-        return chunks;
+        return List.copyOf(chunks);
     }
 
     public SnapshotEntry buildSnapshotEntry(SnapshotEntryBuilder builder) {
@@ -214,7 +214,7 @@ public final class SnapshotChunkCollector {
 
     // for testing
     public Collection<RaftEndpoint> getSnapshottedMembers() {
-        return snapshottedMembers;
+        return List.copyOf(snapshottedMembers);
     }
 
 }

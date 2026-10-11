@@ -44,8 +44,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 @SuppressWarnings("checkstyle:magicnumber")
 public final class Long2ObjectHashMap<V> implements Map<Long, V> {
 
-    private static final int MAX_CAPACITY = 1 << 30;
-
     /**
      * The default load factor for constructors not explicitly supplying it
      */
@@ -54,6 +52,8 @@ public final class Long2ObjectHashMap<V> implements Map<Long, V> {
      * The default initial capacity for constructors not explicitly supplying it
      */
     public static final int DEFAULT_INITIAL_CAPACITY = 8;
+
+    private static final int MAX_CAPACITY = 1 << 30;
 
     private final double loadFactor;
     // cached to avoid allocation
@@ -493,7 +493,7 @@ public final class Long2ObjectHashMap<V> implements Map<Long, V> {
 
     }
 
-    private class ValueCollection extends AbstractCollection<V> {
+    private final class ValueCollection extends AbstractCollection<V> {
 
         @Override
         public Iterator<V> iterator() {
@@ -522,7 +522,7 @@ public final class Long2ObjectHashMap<V> implements Map<Long, V> {
 
     }
 
-    private class EntrySet extends AbstractSet<Entry<Long, V>> {
+    private final class EntrySet extends AbstractSet<Entry<Long, V>> {
 
         @Override
         public Iterator<Entry<Long, V>> iterator() {
@@ -614,7 +614,7 @@ public final class Long2ObjectHashMap<V> implements Map<Long, V> {
 
     }
 
-    private class ValueIterator<T> extends AbstractIterator<T> {
+    private final class ValueIterator<T> extends AbstractIterator<T> {
         @Override
         @SuppressWarnings("unchecked")
         public T next() {
@@ -645,7 +645,7 @@ public final class Long2ObjectHashMap<V> implements Map<Long, V> {
     }
 
     @SuppressFBWarnings(value = "PZ_DONT_REUSE_ENTRY_OBJECTS_IN_ITERATORS")
-    private class EntryIterator extends AbstractIterator<Entry<Long, V>> implements Entry<Long, V> {
+    private final class EntryIterator extends AbstractIterator<Entry<Long, V>> implements Entry<Long, V> {
 
         @Override
         public Entry<Long, V> next() {

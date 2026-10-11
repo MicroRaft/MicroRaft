@@ -1,30 +1,21 @@
 <?xml version="1.0"?>
 
 <!DOCTYPE suppressions PUBLIC
-        "-//Puppy Crawl//DTD Suppressions 1.1//EN"
-        "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
 
 <suppressions>
-
-    <!-- Suppress strict duplicate code checking -->
-    <suppress checks="StrictDuplicateCode" files="\.java" lines="1-15"/>
-
-    <!-- Exclude implementation classes from JavaDoc checks -->
-    <suppress checks="Javadoc(Package|Method|Type|Variable)" files="io[\\/]microraft[\\/]impl[\\/]"/>
-    <suppress checks="Javadoc(Package|Method|Type|Variable)" files="io[\\/]microraft[\\/]tutorial[\\/]"/>
-    <suppress checks="Javadoc(Package|Method|Type|Variable)" files="io[\\/]microraft[\\/]faulttolerance[\\/]"/>
-
-    <suppress checks="LineLength" files="target[\\/]"/>
-    <suppress checks="LineLength" files="io[\\/]microraft[\\/]tutorial[\\/]"/>
-    <suppress checks="LineLength" files="io[\\/]microraft[\\/]faulttolerance[\\/]"/>
-
-    <suppress checks="FileLength|MethodCount|ClassFanOutComplexity|ClassDataAbstractionCoupling"
-              files="io[\\/]microraft[\\/]impl[\\/]RaftNodeImpl"/>
-
-    <!-- Suppress checks for tests -->
-    <suppress checks="Javadoc|Name|MagicNumber|VisibilityModifier|MethodCount|NPathComplexity" files="[\\/]src[\\/]test[\\/]"/>
-
-    <!-- module-info.java -->
-    <suppress checks="" files="[\\/]module-info"/>
-
+    <!-- Test values are examples and expected results; named constants would obscure them. -->
+    <suppress checks="MagicNumber" files=".*[\\/]src[\\/](test|testFixtures)[\\/].*"/>
+    <!-- Test suites may have many cases or branching fixtures by design. -->
+    <suppress checks="MethodCount|NPathComplexity" files=".*[\\/]src[\\/]test[\\/].*"/>
+    <!-- RaftNodeImpl centralizes the node protocol and intentionally exceeds generic size/coupling limits. -->
+    <suppress checks="FileLength|ClassDataAbstractionCoupling|ClassFanOutComplexity|MethodCount|ParameterNumber"
+              files=".*[\\/]RaftNodeImpl[.]java"/>
+    <!-- This constructor models a full immutable Raft report snapshot. -->
+    <suppress checks="ParameterNumber" files=".*[\\/]RaftNodeReportImpl[.]java"/>
+    <!-- The model factory necessarily instantiates the concrete implementation of each model type. -->
+    <suppress checks="ClassDataAbstractionCoupling" files=".*[\\/]DefaultRaftModelFactory[.]java"/>
+    <!-- Membership change dispatch has explicit validation branches for each operation mode. -->
+    <suppress checks="ReturnCount|CyclomaticComplexity" files=".*[\\/]MembershipChangeTask[.]java"/>
 </suppressions>

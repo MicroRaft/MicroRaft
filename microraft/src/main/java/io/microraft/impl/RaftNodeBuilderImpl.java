@@ -191,11 +191,12 @@ public class RaftNodeBuilderImpl implements RaftNodeBuilder {
             throw new IllegalStateException("Raft node is already built!");
         }
 
-        if (!((localEndpoint != null && initialGroupMembers != null && !initialGroupMembers.isEmpty()
-                && !initialVotingGroupMembers.isEmpty()
-                && initialGroupMembers.size() - initialVotingGroupMembers.size() <= MAX_LEARNER_COUNT)
-                || restoredState != null)) {
-            String message = "Either local Raft endpoint and initial Raft group members, or restored state must be provided! In addition, "
+        boolean hasInitialGroupMembers = localEndpoint != null && initialGroupMembers != null
+                && !initialGroupMembers.isEmpty() && !initialVotingGroupMembers.isEmpty()
+                && initialGroupMembers.size() - initialVotingGroupMembers.size() <= MAX_LEARNER_COUNT;
+        if (!hasInitialGroupMembers && restoredState == null) {
+            String message = "Either local Raft endpoint and initial Raft group members, or restored state must be "
+                    + "provided! In addition, "
                     + "there can be at most " + MAX_LEARNER_COUNT + " " + RaftRole.LEARNER + "s";
             throw new IllegalStateException(message);
         }

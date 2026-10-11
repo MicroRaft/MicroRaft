@@ -18,6 +18,7 @@
 package io.microraft.exception;
 
 import java.util.Collection;
+import java.util.List;
 
 import io.microraft.RaftEndpoint;
 
@@ -46,7 +47,7 @@ public class MismatchingRaftGroupMembersCommitIndexException extends RaftExcepti
     public MismatchingRaftGroupMembersCommitIndexException(long commitIndex, Collection<RaftEndpoint> members) {
         super("commit index: " + commitIndex + " members: " + members, null);
         this.commitIndex = commitIndex;
-        this.members = members;
+        this.members = List.copyOf(members);
     }
 
     /**

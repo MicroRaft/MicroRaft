@@ -19,6 +19,7 @@ package io.microraft.model.impl.groupop;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 
@@ -75,14 +76,14 @@ public class DefaultUpdateRaftGroupMembersOpOrBuilder
     @Nonnull
     @Override
     public UpdateRaftGroupMembersOpBuilder setMembers(@Nonnull Collection<RaftEndpoint> members) {
-        builder.members = members;
+        builder.members = List.copyOf(members);
         return this;
     }
 
     @Nonnull
     @Override
     public UpdateRaftGroupMembersOpBuilder setVotingMembers(@Nonnull Collection<RaftEndpoint> votingMembers) {
-        builder.votingMembers = votingMembers;
+        builder.votingMembers = List.copyOf(votingMembers);
         return this;
     }
 

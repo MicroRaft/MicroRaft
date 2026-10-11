@@ -1,4 +1,102 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <FindBugsFilter>
+    <!--
+        The model implementations use a self-reference to one object for both builder and DTO modes.
+        EI2 reports that intentional self-reference as escaping a mutable object.
+    -->
+    <Match>
+        <Class name="~io\.microraft\.model\.impl\..*OrBuilder"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="io.microraft.model.impl.log.DefaultRaftGroupMembersViewOrBuilder"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
 
+    <!-- These accessors expose mutable state only between internal Raft implementation components. -->
+    <Match>
+        <Class name="io.microraft.impl.state.QueryState"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="io.microraft.impl.state.QueryState"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="io.microraft.impl.state.QueryState$QueryContainer"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="io.microraft.impl.state.LeaderState"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="io.microraft.impl.state.LeaderState"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="io.microraft.impl.state.RaftState"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="io.microraft.impl.state.RaftState"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="io.microraft.impl.RaftNodeImpl"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="io.microraft.impl.RaftNodeImpl"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="io.microraft.impl.util.Long2ObjectHashMap"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="io.microraft.impl.util.Long2ObjectHashMap"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="io.microraft.impl.util.Long2ObjectHashMap$KeySet"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Tasks retain their node and future so they can complete the operation on the node thread. -->
+    <Match>
+        <Class name="io.microraft.impl.task.ReplicateTask"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="io.microraft.impl.task.TransferLeadershipTask"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="io.microraft.impl.task.MembershipChangeTask"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="io.microraft.impl.task.QueryTask"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Builder setters intentionally retain the caller-supplied collaborators until build(). -->
+    <Match>
+        <Class name="io.microraft.impl.RaftNodeBuilderImpl"/>
+        <Method name="setRandom"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Class name="io.microraft.impl.RaftNodeBuilderImpl"/>
+        <Method name="setStore"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- This test transport exposes its firewall to test setup code that mutates it. -->
+    <Match>
+        <Class name="io.microraft.impl.local.LocalTransport"/>
+        <Method name="getFirewall"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
 </FindBugsFilter>

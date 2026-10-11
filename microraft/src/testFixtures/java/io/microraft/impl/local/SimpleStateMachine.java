@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import io.microraft.impl.statemachine.InternalCommitAware;
 import io.microraft.lifecycle.RaftNodeLifecycleAware;
@@ -189,14 +190,14 @@ public class SimpleStateMachine implements StateMachine, RaftNodeLifecycleAware,
         }
     }
 
-    @Nonnull
+    @Nullable
     @Override
     public Object getNewTermOperation() {
         return newTermOpEnabled ? new NewTermOp() : null;
     }
 
     @Override
-    public void onInternalCommit(long commitIndex) {
+    public synchronized void onInternalCommit(long commitIndex) {
         this.commitIndex = commitIndex;
     }
 
@@ -226,14 +227,14 @@ public class SimpleStateMachine implements StateMachine, RaftNodeLifecycleAware,
         }
     }
 
-    private static class QueryLast {
+    private static final class QueryLast {
         @Override
         public String toString() {
             return "Query{}";
         }
     }
 
-    private static class QueryAll {
+    private static final class QueryAll {
         @Override
         public String toString() {
             return "QueryAll{}";

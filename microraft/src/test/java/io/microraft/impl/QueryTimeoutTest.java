@@ -109,7 +109,7 @@ public class QueryTimeoutTest extends BaseTest {
 
     @Timeout(300)
     @Test
-    public void when_multipleQueriesScheduledToFollowerdWithFutureCommitIndex_then_queriesExecutedWhenCommitIndexAdvancesViaInstalledSnapshot() {
+    public void when_multipleQueriesWaitForFutureCommitIndex_thenInstalledSnapshotAdvancesFollower() {
         int logSize = 10;
         RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(logSize).build();
         group = LocalRaftGroup.start(3, config);

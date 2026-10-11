@@ -92,7 +92,8 @@ public class RaftLogTest {
                 new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
         log.appendEntries(entries);
 
-        assertThrows(IllegalArgumentException.class, () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build()));
+        assertThrows(IllegalArgumentException.class,
+                () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build()));
     }
 
     @Test
@@ -102,7 +103,8 @@ public class RaftLogTest {
                 new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
         log.appendEntries(entries);
 
-        assertThrows(IllegalArgumentException.class, () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build()));
+        assertThrows(IllegalArgumentException.class,
+                () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build()));
     }
 
     @Test
@@ -112,7 +114,8 @@ public class RaftLogTest {
                 new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
         log.appendEntries(entries);
 
-        assertThrows(IllegalArgumentException.class, () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build()));
+        assertThrows(IllegalArgumentException.class,
+                () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build()));
     }
 
     @Test
@@ -122,7 +125,8 @@ public class RaftLogTest {
                 new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build());
         log.appendEntries(entries);
 
-        assertThrows(IllegalArgumentException.class, () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(5).build()));
+        assertThrows(IllegalArgumentException.class,
+                () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(5).build()));
     }
 
     @Test
@@ -166,7 +170,8 @@ public class RaftLogTest {
         log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(2).setIndex(3).setGroupMembersView(groupMembersView)
                 .build());
 
-        assertThrows(IllegalArgumentException.class, () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build()));
+        assertThrows(IllegalArgumentException.class,
+                () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(1).setIndex(4).build()));
     }
 
     @Test
@@ -178,7 +183,8 @@ public class RaftLogTest {
         log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(2).setIndex(3).setGroupMembersView(groupMembersView)
                 .build());
 
-        assertThrows(IllegalArgumentException.class, () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build()));
+        assertThrows(IllegalArgumentException.class,
+                () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(2).build()));
     }
 
     @Test
@@ -190,7 +196,8 @@ public class RaftLogTest {
         log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(2).setIndex(3).setGroupMembersView(groupMembersView)
                 .build());
 
-        assertThrows(IllegalArgumentException.class, () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build()));
+        assertThrows(IllegalArgumentException.class,
+                () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(3).build()));
     }
 
     @Test
@@ -202,7 +209,8 @@ public class RaftLogTest {
         log.setSnapshot(new DefaultSnapshotEntryOrBuilder().setTerm(2).setIndex(3).setGroupMembersView(groupMembersView)
                 .build());
 
-        assertThrows(IllegalArgumentException.class, () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(5).build()));
+        assertThrows(IllegalArgumentException.class,
+                () -> log.appendEntry(new DefaultLogEntryOrBuilder().setTerm(2).setIndex(5).build()));
     }
 
     @Test

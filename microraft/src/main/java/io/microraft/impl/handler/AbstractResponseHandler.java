@@ -32,6 +32,9 @@ import io.microraft.model.message.RaftMessage;
  * <p>
  * If {@link RaftMessage#getSender()} is not a known Raft group member, then the
  * response is ignored.
+ *
+ * @param <T>
+ *            the response message type
  */
 public abstract class AbstractResponseHandler<T extends RaftMessage> extends AbstractMessageHandler<T> {
 

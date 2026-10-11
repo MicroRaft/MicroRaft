@@ -11,6 +11,14 @@ plugins {
     checkstyle
 }
 
+spotbugs {
+    excludeFilter.set(rootProject.layout.projectDirectory.file("config/spotbugs/spotbugs-ignore.xml"))
+}
+
+tasks.withType<com.github.spotbugs.snom.SpotBugsTask>().configureEach {
+    excludeFilter.set(rootProject.layout.projectDirectory.file("config/spotbugs/spotbugs-ignore.xml"))
+}
+
 group = "io.microraft"
 version = "0.9-SNAPSHOT"
 

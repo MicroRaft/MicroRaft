@@ -289,6 +289,12 @@ public interface RaftNode {
      * policy is {@link QueryPolicy#LEADER_LEASE} or
      * {@link QueryPolicy#LINEARIZABLE}.
      * <p>
+     * Once the leader's removal becomes effective, it rejects new
+     * {@link QueryPolicy#LEADER_LEASE} and {@link QueryPolicy#LINEARIZABLE} queries
+     * and fails pending linearizable queries with {@link NotLeaderException}
+     * without a leader hint.
+     * {@link QueryPolicy#EVENTUAL_CONSISTENCY} queries remain available until termination.
+     * <p>
      * The returned future can be completed with {@link NotLeaderException},
      * {@link CannotReplicateException} or {@link LaggingCommitIndexException}.
      * Please see individual exception classes for more information.

@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import io.microraft.QueryPolicy;
 import io.microraft.RaftNodeStatus;
+import io.microraft.exception.NotLeaderException;
 import io.microraft.exception.RaftException;
 import io.microraft.exception.RaftNodeFatalException;
 import io.microraft.impl.RaftNodeImpl;
@@ -72,6 +73,13 @@ public final class QueryTask implements Runnable {
     public void run() {
         try {
             if (!verifyOperation() || !verifyRaftNodeStatus()) {
+                return;
+            }
+
+            // A departing leader only finishes removal; it must not serve leader-only reads.
+            if (queryPolicy != QueryPolicy.EVENTUAL_CONSISTENCY && state.role() == LEADER
+                    && !state.isVotingMember(raftNode.getLocalEndpoint())) {
+                future.fail(new NotLeaderException(raftNode.getLocalEndpoint(), null));
                 return;
             }
 

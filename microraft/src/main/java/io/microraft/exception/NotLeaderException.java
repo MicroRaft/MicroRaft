@@ -21,8 +21,8 @@ import io.microraft.RaftEndpoint;
 
 /**
  * Thrown when an operation, query, or a membership change is triggered on a
- * non-leader Raft node. In this case, the operation can be retried on another
- * Raft node of the Raft group.
+ * non-leader Raft node, or a departing leader rejects a leader-only query.
+ * The request can be retried on another Raft node of the Raft group.
  */
 public class NotLeaderException extends RaftException {
 
@@ -37,7 +37,8 @@ public class NotLeaderException extends RaftException {
      *            Raft endpoint of the leader known by the local Raft node
      */
     public NotLeaderException(RaftEndpoint local, RaftEndpoint leader) {
-        super(local + " is not LEADER. Known leader is: " + (leader != null ? leader : "N/A"), leader);
+        super(local + " cannot serve this request as leader. Known leader is: " + (leader != null ? leader : "N/A"),
+                leader);
     }
 
     @Override

@@ -1426,6 +1426,10 @@ public final class RaftNodeImpl implements RaftNode {
     public void updateGroupMembers(long logIndex, Collection<RaftEndpoint> members,
             Collection<RaftEndpoint> votingMembers) {
         state.updateGroupMembers(logIndex, members, votingMembers, clock.millis());
+        if (state.role() == LEADER && !state.isVotingMember(getLocalEndpoint())) {
+            // Queries admitted before self-removal must not finish using this leader's ack.
+            state.leaderState().queryState().fail(new NotLeaderException(getLocalEndpoint(), null));
+        }
         publishRaftNodeReport(RaftNodeReportReason.GROUP_MEMBERS_CHANGE);
     }
 

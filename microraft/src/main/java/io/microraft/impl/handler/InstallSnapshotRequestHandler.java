@@ -182,6 +182,51 @@ public class InstallSnapshotRequestHandler extends AbstractMessageHandler<Instal
         return true;
     }
 
+    /**
+     * Commits up to the snapshot's index and applies the entries from the local
+     * log, instead of transferring the rest of the snapshot and installing it. The
+     * entries after the snapshot's index are kept, together with any group
+     * operation prepared from them. Only the snapshot's index is acknowledged,
+     * since the snapshot says nothing about the entries after it. The leader
+     * therefore does not count them as replicated until its next append request
+     * checks them, and that request truncates any that conflict with the leader's
+     * log.
+     */
+    private void fastForwardCommitIndex(InstallSnapshotRequest request) {
+        LOGGER.info("{} fast-forwarding commit index from {} to snapshot index: {} since the snapshot at term: {} "
+                + "from {} matches the local log.", localEndpointStr(), state.commitIndex(),
+                request.getSnapshotIndex(), request.getSnapshotTerm(), request.getSender().getId());
+
+        state.commitIndex(request.getSnapshotIndex());
+
+        SnapshotChunkCollector snapshotChunkCollector = state.snapshotChunkCollector();
+        if (snapshotChunkCollector != null && snapshotChunkCollector.getSnapshotIndex() <= state.commitIndex()) {
+            deleteSnapshotChunks(snapshotChunkCollector);
+            state.snapshotChunkCollector(null);
+        }
+
+        node.applyLogEntries();
+        node.tryRunScheduledQueries();
+
+        if (request.isSenderLeader()) {
+            sendAppendEntriesSuccessResponse(request);
+        }
+    }
+
+    private void deleteSnapshotChunks(SnapshotChunkCollector snapshotChunkCollector) {
+        if (snapshotChunkCollector.getChunks().size() > 0) {
+            try {
+                state.store().deleteSnapshotChunks(snapshotChunkCollector.getSnapshotIndex(),
+                        snapshotChunkCollector.getChunkCount());
+                LOGGER.warn("{} truncated {} snapshot chunks at log index: {}", localEndpointStr(),
+                        snapshotChunkCollector.getChunks().size(), snapshotChunkCollector.getSnapshotIndex());
+            } catch (Exception e) {
+                LOGGER.error("{} Failed to delete snapshot chunks at log index: {}.", localEndpointStr(),
+                        snapshotChunkCollector.getSnapshotIndex(), e);
+            }
+        }
+    }
+
     private void sendAppendEntriesSuccessResponse(InstallSnapshotRequest request) {
         RaftMessage response = modelFactory.createAppendEntriesSuccessResponseBuilder().setGroupId(node.getGroupId())
                 .setSender(localEndpoint()).setTerm(state.term()).setLastLogIndex(request.getSnapshotIndex())
@@ -192,6 +237,11 @@ public class InstallSnapshotRequestHandler extends AbstractMessageHandler<Instal
 
     private SnapshotChunkCollector getOrCreateSnapshotChunkCollector(InstallSnapshotRequest request) {
         if (!checkSnapshotIndex(request)) {
+            return null;
+        }
+
+        if (node.isSnapshotMatchingLog(request.getSnapshotIndex(), request.getSnapshotTerm())) {
+            fastForwardCommitIndex(request);
             return null;
         }
 
@@ -210,17 +260,7 @@ public class InstallSnapshotRequestHandler extends AbstractMessageHandler<Instal
 
             return null;
         } else if (snapshotChunkCollector.getSnapshotIndex() < request.getSnapshotIndex()) {
-            if (snapshotChunkCollector.getChunks().size() > 0) {
-                try {
-                    state.store().deleteSnapshotChunks(snapshotChunkCollector.getSnapshotIndex(),
-                            snapshotChunkCollector.getChunkCount());
-                    LOGGER.warn("{} truncated {} snapshot chunks at log index: {}", localEndpointStr(),
-                            snapshotChunkCollector.getChunks().size(), snapshotChunkCollector.getSnapshotIndex());
-                } catch (Exception e) {
-                    LOGGER.error("{} Failed to delete snapshot chunks at log index: {}.", localEndpointStr(),
-                            snapshotChunkCollector.getSnapshotIndex(), e);
-                }
-            }
+            deleteSnapshotChunks(snapshotChunkCollector);
 
             snapshotChunkCollector = new SnapshotChunkCollector(state.store(), request);
             state.snapshotChunkCollector(snapshotChunkCollector);

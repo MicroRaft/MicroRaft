@@ -170,6 +170,10 @@ public final class RaftTestUtils {
         return readRaftState((RaftNodeImpl) node, task);
     }
 
+    public static int getInstallSnapshotCount(RaftNodeImpl node) {
+        return node.getReport().join().getResult().getLog().getInstallSnapshotCount();
+    }
+
     public static int minority(int count) {
         return count - majority(count);
     }

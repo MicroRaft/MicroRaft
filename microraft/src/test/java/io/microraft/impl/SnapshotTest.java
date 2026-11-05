@@ -19,26 +19,36 @@ package io.microraft.impl;
 
 import static io.microraft.MembershipChangeMode.ADD_LEARNER;
 import static io.microraft.MembershipChangeMode.ADD_OR_PROMOTE_TO_FOLLOWER;
+import static io.microraft.MembershipChangeMode.REMOVE_MEMBER;
+import static io.microraft.QueryPolicy.EVENTUAL_CONSISTENCY;
 import static io.microraft.RaftNodeStatus.ACTIVE;
+import static io.microraft.RaftNodeStatus.UPDATING_RAFT_GROUP_MEMBER_LIST;
 import static io.microraft.RaftRole.FOLLOWER;
 import static io.microraft.RaftRole.LEARNER;
 import static io.microraft.impl.local.SimpleStateMachine.applyValue;
+import static io.microraft.impl.local.SimpleStateMachine.queryLastValue;
 import static io.microraft.impl.log.RaftLog.FIRST_VALID_LOG_INDEX;
 import static io.microraft.test.util.AssertionUtils.eventually;
 import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
 import static io.microraft.test.util.RaftTestUtils.getCommittedGroupMembers;
+import static io.microraft.test.util.RaftTestUtils.getEffectiveGroupMembers;
+import static io.microraft.test.util.RaftTestUtils.getInstallSnapshotCount;
+import static io.microraft.test.util.RaftTestUtils.getLastApplied;
 import static io.microraft.test.util.RaftTestUtils.getLastLogOrSnapshotEntry;
 import static io.microraft.test.util.RaftTestUtils.getMatchIndex;
 import static io.microraft.test.util.RaftTestUtils.getRole;
 import static io.microraft.test.util.RaftTestUtils.getSnapshotChunkCollector;
 import static io.microraft.test.util.RaftTestUtils.getSnapshotEntry;
 import static io.microraft.test.util.RaftTestUtils.getStatus;
+import static io.microraft.test.util.RaftTestUtils.readRaftState;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
@@ -645,6 +655,216 @@ public class SnapshotTest extends BaseTest {
                 }
             }
         });
+    }
+
+    @Test(timeout = 300_000)
+    public void when_followerReceivesSnapshotMatchingItsLog_then_itFastForwardsCommitIndexWithoutInstallingSnapshot() {
+        // a snapshot is taken every 10 commits, and the leader keeps the entries before it only for followers whose
+        // match index is above 9, so a follower whose ack for entry 10 is lost is sent the snapshot
+        int commitCountToTakeSnapshot = 10;
+        RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(commitCountToTakeSnapshot).build();
+        group = LocalRaftGroup.start(3, config);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        RaftNodeImpl follower = group.getAnyNodeExcept(leader.getLocalEndpoint());
+
+        for (int i = 0; i < commitCountToTakeSnapshot - 1; i++) {
+            leader.replicate(applyValue("val" + i)).join();
+        }
+
+        eventually(() -> assertThat(getCommitIndex(follower)).isEqualTo(commitCountToTakeSnapshot - 1));
+
+        // the query waits until the follower applies the entries up to the snapshot's index
+        long snapshotIndex = commitCountToTakeSnapshot;
+        CompletableFuture<Ordered<Object>> query = follower.query(queryLastValue(), EVENTUAL_CONSISTENCY,
+                Optional.of(snapshotIndex), Optional.of(Duration.ofSeconds(60)));
+
+        // The follower receives entry 10, but its ack is lost. The leader commits 10 with the other follower
+        // and snapshots it, truncating its log up to 10. So the next message to the follower is the snapshot,
+        // while the follower still has entry 10 uncommitted in its log.
+        group.dropMessagesTo(follower.getLocalEndpoint(), leader.getLocalEndpoint(),
+                AppendEntriesSuccessResponse.class);
+        leader.replicate(applyValue("val" + (commitCountToTakeSnapshot - 1))).join();
+
+        eventually(() -> assertThat(getSnapshotEntry(leader).getIndex()).isEqualTo(snapshotIndex));
+
+        // The follower already has all the snapshot's entries, so it commits up to 10 and applies them from its
+        // own log, without transferring or installing the snapshot. The fast-forward also runs the query, while
+        // the follower's acks are still lost, so no other commit can run it.
+        eventually(() -> {
+            assertThat(getCommitIndex(follower)).isEqualTo(snapshotIndex);
+            assertThat(getLastApplied(follower)).isEqualTo(snapshotIndex);
+            assertThat(query).isCompleted();
+        });
+        assertThat(getInstallSnapshotCount(follower)).isZero();
+    }
+
+    @Test(timeout = 300_000)
+    public void when_followerReceivesSnapshotConflictingWithItsLog_then_itDiscardsItsEntriesAfterSnapshot() {
+        // a snapshot is taken every 10 commits, and a new leader keeps only its snapshot's last entry (20)
+        // for a follower whose progress it does not know, so it must send its snapshot to the old leader
+        RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(10).build();
+        group = LocalRaftGroup.start(3, config);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        RaftNodeImpl follower = group.getAnyNodeExcept(leader.getLocalEndpoint());
+
+        for (int i = 0; i < 9; i++) {
+            leader.replicate(applyValue("val" + i)).join();
+        }
+
+        group.splitMembers(leader.getLocalEndpoint());
+
+        // the isolated leader appends entries 10-21 in its own term, which can never be committed
+        long snapshotIndex = 20;
+        for (long i = 10; i <= snapshotIndex + 1; i++) {
+            leader.replicate(applyValue("isolated" + i));
+        }
+
+        eventually(() -> assertThat(getLastLogOrSnapshotEntry(leader).getIndex()).isEqualTo(snapshotIndex + 1));
+
+        // the followers elect a new leader
+        eventually(() -> assertThat(follower.getLeaderEndpoint()).isNotNull()
+                .isNotEqualTo(leader.getLocalEndpoint()));
+
+        // the new leader commits its own entries 10-20 and takes a snapshot at 20
+        RaftNodeImpl newLeader = group.getNode(follower.getLeaderEndpoint());
+        for (long i = 10; i <= snapshotIndex; i++) {
+            newLeader.replicate(applyValue("val" + (i - 1))).join();
+        }
+
+        eventually(() -> assertThat(getSnapshotEntry(newLeader).getIndex()).isEqualTo(snapshotIndex));
+
+        // the old leader's entry at 20 is from its own term, so it conflicts with the new leader's snapshot
+        assertThat(readRaftState(leader, () -> leader.state().log().getLogEntry(snapshotIndex).getTerm()))
+                .isLessThan(getSnapshotEntry(newLeader).getTerm());
+
+        group.merge();
+
+        // After merging, the old leader discards its uncommitted entries 10-21 and installs the snapshot
+        eventually(() -> assertThat(getSnapshotEntry(leader).getIndex()).isEqualTo(snapshotIndex));
+
+        assertThat(getLastLogOrSnapshotEntry(leader).getIndex()).isEqualTo(snapshotIndex);
+        assertThat(getInstallSnapshotCount(leader)).isEqualTo(1);
+    }
+
+    @Test(timeout = 300_000)
+    public void when_followerReceivesSnapshotConflictingWithItsLog_then_itRevertsPreparedRaftGroupOpAfterSnapshot() {
+        // Raft group operations are prepared when they are appended, before they are committed, so discarding
+        // them must also revert them. The only Raft group operation is a membership change, and its revert is
+        // visible in the group members.
+
+        // a snapshot is taken every 10 commits, and a new leader keeps only its snapshot's last entry (20)
+        // for a follower whose progress it does not know, so it must send its snapshot to the old leader
+        RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(10).build();
+        group = LocalRaftGroup.start(3, config);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        RaftNodeImpl follower = group.getAnyNodeExcept(leader.getLocalEndpoint());
+
+        for (int i = 0; i < 9; i++) {
+            leader.replicate(applyValue("val" + i)).join();
+        }
+
+        group.splitMembers(leader.getLocalEndpoint());
+
+        // the isolated leader appends entries 10-20 and a membership change at 21 in its own term, which can never
+        // be committed, and prepares the membership change
+        long snapshotIndex = 20;
+        for (long i = 10; i <= snapshotIndex; i++) {
+            leader.replicate(applyValue("isolated" + i));
+        }
+        leader.changeMembership(follower.getLocalEndpoint(), REMOVE_MEMBER, 0);
+
+        eventually(() -> {
+            assertThat(getEffectiveGroupMembers(leader).getLogIndex()).isEqualTo(snapshotIndex + 1);
+            assertThat(getStatus(leader)).isEqualTo(UPDATING_RAFT_GROUP_MEMBER_LIST);
+        });
+
+        // the followers elect a new leader
+        eventually(() -> assertThat(follower.getLeaderEndpoint()).isNotNull()
+                .isNotEqualTo(leader.getLocalEndpoint()));
+
+        // the new leader commits its own entries 10-20 and takes a snapshot at 20, which conflicts with the old
+        // leader's entries at 20 and 21 from its own term
+        RaftNodeImpl newLeader = group.getNode(follower.getLeaderEndpoint());
+        for (long i = 10; i <= snapshotIndex; i++) {
+            newLeader.replicate(applyValue("val" + (i - 1))).join();
+        }
+
+        eventually(() -> assertThat(getSnapshotEntry(newLeader).getIndex()).isEqualTo(snapshotIndex));
+
+        group.merge();
+
+        // After merging, the old leader discards the membership change at 21 and reverts it, so its group members
+        // are the snapshot's. Without the revert, the assertion in RaftState.installGroupMembers fails, so the group
+        // members are not installed and keep the prepared membership change's log index.
+        eventually(() -> assertThat(getSnapshotEntry(leader).getIndex()).isEqualTo(snapshotIndex));
+
+        assertThat(getEffectiveGroupMembers(leader).getLogIndex())
+                .isEqualTo(getCommittedGroupMembers(newLeader).getLogIndex());
+        assertThat(getEffectiveGroupMembers(leader).getMembers())
+                .isEqualTo(getCommittedGroupMembers(newLeader).getMembers());
+    }
+
+    @Test(timeout = 300_000)
+    public void when_followerReceivesSnapshotConflictingWithItsLog_then_itRevertsPreparedRaftGroupOpAtSnapshotIndex() {
+        // Unlike
+        // when_followerReceivesSnapshotConflictingWithItsLog_then_itRevertsPreparedRaftGroupOpAfterSnapshot,
+        // the old leader's log ends at the snapshot's index, so there are no entries after it to discard,
+        // and the conflicting membership change is replaced by the snapshot itself.
+
+        // a snapshot is taken every 10 commits, and a new leader keeps only its snapshot's last entry (20)
+        // for a follower whose progress it does not know, so it must send its snapshot to the old leader
+        RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(10).build();
+        group = LocalRaftGroup.start(3, config);
+
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        RaftNodeImpl follower = group.getAnyNodeExcept(leader.getLocalEndpoint());
+
+        for (int i = 0; i < 9; i++) {
+            leader.replicate(applyValue("val" + i)).join();
+        }
+
+        group.splitMembers(leader.getLocalEndpoint());
+
+        // the isolated leader appends entries 10-19 and a membership change at 20 in its own term, which can never
+        // be committed, and prepares the membership change
+        long snapshotIndex = 20;
+        for (long i = 10; i < snapshotIndex; i++) {
+            leader.replicate(applyValue("isolated" + i));
+        }
+        leader.changeMembership(follower.getLocalEndpoint(), REMOVE_MEMBER, 0);
+
+        eventually(() -> {
+            assertThat(getEffectiveGroupMembers(leader).getLogIndex()).isEqualTo(snapshotIndex);
+            assertThat(getStatus(leader)).isEqualTo(UPDATING_RAFT_GROUP_MEMBER_LIST);
+        });
+
+        // the followers elect a new leader
+        eventually(() -> assertThat(follower.getLeaderEndpoint()).isNotNull()
+                .isNotEqualTo(leader.getLocalEndpoint()));
+
+        // the new leader commits its own entries 10-20 and takes a snapshot at 20, which conflicts with the old
+        // leader's membership change at 20 from its own term
+        RaftNodeImpl newLeader = group.getNode(follower.getLeaderEndpoint());
+        for (long i = 10; i <= snapshotIndex; i++) {
+            newLeader.replicate(applyValue("val" + (i - 1))).join();
+        }
+
+        eventually(() -> assertThat(getSnapshotEntry(newLeader).getIndex()).isEqualTo(snapshotIndex));
+
+        group.merge();
+
+        // After merging, the old leader discards the membership change at 20 and reverts it, so its group members
+        // are the snapshot's. Without the revert, the assertion in RaftState.installGroupMembers fails, so the group
+        // members are not installed and keep the prepared membership change's log index.
+        eventually(() -> assertThat(getSnapshotEntry(leader).getIndex()).isEqualTo(snapshotIndex));
+
+        assertThat(getEffectiveGroupMembers(leader).getLogIndex())
+                .isEqualTo(getCommittedGroupMembers(newLeader).getLogIndex());
+        assertThat(getEffectiveGroupMembers(leader).getMembers())
+                .isEqualTo(getCommittedGroupMembers(newLeader).getMembers());
     }
 
     @Test(timeout = 300_000)

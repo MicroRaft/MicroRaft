@@ -17,7 +17,6 @@
 
 package io.microraft.impl.handler;
 
-import static io.microraft.RaftNodeStatus.ACTIVE;
 import static io.microraft.RaftNodeStatus.UPDATING_RAFT_GROUP_MEMBER_LIST;
 import static io.microraft.RaftRole.FOLLOWER;
 import static io.microraft.RaftRole.LEARNER;
@@ -223,7 +222,7 @@ public class AppendEntriesRequestHandler extends AbstractMessageHandler<AppendEn
                     }
 
                     state.invalidateFuturesFrom(requestEntry.getIndex(), node.newNotLeaderException());
-                    revertPreparedGroupOp(truncatedEntries);
+                    node.revertPreparedGroupOp(truncatedEntries);
                     newLogEntries = request.getLogEntries().subList(i, requestEntryCount);
                     log.flush();
                     break;
@@ -274,19 +273,6 @@ public class AppendEntriesRequestHandler extends AbstractMessageHandler<AppendEn
                     node.setStatus(UPDATING_RAFT_GROUP_MEMBER_LIST);
                     UpdateRaftGroupMembersOp groupOp = (UpdateRaftGroupMembersOp) operation;
                     node.updateGroupMembers(logEntry.getIndex(), groupOp.getMembers(), groupOp.getVotingMembers());
-                });
-    }
-
-    private void revertPreparedGroupOp(List<LogEntry> logEntries) {
-        // Reverting inflight (i.e., appended but not-yet-committed) Raft group
-        // operations.
-        // There can be at most 1 instance of such operation...
-        logEntries.stream().filter(logEntry -> logEntry.getOperation() instanceof RaftGroupOp).findFirst()
-                .ifPresent(logEntry -> {
-                    node.setStatus(ACTIVE);
-                    if (logEntry.getOperation() instanceof UpdateRaftGroupMembersOp) {
-                        node.revertGroupMembers();
-                    }
                 });
     }
 

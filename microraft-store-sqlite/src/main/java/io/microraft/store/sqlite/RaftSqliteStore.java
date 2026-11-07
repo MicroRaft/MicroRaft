@@ -178,9 +178,21 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
 
     @Override
     public void persistSnapshotChunk(@Nonnull SnapshotChunk snapshotChunk) {
-        dsl.insertInto(SNAPSHOT_CHUNKS, INDEX, CHUNK_INDEX, CHUNK_COUNT, chunkField).values(snapshotChunk.getIndex(),
-                snapshotChunk.getSnapshotChunkIndex(), snapshotChunk.getSnapshotChunkCount(), snapshotChunk)
+        if (dsl.fetchExists(SNAPSHOT_CHUNKS, INDEX.eq(snapshotChunk.getIndex())
+                .and(CHUNK_COUNT.ne(snapshotChunk.getSnapshotChunkCount())))) {
+            throw new IllegalStateException("Conflicting snapshot chunk count at index: " + snapshotChunk.getIndex());
+        }
+
+        int inserted = dsl.insertInto(SNAPSHOT_CHUNKS, INDEX, CHUNK_INDEX, CHUNK_COUNT, chunkField)
+                .values(snapshotChunk.getIndex(), snapshotChunk.getSnapshotChunkIndex(),
+                        snapshotChunk.getSnapshotChunkCount(), snapshotChunk)
                 .onDuplicateKeyIgnore().execute();
+        // Retrying identical serialized data is safe; keeping a different chunk can corrupt recovery.
+        if (inserted == 0 && !dsl.fetchExists(SNAPSHOT_CHUNKS, INDEX.eq(snapshotChunk.getIndex())
+                .and(CHUNK_INDEX.eq(snapshotChunk.getSnapshotChunkIndex())).and(chunkField.eq(snapshotChunk)))) {
+            throw new IllegalStateException("Conflicting snapshot chunk at index: " + snapshotChunk.getIndex()
+                    + ", chunk index: " + snapshotChunk.getSnapshotChunkIndex());
+        }
     }
 
     // Visible for testing

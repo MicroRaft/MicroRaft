@@ -1,9 +1,11 @@
 package io.microraft.store.sqlite;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
@@ -44,6 +46,9 @@ public class RaftSqliteStoreTest {
     private static final long RAFT_INDEX = 12345;
     private static final int TERM = 235;
     private static final boolean VOTING = true;
+    private static final int SNAPSHOT_INDEX = 20;
+    private static final int SNAPSHOT_CHUNK_SIZE = SNAPSHOT_INDEX / 2;
+    private static final int PARTIAL_CHUNK_SIZE = SNAPSHOT_CHUNK_SIZE / 2;
 
     private static final RaftGroupMembersView INITIAL_GROUP_MEMBERS = RAFT_MODEL_FACTORY
             .createRaftGroupMembersViewBuilder().setLogIndex(RAFT_INDEX).setMembers(List.of(ENDPOINT_A, ENDPOINT_B))
@@ -61,8 +66,11 @@ public class RaftSqliteStoreTest {
 
     private void withRaftStore(Consumer<RaftSqliteStore> consumer) {
         RaftSqliteStore store = RaftSqliteStore.create(sqlite, RAFT_MODEL_FACTORY, JacksonModelSerializer.INSTANCE);
-        consumer.accept(store);
-        store.onRaftNodeTerminate();
+        try {
+            consumer.accept(store);
+        } finally {
+            store.onRaftNodeTerminate();
+        }
     }
 
     @Test
@@ -184,6 +192,94 @@ public class RaftSqliteStoreTest {
             assertThat(store.getAllSnapshotChunks()).usingRecursiveFieldByFieldElementComparator()
                     .containsExactly(snapshotChunk(3, 1, 0, 1));
         });
+    }
+
+    @Test
+    public void identicalSnapshotChunkCanBeRetriedAfterReopening() {
+        SnapshotChunk chunk = snapshotChunk(SNAPSHOT_INDEX, TERM, 0, 1);
+        withRaftStore(store -> {
+            persistInitialState(store);
+            store.persistSnapshotChunk(chunk);
+            store.flush();
+        });
+        withRaftStore(store -> {
+            store.persistSnapshotChunk(snapshotChunk(SNAPSHOT_INDEX, TERM, 0, 1));
+            store.flush();
+        });
+        withRaftStore(store -> assertThat(store.getRestoredRaftState(false).get().getSnapshotEntry().getOperation())
+                .usingRecursiveComparison().isEqualTo(List.of(chunk)));
+    }
+
+    @Test
+    public void conflictingSnapshotChunkIsRejectedWithoutCorruptingRecovery() {
+        SnapshotChunk previousSnapshot = snapshotChunk(1, TERM, 0, 1);
+        SnapshotChunk partialChunk = snapshotChunkWithValues(0, 2, 1, PARTIAL_CHUNK_SIZE);
+        withRaftStore(store -> {
+            persistInitialState(store);
+            store.persistSnapshotChunk(previousSnapshot);
+            store.persistSnapshotChunk(partialChunk);
+            store.flush();
+        });
+        withRaftStore(store -> {
+            assertThatThrownBy(() -> store.persistSnapshotChunk(snapshotChunkWithValues(0, 2, 1, SNAPSHOT_CHUNK_SIZE)))
+                    .isInstanceOf(IllegalStateException.class).hasMessageContaining("Conflicting snapshot chunk");
+        });
+        withRaftStore(store -> {
+            assertThat(store.getRestoredRaftState(false).get().getSnapshotEntry().getIndex()).isEqualTo(1);
+            assertThat(store.getAllSnapshotChunks()).usingRecursiveFieldByFieldElementComparator()
+                    .containsExactly(previousSnapshot, partialChunk);
+        });
+    }
+
+    @Test
+    public void inconsistentSnapshotChunkCountIsRejected() {
+        withRaftStore(store -> {
+            store.persistSnapshotChunk(snapshotChunk(SNAPSHOT_INDEX, TERM, 0, 2));
+            // A distinct key must not complete a snapshot using chunks from a different layout.
+            assertThatThrownBy(() -> store.persistSnapshotChunk(snapshotChunk(SNAPSHOT_INDEX, TERM, 1, 3)))
+                    .isInstanceOf(IllegalStateException.class).hasMessageContaining("Conflicting snapshot chunk count");
+            assertThat(store.getMaxCommittedSnapshotIndex()).isEmpty();
+        });
+    }
+
+    @Test
+    public void deletedSnapshotCanBeReplacedWithDifferentChunks() {
+        withRaftStore(store -> {
+            persistInitialState(store);
+            store.persistSnapshotChunk(snapshotChunkWithValues(0, 3, 1, PARTIAL_CHUNK_SIZE));
+            store.persistSnapshotChunk(snapshotChunkWithValues(2, 3, SNAPSHOT_INDEX - PARTIAL_CHUNK_SIZE + 1,
+                    SNAPSHOT_INDEX));
+            store.flush();
+        });
+        withRaftStore(store -> {
+            store.deleteSnapshotChunks(SNAPSHOT_INDEX, 3);
+            store.persistSnapshotChunk(snapshotChunkWithValues(0, 2, 1, SNAPSHOT_CHUNK_SIZE));
+            store.persistSnapshotChunk(snapshotChunkWithValues(1, 2, SNAPSHOT_CHUNK_SIZE + 1, SNAPSHOT_INDEX));
+            store.flush();
+        });
+        withRaftStore(store -> {
+            assertThat(store.getRestoredRaftState(false).get().getSnapshotEntry().getIndex()).isEqualTo(SNAPSHOT_INDEX);
+            assertThat(store.getAllSnapshotChunks()).hasSize(2);
+            List<Object> values = new ArrayList<>();
+            for (SnapshotChunk chunk : store.getAllSnapshotChunks()) {
+                values.addAll((List<?>) chunk.getOperation());
+            }
+            assertThat(values).containsExactlyElementsOf(snapshotValues(1, SNAPSHOT_INDEX));
+        });
+    }
+
+    private static SnapshotChunk snapshotChunkWithValues(int chunkIndex, int chunkCount, int first, int last) {
+        return RAFT_MODEL_FACTORY.createSnapshotChunkBuilder().setIndex(SNAPSHOT_INDEX).setTerm(TERM)
+                .setSnapshotChunkIndex(chunkIndex).setSnapshotChunkCount(chunkCount)
+                .setGroupMembersView(INITIAL_GROUP_MEMBERS).setOperation(snapshotValues(first, last)).build();
+    }
+
+    private static List<Integer> snapshotValues(int first, int last) {
+        List<Integer> values = new ArrayList<>();
+        for (int value = first; value <= last; value++) {
+            values.add(value);
+        }
+        return values;
     }
 
     private static LogEntry logEntry(long index, int term) {

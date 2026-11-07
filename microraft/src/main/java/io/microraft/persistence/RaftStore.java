@@ -140,6 +140,10 @@ public interface RaftStore {
      * snapshot is considered to be complete when all of its chunks are provided to
      * this method in any order, and {@link #flush()} will be called afterwards.
      * <p>
+     * Chunks at the same log index must belong to the same snapshot. Delete the
+     * existing chunks before writing a replacement with different contents or
+     * chunk boundaries. Conflicting chunks must not be silently ignored.
+     * <p>
      * MicroRaft takes snapshots at a predetermined interval, controlled by
      * {@link RaftConfig#getCommitCountToTakeSnapshot()}. For instance, if it is
      * 100, snapshots will occur at indices 100, 200, 300, and so on.
@@ -212,13 +216,11 @@ public interface RaftStore {
     /**
      * Deletes persisted snapshot chunks at the given log index.
      *
-     * MicroRaft calls this method when it detects that it needs to start installing
-     * a newer snapshot while there is a snapshot persisted partially. Those
-     * snapshot chunks are no longer valid and must not be restored (or at least
-     * must be ignored during the restore process).
+     * MicroRaft calls this method when abandoning a partially persisted snapshot.
+     * A later local snapshot may reuse the index, so deletion failures are fatal
+     * to the node. Deleted chunks must not be restored.
      *
-     * This is merely an optimization method and its side-effects can be sync'ed to
-     * the storage when {@link #flush()} is called.
+     * Deletion can be buffered until {@link #flush()} is called.
      *
      * @param logIndex
      *            the log index value at which some snapshot chunks are persisted.

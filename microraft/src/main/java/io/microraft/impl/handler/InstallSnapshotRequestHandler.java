@@ -197,14 +197,13 @@ public class InstallSnapshotRequestHandler extends AbstractMessageHandler<Instal
                 + "from {} matches the local log.", localEndpointStr(), state.commitIndex(),
                 request.getSnapshotIndex(), request.getSnapshotTerm(), request.getSender().getId());
 
-        state.commitIndex(request.getSnapshotIndex());
-
         SnapshotChunkCollector snapshotChunkCollector = state.snapshotChunkCollector();
-        if (snapshotChunkCollector != null && snapshotChunkCollector.getSnapshotIndex() <= state.commitIndex()) {
+        if (snapshotChunkCollector != null && snapshotChunkCollector.getSnapshotIndex() <= request.getSnapshotIndex()) {
             deleteSnapshotChunks(snapshotChunkCollector);
             state.snapshotChunkCollector(null);
         }
 
+        state.commitIndex(request.getSnapshotIndex());
         node.applyLogEntries();
         node.tryRunScheduledQueries();
 
@@ -221,8 +220,9 @@ public class InstallSnapshotRequestHandler extends AbstractMessageHandler<Instal
                 LOGGER.warn("{} truncated {} snapshot chunks at log index: {}", localEndpointStr(),
                         snapshotChunkCollector.getChunks().size(), snapshotChunkCollector.getSnapshotIndex());
             } catch (Exception e) {
-                LOGGER.error("{} Failed to delete snapshot chunks at log index: {}.", localEndpointStr(),
-                        snapshotChunkCollector.getSnapshotIndex(), e);
+                // Later log application can take a local snapshot at this index and reuse its chunk keys.
+                throw new RaftStoreException("Could not delete snapshot chunks at index: "
+                        + snapshotChunkCollector.getSnapshotIndex(), node.getLeaderEndpoint(), e);
             }
         }
     }

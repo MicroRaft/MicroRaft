@@ -27,12 +27,14 @@ import static io.microraft.report.RaftNodeReport.RaftNodeReportReason.FATAL_FAIL
 import static io.microraft.report.RaftNodeReport.RaftNodeReportReason.STATUS_CHANGE;
 import static io.microraft.test.util.AssertionUtils.eventually;
 import static io.microraft.test.util.RaftTestUtils.TEST_RAFT_CONFIG;
+import static io.microraft.test.util.RaftTestUtils.readRaftState;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -48,10 +50,13 @@ import org.junit.After;
 import org.junit.Test;
 
 import io.microraft.Ordered;
+import io.microraft.RaftConfig;
 import io.microraft.RaftEndpoint;
 import io.microraft.RaftNodeStatus;
 import io.microraft.exception.IndeterminateStateException;
 import io.microraft.exception.RaftStoreException;
+import io.microraft.impl.handler.AppendEntriesRequestHandler;
+import io.microraft.impl.handler.InstallSnapshotRequestHandler;
 import io.microraft.impl.local.LocalRaftEndpoint;
 import io.microraft.impl.local.LocalRaftGroup;
 import io.microraft.impl.state.RaftState;
@@ -61,6 +66,7 @@ import io.microraft.model.log.BaseLogEntry;
 import io.microraft.model.log.LogEntry;
 import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
+import io.microraft.model.message.AppendEntriesRequest;
 import io.microraft.model.message.InstallSnapshotRequest;
 import io.microraft.model.message.VoteRequest;
 import io.microraft.model.persistence.RaftEndpointPersistentState;
@@ -540,43 +546,73 @@ public class RaftStoreFailureTest extends BaseTest {
     }
 
     @Test(timeout = 300_000)
-    public void whenSnapshotChunkDeletionFailsThenNewerSnapshotCollectionContinues() throws Exception {
+    public void whenSnapshotChunkDeletionFailsThenNodeTerminatesBeforeCollectingNewerSnapshot() {
+        assertSnapshotDeletionFailureStopsNode(false);
+    }
+
+    @Test(timeout = 300_000)
+    public void whenSnapshotChunkDeletionFailsThenNodeTerminatesBeforeFastForwarding() {
+        assertSnapshotDeletionFailureStopsNode(true);
+    }
+
+    private void assertSnapshotDeletionFailureStopsNode(boolean matchingLog) {
         Map<RaftEndpoint, FailingRaftStore> stores = new ConcurrentHashMap<>();
-        group = LocalRaftGroup.newBuilder(2).setRaftStoreFactory((endpoint, config) -> {
+        int snapshotInterval = (int) SNAPSHOT_INDEX_OFFSET;
+        RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(snapshotInterval).build();
+        group = LocalRaftGroup.newBuilder(2).setConfig(config).setRaftStoreFactory((endpoint, ignored) -> {
             FailingRaftStore store = new FailingRaftStore();
             stores.put(endpoint, store);
             return store;
-        }).start();
+        }).build();
+        group.start();
         RaftNodeImpl leader = group.waitUntilLeaderElected();
-        RaftNodeImpl follower = group.<RaftNodeImpl>getNodesExcept(leader.getLocalEndpoint()).get(0);
+        RaftNodeImpl follower = group.getAnyNodeExcept(leader.getLocalEndpoint());
+        group.splitMembers(follower.getLocalEndpoint());
         FailingRaftStore store = stores.get(follower.getLocalEndpoint());
-        int term = follower.state().term();
-        long snapshotIndex = follower.state().commitIndex() + SNAPSHOT_INDEX_OFFSET;
-        long newerSnapshotIndex = snapshotIndex + SNAPSHOT_INDEX_OFFSET;
-        RaftGroupMembersView membersView = follower.state().committedGroupMembers()
-                .populate(follower.getModelFactory().createRaftGroupMembersViewBuilder());
-        SnapshotChunk chunk = follower.getModelFactory().createSnapshotChunkBuilder().setTerm(term)
-                .setIndex(snapshotIndex).setOperation(Map.of()).setSnapshotChunkIndex(0).setSnapshotChunkCount(2)
-                .setGroupMembersView(membersView).build();
-        InstallSnapshotRequest firstRequest = newInstallSnapshotRequest(follower, leader.getLocalEndpoint(), term,
-                snapshotIndex, 2, chunk, membersView);
-        follower.handle(firstRequest);
-        eventually(() -> {
-            assertThat(follower.state().snapshotChunkCollector()).isNotNull();
+        readRaftState(follower, () -> {
+            int term = follower.state().term();
+            long snapshotIndex = snapshotInterval;
+            RaftGroupMembersView membersView = follower.state().committedGroupMembers()
+                    .populate(follower.getModelFactory().createRaftGroupMembersViewBuilder());
+            SnapshotChunk chunk = follower.getModelFactory().createSnapshotChunkBuilder().setTerm(term)
+                    .setIndex(snapshotIndex).setOperation(Map.of()).setSnapshotChunkIndex(0).setSnapshotChunkCount(2)
+                    .setGroupMembersView(membersView).build();
+            InstallSnapshotRequest firstRequest = newInstallSnapshotRequest(follower, leader.getLocalEndpoint(), term,
+                    snapshotIndex, 2, chunk, membersView);
+            new InstallSnapshotRequestHandler(follower, firstRequest).run();
             assertThat(follower.state().snapshotChunkCollector().getChunks()).hasSize(1);
-        }, ASSERT_TIMEOUT_SECONDS);
 
-        store.failDeleteSnapshotChunks();
-        InstallSnapshotRequest newerRequest = newInstallSnapshotRequest(follower, leader.getLocalEndpoint(), term,
-                newerSnapshotIndex, 2, null, membersView);
-        follower.handle(newerRequest);
+            List<LogEntry> entries = new ArrayList<>();
+            for (long index = 1; index <= snapshotIndex; index++) {
+                entries.add(follower.getModelFactory().createLogEntryBuilder().setIndex(index).setTerm(term)
+                        .setOperation(applyValue("value-" + index)).build());
+            }
+            if (matchingLog) {
+                // Entries arrive after the first chunk, without advancing commitment.
+                follower.state().log().appendEntries(entries);
+                follower.state().log().flush();
+            }
 
-        assertThat(store.awaitFailure()).isTrue();
-        assertThat(follower.getStatus()).isEqualTo(ACTIVE);
-        eventually(() -> {
-            assertThat(follower.state().snapshotChunkCollector()).isNotNull();
-            assertThat(follower.state().snapshotChunkCollector().getSnapshotIndex()).isEqualTo(newerSnapshotIndex);
-        }, ASSERT_TIMEOUT_SECONDS);
+            store.failDeleteSnapshotChunks();
+            InstallSnapshotRequest nextRequest = newInstallSnapshotRequest(follower, leader.getLocalEndpoint(), term,
+                    matchingLog ? snapshotIndex : 2 * snapshotIndex, 2, null, membersView);
+            assertThatThrownBy(() -> new InstallSnapshotRequestHandler(follower, nextRequest).run())
+                    .isInstanceOf(RaftStoreException.class).hasCauseInstanceOf(IOException.class);
+            assertThat(follower.getStatus()).isEqualTo(TERMINATED);
+            assertThat(follower.state().snapshotChunkCollector().getSnapshotIndex()).isEqualTo(snapshotIndex);
+
+            // A delayed append must not create a local snapshot over the abandoned chunks.
+            AppendEntriesRequest delayedAppend = follower.getModelFactory().createAppendEntriesRequestBuilder()
+                    .setGroupId(follower.getGroupId()).setSender(leader.getLocalEndpoint()).setTerm(term)
+                    .setPreviousLogIndex(0).setPreviousLogTerm(0).setCommitIndex(snapshotIndex)
+                    .setLogEntries(entries).build();
+            new AppendEntriesRequestHandler(follower, delayedAppend).run();
+            assertThat(follower.state().commitIndex()).isZero();
+            assertThat(follower.state().lastApplied()).isZero();
+            assertThat(follower.state().log().snapshotIndex()).isZero();
+            return null;
+        });
+        assertThat(follower.getReport().join().getResult().getReason()).isEqualTo(FATAL_FAILURE);
     }
 
     private InstallSnapshotRequest newInstallSnapshotRequest(RaftNodeImpl follower, RaftEndpoint leader, int term,

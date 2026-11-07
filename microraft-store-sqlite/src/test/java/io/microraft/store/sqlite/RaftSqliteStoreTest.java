@@ -242,9 +242,11 @@ public class RaftSqliteStoreTest {
                     .isInstanceOf(IllegalStateException.class).hasMessageContaining("Conflicting snapshot chunk");
         });
         withRaftStore(store -> {
-            assertThat(store.getRestoredRaftState(false).get().getSnapshotEntry().getIndex()).isEqualTo(1);
             assertThat(store.getAllSnapshotChunks()).usingRecursiveFieldByFieldElementComparator()
                     .containsExactly(previousSnapshot, partialChunk);
+            assertThat(store.getRestoredRaftState(false).get().getSnapshotEntry().getIndex()).isEqualTo(1);
+            assertThat(store.getAllSnapshotChunks()).usingRecursiveFieldByFieldElementComparator()
+                    .containsExactly(previousSnapshot);
         });
     }
 
@@ -283,6 +285,59 @@ public class RaftSqliteStoreTest {
             }
             assertThat(values).containsExactlyElementsOf(snapshotValues(1, SNAPSHOT_INDEX));
         });
+    }
+
+    @Test
+    public void recoveryDiscardsIncompleteSnapshotWithCleanupEnabled() {
+        assertIncompleteSnapshotIsDiscarded(true, true);
+    }
+
+    @Test
+    public void recoveryDiscardsIncompleteSnapshotWithCleanupDisabled() {
+        assertIncompleteSnapshotIsDiscarded(false, true);
+    }
+
+    @Test
+    public void recoveryDiscardsIncompleteFirstSnapshotWithCleanupEnabled() {
+        assertIncompleteSnapshotIsDiscarded(true, false);
+    }
+
+    @Test
+    public void recoveryDiscardsIncompleteFirstSnapshotWithCleanupDisabled() {
+        assertIncompleteSnapshotIsDiscarded(false, false);
+    }
+
+    private void assertIncompleteSnapshotIsDiscarded(boolean truncateStaleData, boolean hasPreviousSnapshot) {
+        withRaftStore(store -> {
+            persistInitialState(store);
+            if (hasPreviousSnapshot) {
+                store.persistSnapshotChunk(snapshotChunk(1, TERM, 0, 1));
+            }
+            store.persistSnapshotChunk(snapshotChunkWithValues(0, 2, 1, PARTIAL_CHUNK_SIZE));
+            store.flush();
+        });
+        withRaftStore(store -> {
+            store.getRestoredRaftState(truncateStaleData).orElseThrow();
+            // This transfer has different boundaries and has received only chunk 1.
+            store.persistSnapshotChunk(snapshotChunkWithValues(1, 2, SNAPSHOT_CHUNK_SIZE + 1, SNAPSHOT_INDEX));
+            store.flush();
+        });
+        withRaftStore(store -> {
+            RestoredRaftState restored = store.getRestoredRaftState(truncateStaleData).orElseThrow();
+            if (hasPreviousSnapshot) {
+                assertThat(restored.getSnapshotEntry().getIndex()).isEqualTo(1);
+            } else {
+                assertThat(restored.getSnapshotEntry()).isNull();
+            }
+            // A fresh, complete transfer must still be recoverable.
+            store.persistSnapshotChunk(snapshotChunkWithValues(0, 2, 1, SNAPSHOT_CHUNK_SIZE));
+            store.persistSnapshotChunk(snapshotChunkWithValues(1, 2, SNAPSHOT_CHUNK_SIZE + 1, SNAPSHOT_INDEX));
+            store.flush();
+        });
+        withRaftStore(store -> assertThat(store.getRestoredRaftState(truncateStaleData).orElseThrow()
+                .getSnapshotEntry().getOperation()).usingRecursiveComparison()
+                        .isEqualTo(List.of(snapshotChunkWithValues(0, 2, 1, SNAPSHOT_CHUNK_SIZE),
+                                snapshotChunkWithValues(1, 2, SNAPSHOT_CHUNK_SIZE + 1, SNAPSHOT_INDEX))));
     }
 
     private static SnapshotChunk snapshotChunkWithValues(int chunkIndex, int chunkCount, int first, int last) {

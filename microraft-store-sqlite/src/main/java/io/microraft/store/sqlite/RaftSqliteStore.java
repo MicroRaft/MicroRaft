@@ -240,6 +240,10 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
         dsl.connection(Connection::commit);
     }
 
+    /**
+     * Loads state for startup and discards unfinished snapshot transfers.
+     * {@code truncateStaleData} also removes obsolete log entries and snapshots.
+     */
     public Optional<RestoredRaftState> getRestoredRaftState(boolean truncateStaleData) {
         var record = dsl
                 .select(localEndpointField, LOCAL_ENDPOINT_VOTING, initialGroupMembersField, TERM, votedForField)
@@ -275,6 +279,12 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
                     .setIndex(lastSnapshotted).setTerm(snapshotChunks.get(0).getTerm())
                     .setGroupMembersView(snapshotChunks.get(0).getGroupMembersView()).build();
         });
+
+        // A restarted collector cannot resume these chunks. Keeping them could mix two transfers.
+        long snapshotIndex = snapshot.map(SnapshotEntry::getIndex).orElse(0L);
+        if (dsl.deleteFrom(SNAPSHOT_CHUNKS).where(INDEX.greaterThan(snapshotIndex)).execute() > 0) {
+            dsl.connection(Connection::commit);
+        }
 
         if (truncateStaleData) {
             snapshot.map(SnapshotEntry::getIndex).ifPresent(this::truncateUntil);

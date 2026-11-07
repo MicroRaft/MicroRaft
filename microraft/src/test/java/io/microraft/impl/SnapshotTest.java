@@ -48,11 +48,13 @@ import static org.junit.Assert.fail;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.junit.After;
@@ -73,6 +75,7 @@ import io.microraft.impl.task.PreVoteTimeoutTask;
 import io.microraft.model.impl.groupop.DefaultUpdateRaftGroupMembersOpOrBuilder;
 import io.microraft.model.impl.message.DefaultAppendEntriesRequestOrBuilder;
 import io.microraft.model.log.LogEntry;
+import io.microraft.model.log.RaftGroupMembersView;
 import io.microraft.model.log.SnapshotChunk;
 import io.microraft.model.log.SnapshotEntry;
 import io.microraft.model.message.AppendEntriesFailureResponse;
@@ -95,6 +98,46 @@ public class SnapshotTest extends BaseTest {
         if (group != null) {
             group.destroy();
         }
+    }
+
+    @Test(timeout = 300_000)
+    public void whenSnapshotTransferTermChangesThenOldChunksAreDiscarded() {
+        RaftConfig config = RaftConfig.newBuilder().setTransferSnapshotsFromFollowersEnabled(false).build();
+        group = LocalRaftGroup.newBuilder(3).setConfig(config).build();
+        group.start();
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        RaftNodeImpl follower = group.getAnyNodeExcept(leader.getLocalEndpoint());
+        group.splitMembers(follower.getLocalEndpoint());
+        readRaftState(follower, () -> {
+            int term = follower.state().term();
+            RaftGroupMembersView members = follower.state().committedGroupMembers()
+                    .populate(follower.getModelFactory().createRaftGroupMembersViewBuilder());
+            BiFunction<Integer, Map<Long, Object>, SnapshotChunk> chunk = (index, values) -> follower.getModelFactory()
+                    .createSnapshotChunkBuilder().setIndex(3).setTerm(term).setSnapshotChunkIndex(index)
+                    .setSnapshotChunkCount(2).setGroupMembersView(members).setOperation(values).build();
+            BiFunction<Integer, SnapshotChunk, InstallSnapshotRequest> request = (transferTerm, snapshotChunk) -> follower
+                    .getModelFactory().createInstallSnapshotRequestBuilder().setGroupId(follower.getGroupId())
+                    .setSender(leader.getLocalEndpoint()).setSenderLeader(true).setTerm(transferTerm)
+                    .setSnapshotIndex(3).setSnapshotTerm(term).setTotalSnapshotChunkCount(2)
+                    .setSnapshotChunk(snapshotChunk).setGroupMembersView(members)
+                    .setSnapshottedMembers(List.of(leader.getLocalEndpoint())).build();
+
+            new InstallSnapshotRequestHandler(follower, request.apply(term, chunk.apply(0, Map.of(1L, "one")))).run();
+            // A leader in a later term may use different chunk boundaries for the same snapshot.
+            new InstallSnapshotRequestHandler(follower,
+                    request.apply(term + 1, chunk.apply(1, Map.of(3L, "three")))).run();
+            assertThat(follower.state().commitIndex()).isZero();
+            assertThat(follower.state().snapshotChunkCollector().getChunks()).hasSize(1);
+            assertThat(follower.state().snapshotChunkCollector().getChunks().get(0).getSnapshotChunkIndex())
+                    .isEqualTo(1);
+
+            new InstallSnapshotRequestHandler(follower,
+                    request.apply(term + 1, chunk.apply(0, Map.of(1L, "one", 2L, "two")))).run();
+            assertThat(follower.state().commitIndex()).isEqualTo(3);
+            assertThat(group.getStateMachine(follower.getLocalEndpoint()).size()).isEqualTo(3);
+            assertThat(group.getStateMachine(follower.getLocalEndpoint()).get(2)).isEqualTo("two");
+            return null;
+        });
     }
 
     @Test(timeout = 300_000)

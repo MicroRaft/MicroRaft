@@ -58,6 +58,7 @@ public final class SnapshotChunkCollector {
     private final RaftStore store;
     private final long snapshotIndex;
     private final int snapshotTerm;
+    private final int transferTerm;
     private final int chunkCount;
     private final Collection<RaftEndpoint> snapshottedMembers = new HashSet<>();
     private final List<SnapshotChunk> chunks = new ArrayList<>();
@@ -67,15 +68,16 @@ public final class SnapshotChunkCollector {
     private final Set<RaftEndpoint> unresponsiveMembers = new HashSet<>();
 
     public SnapshotChunkCollector(RaftStore store, InstallSnapshotRequest request) {
-        this(store, request.getSnapshotIndex(), request.getSnapshotTerm(), request.getTotalSnapshotChunkCount(),
-                request.getSnapshottedMembers(), request.getGroupMembersView());
+        this(store, request.getSnapshotIndex(), request.getSnapshotTerm(), request.getTerm(),
+                request.getTotalSnapshotChunkCount(), request.getSnapshottedMembers(), request.getGroupMembersView());
     }
 
-    private SnapshotChunkCollector(RaftStore store, long snapshotIndex, int snapshotTerm, int chunkCount,
+    private SnapshotChunkCollector(RaftStore store, long snapshotIndex, int snapshotTerm, int transferTerm, int chunkCount,
             Collection<RaftEndpoint> snapshottedMembers, RaftGroupMembersView groupMembersView) {
         this.store = store;
         this.snapshotIndex = snapshotIndex;
         this.snapshotTerm = snapshotTerm;
+        this.transferTerm = transferTerm;
         this.chunkCount = chunkCount;
         this.snapshottedMembers.addAll(snapshottedMembers);
         this.groupMembersView = groupMembersView;
@@ -181,6 +183,10 @@ public final class SnapshotChunkCollector {
         return snapshotTerm;
     }
 
+    public int getTransferTerm() {
+        return transferTerm;
+    }
+
     public int getChunkCount() {
         return chunkCount;
     }
@@ -202,8 +208,8 @@ public final class SnapshotChunkCollector {
 
     // for testing
     public SnapshotChunkCollector copy() {
-        SnapshotChunkCollector copy = new SnapshotChunkCollector(store, snapshotIndex, snapshotTerm, chunkCount,
-                snapshottedMembers, groupMembersView);
+        SnapshotChunkCollector copy = new SnapshotChunkCollector(store, snapshotIndex, snapshotTerm, transferTerm,
+                chunkCount, snapshottedMembers, groupMembersView);
         copy.chunks.addAll(chunks);
         copy.missingChunkIndices.addAll(missingChunkIndices);
         copy.unresponsiveMembers.addAll(unresponsiveMembers);

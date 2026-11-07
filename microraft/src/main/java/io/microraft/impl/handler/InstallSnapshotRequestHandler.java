@@ -246,6 +246,12 @@ public class InstallSnapshotRequestHandler extends AbstractMessageHandler<Instal
         }
 
         SnapshotChunkCollector snapshotChunkCollector = state.snapshotChunkCollector();
+        if (snapshotChunkCollector != null && snapshotChunkCollector.getTransferTerm() < request.getTerm()) {
+            // A new leader may partition the same snapshot into different chunks.
+            deleteSnapshotChunks(snapshotChunkCollector);
+            state.snapshotChunkCollector(null);
+            snapshotChunkCollector = null;
+        }
         if (snapshotChunkCollector == null) {
             snapshotChunkCollector = new SnapshotChunkCollector(state.store(), request);
             state.snapshotChunkCollector(snapshotChunkCollector);

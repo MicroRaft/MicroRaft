@@ -253,8 +253,7 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
         }
 
         if (record.get(localEndpointField) == null || record.get(LOCAL_ENDPOINT_VOTING) == null
-                || record.get(initialGroupMembersField) == null || record.get(TERM) == null
-                || record.get(votedForField) == null) {
+                || record.get(initialGroupMembersField) == null || record.get(TERM) == null) {
             checkState((record.get(localEndpointField) == null) == (record.get(LOCAL_ENDPOINT_VOTING) == null),
                     "expected localEndpoint and localEndpointVoting to be both unset, or neither unset");
             checkState((record.get(TERM) != null) || (record.get(votedForField) == null),

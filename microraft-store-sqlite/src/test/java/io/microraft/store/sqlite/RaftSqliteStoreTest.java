@@ -119,6 +119,23 @@ public class RaftSqliteStoreTest {
     }
 
     @Test
+    public void recoversTermAndLogWhenNoVoteWasCast() {
+        withRaftStore(store -> {
+            persistInitialState(store);
+            store.persistLogEntries(List.of(logEntry(1, TERM)));
+            store.persistAndFlushTerm(RAFT_MODEL_FACTORY.createRaftTermPersistentStateBuilder()
+                    .setTerm(TERM + 1).setVotedFor(null).build());
+        });
+        withRaftStore(store -> {
+            RestoredRaftState restored = store.getRestoredRaftState(false).orElseThrow();
+            assertThat(restored.getTermPersistentState().getTerm()).isEqualTo(TERM + 1);
+            assertThat(restored.getTermPersistentState().getVotedFor()).isNull();
+            assertThat(restored.getLogEntries()).usingRecursiveFieldByFieldElementComparator()
+                    .containsExactly(logEntry(1, TERM));
+        });
+    }
+
+    @Test
     public void testSnapshots() throws IOException {
         withRaftStore(RaftSqliteStoreTest::persistInitialState);
         withRaftStore(store -> {

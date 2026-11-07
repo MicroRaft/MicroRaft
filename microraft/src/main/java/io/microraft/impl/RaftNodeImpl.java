@@ -1342,9 +1342,11 @@ public final class RaftNodeImpl implements RaftNode {
     }
 
     /**
-     * Installs the snapshot sent by the leader if it's not already installed. This
-     * method assumes that the given snapshot is already persisted and flushed to
-     * the storage.
+     * Installs the snapshot sent by the leader and discards the uncommitted entries
+     * of the local log. The snapshot must be ahead of the commit index and must not
+     * match the local log, since such a snapshot is fast-forwarded by the caller
+     * instead. This method assumes that the given snapshot is already persisted and
+     * flushed to the storage.
      *
      * @param snapshotEntry
      *            the snapshot entry object to install to the local Raft node
@@ -1357,7 +1359,25 @@ public final class RaftNodeImpl implements RaftNode {
                     + " because the current commit index is: " + commitIndex);
         }
 
+        // A snapshot matching the local log must be fast-forwarded by the caller
+        // instead of being installed.
+        assert !isSnapshotMatchingLog(snapshotEntry.getIndex(), snapshotEntry.getTerm())
+                : localEndpointStr + " snapshot matching the local log must be fast-forwarded, snapshot index: "
+                        + snapshotEntry.getIndex() + ", snapshot term: " + snapshotEntry.getTerm();
+
+        // InstallSnapshot discards the uncommitted entries of the local log. Those up
+        // to the snapshot's index are covered by the snapshot, and those after it are
+        // not in the leader's log. The group operation prepared from any of them is
+        // reverted. The operation may already be committed on the leader. In that
+        // case the snapshot's group members, installed below, include its effect.
         RaftLog log = state.log();
+        if (log.lastLogOrSnapshotIndex() > commitIndex) {
+            List<LogEntry> uncommitted = log.truncateEntriesFrom(commitIndex + 1);
+            LOGGER.warn("{} discarded {} uncommitted entries to install snapshot at index: {}", localEndpointStr,
+                    uncommitted.size(), snapshotEntry.getIndex());
+            revertPreparedGroupOp(uncommitted);
+        }
+
         LogCompactionResult compactionResult = log.setSnapshot(snapshotEntry);
         logSnapshotCompactionFailure(snapshotEntry, snapshotEntry.getIndex(), compactionResult);
         int truncated = compactionResult.getTruncatedEntryCount();
@@ -1379,11 +1399,10 @@ public final class RaftNodeImpl implements RaftNode {
         ++installSnapshotCount;
         publishRaftNodeReport(RaftNodeReportReason.INSTALL_SNAPSHOT);
 
-        // If I am installing a snapshot, it means I am still present
-        // in the last member list, but it is possible that the last entry
-        // I appended before the snapshot could be a membership change.
-        // Because of this, I need to update my status. Nevertheless, I may
-        // not be present in the restored member list, which is ok.
+        // The group operation prepared from an uncommitted entry was reverted above,
+        // together with the status it set, so the status is already ACTIVE here. It
+        // is set again only as a safeguard. The local node may not be present in the
+        // installed member list, which is ok.
 
         setStatus(ACTIVE);
         if (state.installGroupMembers(snapshotEntry.getGroupMembersView())) {
@@ -1400,6 +1419,41 @@ public final class RaftNodeImpl implements RaftNode {
         // we are submitting an async flush task here to flush those
         // changes to the storage.
         executor.submit(new FlushTask(this));
+    }
+
+    /**
+     * Returns true if the local log has an entry at the snapshot's index with the
+     * snapshot's term. The snapshot then describes a prefix of the local log, which
+     * is already committed on the leader.
+     *
+     * @param snapshotIndex
+     *            the index of the snapshot
+     * @param snapshotTerm
+     *            the term of the snapshot
+     * @return true if the local log has an entry at the snapshot's index with the
+     *         snapshot's term
+     */
+    public boolean isSnapshotMatchingLog(long snapshotIndex, int snapshotTerm) {
+        LogEntry entry = state.log().getLogEntry(snapshotIndex);
+        return entry != null && entry.getTerm() == snapshotTerm;
+    }
+
+    /**
+     * Reverts the effects of the prepared uncommitted Raft group operation among the
+     * given entries, which are removed from the Raft log.
+     *
+     * @param logEntries
+     *            the log entries removed from the Raft log
+     */
+    public void revertPreparedGroupOp(List<LogEntry> logEntries) {
+        // There can be at most 1 instance of such operation...
+        logEntries.stream().filter(logEntry -> logEntry.getOperation() instanceof RaftGroupOp).findFirst()
+                .ifPresent(logEntry -> {
+                    setStatus(ACTIVE);
+                    if (logEntry.getOperation() instanceof UpdateRaftGroupMembersOp) {
+                        revertGroupMembers();
+                    }
+                });
     }
 
     private void logSnapshotCompactionFailure(SnapshotEntry snapshotEntry, long truncateUpToIndex,

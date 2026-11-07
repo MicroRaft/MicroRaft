@@ -584,6 +584,78 @@ public class SnapshotTest extends BaseTest {
     }
 
     @Test(timeout = 300_000)
+    public void when_prevLogEntryIsTruncatedByFollowersSnapshot_then_followerCatchesUpWithoutLivelock() {
+        // The new leader snapshots at 100 and keeps the entries from 95, since the
+        // follower's match index is 95. The follower snapshots at 105 and keeps only
+        // the last 10 entries, 96-105.
+        int commitCountToTakeSnapshot = 100;
+        long lastOldTermIndex = 95;
+        long followerSnapshotIndex = 105;
+        RaftConfig config = RaftConfig.newBuilder().setCommitCountToTakeSnapshot(commitCountToTakeSnapshot).build();
+        group = LocalRaftGroup.start(3, config);
+
+        RaftNodeImpl oldLeader = group.waitUntilLeaderElected();
+        List<RaftNodeImpl> followers = group.getNodesExcept(oldLeader.getLocalEndpoint());
+        RaftNodeImpl newLeader = followers.get(0);
+        RaftNodeImpl follower = followers.get(1);
+
+        // entries 1-95 are in the old leader's term
+        for (int i = 0; i < lastOldTermIndex; i++) {
+            oldLeader.replicate(applyValue("val" + i)).join();
+        }
+
+        oldLeader.transferLeadership(newLeader.getLocalEndpoint()).join();
+
+        // the new leader learns that the follower has everything up to 95, so its
+        // next index for the follower is 96
+        eventually(() -> {
+            assertThat(newLeader.getLeaderEndpoint()).isEqualTo(newLeader.getLocalEndpoint());
+            assertThat(getMatchIndex(newLeader, follower.getLocalEndpoint())).isEqualTo(lastOldTermIndex);
+        });
+
+        // the follower's acks are lost from now on, so the new leader's match index
+        // for it stays at 95
+        group.dropMessagesTo(follower.getLocalEndpoint(), newLeader.getLocalEndpoint(),
+                AppendEntriesSuccessResponse.class);
+        // the follower misses entries 96-105 while the new leader commits them
+        group.dropMessagesTo(newLeader.getLocalEndpoint(), follower.getLocalEndpoint(), AppendEntriesRequest.class);
+
+        // entries 96-105 are in the new term, and the new leader snapshots at 100
+        // keeping entry 95
+        for (long i = lastOldTermIndex; i < followerSnapshotIndex; i++) {
+            newLeader.replicate(applyValue("val" + i)).join();
+        }
+
+        assertThat(getSnapshotEntry(newLeader).getIndex()).isEqualTo(commitCountToTakeSnapshot);
+
+        // the follower receives entries 96-105 and learns that they are committed
+        group.allowMessagesTo(newLeader.getLocalEndpoint(), follower.getLocalEndpoint(), AppendEntriesRequest.class);
+        eventually(() -> assertThat(getCommitIndex(follower)).isEqualTo(followerSnapshotIndex));
+
+        // MicroRaft takes snapshots only at multiples of commitCountToTakeSnapshot,
+        // so the follower takes its snapshot at 105 manually. It truncates entry 95,
+        // while its ack for 105 is lost and the leader keeps sending appends with the
+        // previous entry at 95.
+        follower.takeSnapshot().join();
+        assertThat(getSnapshotEntry(follower).getIndex()).isEqualTo(followerSnapshotIndex);
+
+        group.allowMessagesTo(follower.getLocalEndpoint(), newLeader.getLocalEndpoint(),
+                AppendEntriesSuccessResponse.class);
+
+        // the previous entry at 95 is committed on the follower and inside its own
+        // snapshot, so the follower must not reject the leader's appends, and it
+        // catches up with the new entry
+        newLeader.replicate(applyValue("val" + followerSnapshotIndex)).join();
+
+            // the follower accepts the leader's appends again, so the leader receives its
+            // ack for the new entry, and the follower learns that the entry is committed
+        eventually(() -> {
+            assertThat(getCommitIndex(follower)).isEqualTo(followerSnapshotIndex + 1);
+            assertThat(getMatchIndex(newLeader, follower.getLocalEndpoint())).isEqualTo(followerSnapshotIndex + 1);
+        });
+    }
+
+    @Test(timeout = 300_000)
     public void when_isolatedLeaderAppendsEntries_then_itInvalidatesTheirFeaturesUponInstallSnapshot()
             throws Exception {
         int entryCount = 50;

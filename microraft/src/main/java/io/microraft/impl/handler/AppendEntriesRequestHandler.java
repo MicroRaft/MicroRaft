@@ -105,6 +105,23 @@ public class AppendEntriesRequestHandler extends AbstractMessageHandler<AppendEn
 
         node.leaderHeartbeatReceived();
 
+        // Entries up to the commit index are committed, so they match the log of any
+        // leader of the current term or later. We cannot always check the previous
+        // entry, since our snapshot may have compacted it, so we respond with the
+        // commit index instead. The request's entries are ignored, and the leader
+        // resends the entries after our commit index.
+        if (request.getPreviousLogIndex() < state.commitIndex()) {
+            LOGGER.debug("{} Previous log index of {} is below commit index: {}", localEndpointStr(), request,
+                    state.commitIndex());
+
+            RaftMessage response = modelFactory.createAppendEntriesSuccessResponseBuilder()
+                    .setGroupId(node.getGroupId()).setSender(localEndpoint()).setTerm(state.term())
+                    .setLastLogIndex(state.commitIndex()).setQuerySequenceNumber(request.getQuerySequenceNumber())
+                    .setFlowControlSequenceNumber(request.getFlowControlSequenceNumber()).build();
+            node.send(leader, response);
+            return;
+        }
+
         if (!verifyLastLogEntry(request, log)) {
             RaftMessage response = createAppendEntriesFailureResponse(request.getTerm(),
                     request.getQuerySequenceNumber(), request.getFlowControlSequenceNumber());

@@ -193,6 +193,22 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
             throw new IllegalStateException("Conflicting snapshot chunk at index: " + snapshotChunk.getIndex()
                     + ", chunk index: " + snapshotChunk.getSnapshotChunkIndex());
         }
+        if (inserted > 0 && dsl.fetchCount(SNAPSHOT_CHUNKS, INDEX.eq(snapshotChunk.getIndex()))
+                == snapshotChunk.getSnapshotChunkCount()) {
+            // Recovery can see this snapshot before the core's later log cleanup is flushed.
+            // Commit snapshot completion and removal of a conflicting suffix together.
+            discardConflictingLog(snapshotChunk.getIndex(), snapshotChunk.getTerm());
+        }
+    }
+
+    private int discardConflictingLog(long snapshotIndex, int snapshotTerm) {
+        LogEntry boundary = dsl.select(logEntryField).from(LOG_ENTRIES).where(INDEX.eq(snapshotIndex))
+                .fetchOne(logEntryField);
+        if (boundary != null && boundary.getTerm() != snapshotTerm) {
+            // Remove the conflicting boundary too, so a later recovery can retain newly appended entries.
+            return dsl.deleteFrom(LOG_ENTRIES).where(INDEX.greaterOrEqual(snapshotIndex)).execute();
+        }
+        return 0;
     }
 
     // Visible for testing
@@ -282,7 +298,10 @@ public final class RaftSqliteStore implements RaftStore, RaftNodeLifecycleAware 
 
         // A restarted collector cannot resume these chunks. Keeping them could mix two transfers.
         long snapshotIndex = snapshot.map(SnapshotEntry::getIndex).orElse(0L);
-        if (dsl.deleteFrom(SNAPSHOT_CHUNKS).where(INDEX.greaterThan(snapshotIndex)).execute() > 0) {
+        int deletedChunks = dsl.deleteFrom(SNAPSHOT_CHUNKS).where(INDEX.greaterThan(snapshotIndex)).execute();
+        // Repair a conflicting snapshot/log pair left by an older version before prefix cleanup.
+        int deletedEntries = snapshot.map(entry -> discardConflictingLog(entry.getIndex(), entry.getTerm())).orElse(0);
+        if (deletedChunks > 0 || deletedEntries > 0) {
             dsl.connection(Connection::commit);
         }
 

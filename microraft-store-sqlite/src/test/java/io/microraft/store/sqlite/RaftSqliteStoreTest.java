@@ -12,6 +12,8 @@ import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
 
+import org.jooq.CloseableDSLContext;
+import org.jooq.impl.DSL;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -24,6 +26,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import io.microraft.RaftEndpoint;
 import io.microraft.impl.local.LocalRaftEndpoint;
+import io.microraft.impl.log.RaftLog;
 import io.microraft.model.RaftModelFactory;
 import io.microraft.model.impl.DefaultRaftModelFactory;
 import io.microraft.model.impl.log.DefaultLogEntryOrBuilder;
@@ -338,6 +341,131 @@ public class RaftSqliteStoreTest {
                 .getSnapshotEntry().getOperation()).usingRecursiveComparison()
                         .isEqualTo(List.of(snapshotChunkWithValues(0, 2, 1, SNAPSHOT_CHUNK_SIZE),
                                 snapshotChunkWithValues(1, 2, SNAPSHOT_CHUNK_SIZE + 1, SNAPSHOT_INDEX))));
+    }
+
+    @Test
+    public void incompleteSnapshotPreservesLogOnRecovery() {
+        assertSnapshotCompletionRecovery(false, false, false);
+    }
+
+    @Test
+    public void unflushedCompletedSnapshotPreservesLogOnRecovery() {
+        assertSnapshotCompletionRecovery(true, false, false);
+    }
+
+    @Test
+    public void completedSnapshotDiscardsConflictingSuffixBeforeInstallation() {
+        assertSnapshotCompletionRecovery(true, true, false);
+    }
+
+    @Test
+    public void discardedSuffixDoesNotReappearBeforeAsyncFlush() {
+        assertSnapshotCompletionRecovery(true, true, true);
+    }
+
+    private void assertSnapshotCompletionRecovery(boolean complete, boolean flush, boolean install) {
+        List<LogEntry> oldLog = List.of(logEntry(1, 1), logEntry(2, 2), logEntry(3, 2));
+        List<SnapshotChunk> chunks = List.of(snapshotChunk(2, 3, 0, 2), snapshotChunk(2, 3, 1, 2));
+        withRaftStore(store -> {
+            persistInitialState(store);
+            RaftLog log = RaftLog.create(SNAPSHOT_INDEX, store);
+            log.appendEntries(oldLog);
+            log.flush();
+            store.persistSnapshotChunk(chunks.get(0));
+            store.flush();
+            if (complete) {
+                store.persistSnapshotChunk(chunks.get(1));
+                if (flush) {
+                    store.flush();
+                }
+            }
+            if (install) {
+                log.truncateEntriesFrom(2);
+                log.setSnapshot(RAFT_MODEL_FACTORY.createSnapshotEntryBuilder().setIndex(2).setTerm(3)
+                        .setSnapshotChunks(chunks).setGroupMembersView(INITIAL_GROUP_MEMBERS).build());
+                assertThat(log.lastLogOrSnapshotIndex()).isEqualTo(2);
+                assertThat(log.lastLogOrSnapshotTerm()).isEqualTo(3);
+            }
+            // Closing rolls back buffered changes, as a crash before the next FlushTask would.
+        });
+        // Inspect disk before startup repair, to verify the completion transaction itself.
+        try (CloseableDSLContext db = DSL.using("jdbc:sqlite:" + sqlite)) {
+            List<Long> indices = db.select(DSL.field("logIndex", Long.class)).from("logEntries")
+                    .orderBy(DSL.field("logIndex")).fetch(0, Long.class);
+            if (complete && flush) {
+                assertThat(indices).containsExactly(1L);
+            } else {
+                assertThat(indices).containsExactly(1L, 2L, 3L);
+            }
+        }
+        withRaftStore(store -> {
+            RestoredRaftState restored = store.getRestoredRaftState(true).orElseThrow();
+            if (complete && flush) {
+                assertThat(restored.getSnapshotEntry().getOperation()).usingRecursiveComparison().isEqualTo(chunks);
+                assertThat(restored.getLogEntries()).isEmpty();
+            } else {
+                assertThat(restored.getSnapshotEntry()).isNull();
+                assertThat(restored.getLogEntries()).usingRecursiveFieldByFieldElementComparator()
+                        .containsExactlyElementsOf(oldLog);
+            }
+        });
+    }
+
+    @Test
+    public void completedSnapshotPreservesMatchingSuffix() {
+        withRaftStore(store -> {
+            persistInitialState(store);
+            store.persistLogEntries(List.of(logEntry(1, 1), logEntry(2, 2), logEntry(3, 2)));
+            store.flush();
+            store.persistSnapshotChunk(snapshotChunk(2, 2, 0, 1));
+            store.flush();
+        });
+        withRaftStore(store -> assertThat(store.getRestoredRaftState(true).orElseThrow().getLogEntries())
+                .usingRecursiveFieldByFieldElementComparator().containsExactly(logEntry(3, 2)));
+    }
+
+    @Test
+    public void retryingCompactedSnapshotPreservesNewerEntries() {
+        SnapshotChunk chunk = snapshotChunk(2, 3, 0, 1);
+        withRaftStore(store -> {
+            persistInitialState(store);
+            store.persistSnapshotChunk(chunk);
+            store.flush();
+            store.truncateLogEntriesUntil(2);
+            store.persistLogEntries(List.of(logEntry(3, 3)));
+            store.flush();
+        });
+        withRaftStore(store -> {
+            store.persistSnapshotChunk(chunk);
+            store.flush();
+        });
+        withRaftStore(store -> assertThat(store.getRestoredRaftState(true).orElseThrow().getLogEntries())
+                .usingRecursiveFieldByFieldElementComparator().containsExactly(logEntry(3, 3)));
+    }
+
+    @Test
+    public void recoveryRepairsConflictingSnapshotWithEitherCleanupSetting() throws IOException {
+        for (boolean truncateStaleData : new boolean[]{true, false}) {
+            sqlite = new File(tempDir.newFolder(), "sqlite.db");
+            withRaftStore(store -> {
+                persistInitialState(store);
+                store.persistSnapshotChunk(snapshotChunk(2, 3, 0, 1));
+                store.flush();
+                // Recreate a database left by the old implementation's snapshot/cleanup crash window.
+                store.persistLogEntries(List.of(logEntry(1, 1), logEntry(2, 2), logEntry(3, 2)));
+                store.flush();
+            });
+            withRaftStore(store -> assertThat(store.getRestoredRaftState(truncateStaleData).orElseThrow().getLogEntries())
+                    .filteredOn(entry -> entry.getIndex() > 2).isEmpty());
+            withRaftStore(store -> {
+                // Recovery must commit the repair, so this replacement is not ignored as a duplicate.
+                store.persistLogEntries(List.of(logEntry(3, 3)));
+                store.flush();
+            });
+            withRaftStore(store -> assertThat(store.getRestoredRaftState(truncateStaleData).orElseThrow().getLogEntries())
+                    .filteredOn(entry -> entry.getIndex() > 2).usingRecursiveFieldByFieldElementComparator()
+                    .containsExactly(logEntry(3, 3)));
+        }
     }
 
     private static SnapshotChunk snapshotChunkWithValues(int chunkIndex, int chunkCount, int first, int last) {

@@ -86,9 +86,8 @@ public class VoteRequestHandler extends AbstractMessageHandler<VoteRequest> {
         // Those VoteRequest objects are marked as "non-sticky" to bypass leader
         // stickiness.
         // Also if the request comes from the current leader, then the leader stickiness
-        // check is skipped.
-        // Since the current leader may have restarted by recovering its persistent
-        // state.
+        // check is skipped, since the current leader may have stepped down or
+        // restarted by recovering its persistent state.
         if (request.isSticky() && (state.leaderState() != null || !node.isLeaderHeartbeatTimeoutElapsed())
                 && !candidate.equals(state.leader())) {
             LOGGER.info("{} Rejecting {} since the leader is still alive...", localEndpointStr(), request);

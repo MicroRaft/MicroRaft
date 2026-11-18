@@ -80,8 +80,11 @@ public class PreVoteRequestHandler extends AbstractMessageHandler<PreVoteRequest
         }
 
         // Reply false if last AppendEntries call was received recently (leader
-        // stickiness)
-        if (state.leaderState() != null || !node.isLeaderHeartbeatTimeoutElapsed()) {
+        // stickiness). If the request comes from the current leader, the check is
+        // skipped, as in VoteRequestHandler, since the current leader may have
+        // stepped down or restarted by recovering its persistent state.
+        if ((state.leaderState() != null || !node.isLeaderHeartbeatTimeoutElapsed())
+                && !candidate.equals(state.leader())) {
             LOGGER.info("{} Rejecting {} since the leader is still alive...", localEndpointStr(), request);
             node.send(candidate, responseBuilder.setTerm(state.term()).setGranted(false).build());
             return;

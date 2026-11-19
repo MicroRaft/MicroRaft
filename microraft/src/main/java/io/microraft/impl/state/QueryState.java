@@ -28,6 +28,7 @@ import io.microraft.impl.statemachine.NoOp;
 import io.microraft.impl.util.OrderedFuture;
 import io.microraft.statemachine.StateMachine;
 
+
 /**
  * This class is used to keep query operations until a heartbeat round is
  * completed. These query operations are executed with the linearizability
@@ -40,20 +41,19 @@ import io.microraft.statemachine.StateMachine;
  * read-only queries and still preserve linearizability.
  */
 public final class QueryState {
-
     /**
-     * Queries waiting to be executed.
+     * Queries currently ready for execution. We call this the live batch.
      */
-    private final List<QueryContainer> queries = new ArrayList<>();
+    private final QueryBatch liveQueryBatch = new QueryBatch(new ArrayList<>(), 0);
+    /**
+     * Queries not ready for execution. Pending the completion of the previous batch.
+     * These are queued but the execution is not started yet.
+     */
+    private final QueryBatch waitingQueryBatch = new QueryBatch(new ArrayList<>(), 0);
     /**
      * The set of followers acknowledged the leader in the current query round.
      */
     private final Set<RaftEndpoint> acks = new HashSet<>();
-    /**
-     * The minimum log index required to be committed and applied on the leader to
-     * execute the queries.
-     */
-    private long readIndex;
     /**
      * The index of the heartbeat round to execute the currently waiting queries.
      * When a query is received and there is no other query waiting to be executed,
@@ -64,29 +64,41 @@ public final class QueryState {
      * queries.
      */
     private long querySequenceNumber;
+    /**
+     * Denotes if the current query batch is executing or not.
+     */
+    private boolean isBatchExecuting;
 
     /**
-     * Adds the given query to the collection of queries and returns the number of
-     * queries waiting to be executed. Also updates the minimum commit index that is
-     * expected on the leader to execute the queries.
+     * Adds the given query to the collection of pending queries.
+     * Also updates the minimum commit index that is expected on the leader to execute the queries.
      */
-    public boolean addQuery(long commitIndex, Object query, OrderedFuture resultFuture) {
-        if (commitIndex < readIndex) {
-            throw new IllegalArgumentException(
-                    "Cannot execute query: " + query + " at commit index because of the current " + this);
+    public void addQuery(long commitIndex, Object query, OrderedFuture resultFuture) {
+        waitingQueryBatch.addQuery(commitIndex, query, resultFuture);
+    }
+
+    /**
+     * Any caller that wants to execute the queries must call this method first.
+     * If true, the caller must start the execution of the queries.
+     */
+    public boolean executeQueryIfNotRunning() {
+        if (isBatchExecuting) {
+            return false;
         }
 
-        if (readIndex < commitIndex) {
-            readIndex = commitIndex;
+        // If the current batch is empty, we can start executing the next batch.
+        if (liveQueryBatch.isEmpty()) {
+            liveQueryBatch.copy(waitingQueryBatch);
+            waitingQueryBatch.clear();
         }
 
-        queries.add(new QueryContainer(query, resultFuture));
-        boolean firstQuery = queries.size() == 1;
-        if (firstQuery) {
-            querySequenceNumber++;
+        if (liveQueryBatch.isEmpty()) {
+            return false;
         }
 
-        return firstQuery;
+        querySequenceNumber++;
+        isBatchExecuting = true;
+        return true;
     }
 
     /**
@@ -98,7 +110,7 @@ public final class QueryState {
     public boolean tryAck(long querySequenceNumber, RaftEndpoint follower) {
         // If there is no query waiting to be executed or the received ack
         // belongs to an earlier query, we ignore it.
-        if (queries.isEmpty() || this.querySequenceNumber > querySequenceNumber) {
+        if (liveQueryBatch.isEmpty() || this.querySequenceNumber > querySequenceNumber) {
             return false;
         }
 
@@ -130,14 +142,14 @@ public final class QueryState {
      * the log replication quorum.
      * <p>
      * Fails with {@link IllegalStateException} if the given commit index is smaller
-     * than {@link #readIndex}.
+     * than the live batch's read index.
      */
     public boolean isQuorumAckReceived(long commitIndex, int quorumSize) {
-        if (readIndex > commitIndex) {
+        if (liveQueryBatch.readIndex > commitIndex) {
             throw new IllegalStateException("Cannot execute: " + this + ", current commit index: " + commitIndex);
         }
 
-        return queries.size() > 0 && quorumSize <= ackCount();
+        return !liveQueryBatch.isEmpty() && quorumSize <= ackCount();
     }
 
     /**
@@ -153,45 +165,62 @@ public final class QueryState {
      * size.
      */
     public boolean isAckNeeded(RaftEndpoint follower, int quorumSize) {
-        return queryCount() > 0 && !acks.contains(follower) && ackCount() < quorumSize;
+        return liveQueriesCount() > 0 && !acks.contains(follower) && ackCount() < quorumSize;
+    }
+
+    /**
+     * Returns the number of live queries.
+     */
+    public int liveQueriesCount() {
+        return liveQueryBatch.queries.size();
     }
 
     /**
      * Returns the number of queries waiting for execution.
      */
-    public int queryCount() {
-        return queries.size();
+    public int waitingQueriesCount() {
+        return waitingQueryBatch.queries.size();
     }
 
     /**
-     * Returns the queries waiting to be executed.
+     * Returns the live queries which are ready for execution.
+     * Once the queries are executed, completeLiveBatch must be called to mark the batch as complete.
      */
-    public Collection<QueryContainer> queries() {
-        return queries;
+    public Collection<QueryContainer> liveQueries() {
+        return liveQueryBatch.queries;
     }
 
     /**
-     * Fails the pending query futures with the given throwable.
+     * Fails the live and waiting query futures with the given throwable.
+     * This method is called when the leader steps down.
      */
     public void fail(Throwable t) {
-        for (QueryContainer query : queries) {
+        for (QueryContainer query : liveQueryBatch.queries) {
             query.fail(t);
         }
-        reset();
+
+        for (QueryContainer query : waitingQueryBatch.queries) {
+            query.fail(t);
+        }
+
+        completeLiveBatch();
+        waitingQueryBatch.clear();
     }
 
     /**
-     * Resets the collection of waiting queries and acks.
+     * Marks the execution of the live batch of queries as complete
      */
-    public void reset() {
-        queries.clear();
+    public void completeLiveBatch() {
+        isBatchExecuting = false;
+        liveQueryBatch.clear();
         acks.clear();
     }
 
     @Override
     public String toString() {
-        return "QueryState{" + "readIndex=" + readIndex + ", querySequenceNumber=" + querySequenceNumber
-                + ", queryCount=" + queryCount() + ", acks=" + acks + '}';
+        return "QueryState{" + "liveQueryBatch=" + liveQueryBatch + ", waitingQueryBatch=" + waitingQueryBatch
+                + ", querySequenceNumber=" + querySequenceNumber + ", isBatchExecuting=" + isBatchExecuting
+                + ", acks=" + acks + '}';
     }
 
     public static class QueryContainer {
@@ -217,6 +246,52 @@ public final class QueryState {
 
         public void fail(Throwable t) {
             future.fail(t);
+        }
+    }
+
+    private static final class QueryBatch {
+        /**
+         * List of queries in the batch.
+         */
+        private final List<QueryContainer> queries;
+        /**
+         * The minimum log index required to be committed and applied on the leader to
+         * execute the queries.
+         * The read index is always increasing across copy and clear operations.
+         */
+        private long readIndex;
+
+        private QueryBatch(List<QueryContainer> queries, long readIndex) {
+            this.queries = queries;
+            this.readIndex = readIndex;
+        }
+
+        public void addQuery(long commitIndex, Object query, OrderedFuture resultFuture) {
+            if (commitIndex < readIndex) {
+                throw new IllegalArgumentException(
+                        "Cannot execute query: " + query + " at commit index because of the current " + this);
+            }
+
+            queries.add(new QueryContainer(query, resultFuture));
+            readIndex = Math.max(readIndex, commitIndex);
+        }
+
+        public boolean isEmpty() {
+            return queries.isEmpty();
+        }
+
+        public void copy(QueryBatch other) {
+            queries.addAll(other.queries);
+            readIndex = Math.max(readIndex, other.readIndex);
+        }
+
+        public void clear() {
+            queries.clear();
+        }
+
+        @Override
+        public String toString() {
+            return "QueryBatch{" + "size=" + queries.size() + ", readIndex=" + readIndex + '}';
         }
     }
 

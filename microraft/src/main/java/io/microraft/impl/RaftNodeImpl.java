@@ -54,7 +54,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -366,7 +365,7 @@ public final class RaftNodeImpl implements RaftNode {
         // and we use the maxPendingLogEntryCount configuration parameter to upper-bound
         // the number of queries that are collected until the heartbeat round is done.
         QueryState queryState = state.leaderState().queryState();
-        return queryState.queryCount() < maxPendingLogEntryCount;
+        return queryState.liveQueriesCount() + queryState.waitingQueriesCount() < maxPendingLogEntryCount;
     }
 
     public void sendSnapshotChunk(RaftEndpoint follower, long snapshotIndex, int requestedSnapshotChunkIndex) {
@@ -1683,7 +1682,7 @@ public final class RaftNodeImpl implements RaftNode {
                 // a heartbeat...
                 entries = emptyList();
                 // amortize the cost of multiple queries.
-                backoff = leaderState.queryState().queryCount() > 0;
+                backoff = leaderState.queryState().liveQueriesCount() > 0;
             }
         } else if (nextIndex == 1 && lastLogIndex > 0) {
             // Entries will be sent to the target for the first time...
@@ -1693,7 +1692,7 @@ public final class RaftNodeImpl implements RaftNode {
             // heartbeat...
             entries = emptyList();
             // amortize cost of multiple queries.
-            backoff = leaderState.queryState().queryCount() > 0;
+            backoff = leaderState.queryState().liveQueriesCount() > 0;
         }
 
         if (backoff) {
@@ -2042,7 +2041,7 @@ public final class RaftNodeImpl implements RaftNode {
             return;
         }
 
-        Collection<QueryContainer> operations = queryState.queries();
+        Collection<QueryContainer> operations = queryState.liveQueries();
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(localEndpointStr + " running " + operations.size() + " queries at commit index: " + commitIndex
@@ -2053,7 +2052,10 @@ public final class RaftNodeImpl implements RaftNode {
             query.run(commitIndex, stateMachine);
         }
 
-        queryState.reset();
+        queryState.completeLiveBatch();
+        if (queryState.executeQueryIfNotRunning()) {
+            broadcastAppendEntriesRequest();
+        }
     }
 
     public void tryRunScheduledQueries() {

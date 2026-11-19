@@ -16,64 +16,43 @@
 
 package io.microraft.impl;
 
-import static io.microraft.QueryPolicy.LINEARIZABLE;
+import static io.microraft.RaftRole.LEADER;
 import static io.microraft.impl.local.SimpleStateMachine.applyValue;
-import static io.microraft.impl.local.SimpleStateMachine.queryLastValue;
 import static io.microraft.test.util.AssertionUtils.eventually;
-import static io.microraft.test.util.RaftTestUtils.getLeaderQuerySequenceNumber;
-import static io.microraft.test.util.RaftTestUtils.getMatchIndex;
-import static io.microraft.test.util.RaftTestUtils.getSnapshotEntry;
+import static io.microraft.test.util.RaftTestUtils.getCommitIndex;
+import static io.microraft.test.util.RaftTestUtils.getLastLogOrSnapshotEntry;
+import static io.microraft.test.util.RaftTestUtils.getRole;
 import static io.microraft.test.util.RaftTestUtils.getTerm;
 import static io.microraft.test.util.RaftTestUtils.readRaftState;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import io.microraft.Ordered;
 import io.microraft.RaftConfig;
-import io.microraft.impl.handler.AppendEntriesFailureResponseHandler;
-import io.microraft.impl.handler.AppendEntriesSuccessResponseHandler;
-import io.microraft.impl.handler.InstallSnapshotResponseHandler;
+import io.microraft.RaftEndpoint;
 import io.microraft.impl.local.LocalRaftGroup;
-import io.microraft.model.message.AppendEntriesFailureResponse;
+import io.microraft.model.message.AppendEntriesRequest;
 import io.microraft.model.message.AppendEntriesSuccessResponse;
-import io.microraft.model.message.InstallSnapshotRequest;
-import io.microraft.model.message.InstallSnapshotResponse;
+import io.microraft.model.message.PreVoteRequest;
+import io.microraft.model.message.VoteRequest;
 import io.microraft.test.util.BaseTest;
 
-/**
- * Follower indices and query sequence numbers belong to the leader state, which is
- * recreated every time a node becomes leader. A delayed response from an earlier
- * term can carry values that coincide with, or exceed, those of the current leader
- * state, so the leader must ignore it. Each test runs with the leader in its second
- * term so that the responses carry a term that really existed.
- */
 public class StaleTermResponseTest extends BaseTest {
 
     private static final RaftConfig CONFIG = RaftConfig.newBuilder().setLeaderElectionTimeoutMillis(500)
-            .setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(30).build();
+            .setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(3).build();
 
     private LocalRaftGroup group;
-    private RaftNodeImpl firstLeader;
-    private RaftNodeImpl leader;
-    private RaftNodeImpl follower;
-
-    @Before
-    public void before() {
-        group = LocalRaftGroup.newBuilder(3).setConfig(CONFIG).enableNewTermOperation().start();
-        firstLeader = group.waitUntilLeaderElected();
-        firstLeader.replicate(applyValue("one")).join();
-        List<RaftNodeImpl> others = group.getNodesExcept(firstLeader.getLocalEndpoint());
-        leader = others.get(0);
-        follower = others.get(1);
-    }
+    private RaftNodeImpl nodeA;
+    private RaftNodeImpl nodeB;
+    private RaftNodeImpl nodeC;
 
     @After
     public void destroy() {
@@ -83,134 +62,120 @@ public class StaleTermResponseTest extends BaseTest {
     }
 
     @Test(timeout = 300_000)
-    public void when_successResponseWithStaleTermAndEqualQuerySequenceNumber_then_queryIsNotAcked() {
-        transferLeadershipToLeader();
-        CompletableFuture<Ordered<Object>> query = startQueryWithoutAcks();
+    public void when_delayedSuccessResponseFromEarlierTermArrives_then_leaderDoesNotCommitEntryFollowerLacks() {
+        group = LocalRaftGroup.newBuilder(3).setConfig(CONFIG).start();
+        nodeA = group.waitUntilLeaderElected();
+        nodeA.replicate(applyValue("1a")).join();
+        long base = getCommitIndex(nodeA);
 
-        AppendEntriesSuccessResponse response = leader.getModelFactory().createAppendEntriesSuccessResponseBuilder()
-                .setGroupId(leader.getGroupId()).setSender(follower.getLocalEndpoint()).setTerm(staleTerm())
-                .setLastLogIndex(0).setQuerySequenceNumber(getLeaderQuerySequenceNumber(leader))
-                .setFlowControlSequenceNumber(0).build();
-        runOnLeader(new AppendEntriesSuccessResponseHandler(leader, response));
+        // A appends three entries in its term but replicates none of them.
+        List<RaftNodeImpl> others = group.getNodesExcept(nodeA.getLocalEndpoint());
+        others.forEach(other -> group.dropMessagesTo(nodeA.getLocalEndpoint(), other.getLocalEndpoint(),
+                AppendEntriesRequest.class));
+        Stream.of("1b", "1c", "1d").forEach(value -> nodeA.replicate(applyValue(value)));
+        eventually(() -> assertThat(lastIndex(nodeA)).isEqualTo(base + 3));
 
-        assertThat(query).isNotDone();
-    }
+        // B and C elect one of themselves, call it B, which appends an entry it can't replicate. A only hears their
+        // vote requests, which keep its term current.
+        silence(nodeA);
+        group.dropMessagesTo(others.get(0).getLocalEndpoint(), others.get(1).getLocalEndpoint(),
+                AppendEntriesRequest.class);
+        group.dropMessagesTo(others.get(1).getLocalEndpoint(), others.get(0).getLocalEndpoint(),
+                AppendEntriesRequest.class);
+        eventually(() -> assertThat(others.stream().filter(node -> getRole(node) == LEADER)).hasSize(1));
+        nodeB = others.stream().filter(node -> getRole(node) == LEADER).findFirst().orElseThrow();
+        nodeC = others.stream().filter(node -> node != nodeB).findFirst().orElseThrow();
+        nodeB.replicate(applyValue("2"));
+        eventually(() -> assertThat(lastIndex(nodeB)).isEqualTo(base + 1));
+        int termOfB = getTerm(nodeB);
 
-    @Test(timeout = 300_000)
-    public void when_successResponseWithStaleTermAndHigherLastLogIndex_then_matchIndexIsNotUpdated() {
-        dropResponsesTo(leader, follower);
-        transferLeadershipToLeader();
-        assertThat(getMatchIndex(leader, follower.getLocalEndpoint())).isZero();
-
-        long lastLogIndex = readRaftState(leader, () -> leader.state().log().lastLogOrSnapshotIndex());
-        AppendEntriesSuccessResponse response = leader.getModelFactory().createAppendEntriesSuccessResponseBuilder()
-                .setGroupId(leader.getGroupId()).setSender(follower.getLocalEndpoint()).setTerm(staleTerm())
-                .setLastLogIndex(lastLogIndex).setQuerySequenceNumber(0).setFlowControlSequenceNumber(0).build();
-        runOnLeader(new AppendEntriesSuccessResponseHandler(leader, response));
-
-        assertThat(getMatchIndex(leader, follower.getLocalEndpoint())).isZero();
-    }
-
-    @Test(timeout = 300_000)
-    public void when_failureResponseWithStaleTermAndMatchingExpectedNextIndex_then_nextIndexIsNotUpdated() {
-        dropResponsesTo(leader, follower);
-        transferLeadershipToLeader();
-        long nextIndex = getNextIndex();
-        assertThat(nextIndex).isGreaterThan(getMatchIndex(leader, follower.getLocalEndpoint()) + 1);
-
-        AppendEntriesFailureResponse response = leader.getModelFactory().createAppendEntriesFailureResponseBuilder()
-                .setGroupId(leader.getGroupId()).setSender(follower.getLocalEndpoint()).setTerm(staleTerm())
-                .setExpectedNextIndex(nextIndex).setQuerySequenceNumber(0).setFlowControlSequenceNumber(0).build();
-        runOnLeader(new AppendEntriesFailureResponseHandler(leader, response));
-
-        assertThat(getNextIndex()).isEqualTo(nextIndex);
-    }
-
-    @Test(timeout = 300_000)
-    public void when_installSnapshotResponseWithStaleTermAndEqualQuerySequenceNumber_then_queryIsNotAcked() {
-        transferLeadershipToLeader();
-        CompletableFuture<Ordered<Object>> query = startQueryWithoutAcks();
-
-        // The flow control sequence number does not match, so that a handled response
-        // acks the query but sends no snapshot chunk back.
-        InstallSnapshotResponse response = leader.getModelFactory().createInstallSnapshotResponseBuilder()
-                .setGroupId(leader.getGroupId()).setSender(follower.getLocalEndpoint()).setTerm(staleTerm())
-                .setSnapshotIndex(0).setRequestedSnapshotChunkIndex(0)
-                .setQuerySequenceNumber(getLeaderQuerySequenceNumber(leader))
-                .setFlowControlSequenceNumber(Long.MAX_VALUE).build();
-        runOnLeader(new InstallSnapshotResponseHandler(leader, response));
-
-        assertThat(query).isNotDone();
-    }
-
-    @Test(timeout = 300_000)
-    public void when_installSnapshotResponseWithStaleTermArrivesAtFollower_then_snapshotChunkIsStillServed() {
-        transferLeadershipToLeader();
-        follower.takeSnapshot().join();
-        long snapshotIndex = getSnapshotEntry(follower).getIndex();
-
-        AtomicReference<InstallSnapshotRequest> served = new AtomicReference<>();
-        group.alterMessagesTo(follower.getLocalEndpoint(), firstLeader.getLocalEndpoint(), message -> {
-            if (message instanceof InstallSnapshotRequest) {
-                served.compareAndSet(null, (InstallSnapshotRequest) message);
+        // A wins a newer term with C's vote and copies 1b..1d to C. C's ack for them is held back. B only hears
+        // vote requests.
+        resetAll();
+        silence(nodeB);
+        AtomicReference<AppendEntriesSuccessResponse> delayed = new AtomicReference<>();
+        group.alterMessagesTo(nodeC.getLocalEndpoint(), nodeA.getLocalEndpoint(), message -> {
+            if (message instanceof AppendEntriesSuccessResponse) {
+                AppendEntriesSuccessResponse response = (AppendEntriesSuccessResponse) message;
+                if (response.getLastLogIndex() == base + 3 && delayed.compareAndSet(null, response)) {
+                    return null;
+                }
             }
             return message;
         });
-
-        InstallSnapshotResponse response = follower.getModelFactory().createInstallSnapshotResponseBuilder()
-                .setGroupId(follower.getGroupId()).setSender(firstLeader.getLocalEndpoint())
-                .setTerm(getTerm(follower) - 1).setSnapshotIndex(snapshotIndex).setRequestedSnapshotChunkIndex(0)
-                .setQuerySequenceNumber(0).setFlowControlSequenceNumber(0).build();
-        readRaftState(follower, () -> {
-            new InstallSnapshotResponseHandler(follower, response).run();
-            return null;
+        eventually(() -> {
+            assertThat(getRole(nodeA)).isEqualTo(LEADER);
+            assertThat(getTerm(nodeA)).isGreaterThan(termOfB);
         });
+        eventually(() -> assertThat(delayed.get()).isNotNull());
+        AppendEntriesSuccessResponse staleResponse = delayed.get();
 
-        eventually(() -> assertThat(served.get()).isNotNull());
-        assertThat(served.get().isSenderLeader()).isFalse();
-        assertThat(served.get().getSnapshotIndex()).isEqualTo(snapshotIndex);
-        assertThat(served.get().getSnapshotChunk().getSnapshotChunkIndex()).isZero();
-        assertThat(served.get().getTerm()).isEqualTo(getTerm(follower));
-    }
-
-    private void transferLeadershipToLeader() {
-        firstLeader.transferLeadership(leader.getLocalEndpoint()).join();
-        eventually(() -> assertThat(group.getLeaderEndpoint()).isEqualTo(leader.getLocalEndpoint()));
-        leader.replicate(applyValue("two")).join();
-        assertThat(staleTerm()).isPositive();
-    }
-
-    // The query stays live because no follower acks can reach the leader.
-    private CompletableFuture<Ordered<Object>> startQueryWithoutAcks() {
-        dropResponsesTo(leader, firstLeader);
-        dropResponsesTo(leader, follower);
-        CompletableFuture<Ordered<Object>> query = leader.query(queryLastValue(), LINEARIZABLE, Optional.empty(),
-                Optional.empty());
-        eventually(() -> assertThat(getLeaderQuerySequenceNumber(leader)).isPositive());
-        assertThat(query).isNotDone();
-        return query;
-    }
-
-    private void dropResponsesTo(RaftNodeImpl target, RaftNodeImpl source) {
-        group.dropMessagesTo(source.getLocalEndpoint(), target.getLocalEndpoint(),
-                AppendEntriesSuccessResponse.class);
-        group.dropMessagesTo(source.getLocalEndpoint(), target.getLocalEndpoint(),
-                AppendEntriesFailureResponse.class);
-    }
-
-    private long getNextIndex() {
-        return readRaftState(leader,
-                () -> leader.state().leaderState().getFollowerState(follower.getLocalEndpoint()).nextIndex());
-    }
-
-    private int staleTerm() {
-        return getTerm(leader) - 1;
-    }
-
-    private void runOnLeader(Runnable handler) {
-        readRaftState(leader, () -> {
-            handler.run();
-            return null;
+        // A is cut off. B wins with C's vote, since its last entry has a newer term, and commits "4". This
+        // truncates 1b..1d from C, and then from A once A reconnects.
+        resetAll();
+        isolate(nodeA);
+        eventually(() -> {
+            assertThat(getRole(nodeB)).isEqualTo(LEADER);
+            assertThat(getTerm(nodeB)).isGreaterThan(staleResponse.getTerm());
         });
+        nodeB.replicate(applyValue("4")).join();
+        resetAll();
+        eventually(() -> assertThat(getCommitIndex(nodeA)).isEqualTo(base + 2));
+        assertThat(lastIndex(nodeA)).isEqualTo(base + 2);
+
+        // A wins a newer term again, and appends "5" at base + 3 without replicating it.
+        nodeB.transferLeadership(nodeA.getLocalEndpoint());
+        eventually(() -> assertThat(group.getLeaderEndpoint()).isEqualTo(nodeA.getLocalEndpoint()));
+        Stream.of(nodeB, nodeC).forEach(other -> group.dropMessagesTo(nodeA.getLocalEndpoint(),
+                other.getLocalEndpoint(), AppendEntriesRequest.class));
+        CompletableFuture<Ordered<Object>> five = nodeA.replicate(applyValue("5"));
+        eventually(() -> assertThat(lastIndex(nodeA)).isEqualTo(base + 3));
+
+        // C's ack from the earlier term arrives. It covers base + 3, where C held 1d, not "5".
+        nodeA.handle(staleResponse);
+        readRaftState(nodeA, () -> null);
+        long commitIndexOfA = getCommitIndex(nodeA);
+        boolean fiveAcked = five.isDone() && !five.isCompletedExceptionally();
+
+        // B and C, which never saw "5", elect a leader that commits "6" at the same index.
+        isolate(nodeA);
+        eventually(() -> assertThat(Stream.of(nodeB, nodeC).filter(node -> getRole(node) == LEADER)).hasSize(1));
+        RaftNodeImpl newLeader = Stream.of(nodeB, nodeC).filter(node -> getRole(node) == LEADER).findFirst()
+                .orElseThrow();
+        long sixIndex = newLeader.replicate(applyValue("6")).join().getCommitIndex();
+
+        assertThat(commitIndexOfA).as(
+                "%s committed \"5\" at index %s on a response from term %s (client acked: %s),"
+                        + " and %s then committed \"6\" at index %s",
+                nodeA.getLocalEndpoint().getId(), base + 3, staleResponse.getTerm(), fiveAcked,
+                newLeader.getLocalEndpoint().getId(), sixIndex).isLessThan(base + 3);
+    }
+
+    private void isolate(RaftNodeImpl node) {
+        RaftEndpoint endpoint = node.getLocalEndpoint();
+        List<RaftNodeImpl> nodes = group.getNodesExcept(endpoint);
+        nodes.stream().map(RaftNodeImpl::getLocalEndpoint).forEach(other -> {
+            group.dropAllMessagesTo(endpoint, other);
+            group.dropAllMessagesTo(other, endpoint);
+        });
+    }
+
+    private void silence(RaftNodeImpl node) {
+        RaftEndpoint endpoint = node.getLocalEndpoint();
+        List<RaftNodeImpl> nodes = group.getNodesExcept(endpoint);
+        nodes.stream().map(RaftNodeImpl::getLocalEndpoint).forEach(other -> {
+            group.dropMessagesTo(endpoint, other, AppendEntriesRequest.class);
+            group.dropMessagesTo(endpoint, other, PreVoteRequest.class);
+            group.dropMessagesTo(endpoint, other, VoteRequest.class);
+            group.dropMessagesTo(other, endpoint, AppendEntriesRequest.class);
+        });
+    }
+
+    private void resetAll() {
+        Stream.of(nodeA, nodeB, nodeC).forEach(node -> group.resetAllRulesFrom(node.getLocalEndpoint()));
+    }
+
+    private static long lastIndex(RaftNodeImpl node) {
+        return getLastLogOrSnapshotEntry(node).getIndex();
     }
 }

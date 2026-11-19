@@ -191,6 +191,26 @@ public final class QueryState {
     }
 
     /**
+     * Returns the minimum log index that must be applied to the state machine
+     * before the live queries can run.
+     */
+    public long liveQueriesReadIndex() {
+        return liveQueryBatch.readIndex;
+    }
+
+    /**
+     * Fails the live query futures with the given throwable and completes the
+     * live batch.
+     */
+    public void failLiveQueries(Throwable t) {
+        for (QueryContainer query : liveQueryBatch.queries) {
+            query.fail(t);
+        }
+
+        completeLiveBatch();
+    }
+
+    /**
      * Fails the live and waiting query futures with the given throwable.
      * This method is called when the leader steps down.
      */

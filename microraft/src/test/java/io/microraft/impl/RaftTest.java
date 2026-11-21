@@ -916,6 +916,40 @@ public class RaftTest extends BaseTest {
         assertThat(learnerCount).isEqualTo(2);
     }
 
+    /**
+     * Leader stickiness is skipped for the pre-vote and vote requests of the former
+     * leader, since a leader that starts an election has already stepped down or
+     * restarted.
+     */
+    @Test(timeout = 300_000)
+    public void when_formerLeaderStartsElection_then_leaderStickinessIsSkipped() {
+        // The heartbeat timeout is much longer than the expected election time, so a
+        // slow environment does not make the test fail.
+        int heartbeatTimeoutSecs = 200;
+        int expectedElectionSecs = 60;
+        RaftConfig config = RaftConfig.newBuilder().setLeaderHeartbeatPeriodSecs(1)
+                .setLeaderHeartbeatTimeoutSecs(heartbeatTimeoutSecs).build();
+        group = LocalRaftGroup.start(3, config);
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+
+        // The leader steps down in its term, while the followers still follow it, since
+        // its heartbeats have not timed out yet. The role is read in the same task,
+        // before the former leader can start a new election.
+        RaftRole roleAfterStepDown = CompletableFuture.supplyAsync(() -> {
+            leader.toFollower(leader.state().term());
+            return leader.state().role();
+        }, leader.getExecutor()::execute).join();
+
+        assertThat(roleAfterStepDown).isEqualTo(FOLLOWER);
+
+        // Only the former leader starts a new election, by sending pre-vote and vote
+        // requests, since it does not know a leader anymore. It becomes the leader
+        // again, since the followers grant its pre-vote and vote. If they rejected
+        // them because of leader stickiness, no leader could be elected until their
+        // heartbeat timeout elapses.
+        eventually(() -> assertThat(getRole(leader)).isEqualTo(LEADER), expectedElectionSecs);
+    }
+
     @Test(timeout = 30_000)
     public void learnerPreVoteDoesNotCount() {
         setUpElectionResponseTest();

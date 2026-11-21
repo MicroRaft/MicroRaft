@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import io.microraft.QueryPolicy;
 import io.microraft.RaftNodeStatus;
+import io.microraft.exception.LaggingStateMachineException;
 import io.microraft.exception.NotLeaderException;
 import io.microraft.exception.RaftException;
 import io.microraft.exception.RaftNodeFatalException;
@@ -155,6 +156,12 @@ public final class QueryTask implements Runnable {
                 raftNode.broadcastAppendEntriesRequest();
             }
         } else {
+            // One voter needs no peer acknowledgement, but it still needs to apply through the read index.
+            long lastApplied = state.lastApplied();
+            if (lastApplied < commitIndex) {
+                future.fail(new LaggingStateMachineException(lastApplied, commitIndex, raftNode.getLeaderEndpoint()));
+                return;
+            }
             queryWithEventualConsistency();
         }
     }

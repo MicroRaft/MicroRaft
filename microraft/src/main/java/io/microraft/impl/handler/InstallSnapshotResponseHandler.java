@@ -82,6 +82,12 @@ public class InstallSnapshotResponseHandler extends AbstractResponseHandler<Inst
 
                 node.toFollower(response.getTerm());
             }
+        } else if (response.getTerm() < state.term() && state.role() == LEADER) {
+            // A follower still serves the requested chunk: the requester checks the
+            // chunk against its own term when it arrives.
+            LOGGER.debug("{} Ignored {} from an earlier term. Current term: {}", localEndpointStr(), response,
+                    state.term());
+            return;
         }
 
         node.tryAckQuery(response.getQuerySequenceNumber(), response.getSender());

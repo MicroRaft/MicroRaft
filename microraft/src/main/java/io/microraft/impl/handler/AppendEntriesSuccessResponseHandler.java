@@ -65,6 +65,12 @@ public class AppendEntriesSuccessResponseHandler extends AbstractResponseHandler
             LOGGER.warn("{} Ignored invalid response {} for current term: {}", localEndpointStr(), response,
                     state.term());
             return;
+        } else if (response.getTerm() < state.term()) {
+            // Follower indices and query sequence numbers belong to the leader state
+            // of the term that sent the request, not to the current one.
+            LOGGER.debug("{} Ignored {} from an earlier term. Current term: {}", localEndpointStr(), response,
+                    state.term());
+            return;
         }
 
         LOGGER.debug("{} received {}.", localEndpointStr(), response);

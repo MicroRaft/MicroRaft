@@ -16,12 +16,14 @@
 
 package io.microraft.impl;
 
+import static io.microraft.MembershipChangeMode.REMOVE_MEMBER;
 import static io.microraft.QueryPolicy.LINEARIZABLE;
 import static io.microraft.impl.local.SimpleStateMachine.applyValue;
 import static io.microraft.impl.local.SimpleStateMachine.queryLastValue;
 import static io.microraft.test.util.AssertionUtils.eventually;
 import static io.microraft.test.util.RaftTestUtils.getLeaderQuerySequenceNumber;
 import static io.microraft.test.util.RaftTestUtils.readRaftState;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
@@ -38,6 +40,7 @@ import io.microraft.Ordered;
 import io.microraft.RaftConfig;
 import io.microraft.impl.handler.AppendEntriesSuccessResponseHandler;
 import io.microraft.impl.local.LocalRaftGroup;
+import io.microraft.model.message.AppendEntriesFailureResponse;
 import io.microraft.model.message.AppendEntriesSuccessResponse;
 import io.microraft.model.message.RaftMessage;
 import io.microraft.test.util.BaseTest;
@@ -51,6 +54,7 @@ public class LinearizableQueryBatchingTest extends BaseTest {
 
     private static final RaftConfig CONFIG = RaftConfig.newBuilder().setLeaderElectionTimeoutMillis(500)
             .setLeaderHeartbeatPeriodSecs(1).setLeaderHeartbeatTimeoutSecs(30).build();
+    private static final int OPERATION_TIMEOUT_SECONDS = 5;
 
     private LocalRaftGroup group;
 
@@ -109,5 +113,32 @@ public class LinearizableQueryBatchingTest extends BaseTest {
 
         holding.set(false);
         assertThat(query2.join().getResult()).isEqualTo("value1");
+    }
+
+    @Test(timeout = 30_000)
+    public void bothPendingQueryBatchesCompleteWhenGroupShrinksToOneVoter() throws Exception {
+        group = LocalRaftGroup.newBuilder(2).setConfig(CONFIG).build();
+        group.start();
+        RaftNodeImpl leader = group.waitUntilLeaderElected();
+        RaftNodeImpl follower = group.getAnyNodeExcept(leader.getLocalEndpoint());
+        leader.replicate(applyValue("value1")).get(OPERATION_TIMEOUT_SECONDS, SECONDS);
+
+        // Keep the first read in flight so the second read waits in the next batch.
+        group.dropMessagesTo(follower.getLocalEndpoint(), leader.getLocalEndpoint(), AppendEntriesSuccessResponse.class);
+        group.dropMessagesTo(follower.getLocalEndpoint(), leader.getLocalEndpoint(), AppendEntriesFailureResponse.class);
+        CompletableFuture<Ordered<Object>> first = leader.query(queryLastValue(), LINEARIZABLE, Optional.empty(),
+                Optional.empty());
+        CompletableFuture<Ordered<Object>> second = leader.query(queryLastValue(), LINEARIZABLE, Optional.empty(),
+                Optional.empty());
+        readRaftState(leader, () -> null);
+        assertThat(first).isNotDone();
+        assertThat(second).isNotDone();
+
+        assertThat(leader.changeMembership(follower.getLocalEndpoint(), REMOVE_MEMBER, 0)
+                .get(OPERATION_TIMEOUT_SECONDS, SECONDS).getResult().getVotingMembers())
+                .containsExactly(leader.getLocalEndpoint());
+
+        assertThat(first.get(OPERATION_TIMEOUT_SECONDS, SECONDS).getResult()).isEqualTo("value1");
+        assertThat(second.get(OPERATION_TIMEOUT_SECONDS, SECONDS).getResult()).isEqualTo("value1");
     }
 }

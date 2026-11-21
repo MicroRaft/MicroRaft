@@ -2037,24 +2037,31 @@ public final class RaftNodeImpl implements RaftNode {
 
         QueryState queryState = leaderState.queryState();
         long commitIndex = state.commitIndex();
-        if (!queryState.isQuorumAckReceived(commitIndex, state.logReplicationQuorumSize())) {
-            return;
-        }
+        int quorumSize = state.logReplicationQuorumSize();
+        while (queryState.isQuorumAckReceived(commitIndex, quorumSize)) {
+            Collection<QueryContainer> operations = queryState.liveQueries();
 
-        Collection<QueryContainer> operations = queryState.liveQueries();
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(localEndpointStr + " running " + operations.size() + " queries at commit index: "
+                        + commitIndex + ", query sequence number: " + queryState.querySequenceNumber());
+            }
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(localEndpointStr + " running " + operations.size() + " queries at commit index: " + commitIndex
-                    + ", query sequence number: " + queryState.querySequenceNumber());
-        }
+            for (QueryContainer query : operations) {
+                query.run(commitIndex, stateMachine);
+            }
 
-        for (QueryContainer query : operations) {
-            query.run(commitIndex, stateMachine);
-        }
+            queryState.completeLiveBatch();
+            if (!queryState.executeQueryIfNotRunning()) {
+                return;
+            }
 
-        queryState.completeLiveBatch();
-        if (queryState.executeQueryIfNotRunning()) {
-            broadcastAppendEntriesRequest();
+            // The sole committed voter can confirm the next batch without a reply.
+            RaftGroupMembersState committedMembers = state.committedGroupMembers();
+            if (quorumSize > 1 || committedMembers.votingMemberCount() != 1
+                    || !committedMembers.isVotingMember(getLocalEndpoint())) {
+                broadcastAppendEntriesRequest();
+                return;
+            }
         }
     }
 

@@ -150,7 +150,8 @@ public final class QueryTask implements Runnable {
                         + ", query sequence number: " + queryState.querySequenceNumber());
             }
 
-            if (queryState.addQuery(commitIndex, operation, future)) {
+            queryState.addQuery(commitIndex, operation, future);
+            if (queryState.executeQueryIfNotRunning()) {
                 raftNode.broadcastAppendEntriesRequest();
             }
         } else {

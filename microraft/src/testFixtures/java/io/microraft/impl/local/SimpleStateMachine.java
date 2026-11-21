@@ -51,6 +51,7 @@ public class SimpleStateMachine implements StateMachine, RaftNodeLifecycleAware,
     private long commitIndex;
     private volatile long failingInternalCommitIndex = -1;
     private volatile boolean internalCommitFailureTriggered;
+    private volatile boolean failSnapshots;
 
     public SimpleStateMachine() {
         this(true);
@@ -161,6 +162,10 @@ public class SimpleStateMachine implements StateMachine, RaftNodeLifecycleAware,
 
     @Override
     public void takeSnapshot(long commitIndex, Consumer<Object> chunkConsumer) {
+        if (failSnapshots) {
+            throw new IllegalStateException("Snapshot failure injected at commit index: " + commitIndex);
+        }
+
         // no need for synchronized because we are not mutating the map
         // and we are on the RaftNode thread
 
@@ -205,6 +210,11 @@ public class SimpleStateMachine implements StateMachine, RaftNodeLifecycleAware,
         }
 
         this.commitIndex = commitIndex;
+    }
+
+    /** Makes every later snapshot attempt throw. */
+    public void failSnapshots() {
+        failSnapshots = true;
     }
 
     /** Makes the internal commit callback fail at the given index. */

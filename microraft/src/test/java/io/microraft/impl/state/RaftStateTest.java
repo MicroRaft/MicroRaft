@@ -39,6 +39,8 @@ import org.junit.rules.ExpectedException;
 import io.microraft.RaftEndpoint;
 import io.microraft.impl.local.LocalRaftEndpoint;
 import io.microraft.impl.log.RaftLog;
+import io.microraft.impl.state.QueryState.QueryContainer;
+import io.microraft.impl.util.OrderedFuture;
 import io.microraft.model.impl.DefaultRaftModelFactory;
 import io.microraft.model.impl.log.DefaultLogEntryOrBuilder;
 import io.microraft.model.impl.log.DefaultRaftGroupMembersViewOrBuilder;
@@ -148,6 +150,36 @@ public class RaftStateTest {
         int last = 123;
         state.lastApplied(last);
         assertThat(state.lastApplied()).isEqualTo(last);
+    }
+
+    @Test
+    public void when_scheduledQueriesAreCollected_then_theyAreRemoved() {
+        QueryContainer first = new QueryContainer("first", new OrderedFuture<>());
+        QueryContainer second = new QueryContainer("second", new OrderedFuture<>());
+        QueryContainer later = new QueryContainer("later", new OrderedFuture<>());
+
+        state.addScheduledQuery(2, first);
+        state.addScheduledQuery(3, second);
+        state.addScheduledQuery(5, later);
+
+        state.lastApplied(1);
+        assertThat(state.collectScheduledQueriesToExecute()).isEmpty();
+
+        state.lastApplied(3);
+        Collection<QueryContainer> collected = state.collectScheduledQueriesToExecute();
+        assertThat(collected).containsExactly(first, second);
+
+        // Executed queries are no longer pending, but the returned list remains valid
+        assertThat(state.collectScheduledQueriesToExecute()).isEmpty();
+        assertThat(state.removeScheduledQuery(2, first)).isFalse();
+        assertThat(state.removeScheduledQuery(3, second)).isFalse();
+        assertThat(collected).containsExactly(first, second);
+
+        // A query for a higher index must remain scheduled until it becomes eligible
+        state.lastApplied(5);
+        assertThat(state.collectScheduledQueriesToExecute()).containsExactly(later);
+        assertThat(state.collectScheduledQueriesToExecute()).isEmpty();
+        assertThat(state.removeScheduledQuery(5, later)).isFalse();
     }
 
     @Test

@@ -1049,6 +1049,7 @@ public final class RaftState {
 
         List<QueryContainer> queries = new ArrayList<>();
         queriesToExecute.values().forEach(queries::addAll);
+        queriesToExecute.clear();
 
         return queries;
     }

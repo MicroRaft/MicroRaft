@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "io.microraft"
-version = "0.9-SNAPSHOT"
+version = "0.9"
 
 metadata {
     moduleName = "io.microraft.hocon"

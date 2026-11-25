@@ -1032,8 +1032,8 @@ public final class RaftState {
     }
 
     /**
-     * Removes and returns all queries waiting to be executed at a log index which
-     * is less than equal to the current commit index.
+     * Removes and returns queries whose requested log index is at or below the
+     * last applied index.
      *
      * @return the queries to be executed now.
      */
